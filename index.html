@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monɔkɔ — Dictionnaire Français-Lingala</title>
+  <title>Monɔkɔ — Dictionnaire multilingue</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #F7F3ED; }
-    input::placeholder { color: #B8A88C; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: #D4C8B4; border-radius: 4px; }
-    @keyframes slideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-    @keyframes spin { to{transform:rotate(360deg)} }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#F7F3ED}
+    input::placeholder{color:#B8A88C}
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-thumb{background:#D4C8B4;border-radius:4px}
+    @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
@@ -31,110 +31,54 @@
 
     async function supaFetch(table, params = "") {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-        },
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
       });
       if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
       return res.json();
     }
 
-    async function supaCount(table) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id`, {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          Prefer: "count=exact",
-          Range: "0-0",
-        },
+    async function supaCount(table, filter = "") {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id${filter ? '&' + filter : ''}`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: "count=exact", Range: "0-0" },
       });
       const range = res.headers.get("content-range");
       return range ? parseInt(range.split("/")[1]) : 0;
     }
 
-    const SearchIcon = () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-      </svg>
-    );
-    const BookIcon = () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-      </svg>
-    );
-    const ArrowLeft = () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
-      </svg>
-    );
-    const ChevronRight = () => (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 18l6-6-6-6"/>
-      </svg>
-    );
-    const VolumeIcon = () => (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-      </svg>
-    );
-    const Spinner = () => (
-      <div style={{ display:"flex", justifyContent:"center", padding: 40 }}>
-        <div style={{
-          width: 32, height: 32, border: "3px solid #E8E0D4",
-          borderTopColor: "#2C5F2D", borderRadius: "50%",
-          animation: "spin 0.8s linear infinite",
-        }}/>
-      </div>
-    );
+    // Language colors/flags
+    const LANG_THEMES = {
+      "Lingala": { emoji: "🇨🇩", gradient: "linear-gradient(135deg, #2C5F2D, #4A8B4C)", accent: "#2C5F2D" },
+      "Yoruba": { emoji: "🇳🇬", gradient: "linear-gradient(135deg, #1B5E20, #388E3C)", accent: "#1B5E20" },
+    };
+    const defaultTheme = { emoji: "🌍", gradient: "linear-gradient(135deg, #2C5F2D, #4A8B4C)", accent: "#2C5F2D" };
+
+    const SearchIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>);
+    const BookIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>);
+    const ArrowLeft = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>);
+    const ChevronRight = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>);
+    const VolumeIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>);
+    const GlobeIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>);
+    const Spinner = () => (<div style={{display:"flex",justifyContent:"center",padding:40}}><div style={{width:32,height:32,border:"3px solid #E8E0D4",borderTopColor:"#2C5F2D",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/></div>);
 
     const SenseCard = ({ sense, index }) => (
-      <div style={{
-        background: "white", borderRadius: 16, padding: "20px 24px",
-        marginBottom: 12, border: "1px solid #E8E0D4",
-        boxShadow: "0 1px 3px rgba(139,109,71,0.06)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <span style={{
-            background: "#2C5F2D", color: "white", fontSize: 11, fontWeight: 700,
-            padding: "3px 10px", borderRadius: 20, letterSpacing: "0.05em",
-            fontFamily: "'DM Mono', monospace",
-          }}>SENS {index + 1}</span>
-          <span style={{
-            fontSize: 22, fontWeight: 700, color: "#2C5F2D",
-            fontFamily: "'Playfair Display', serif",
-          }}>{sense.dialect_word}</span>
-          <button style={{
-            background: "#F0EBE3", border: "none", borderRadius: "50%",
-            width: 32, height: 32, display: "flex", alignItems: "center",
-            justifyContent: "center", cursor: "pointer", color: "#8B6D47",
-            marginLeft: "auto", flexShrink: 0,
-          }} title="Audio (bientôt disponible)">
-            <VolumeIcon />
-          </button>
+      <div style={{ background:"white", borderRadius:16, padding:"20px 24px", marginBottom:12, border:"1px solid #E8E0D4", boxShadow:"0 1px 3px rgba(139,109,71,0.06)" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+          <span style={{ background:"#2C5F2D", color:"white", fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20, letterSpacing:"0.05em", fontFamily:"'DM Mono', monospace" }}>SENS {index+1}</span>
+          <span style={{ fontSize:22, fontWeight:700, color:"#2C5F2D", fontFamily:"'Playfair Display', serif" }}>{sense.dialect_word}</span>
+          <button style={{ background:"#F0EBE3", border:"none", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"#8B6D47", marginLeft:"auto", flexShrink:0 }} title="Audio (bientôt disponible)"><VolumeIcon /></button>
         </div>
         {sense.examples && sense.examples.length > 0 && (
-          <div style={{
-            background: "#FDFBF7", borderRadius: 12, padding: "14px 18px",
-            borderLeft: "3px solid #D4A843",
-          }}>
-            <p style={{
-              margin: 0, fontSize: 15, color: "#5C4A2E", fontStyle: "italic",
-              lineHeight: 1.5, fontFamily: "'Source Serif 4', serif",
-            }}>« {sense.examples[0].sentence_dialect} »</p>
-            <p style={{
-              margin: "8px 0 0", fontSize: 13, color: "#9B8A6E",
-              lineHeight: 1.4, fontFamily: "'DM Sans', sans-serif",
-            }}>{sense.examples[0].sentence_french}</p>
+          <div style={{ background:"#FDFBF7", borderRadius:12, padding:"14px 18px", borderLeft:"3px solid #D4A843" }}>
+            <p style={{ margin:0, fontSize:15, color:"#5C4A2E", fontStyle:"italic", lineHeight:1.5, fontFamily:"'Source Serif 4', serif" }}>« {sense.examples[0].sentence_dialect} »</p>
+            <p style={{ margin:"8px 0 0", fontSize:13, color:"#9B8A6E", lineHeight:1.4, fontFamily:"'DM Sans', sans-serif" }}>{sense.examples[0].sentence_french}</p>
           </div>
         )}
       </div>
     );
 
-    const WordDetail = ({ wordId, onBack }) => {
+    const WordDetail = ({ wordId, langName, onBack }) => {
       const [data, setData] = useState(null);
       const [loading, setLoading] = useState(true);
-
       useEffect(() => {
         (async () => {
           setLoading(true);
@@ -146,75 +90,43 @@
           setLoading(false);
         })();
       }, [wordId]);
-
       if (loading) return <Spinner />;
       if (!data) return <p style={{textAlign:"center",color:"#9B8A6E",padding:40}}>Erreur de chargement</p>;
-
       return (
-        <div style={{ animation: "slideIn 0.25s ease-out" }}>
-          <button onClick={onBack} style={{
-            display: "flex", alignItems: "center", gap: 6, background: "none",
-            border: "none", color: "#8B6D47", fontSize: 14, fontWeight: 600,
-            cursor: "pointer", padding: "8px 0", marginBottom: 8,
-            fontFamily: "'DM Sans', sans-serif",
-          }}><ArrowLeft /> Retour</button>
-
-          <div style={{
-            background: "linear-gradient(135deg, #2C5F2D 0%, #1A3D1B 100%)",
-            borderRadius: 20, padding: "28px 28px 24px", marginBottom: 20,
-            position: "relative", overflow: "hidden",
-          }}>
+        <div style={{ animation:"slideIn 0.25s ease-out" }}>
+          <button onClick={onBack} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:8, fontFamily:"'DM Sans', sans-serif" }}><ArrowLeft /> Retour</button>
+          <div style={{ background:"linear-gradient(135deg, #2C5F2D 0%, #1A3D1B 100%)", borderRadius:20, padding:"28px 28px 24px", marginBottom:20, position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }}/>
             <div style={{ position:"absolute", bottom:-20, left:40, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.03)" }}/>
-            <span style={{
-              fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 600,
-              letterSpacing: "0.12em", textTransform: "uppercase",
-              fontFamily: "'DM Mono', monospace",
-            }}>Français → Lingala</span>
-            <h2 style={{
-              margin: "8px 0 4px", fontSize: 36, fontWeight: 800, color: "white",
-              fontFamily: "'Playfair Display', serif", lineHeight: 1.1,
-            }}>{data.word.french_word}</h2>
-            <span style={{
-              fontSize: 13, color: "rgba(255,255,255,0.45)",
-              fontFamily: "'DM Sans', sans-serif",
-            }}>{data.senses.length} {data.senses.length > 1 ? "traductions" : "traduction"}</span>
+            <span style={{ fontSize:12, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>Français → {langName}</span>
+            <h2 style={{ margin:"8px 0 4px", fontSize:36, fontWeight:800, color:"white", fontFamily:"'Playfair Display', serif", lineHeight:1.1 }}>{data.word.french_word}</h2>
+            <span style={{ fontSize:13, color:"rgba(255,255,255,0.45)", fontFamily:"'DM Sans', sans-serif" }}>{data.senses.length} {data.senses.length > 1 ? "traductions" : "traduction"}</span>
           </div>
-
-          {data.senses.map((sense, i) => (
-            <SenseCard key={sense.id} sense={sense} index={i} />
-          ))}
+          {data.senses.map((sense, i) => <SenseCard key={sense.id} sense={sense} index={i} />)}
         </div>
       );
     };
 
     const ResultRow = ({ word, onClick }) => (
-      <button onClick={onClick} style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        width: "100%", background: "white", border: "1px solid #E8E0D4",
-        borderRadius: 14, padding: "16px 20px", marginBottom: 8,
-        cursor: "pointer", textAlign: "left", transition: "all 0.15s",
-        boxShadow: "0 1px 2px rgba(139,109,71,0.04)",
-      }}
-      onMouseOver={e => { e.currentTarget.style.borderColor="#D4A843"; e.currentTarget.style.boxShadow="0 2px 8px rgba(212,168,67,0.12)"; }}
-      onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}
-      >
+      <button onClick={onClick} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"16px 20px", marginBottom:8, cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:"0 1px 2px rgba(139,109,71,0.04)" }}
+        onMouseOver={e => { e.currentTarget.style.borderColor="#D4A843"; e.currentTarget.style.boxShadow="0 2px 8px rgba(212,168,67,0.12)"; }}
+        onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}>
         <div>
-          <div style={{ fontSize: 17, fontWeight: 700, color: "#2D2118", fontFamily: "'Playfair Display', serif" }}>
-            {word.french_word}
-          </div>
-          {word.dialect_words && (
-            <div style={{ fontSize: 14, color: "#2C5F2D", marginTop: 3, fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
-              {word.dialect_words}
-            </div>
-          )}
+          <div style={{ fontSize:17, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>{word.french_word}</div>
+          {word.dialect_words && <div style={{ fontSize:14, color:"#2C5F2D", marginTop:3, fontFamily:"'DM Sans', sans-serif", fontWeight:500 }}>{word.dialect_words}</div>}
         </div>
-        <div style={{ color: "#C4B8A4", flexShrink: 0 }}><ChevronRight /></div>
+        <div style={{ color:"#C4B8A4", flexShrink:0 }}><ChevronRight /></div>
       </button>
     );
 
     function App() {
-      const [view, setView] = useState("home");
+      // Language selection
+      const [languages, setLanguages] = useState([]);
+      const [selectedLang, setSelectedLang] = useState(null);
+      const [loadingLangs, setLoadingLangs] = useState(true);
+
+      // Dictionary state
+      const [view, setView] = useState("lang_select");
       const [query, setQuery] = useState("");
       const [searchMode, setSearchMode] = useState("french");
       const [results, setResults] = useState([]);
@@ -227,47 +139,75 @@
       const [wordOfDay, setWordOfDay] = useState(null);
       const [prevView, setPrevView] = useState("home");
       const inputRef = useRef(null);
-
       const LETTERS = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split(" ");
 
+      // Load languages on mount
       useEffect(() => {
         (async () => {
           try {
-            const wc = await supaCount("words");
-            const sc = await supaCount("senses");
-            setStats({ words: wc, senses: sc });
-
-            const dayOffset = Math.floor(Date.now() / 86400000) % Math.max(wc, 1);
-            const wotd = await supaFetch("words", `select=*,senses(dialect_word)&limit=1&offset=${dayOffset}`);
-            if (wotd[0]) {
-              setWordOfDay({
-                id: wotd[0].id,
-                french_word: wotd[0].french_word,
-                dialect_word: wotd[0].senses?.[0]?.dialect_word || "—",
-              });
+            const langs = await supaFetch("languages", "select=*&status=eq.active&order=name");
+            // Get word counts per language
+            const withCounts = await Promise.all(langs.map(async (l) => {
+              const wc = await supaCount("words", `language_id=eq.${l.id}`);
+              return { ...l, wordCount: wc };
+            }));
+            setLanguages(withCounts);
+            // If only one language, skip selection
+            if (withCounts.length === 1) {
+              selectLanguage(withCounts[0]);
             }
-          } catch (e) { console.error("Init error:", e); }
+          } catch (e) { console.error("Failed to load languages:", e); }
+          setLoadingLangs(false);
         })();
       }, []);
+
+      const selectLanguage = async (lang) => {
+        setSelectedLang(lang);
+        setView("home");
+        // Load stats for this language
+        try {
+          const wc = await supaCount("words", `language_id=eq.${lang.id}`);
+          const sc = await supaCount("senses", `word_id=in.(select id from words where language_id=eq.${lang.id})`);
+          setStats({ words: wc, senses: sc || wc });
+
+          const dayOffset = Math.floor(Date.now() / 86400000) % Math.max(wc, 1);
+          const wotd = await supaFetch("words", `select=*,senses(dialect_word)&language_id=eq.${lang.id}&limit=1&offset=${dayOffset}`);
+          if (wotd[0]) {
+            setWordOfDay({ id: wotd[0].id, french_word: wotd[0].french_word, dialect_word: wotd[0].senses?.[0]?.dialect_word || "—" });
+          }
+        } catch (e) { console.error(e); }
+      };
+
+      const switchLanguage = () => {
+        setView("lang_select");
+        setSelectedLang(null);
+        setQuery("");
+        setResults([]);
+        setHasSearched(false);
+        setBrowseLetter(null);
+        setBrowseWords([]);
+        setWordOfDay(null);
+        setStats({ words: 0, senses: 0 });
+      };
 
       useEffect(() => {
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
       }, [view]);
 
+      const langId = selectedLang?.id;
+      const langName = selectedLang?.name || "";
+      const theme = LANG_THEMES[langName] || defaultTheme;
+
       const doSearch = useCallback(async () => {
         const q = query.trim();
-        if (!q) return;
-        setLoading(true);
-        setHasSearched(true);
+        if (!q || !langId) return;
+        setLoading(true); setHasSearched(true);
         try {
           if (searchMode === "french") {
-            const data = await supaFetch("words", `select=id,french_word,letter,senses(dialect_word)&french_word=ilike.*${encodeURIComponent(q)}*&order=french_word&limit=50`);
-            setResults(data.map(w => ({
-              id: w.id, french_word: w.french_word,
-              dialect_words: w.senses?.map(s => s.dialect_word).join(" · ") || "",
-            })));
+            const data = await supaFetch("words", `select=id,french_word,letter,senses(dialect_word)&language_id=eq.${langId}&french_word=ilike.*${encodeURIComponent(q)}*&order=french_word&limit=50`);
+            setResults(data.map(w => ({ id: w.id, french_word: w.french_word, dialect_words: w.senses?.map(s => s.dialect_word).join(" · ") || "" })));
           } else {
-            const senseData = await supaFetch("senses", `select=id,dialect_word,word_id,words(id,french_word)&dialect_word=ilike.*${encodeURIComponent(q)}*&limit=50`);
+            const senseData = await supaFetch("senses", `select=id,dialect_word,word_id,words!inner(id,french_word,language_id)&words.language_id=eq.${langId}&dialect_word=ilike.*${encodeURIComponent(q)}*&limit=50`);
             const seen = new Set();
             const mapped = [];
             for (const s of senseData) {
@@ -280,132 +220,168 @@
           }
         } catch (e) { console.error(e); setResults([]); }
         setLoading(false);
-      }, [query, searchMode]);
+      }, [query, searchMode, langId]);
 
       const loadBrowse = useCallback(async (letter) => {
-        setBrowseLetter(letter);
-        setLoading(true);
+        if (!langId) return;
+        setBrowseLetter(letter); setLoading(true);
         try {
-          const accentMap = {
-            'A': ['A','À','Â'], 'E': ['E','É','Ê','È'],
-            'I': ['I','Î','Ï'], 'O': ['O','Ô'],
-            'U': ['U','Ù','Û','Ü'], 'C': ['C','Ç'],
-          };
+          const accentMap = { 'A':['A','À','Â'], 'E':['E','É','Ê','È'], 'I':['I','Î','Ï'], 'O':['O','Ô'], 'U':['U','Ù','Û','Ü'], 'C':['C','Ç'] };
           const prefixes = accentMap[letter] || [letter];
           const orFilter = prefixes.map(p => `french_word.ilike.${encodeURIComponent(p + '%')}`).join(",");
-          const data = await supaFetch("words", `select=id,french_word,senses(dialect_word)&or=(${orFilter})&order=french_word&limit=500`);
-          setBrowseWords(data.map(w => ({
-            id: w.id, french_word: w.french_word,
-            dialect_words: w.senses?.map(s => s.dialect_word).join(" · ") || "",
-          })));
+          const data = await supaFetch("words", `select=id,french_word,senses(dialect_word)&language_id=eq.${langId}&or=(${orFilter})&order=french_word&limit=500`);
+          setBrowseWords(data.map(w => ({ id: w.id, french_word: w.french_word, dialect_words: w.senses?.map(s => s.dialect_word).join(" · ") || "" })));
         } catch (e) { console.error(e); setBrowseWords([]); }
         setLoading(false);
-      }, []);
+      }, [langId]);
 
-      const openWord = (id, fromView) => {
-        setPrevView(fromView || view);
-        setSelectedWordId(id);
-        setView("detail");
-      };
+      const openWord = (id, fromView) => { setPrevView(fromView || view); setSelectedWordId(id); setView("detail"); };
 
       return (
-        <div style={{
-          maxWidth: 480, margin: "0 auto", minHeight: "100vh",
-          background: "#F7F3ED", fontFamily: "'DM Sans', sans-serif",
-        }}>
-          <div style={{ padding: "0 20px 100px" }}>
+        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#F7F3ED", fontFamily:"'DM Sans', sans-serif" }}>
+          <div style={{ padding:"0 20px 100px" }}>
+
+            {/* LANGUAGE SELECT */}
+            {view === "lang_select" && (
+              <div style={{ animation:"fadeIn 0.3s ease-out" }}>
+                <div style={{ textAlign:"center", paddingTop:60, paddingBottom:40 }}>
+                  <div style={{
+                    width:72, height:72, borderRadius:20,
+                    background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(44,95,45,0.25)",
+                    animation:"float 4s ease-in-out infinite",
+                  }}><span style={{ fontSize:32 }}>📖</span></div>
+                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:800, color:"#2D2118", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
+                  <p style={{ color:"#9B8A6E", fontSize:14, margin:"0 0 8px", fontWeight:500 }}>Dictionnaire des langues africaines</p>
+                  <p style={{ color:"#B8A88C", fontSize:13 }}>Choisissez une langue</p>
+                </div>
+
+                {loadingLangs ? <Spinner /> : (
+                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                    {languages.map(lang => {
+                      const t = LANG_THEMES[lang.name] || defaultTheme;
+                      return (
+                        <button key={lang.id} onClick={() => selectLanguage(lang)} style={{
+                          display:"flex", alignItems:"center", gap:16, width:"100%",
+                          background:"white", border:"1px solid #E8E0D4", borderRadius:18,
+                          padding:"22px 24px", cursor:"pointer", textAlign:"left",
+                          transition:"all 0.2s", boxShadow:"0 2px 8px rgba(139,109,71,0.06)",
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 6px 20px rgba(139,109,71,0.1)"; }}
+                        onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(139,109,71,0.06)"; }}>
+                          <div style={{ width:48, height:48, borderRadius:14, background:t.gradient, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:24 }}>{t.emoji}</div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:18, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>
+                              Français — {lang.name}
+                            </div>
+                            <div style={{ fontSize:13, color:"#9B8A6E", marginTop:2 }}>
+                              {lang.wordCount?.toLocaleString() || 0} mots
+                            </div>
+                          </div>
+                          <div style={{ color:"#C4B8A4" }}><ChevronRight /></div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <p style={{ textAlign:"center", color:"#B8A88C", fontSize:12, marginTop:32, fontStyle:"italic" }}>
+                  D'autres langues arrivent bientôt...
+                </p>
+              </div>
+            )}
 
             {/* HOME */}
-            {view === "home" && (
-              <div style={{ animation: "fadeIn 0.3s ease-out" }}>
-                <div style={{ textAlign: "center", paddingTop: 48, paddingBottom: 32 }}>
+            {view === "home" && selectedLang && (
+              <div style={{ animation:"fadeIn 0.3s ease-out" }}>
+                <div style={{ textAlign:"center", paddingTop:48, paddingBottom:32 }}>
                   <div style={{
-                    width: 72, height: 72, borderRadius: 20,
-                    background: "linear-gradient(135deg, #2C5F2D, #4A8B4C)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    margin: "0 auto 16px", boxShadow: "0 8px 24px rgba(44,95,45,0.25)",
-                    animation: "float 4s ease-in-out infinite",
-                  }}><span style={{ fontSize: 32 }}>📖</span></div>
-                  <h1 style={{
-                    fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 800,
-                    color: "#2D2118", margin: "0 0 4px", lineHeight: 1.1,
-                  }}>Monɔkɔ</h1>
-                  <p style={{ color: "#9B8A6E", fontSize: 14, margin: 0, fontWeight: 500 }}>
-                    Dictionnaire Français — Lingala
-                  </p>
+                    width:72, height:72, borderRadius:20, background:theme.gradient,
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    margin:"0 auto 16px", boxShadow:`0 8px 24px ${theme.accent}40`,
+                    animation:"float 4s ease-in-out infinite",
+                  }}><span style={{ fontSize:32 }}>📖</span></div>
+                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:800, color:"#2D2118", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
+                  <p style={{ color:"#9B8A6E", fontSize:14, margin:0, fontWeight:500 }}>Dictionnaire Français — {langName}</p>
+
+                  {/* Switch language button */}
+                  <button onClick={switchLanguage} style={{
+                    display:"inline-flex", alignItems:"center", gap:6, marginTop:12,
+                    background:"#F0EBE3", border:"1px solid #E8E0D4", borderRadius:20,
+                    padding:"6px 14px", fontSize:12, fontWeight:600, color:"#8B6D47",
+                    cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
+                  }}>
+                    <GlobeIcon /> Changer de langue
+                  </button>
                 </div>
 
                 <div style={{
-                  display: "flex", justifyContent: "center", gap: 24, marginBottom: 32,
-                  padding: "14px 0", borderTop: "1px solid #E8E0D4", borderBottom: "1px solid #E8E0D4",
+                  display:"flex", justifyContent:"center", gap:24, marginBottom:32,
+                  padding:"14px 0", borderTop:"1px solid #E8E0D4", borderBottom:"1px solid #E8E0D4",
                 }}>
                   {[
                     { n: stats.words.toLocaleString(), label: "mots" },
                     { n: stats.senses.toLocaleString(), label: "traductions" },
                     { n: "A–Z", label: "complet" },
-                  ].map((s, i) => (
-                    <div key={i} style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: "#2C5F2D", fontFamily: "'Playfair Display', serif" }}>{s.n}</div>
-                      <div style={{ fontSize: 11, color: "#9B8A6E", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>{s.label}</div>
+                  ].map((s,i) => (
+                    <div key={i} style={{ textAlign:"center" }}>
+                      <div style={{ fontSize:22, fontWeight:800, color:theme.accent, fontFamily:"'Playfair Display', serif" }}>{s.n}</div>
+                      <div style={{ fontSize:11, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   {[
-                    { icon: <SearchIcon/>, title: "Rechercher un mot", sub: "Français → Lingala ou Lingala → Français", grad: "linear-gradient(135deg, #D4A843, #C4912E)", v: "search" },
-                    { icon: <BookIcon/>, title: "Parcourir A — Z", sub: "Explorer le dictionnaire par lettre", grad: "linear-gradient(135deg, #2C5F2D, #4A8B4C)", v: "browse" },
-                  ].map((c, i) => (
+                    { icon:<SearchIcon/>, title:"Rechercher un mot", sub:`Français → ${langName} ou ${langName} → Français`, grad:"linear-gradient(135deg, #D4A843, #C4912E)", v:"search" },
+                    { icon:<BookIcon/>, title:"Parcourir A — Z", sub:"Explorer le dictionnaire par lettre", grad:theme.gradient, v:"browse" },
+                  ].map((c,i) => (
                     <button key={i} onClick={() => setView(c.v)} style={{
-                      display: "flex", alignItems: "center", gap: 16, width: "100%",
-                      background: "white", border: "1px solid #E8E0D4", borderRadius: 18,
-                      padding: "22px 24px", cursor: "pointer", textAlign: "left",
-                      transition: "all 0.2s", boxShadow: "0 2px 8px rgba(139,109,71,0.06)",
+                      display:"flex", alignItems:"center", gap:16, width:"100%",
+                      background:"white", border:"1px solid #E8E0D4", borderRadius:18,
+                      padding:"22px 24px", cursor:"pointer", textAlign:"left",
+                      transition:"all 0.2s", boxShadow:"0 2px 8px rgba(139,109,71,0.06)",
                     }}
                     onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 6px 20px rgba(139,109,71,0.1)"; }}
-                    onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(139,109,71,0.06)"; }}
-                    >
-                      <div style={{
-                        width: 48, height: 48, borderRadius: 14, background: c.grad,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: "white", flexShrink: 0,
-                      }}>{c.icon}</div>
+                    onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(139,109,71,0.06)"; }}>
+                      <div style={{ width:48, height:48, borderRadius:14, background:c.grad, display:"flex", alignItems:"center", justifyContent:"center", color:"white", flexShrink:0 }}>{c.icon}</div>
                       <div>
-                        <div style={{ fontSize: 17, fontWeight: 700, color: "#2D2118", fontFamily: "'Playfair Display', serif" }}>{c.title}</div>
-                        <div style={{ fontSize: 13, color: "#9B8A6E", marginTop: 2 }}>{c.sub}</div>
+                        <div style={{ fontSize:17, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>{c.title}</div>
+                        <div style={{ fontSize:13, color:"#9B8A6E", marginTop:2 }}>{c.sub}</div>
                       </div>
-                      <div style={{ marginLeft: "auto", color: "#C4B8A4" }}><ChevronRight /></div>
+                      <div style={{ marginLeft:"auto", color:"#C4B8A4" }}><ChevronRight /></div>
                     </button>
                   ))}
                 </div>
 
                 {wordOfDay && (
                   <div style={{
-                    marginTop: 24, background: "linear-gradient(135deg, #2D2118, #4A3828)",
-                    borderRadius: 20, padding: "24px 28px", cursor: "pointer",
-                    position: "relative", overflow: "hidden",
+                    marginTop:24, background:"linear-gradient(135deg, #2D2118, #4A3828)",
+                    borderRadius:20, padding:"24px 28px", cursor:"pointer",
+                    position:"relative", overflow:"hidden",
                   }} onClick={() => openWord(wordOfDay.id, "home")}>
                     <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"100%", background:"linear-gradient(135deg, transparent, rgba(212,168,67,0.08))" }}/>
-                    <span style={{ fontSize: 10, color: "#D4A843", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>✦ MOT DU JOUR</span>
-                    <h3 style={{ color: "white", fontSize: 26, margin: "8px 0 4px", fontFamily: "'Playfair Display', serif", fontWeight: 700 }}>{wordOfDay.french_word}</h3>
-                    <p style={{ color: "#D4A843", fontSize: 18, margin: 0, fontFamily: "'Source Serif 4', serif", fontStyle: "italic" }}>{wordOfDay.dialect_word}</p>
+                    <span style={{ fontSize:10, color:"#D4A843", fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>✦ MOT DU JOUR</span>
+                    <h3 style={{ color:"white", fontSize:26, margin:"8px 0 4px", fontFamily:"'Playfair Display', serif", fontWeight:700 }}>{wordOfDay.french_word}</h3>
+                    <p style={{ color:"#D4A843", fontSize:18, margin:0, fontFamily:"'Source Serif 4', serif", fontStyle:"italic" }}>{wordOfDay.dialect_word}</p>
                   </div>
                 )}
               </div>
             )}
 
             {/* SEARCH */}
-            {view === "search" && (
-              <div style={{ animation: "slideIn 0.25s ease-out", paddingTop: 20 }}>
+            {view === "search" && selectedLang && (
+              <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
                 <button onClick={() => { setView("home"); setQuery(""); setResults([]); setHasSearched(false); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
                   color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
                 }}><ArrowLeft /> Accueil</button>
 
                 <div style={{ display:"flex", background:"#E8E0D4", borderRadius:12, padding:3, marginBottom:16 }}>
-                  {[{ key:"french", label:"Français → Lingala" },{ key:"lingala", label:"Lingala → Français" }].map(m => (
+                  {[{ key:"french", label:`Français → ${langName}` },{ key:"dialect", label:`${langName} → Français` }].map(m => (
                     <button key={m.key} onClick={() => { setSearchMode(m.key); setResults([]); setHasSearched(false); setQuery(""); }} style={{
-                      flex:1, padding:"10px 0", border:"none", borderRadius:10, fontSize:13,
+                      flex:1, padding:"10px 0", border:"none", borderRadius:10, fontSize:12,
                       fontWeight:600, cursor:"pointer", transition:"all 0.2s", fontFamily:"'DM Sans', sans-serif",
                       background: searchMode===m.key ? "white" : "transparent",
                       color: searchMode===m.key ? "#2D2118" : "#9B8A6E",
@@ -415,19 +391,13 @@
                 </div>
 
                 <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-                  <div style={{
-                    flex:1, display:"flex", alignItems:"center", background:"white",
-                    borderRadius:14, border:"2px solid #E8E0D4", padding:"0 16px",
-                  }}>
+                  <div style={{ flex:1, display:"flex", alignItems:"center", background:"white", borderRadius:14, border:"2px solid #E8E0D4", padding:"0 16px" }}>
                     <span style={{ color:"#B8A88C", marginRight:10, display:"flex" }}><SearchIcon /></span>
                     <input ref={inputRef} value={query}
                       onChange={e => setQuery(e.target.value)}
                       onKeyDown={e => e.key==="Enter" && doSearch()}
-                      placeholder={searchMode==="french" ? "Tapez un mot en français..." : "Tapez un mot en lingala..."}
-                      style={{
-                        flex:1, border:"none", outline:"none", fontSize:16, padding:"14px 0",
-                        background:"transparent", color:"#2D2118", fontFamily:"'DM Sans', sans-serif",
-                      }}
+                      placeholder={searchMode==="french" ? "Tapez un mot en français..." : `Tapez un mot en ${langName.toLowerCase()}...`}
+                      style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"14px 0", background:"transparent", color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}
                       onFocus={e => e.target.parentElement.style.borderColor="#D4A843"}
                       onBlur={e => e.target.parentElement.style.borderColor="#E8E0D4"}
                     />
@@ -460,8 +430,8 @@
             )}
 
             {/* BROWSE */}
-            {view === "browse" && (
-              <div style={{ animation: "slideIn 0.25s ease-out", paddingTop: 20 }}>
+            {view === "browse" && selectedLang && (
+              <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
                 <button onClick={() => {
                   if (browseLetter) { setBrowseLetter(null); setBrowseWords([]); }
                   else { setView("home"); }
@@ -480,10 +450,9 @@
                           padding:"18px 8px 14px", cursor:"pointer", textAlign:"center",
                           transition:"all 0.15s", boxShadow:"0 1px 3px rgba(139,109,71,0.04)",
                         }}
-                        onMouseOver={e => { e.currentTarget.style.borderColor="#2C5F2D"; e.currentTarget.style.transform="translateY(-2px)"; }}
-                        onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.transform="translateY(0)"; }}
-                        >
-                          <div style={{ fontSize:28, fontWeight:800, color:"#2C5F2D", fontFamily:"'Playfair Display', serif" }}>{l}</div>
+                        onMouseOver={e => { e.currentTarget.style.borderColor=theme.accent; e.currentTarget.style.transform="translateY(-2px)"; }}
+                        onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.transform="translateY(0)"; }}>
+                          <div style={{ fontSize:28, fontWeight:800, color:theme.accent, fontFamily:"'Playfair Display', serif" }}>{l}</div>
                         </button>
                       ))}
                     </div>
@@ -491,9 +460,7 @@
                 ) : (
                   <React.Fragment>
                     <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>Lettre {browseLetter}</h2>
-                    <p style={{ fontSize:13, color:"#9B8A6E", margin:"0 0 20px", fontWeight:500 }}>
-                      {browseWords.length} mot{browseWords.length>1?"s":""}
-                    </p>
+                    <p style={{ fontSize:13, color:"#9B8A6E", margin:"0 0 20px", fontWeight:500 }}>{browseWords.length} mot{browseWords.length>1?"s":""}</p>
                     {loading ? <Spinner /> : browseWords.map(w => <ResultRow key={w.id} word={w} onClick={() => openWord(w.id, "browse")} />)}
                   </React.Fragment>
                 )}
@@ -502,11 +469,8 @@
 
             {/* DETAIL */}
             {view === "detail" && selectedWordId && (
-              <div style={{ paddingTop: 20 }}>
-                <WordDetail wordId={selectedWordId} onBack={() => {
-                  setSelectedWordId(null);
-                  setView(prevView);
-                }} />
+              <div style={{ paddingTop:20 }}>
+                <WordDetail wordId={selectedWordId} langName={langName} onBack={() => { setSelectedWordId(null); setView(prevView); }} />
               </div>
             )}
           </div>
