@@ -441,38 +441,130 @@
             {/* LANGUAGE SELECT */}
             {view === "lang_select" && (
               <div style={{ animation:"fadeIn 0.3s ease-out" }}>
-                <div style={{ textAlign:"center", paddingTop:60, paddingBottom:40 }}>
+                <div style={{ textAlign:"center", paddingTop:40, paddingBottom:20 }}>
                   <div style={{
-                    width:72, height:72, borderRadius:20,
+                    width:56, height:56, borderRadius:16,
                     background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    margin:"0 auto 16px", boxShadow:"0 8px 24px rgba(44,95,45,0.25)",
+                    margin:"0 auto 12px", boxShadow:"0 6px 20px rgba(44,95,45,0.25)",
                     animation:"float 4s ease-in-out infinite",
-                  }}><span style={{ fontSize:32 }}>📖</span></div>
-                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:800, color:"#2D2118", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
-                  <p style={{ color:"#9B8A6E", fontSize:14, margin:"0 0 8px", fontWeight:500 }}>Dictionnaire des langues africaines</p>
-                  <p style={{ color:"#B8A88C", fontSize:13 }}>Choisissez une langue</p>
+                  }}><span style={{ fontSize:26 }}>📖</span></div>
+                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:30, fontWeight:800, color:"#2D2118", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
+                  <p style={{ color:"#9B8A6E", fontSize:14, margin:0, fontWeight:500 }}>Dictionnaire des langues africaines</p>
                 </div>
 
+                {/* MAP - Hero element */}
+                <div style={{ marginBottom:16 }}>
+                  <div style={{
+                    background:"white", borderRadius:20, overflow:"hidden",
+                    border:"1px solid #E8E0D4", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
+                  }}>
+                    <LeafletMap
+                      selectedMapLang={mapLang}
+                      onSelectLang={(name) => setMapLang(mapLang === name ? null : name)}
+                    />
+                  </div>
+                  {/* Legend */}
+                  <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:10, flexWrap:"wrap" }}>
+                    {Object.entries(LANG_GEO).map(([name, geo]) => (
+                      <button key={name}
+                        onClick={() => setMapLang(mapLang === name ? null : name)}
+                        style={{
+                          display:"flex", alignItems:"center", gap:5,
+                          background: mapLang === name ? geo.color + "15" : "white",
+                          border: mapLang === name ? `2px solid ${geo.color}` : "2px solid #E8E0D4",
+                          borderRadius:20, padding:"6px 12px", cursor:"pointer",
+                          transition:"all 0.2s",
+                        }}>
+                        <div style={{ width:8, height:8, borderRadius:"50%", background:geo.color }} />
+                        <span style={{ fontSize:12, fontWeight:600, color: mapLang === name ? geo.color : "#6B7280",
+                          fontFamily:"'DM Sans', sans-serif" }}>{name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Map language detail card (shown when a language is selected on map) */}
+                {mapLang && LANG_GEO[mapLang] && (() => {
+                  const geo = LANG_GEO[mapLang];
+                  const t = LANG_THEMES[mapLang] || defaultTheme;
+                  const matchedLang = languages.find(l => l.name === mapLang);
+                  return (
+                    <div style={{
+                      background:"white", borderRadius:16, overflow:"hidden",
+                      border:"1px solid #E8E0D4", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
+                      animation:"slideIn 0.25s ease-out", marginBottom:16,
+                    }}>
+                      <div style={{ background:t.gradient, padding:"16px 20px", display:"flex", alignItems:"center", gap:12 }}>
+                        <span style={{ fontSize:28 }}>{t.emoji}</span>
+                        <div>
+                          <h3 style={{ color:"white", fontSize:18, fontWeight:700, margin:0, fontFamily:"'Playfair Display', serif" }}>{mapLang}</h3>
+                          <span style={{ color:"rgba(255,255,255,0.6)", fontSize:11, fontFamily:"'DM Mono', monospace" }}>{geo.family}</span>
+                        </div>
+                      </div>
+                      <div style={{ padding:"14px 20px" }}>
+                        <p style={{ fontSize:13, color:"#5C4A2E", lineHeight:1.5, margin:"0 0 12px", fontFamily:"'Source Serif 4', serif" }}>
+                          {geo.description}
+                        </p>
+                        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+                          <div style={{ flex:1, background:"#FDFBF7", borderRadius:10, padding:"8px 10px", textAlign:"center" }}>
+                            <div style={{ fontSize:15, fontWeight:800, color:geo.color, fontFamily:"'Playfair Display', serif" }}>{geo.speakers}</div>
+                            <div style={{ fontSize:9, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.06em", fontWeight:600 }}>Locuteurs</div>
+                          </div>
+                          <div style={{ flex:1, background:"#FDFBF7", borderRadius:10, padding:"8px 10px", textAlign:"center" }}>
+                            <div style={{ fontSize:15, fontWeight:800, color:geo.color, fontFamily:"'Playfair Display', serif" }}>{matchedLang?.wordCount?.toLocaleString() || "—"}</div>
+                            <div style={{ fontSize:9, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.06em", fontWeight:600 }}>Mots</div>
+                          </div>
+                        </div>
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:12 }}>
+                          {geo.regions.map((r, i) => (
+                            <span key={i} style={{
+                              background:geo.color + "12", color:geo.color,
+                              fontSize:11, fontWeight:600, padding:"3px 8px",
+                              borderRadius:6, fontFamily:"'DM Sans', sans-serif",
+                            }}>{r}</span>
+                          ))}
+                        </div>
+                        {matchedLang && (
+                          <button onClick={() => selectLanguage(matchedLang)} style={{
+                            width:"100%", padding:"12px",
+                            background:t.gradient, color:"white",
+                            border:"none", borderRadius:10, fontSize:14, fontWeight:700,
+                            cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
+                            boxShadow:`0 3px 10px ${geo.color}30`,
+                          }}>
+                            Ouvrir le dictionnaire {mapLang}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Language list */}
+                <p style={{ fontSize:11, color:"#9B8A6E", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase",
+                  margin:"0 0 10px", fontFamily:"'DM Mono', monospace" }}>
+                  Langues disponibles
+                </p>
                 {loadingLangs ? <Spinner /> : (
-                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                  <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                     {languages.map(lang => {
                       const t = LANG_THEMES[lang.name] || defaultTheme;
                       return (
                         <button key={lang.id} onClick={() => selectLanguage(lang)} style={{
-                          display:"flex", alignItems:"center", gap:16, width:"100%",
-                          background:"white", border:"1px solid #E8E0D4", borderRadius:18,
-                          padding:"22px 24px", cursor:"pointer", textAlign:"left",
-                          transition:"all 0.2s", boxShadow:"0 2px 8px rgba(139,109,71,0.06)",
+                          display:"flex", alignItems:"center", gap:14, width:"100%",
+                          background:"white", border:"1px solid #E8E0D4", borderRadius:14,
+                          padding:"16px 20px", cursor:"pointer", textAlign:"left",
+                          transition:"all 0.2s", boxShadow:"0 1px 4px rgba(139,109,71,0.04)",
                         }}
-                        onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 6px 20px rgba(139,109,71,0.1)"; }}
-                        onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(139,109,71,0.06)"; }}>
-                          <div style={{ width:48, height:48, borderRadius:14, background:t.gradient, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:24 }}>{t.emoji}</div>
+                        onMouseOver={e => { e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow="0 4px 12px rgba(139,109,71,0.08)"; }}
+                        onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 1px 4px rgba(139,109,71,0.04)"; }}>
+                          <div style={{ width:40, height:40, borderRadius:12, background:t.gradient, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:20 }}>{t.emoji}</div>
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:18, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>
+                            <div style={{ fontSize:16, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>
                               Français — {lang.name}
                             </div>
-                            <div style={{ fontSize:13, color:"#9B8A6E", marginTop:2 }}>
+                            <div style={{ fontSize:12, color:"#9B8A6E", marginTop:1 }}>
                               {lang.wordCount?.toLocaleString() || 0} mots
                             </div>
                           </div>
@@ -483,25 +575,9 @@
                   </div>
                 )}
 
-                <p style={{ textAlign:"center", color:"#B8A88C", fontSize:12, marginTop:32, fontStyle:"italic" }}>
+                <p style={{ textAlign:"center", color:"#B8A88C", fontSize:12, marginTop:24, fontStyle:"italic" }}>
                   D'autres langues arrivent bientôt...
                 </p>
-
-                {/* Map button */}
-                <button onClick={() => setView("map")} style={{
-                  display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-                  width:"100%", marginTop:16, padding:"14px 20px",
-                  background:"linear-gradient(135deg, #2D2118, #4A3828)",
-                  border:"none", borderRadius:14, cursor:"pointer",
-                  transition:"all 0.2s", boxShadow:"0 2px 8px rgba(45,33,24,0.15)",
-                }}
-                onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 6px 16px rgba(45,33,24,0.2)"; }}
-                onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(45,33,24,0.15)"; }}>
-                  <MapIcon />
-                  <span style={{ color:"white", fontSize:14, fontWeight:600, fontFamily:"'DM Sans', sans-serif" }}>
-                    Explorer la carte des langues
-                  </span>
-                </button>
               </div>
             )}
 
@@ -1046,7 +1122,80 @@
                     );
                   }
 
-                  // Default: single table for all other courses
+                  // Default: table view for all other courses
+                  // Check if items have groups (example_french used as section title, e.g. "Présent", "Passé")
+                  const hasGroups = lessonItems.some(it => it.example_french) &&
+                    (() => {
+                      // It's grouped if multiple items share the same example_french value
+                      const labels = lessonItems.filter(it => it.example_french).map(it => it.example_french);
+                      const unique = [...new Set(labels)];
+                      return unique.length > 0 && unique.length < labels.length;
+                    })();
+
+                  if (hasGroups) {
+                    // Group items by example_french (verb name or tense label)
+                    const groups = [];
+                    let currentGroup = null;
+                    for (const item of lessonItems) {
+                      const label = item.example_french || "";
+                      if (!currentGroup || currentGroup.label !== label) {
+                        currentGroup = { label, items: [] };
+                        groups.push(currentGroup);
+                      }
+                      currentGroup.items.push(item);
+                    }
+
+                    return (
+                      <div>
+                        {groups.map((group, gi) => (
+                          <div key={gi} style={{ marginBottom:24 }}>
+                            {group.label && (
+                              <div style={{
+                                background:"#F9F5FF", border:"1px solid #E9DEFF", borderRadius:12,
+                                padding:"10px 16px", marginBottom:10, display:"flex", alignItems:"center", gap:8,
+                              }}>
+                                <span style={{ fontSize:16 }}>📖</span>
+                                <span style={{ fontSize:15, fontWeight:700, color:"#6B21A8",
+                                  fontFamily:"'Playfair Display', serif" }}>
+                                  {group.label}
+                                </span>
+                              </div>
+                            )}
+                            <div style={{ borderRadius:14, overflow:"hidden", border:"1px solid #E8E0D4", background:"white" }}>
+                              <div style={{ display:"flex", background:"#F3F0FF", borderBottom:"2px solid #E8E0D4" }}>
+                                <div style={{ flex:1, padding:"10px 14px", fontSize:11, fontWeight:700, color:"#6B21A8",
+                                  textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>
+                                  Français
+                                </div>
+                                <div style={{ flex:1, padding:"10px 14px", fontSize:11, fontWeight:700, color:"#2C5F2D",
+                                  textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace",
+                                  borderLeft:"1px solid #E8E0D4" }}>
+                                  {langName}
+                                </div>
+                              </div>
+                              {group.items.map((item, idx) => (
+                                <div key={item.id} style={{
+                                  display:"flex",
+                                  borderBottom: idx < group.items.length - 1 ? "1px solid #F0EBE3" : "none",
+                                  background: idx % 2 === 0 ? "white" : "#FDFBF7",
+                                }}>
+                                  <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2D2118", lineHeight:1.5 }}>
+                                    {item.french}
+                                  </div>
+                                  <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2C5F2D", fontWeight:500,
+                                    lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
+                                    {item.dialect}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+
+                  // No groups: plain single table with example sentences
                   return (
                     <div style={{ borderRadius:14, overflow:"hidden", border:"1px solid #E8E0D4", background:"white" }}>
                       {/* Header */}
