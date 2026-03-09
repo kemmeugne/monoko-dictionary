@@ -456,8 +456,8 @@
         if (!langId) return "";
         let context = [];
         
-        // Extract meaningful keywords (remove common French filler words)
-        const stopWords = new Set(["comment","dit","on","en","le","la","les","un","une","des","du","de","je","tu","il","elle","nous","vous","ils","elles","est","suis","es","sont","sommes","êtes","que","qui","quoi","quel","quelle","quels","quelles","ce","cette","ces","mon","ma","mes","ton","ta","tes","son","sa","ses","notre","votre","leur","et","ou","mais","donc","car","ni","ne","pas","plus","pour","par","sur","dans","avec","sans","chez","vers","entre","dit-on","dire","traduis","traduire","traduisez","veut","signifie","significa","moi","toi","lui","eux","faire","fait","peut","peux","faut","aussi","très","bien","mal","encore","déjà","toujours","jamais","rien","tout","tous","comme","quand","où","pourquoi","parce","si","y","a","au","aux","à","d","l","s","n","m","t","c","j"]);
+        // Extract meaningful keywords (remove only meta/question words, keep content words)
+        const stopWords = new Set(["comment","dit","on","en","le","la","les","un","une","des","du","de","dit-on","dire","traduis","traduire","traduisez","veut","signifie","ce","cette","ces","et","ou","mais","donc","car","ni","ne","pas","plus","pour","par","sur","dans","avec","sans","chez","vers","entre","que","qui","quoi","quel","quelle","comme","quand","où","pourquoi","parce","si","aussi","très","encore","déjà","toujours","jamais","rien","tout","tous","faire","fait","peut","peux","faut","y","a","au","aux","à","d","l","s","n","m","t","c","j","moi","toi","lui","eux"]);
         
         const keywords = userMsg
           .toLowerCase()
@@ -465,8 +465,14 @@
           .split(/\s+/)
           .filter(w => w.length >= 2 && !stopWords.has(w));
         
-        // Also keep the full message for parallel sentence search
-        const fullQ = encodeURIComponent(userMsg.substring(0, 80));
+        // Also extract 2-3 word phrases from the message for broader matching
+        const cleanMsg = userMsg.toLowerCase().replace(/[''?!.,;:«»"""()\-]/g, " ").trim();
+        const msgWords = cleanMsg.split(/\s+/).filter(w => w.length >= 2);
+        const phrases = [];
+        for (let i = 0; i < msgWords.length - 1; i++) {
+          phrases.push(msgWords.slice(i, i + 2).join(" "));
+          if (i < msgWords.length - 2) phrases.push(msgWords.slice(i, i + 3).join(" "));
+        }
         
         try {
           // Search each keyword individually in the dictionary
@@ -486,7 +492,7 @@
               }
             }
             
-            // Search Lingala words (in case user types in Lingala)
+            // Search Lingala words
             const wordsLn = await supaFetch("words", `select=french_word,senses!inner(dialect_word,examples(sentence_dialect,sentence_french))&language_id=eq.${langId}&senses.dialect_word=ilike.*${q}*&limit=5`);
             for (const w of wordsLn) {
               for (const s of (w.senses || [])) {
@@ -499,13 +505,27 @@
               }
             }
             
-            // Search parallel sentences
+            // Search parallel sentences by keyword
             const psFr = await supaFetch("parallel_sentences", `language_id=eq.${langId}&french_text=ilike.*${q}*&limit=5`);
             for (const p of psFr) {
               context.push({ fr: p.french_text, ln: p.lingala_text, type: "sentence", quality: p.quality || "gold" });
             }
-            const psLn = await supaFetch("parallel_sentences", `language_id=eq.${langId}&lingala_text=ilike.*${q}*&limit=5`);
-            for (const p of psLn) {
+          }
+          
+          // Also search example sentences for the full phrases (catches expressions like "comment tu vas")
+          for (const phrase of phrases.slice(0, 4)) {
+            const q = encodeURIComponent(phrase);
+            // Search in example sentences
+            const exResults = await supaFetch("examples", `sentence_french=ilike.*${q}*&select=sentence_french,sentence_dialect,senses!inner(dialect_word,words!inner(french_word,language_id))&limit=5`);
+            for (const ex of exResults) {
+              if (ex.senses?.words?.language_id === langId) {
+                context.push({ fr: ex.sentence_french, ln: ex.sentence_dialect, type: "sentence", quality: "verified" });
+                context.push({ fr: ex.senses.words.french_word, ln: ex.senses.dialect_word, type: "word", quality: "verified" });
+              }
+            }
+            // Search parallel sentences for phrases
+            const psPhrase = await supaFetch("parallel_sentences", `language_id=eq.${langId}&french_text=ilike.*${q}*&limit=5`);
+            for (const p of psPhrase) {
               context.push({ fr: p.french_text, ln: p.lingala_text, type: "sentence", quality: p.quality || "gold" });
             }
           }
@@ -531,7 +551,7 @@
           sentenceResults.forEach(s => { ctxStr += `FR: ${s.fr}\nLN: ${s.ln} [${s.quality}]\n\n`; });
         }
         if (!wordResults.length && !sentenceResults.length) {
-          ctxStr = "(Aucune donnée trouvée dans le corpus pour les mots: " + keywords.join(", ") + ")";
+          ctxStr = "(Aucune donnée trouvée dans le corpus pour: " + keywords.join(", ") + ")";
         }
         return ctxStr;
       };
@@ -547,34 +567,31 @@
           const context = await searchContext(msg);
           const systemPrompt = `Tu es Monoko, un assistant IA EXCLUSIVEMENT dédié à la langue ${langName}.
 
-RÈGLE LA PLUS IMPORTANTE — NE JAMAIS INVENTER DU ${langName.toUpperCase()}:
-Tu ne dois JAMAIS générer, deviner, ou improviser des phrases en ${langName} qui ne proviennent pas directement du corpus ci-dessous. Si une traduction ou un mot n'est pas dans le corpus, tu dois le dire clairement:
-"Je n'ai pas encore cette traduction dans ma base de données. Un professeur pourra l'ajouter bientôt !"
-
-Tu n'es PAS un locuteur natif. Tu es un outil qui se base UNIQUEMENT sur des données vérifiées par des professeurs. Produire du ${langName} incorrect serait nuisible pour les apprenants.
-
 RÈGLE SUJET: Tu ne parles QUE de la langue ${langName}. Pour tout autre sujet, réponds:
 "Je suis Monoko, votre assistant ${langName}. Je ne peux vous aider qu'avec la langue ${langName}: traductions, vocabulaire, grammaire. Posez-moi une question sur le ${langName} ! 😊"
 
-CE QUE TU FAIS:
-- Donner des traductions UNIQUEMENT si elles sont présentes dans le corpus ci-dessous
-- Expliquer du vocabulaire en citant les entrées du corpus
-- Montrer des exemples de phrases tirés du corpus
-- Dire honnêtement "je ne sais pas" quand le mot ou la phrase n'est pas dans le corpus
+COMMENT UTILISER LE CORPUS:
+Le corpus ci-dessous contient des mots et phrases vérifiés par des professeurs. C'est ta source principale et la plus fiable.
 
-CE QUE TU NE FAIS JAMAIS:
-- Inventer ou deviner des mots en ${langName}
-- Construire des phrases en ${langName} à partir de tes propres connaissances
-- Assembler des mots du corpus pour former des phrases qui n'y sont pas
-- Répondre à des sujets autres que la langue ${langName}
+Niveau 1 — TRADUCTION DIRECTE (haute confiance ✓):
+Si le mot ou la phrase demandé est directement dans le corpus, donne-le avec la mention ✓ vérifié.
 
-FORMAT:
-- Quand tu donnes une traduction du corpus, présente-la clairement: "Mot français" → "${langName}: mot" (source: vérifié par un professeur)
-- Si tu trouves un exemple de phrase dans le corpus, montre-le
-- Si tu ne trouves rien, dis-le et suggère à l'utilisateur de cliquer "Corriger" pour que la traduction soit ajoutée
-- Réponses courtes et précises. Pas de longs paragraphes en ${langName}.
+Niveau 2 — COMBINAISON RAISONNÉE (confiance moyenne ~):
+Si la phrase exacte n'est pas dans le corpus MAIS que tous les mots individuels y sont, tu PEUX les combiner en une phrase. Marque-la clairement avec ~ pour indiquer que c'est une suggestion basée sur du vocabulaire vérifié mais que la phrase complète n'a pas été validée par un professeur.
+Exemple: si "père" → "tata" ✓ et "comment vas-tu" → "ozali malamu?" ✓ sont dans le corpus, tu peux proposer "Comment va ton père?" → "Tata azali malamu?" ~ (suggestion basée sur vocabulaire vérifié)
 
-=== CORPUS DE RÉFÉRENCE (SEULE SOURCE AUTORISÉE) ===
+Niveau 3 — INCONNU (pas de données):
+Si les mots clés ne sont pas du tout dans le corpus, dis-le honnêtement et invite l'utilisateur à cliquer "Corriger" pour demander l'ajout.
+
+RÈGLES IMPORTANTES:
+- Ne génère JAMAIS de mots en ${langName} qui ne viennent ni du corpus ni de tes connaissances fiables sur le ${langName}
+- Chaque mot que tu utilises en ${langName} doit être traçable au corpus quand possible
+- Toujours distinguer clairement entre ✓ (vérifié) et ~ (suggestion)
+- Réponses courtes et claires
+- Sois chaleureux et encourageant
+- Si tu proposes une combinaison (~), ajoute: "Un professeur pourra confirmer cette phrase via le bouton Corriger"
+
+=== CORPUS DE RÉFÉRENCE ===
 ${context || "(Aucune donnée trouvée pour cette requête)"}
 === FIN DU CORPUS ===`;
 
