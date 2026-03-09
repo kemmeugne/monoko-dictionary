@@ -247,6 +247,11 @@
     const VolumeIcon = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>);
     const GlobeIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>);
     const GradIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>);
+    const ChatIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>);
+    const SendIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>);
+    const FlagIcon = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>);
+    const CheckCircle = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C5F2D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>);
+    const CloseIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>);
     const Spinner = () => (<div style={{display:"flex",justifyContent:"center",padding:40}}><div style={{width:32,height:32,border:"3px solid #E8E0D4",borderTopColor:"#2C5F2D",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/></div>);
 
     const SenseCard = ({ sense, index }) => (
@@ -335,6 +340,18 @@
       const [lessonItems, setLessonItems] = useState([]);
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
+      // Chat state
+      const [chatMessages, setChatMessages] = useState([]);
+      const [chatInput, setChatInput] = useState("");
+      const [chatLoading, setChatLoading] = useState(false);
+      const [apiKey, setApiKey] = useState("");
+      const [apiKeySet, setApiKeySet] = useState(false);
+      const [correctionMsg, setCorrectionMsg] = useState(null);
+      const [correctionText, setCorrectionText] = useState("");
+      const [correctionExample, setCorrectionExample] = useState("");
+      const [correctionType, setCorrectionType] = useState("incorrect");
+      const [correctionSent, setCorrectionSent] = useState(false);
+      const chatEndRef = useRef(null);
       const inputRef = useRef(null);
       const LETTERS = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split(" ");
 
@@ -433,6 +450,160 @@
       }, [langId]);
 
       const openWord = (id, fromView) => { setPrevView(fromView || view); setSelectedWordId(id); setView("detail"); };
+
+      // ── Chat functions ──
+      const searchContext = async (userMsg) => {
+        if (!langId) return "";
+        const q = encodeURIComponent(userMsg.substring(0, 80));
+        let context = [];
+        try {
+          // Search dictionary words
+          const words = await supaFetch("words", `select=french_word,senses(dialect_word,examples(sentence_dialect,sentence_french))&language_id=eq.${langId}&french_word=ilike.*${q}*&limit=10`);
+          for (const w of words) {
+            for (const s of (w.senses || [])) {
+              context.push({ fr: w.french_word, ln: s.dialect_word, type: "word", quality: "verified" });
+              for (const ex of (s.examples || [])) {
+                if (ex.sentence_french && ex.sentence_dialect) {
+                  context.push({ fr: ex.sentence_french, ln: ex.sentence_dialect, type: "sentence", quality: "verified" });
+                }
+              }
+            }
+          }
+          // Search parallel sentences
+          const psFr = await supaFetch("parallel_sentences", `language_id=eq.${langId}&french_text=ilike.*${q}*&limit=10`);
+          for (const p of psFr) {
+            context.push({ fr: p.french_text, ln: p.lingala_text, type: "sentence", quality: p.quality || "gold" });
+          }
+          // Also search in dialect side
+          const wordsLn = await supaFetch("words", `select=french_word,senses!inner(dialect_word,examples(sentence_dialect,sentence_french))&language_id=eq.${langId}&senses.dialect_word=ilike.*${q}*&limit=10`);
+          for (const w of wordsLn) {
+            for (const s of (w.senses || [])) {
+              context.push({ fr: w.french_word, ln: s.dialect_word, type: "word", quality: "verified" });
+            }
+          }
+          const psLn = await supaFetch("parallel_sentences", `language_id=eq.${langId}&lingala_text=ilike.*${q}*&limit=10`);
+          for (const p of psLn) {
+            context.push({ fr: p.french_text, ln: p.lingala_text, type: "sentence", quality: p.quality || "gold" });
+          }
+        } catch (e) { console.error("Context search error:", e); }
+        // Deduplicate
+        const seen = new Set();
+        const unique = [];
+        for (const c of context) {
+          const key = `${c.fr}|${c.ln}`;
+          if (!seen.has(key)) { seen.add(key); unique.push(c); }
+        }
+        // Build context string
+        let ctxStr = "";
+        const words = unique.filter(c => c.type === "word");
+        const sentences = unique.filter(c => c.type === "sentence");
+        if (words.length) {
+          ctxStr += "=== VOCABULAIRE ===\n";
+          words.forEach(w => { ctxStr += `• ${w.fr} → ${w.ln}\n`; });
+        }
+        if (sentences.length) {
+          ctxStr += "\n=== PHRASES PARALLÈLES ===\n";
+          sentences.forEach(s => { ctxStr += `FR: ${s.fr}\nLN: ${s.ln}\n\n`; });
+        }
+        return ctxStr;
+      };
+
+      const sendChat = async () => {
+        const msg = chatInput.trim();
+        if (!msg || chatLoading) return;
+        setChatInput("");
+        const newMessages = [...chatMessages, { role: "user", content: msg }];
+        setChatMessages(newMessages);
+        setChatLoading(true);
+        try {
+          const context = await searchContext(msg);
+          const systemPrompt = `Tu es Monoko, un assistant IA qui parle ${langName} couramment.
+Tu es le premier agent conversationnel au monde spécialisé dans la langue ${langName}.
+
+Ton rôle:
+- Répondre aux questions en ${langName} quand l'utilisateur parle ${langName}
+- Traduire du français vers le ${langName} et vice versa
+- Enseigner le ${langName} aux apprenants
+- Tenir des conversations naturelles en ${langName}
+
+Règles:
+1. Quand l'utilisateur parle en ${langName}, réponds en ${langName} puis donne la traduction française entre parenthèses.
+2. Quand l'utilisateur demande une traduction, fournis la traduction avec une explication.
+3. Utilise les données du corpus ci-dessous comme référence prioritaire.
+4. Si tu n'es pas sûr d'une traduction, dis-le honnêtement.
+5. Sois chaleureux et encourageant. Utilise des réponses courtes et claires.
+
+=== CORPUS DE RÉFÉRENCE ===
+${context || "(Aucune donnée trouvée pour cette requête)"}
+=== FIN DU CORPUS ===`;
+
+          const res = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": apiKey,
+              "anthropic-version": "2023-06-01",
+              "anthropic-dangerous-direct-browser-access": "true",
+            },
+            body: JSON.stringify({
+              model: "claude-haiku-4-5-20251001",
+              max_tokens: 512,
+              system: systemPrompt,
+              messages: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+            }),
+          });
+          const data = await res.json();
+          if (data.content && data.content[0]) {
+            setChatMessages(prev => [...prev, { role: "assistant", content: data.content[0].text }]);
+          } else if (data.error) {
+            setChatMessages(prev => [...prev, { role: "assistant", content: `⚠️ Erreur: ${data.error.message}` }]);
+          }
+        } catch (e) {
+          setChatMessages(prev => [...prev, { role: "assistant", content: `⚠️ Erreur de connexion: ${e.message}` }]);
+        }
+        setChatLoading(false);
+      };
+
+      const submitCorrection = async (msgIndex) => {
+        if (!correctionText.trim()) return;
+        const original = chatMessages[msgIndex];
+        const userMsg = msgIndex > 0 ? chatMessages[msgIndex - 1]?.content : "";
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/corrections`, {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+              "Content-Type": "application/json",
+              Prefer: "return=minimal",
+            },
+            body: JSON.stringify({
+              language_id: langId,
+              user_query: userMsg,
+              ai_response: original?.content || "",
+              correction_type: correctionType,
+              correct_lingala: correctionText.trim(),
+              example_sentence: correctionExample.trim() || null,
+              status: "pending",
+            }),
+          });
+          setCorrectionSent(true);
+          setTimeout(() => {
+            setCorrectionMsg(null);
+            setCorrectionText("");
+            setCorrectionExample("");
+            setCorrectionType("incorrect");
+            setCorrectionSent(false);
+          }, 2000);
+        } catch (e) {
+          alert("Erreur lors de l'envoi: " + e.message);
+        }
+      };
+
+      // Auto-scroll chat
+      useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, [chatMessages, chatLoading]);
 
       return (
         <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#F7F3ED", fontFamily:"'DM Sans', sans-serif" }}>
@@ -759,6 +930,7 @@
                     { icon:<SearchIcon/>, title:"Rechercher un mot", sub:`Français → ${langName} ou ${langName} → Français`, grad:"linear-gradient(135deg, #D4A843, #C4912E)", v:"search" },
                     { icon:<BookIcon/>, title:"Parcourir A — Z", sub:"Explorer le dictionnaire par lettre", grad:theme.gradient, v:"browse" },
                     { icon:<GradIcon/>, title:"Apprendre", sub:"Cours de grammaire, phrases utiles, vocabulaire", grad:"linear-gradient(135deg, #6B21A8, #9333EA)", v:"courses" },
+                    { icon:<ChatIcon/>, title:"Parler avec Monoko", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
                   ].map((c,i) => (
                     <button key={i} onClick={async () => {
                       setView(c.v);
@@ -1246,6 +1418,219 @@
                     </div>
                   );
                 })()}
+              </div>
+            )}
+
+            {/* CHAT WITH MONOKO */}
+            {view === "chat" && selectedLang && (
+              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, display:"flex", flexDirection:"column", minHeight:"calc(100vh - 120px)" }}>
+                <button onClick={() => { setView("home"); }} style={{
+                  display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
+                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
+                  fontFamily:"'DM Sans', sans-serif",
+                }}><ArrowLeft /> Accueil</button>
+
+                <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                  <div style={{ width:44, height:44, borderRadius:14, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🗣️</div>
+                  <div>
+                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"#2D2118", margin:0, lineHeight:1.1 }}>Parler avec Monoko</h2>
+                    <p style={{ fontSize:12, color:"#9B8A6E", margin:"2px 0 0" }}>IA conversationnelle en {langName}</p>
+                  </div>
+                </div>
+
+                {/* API Key setup */}
+                {!apiKeySet ? (
+                  <div style={{ background:"white", borderRadius:16, border:"1px solid #E8E0D4", padding:"24px", animation:"slideIn 0.25s ease-out" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                      <span style={{ fontSize:20 }}>🔑</span>
+                      <h3 style={{ fontSize:16, fontWeight:700, color:"#2D2118", margin:0, fontFamily:"'Playfair Display', serif" }}>Configuration</h3>
+                    </div>
+                    <p style={{ fontSize:13, color:"#8B6D47", lineHeight:1.5, margin:"0 0 16px" }}>
+                      Entrez votre clé API Anthropic pour activer Monoko. Cette clé reste dans votre navigateur et n'est jamais stockée sur nos serveurs.
+                    </p>
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={e => setApiKey(e.target.value)}
+                      placeholder="sk-ant-api03-..."
+                      style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Mono', monospace", background:"#FDFBF7", outline:"none", marginBottom:12 }}
+                      onFocus={e => e.target.style.borderColor = "#0EA5E9"}
+                      onBlur={e => e.target.style.borderColor = "#E8E0D4"}
+                      onKeyDown={e => { if (e.key === "Enter" && apiKey.startsWith("sk-")) setApiKeySet(true); }}
+                    />
+                    <button onClick={() => { if (apiKey.startsWith("sk-")) setApiKeySet(true); else alert("La clé doit commencer par sk-"); }}
+                      style={{ width:"100%", padding:"12px", background:"linear-gradient(135deg, #0EA5E9, #2563EB)", color:"white", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', sans-serif" }}>
+                      Activer Monoko
+                    </button>
+                    <p style={{ fontSize:11, color:"#B8A88C", marginTop:10, textAlign:"center" }}>
+                      Obtenez une clé sur <a href="https://console.anthropic.com" target="_blank" style={{ color:"#0EA5E9" }}>console.anthropic.com</a>
+                    </p>
+                  </div>
+                ) : (
+                  <React.Fragment>
+                    {/* Chat messages */}
+                    <div style={{ flex:1, overflowY:"auto", marginBottom:12, display:"flex", flexDirection:"column", gap:8 }}>
+                      {chatMessages.length === 0 && (
+                        <div style={{ textAlign:"center", padding:"40px 20px" }}>
+                          <div style={{ fontSize:48, marginBottom:12 }}>🗣️</div>
+                          <p style={{ fontSize:16, fontWeight:700, color:"#2D2118", margin:"0 0 8px", fontFamily:"'Playfair Display', serif" }}>Mbote!</p>
+                          <p style={{ fontSize:14, color:"#9B8A6E", lineHeight:1.5, maxWidth:280, margin:"0 auto" }}>
+                            Posez une question en français ou en {langName}. Demandez une traduction, de la grammaire, ou discutez directement.
+                          </p>
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center", marginTop:16 }}>
+                            {["Comment dit-on bonjour ?", "Traduis: je vais au marché", "Mbote na yo!", "Les pronoms en " + langName].map((s, i) => (
+                              <button key={i} onClick={() => { setChatInput(s); }} style={{
+                                background:"white", border:"1px solid #E8E0D4", borderRadius:20,
+                                padding:"8px 14px", fontSize:12, color:"#5C4A2E", cursor:"pointer",
+                                fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s",
+                              }}
+                              onMouseOver={e => { e.currentTarget.style.borderColor="#0EA5E9"; e.currentTarget.style.background="#F0F9FF"; }}
+                              onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.background="white"; }}>
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {chatMessages.map((msg, idx) => (
+                        <div key={idx} style={{
+                          alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
+                          maxWidth: "85%",
+                          animation: "slideIn 0.2s ease-out",
+                        }}>
+                          <div style={{
+                            background: msg.role === "user"
+                              ? "linear-gradient(135deg, #0EA5E9, #2563EB)"
+                              : "white",
+                            color: msg.role === "user" ? "white" : "#2D2118",
+                            padding: "12px 16px",
+                            borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+                            fontSize: 14, lineHeight: 1.6,
+                            border: msg.role === "user" ? "none" : "1px solid #E8E0D4",
+                            fontFamily: "'DM Sans', sans-serif",
+                            whiteSpace: "pre-wrap",
+                          }}>
+                            {msg.content}
+                          </div>
+                          {/* Corriger button for AI messages */}
+                          {msg.role === "assistant" && !msg.content.startsWith("⚠️") && (
+                            <div style={{ display:"flex", gap:6, marginTop:4, marginLeft:4 }}>
+                              <button onClick={() => { setCorrectionMsg(idx); setCorrectionSent(false); setCorrectionText(""); setCorrectionExample(""); }}
+                                style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid #E8E0D4", borderRadius:8, padding:"4px 10px", fontSize:11, color:"#9B8A6E", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
+                                onMouseOver={e => { e.currentTarget.style.borderColor="#E57373"; e.currentTarget.style.color="#E57373"; }}
+                                onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.color="#9B8A6E"; }}>
+                                <FlagIcon /> Corriger
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {chatLoading && (
+                        <div style={{ alignSelf:"flex-start", maxWidth:"85%" }}>
+                          <div style={{ background:"white", border:"1px solid #E8E0D4", padding:"12px 20px", borderRadius:"16px 16px 16px 4px" }}>
+                            <div style={{ display:"flex", gap:4 }}>
+                              {[0,1,2].map(i => (
+                                <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:"#0EA5E9", animation:`float 1.2s ease-in-out ${i*0.2}s infinite` }} />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={chatEndRef} />
+                    </div>
+
+                    {/* Chat input */}
+                    <div style={{ display:"flex", gap:8, paddingBottom:8 }}>
+                      <div style={{ flex:1, display:"flex", alignItems:"center", background:"white", borderRadius:14, border:"2px solid #E8E0D4", padding:"0 14px" }}>
+                        <input value={chatInput}
+                          onChange={e => setChatInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
+                          placeholder={`Écrivez en français ou ${langName.toLowerCase()}...`}
+                          style={{ flex:1, border:"none", outline:"none", fontSize:15, padding:"13px 0", background:"transparent", color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}
+                          onFocus={e => e.target.parentElement.style.borderColor="#0EA5E9"}
+                          onBlur={e => e.target.parentElement.style.borderColor="#E8E0D4"}
+                          disabled={chatLoading}
+                        />
+                      </div>
+                      <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()} style={{
+                        background: chatInput.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
+                        color: "white", border:"none", borderRadius:14, width:48, height:48,
+                        display:"flex", alignItems:"center", justifyContent:"center", cursor: chatInput.trim() ? "pointer" : "default",
+                        transition:"all 0.2s", flexShrink:0,
+                      }}><SendIcon /></button>
+                    </div>
+                  </React.Fragment>
+                )}
+
+                {/* Correction modal */}
+                {correctionMsg !== null && (
+                  <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:999, animation:"fadeIn 0.2s" }}>
+                    <div style={{ background:"#F7F3ED", borderRadius:"20px 20px 0 0", width:"100%", maxWidth:480, padding:"24px 20px 32px", animation:"slideIn 0.25s ease-out" }}>
+                      {correctionSent ? (
+                        <div style={{ textAlign:"center", padding:"20px 0" }}>
+                          <CheckCircle />
+                          <p style={{ fontSize:16, fontWeight:700, color:"#2C5F2D", marginTop:12, fontFamily:"'Playfair Display', serif" }}>Merci pour votre correction !</p>
+                          <p style={{ fontSize:13, color:"#9B8A6E" }}>Elle sera examinée par l'administrateur.</p>
+                        </div>
+                      ) : (
+                        <React.Fragment>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+                            <h3 style={{ fontSize:18, fontWeight:700, color:"#2D2118", margin:0, fontFamily:"'Playfair Display', serif" }}>Corriger Monoko</h3>
+                            <button onClick={() => setCorrectionMsg(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"#9B8A6E", padding:4 }}><CloseIcon /></button>
+                          </div>
+
+                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Type d'erreur</p>
+                          <div style={{ display:"flex", gap:6, marginBottom:16, flexWrap:"wrap" }}>
+                            {[
+                              { key:"incorrect", label:"Incorrecte" },
+                              { key:"partial", label:"Partiellement correcte" },
+                              { key:"missing", label:"Contexte manquant" },
+                            ].map(t => (
+                              <button key={t.key} onClick={() => setCorrectionType(t.key)} style={{
+                                padding:"8px 14px", borderRadius:10, fontSize:12, fontWeight:600, cursor:"pointer",
+                                fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s",
+                                background: correctionType === t.key ? "#0EA5E920" : "white",
+                                border: correctionType === t.key ? "2px solid #0EA5E9" : "1px solid #E8E0D4",
+                                color: correctionType === t.key ? "#0EA5E9" : "#5C4A2E",
+                              }}>{t.label}</button>
+                            ))}
+                          </div>
+
+                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>La bonne traduction en {langName} *</p>
+                          <textarea value={correctionText} onChange={e => setCorrectionText(e.target.value)}
+                            placeholder={`Écrivez la traduction correcte en ${langName}...`}
+                            rows={3}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
+                            onFocus={e => e.target.style.borderColor="#0EA5E9"}
+                            onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                          />
+
+                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Phrase d'exemple (optionnel)</p>
+                          <textarea value={correctionExample} onChange={e => setCorrectionExample(e.target.value)}
+                            placeholder="Une phrase utilisant ce mot en contexte..."
+                            rows={2}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:16 }}
+                            onFocus={e => e.target.style.borderColor="#0EA5E9"}
+                            onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                          />
+
+                          <button onClick={() => submitCorrection(correctionMsg)}
+                            disabled={!correctionText.trim()}
+                            style={{
+                              width:"100%", padding:"14px", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor: correctionText.trim() ? "pointer" : "default",
+                              fontFamily:"'DM Sans', sans-serif",
+                              background: correctionText.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
+                              color: "white",
+                            }}>
+                            Envoyer la correction
+                          </button>
+                        </React.Fragment>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
