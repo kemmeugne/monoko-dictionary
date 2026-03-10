@@ -451,164 +451,110 @@
 
       const openWord = (id, fromView) => { setPrevView(fromView || view); setSelectedWordId(id); setView("detail"); };
 
+      // ── RAG API URL (update this when you deploy the backend) ──
+      // ⚠️  Replace with your Railway URL after deployment
+      // e.g. "https://monoko-rag-api-production.up.railway.app"
+      const RAG_API_URL = "https://monoko-rag-api-production.up.railway.app";
+
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
         if (!langId) return "";
-        let context = [];
-        
-        // Extract meaningful keywords (remove only meta/question words, keep content words)
+
+        // ── Part 1: FAISS semantic search via RAG API ──────────────────────
+        // Handles vocabulary + 60K NLLB parallel sentences with dual-path
+        // language detection (French query → FR index, Lingala → LN index)
+        // and quality-ranked retrieval (verified/gold first, then NLLB auto).
+        let faissPart = "";
+        try {
+          const res = await fetch(`${RAG_API_URL}/api/context`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: userMsg, top_k: 20 }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            faissPart = data.context || "";
+          }
+        } catch (e) {
+          console.warn("RAG API unavailable, falling back to Supabase only:", e.message);
+        }
+
+        // ── Part 2: Supabase keyword search for grammar / course data ──────
+        // Lesson items (conjugations, pronouns, useful phrases) live only in
+        // Supabase and are not in the FAISS index — keep querying them here.
         const stopWords = new Set(["comment","dit","on","en","le","la","les","un","une","des","du","de","dit-on","dire","traduis","traduire","traduisez","veut","signifie","ce","cette","ces","et","ou","mais","donc","car","ni","ne","pas","plus","pour","par","sur","dans","avec","sans","chez","vers","entre","que","qui","quoi","quel","quelle","comme","quand","où","pourquoi","parce","si","aussi","très","encore","déjà","toujours","jamais","rien","tout","tous","faire","fait","peut","peux","faut","y","a","au","aux","à","d","l","s","n","m","t","c","j","moi","toi","lui","eux"]);
-        
         const keywords = userMsg
           .toLowerCase()
           .replace(/[''?!.,;:«»"""()\-]/g, " ")
           .split(/\s+/)
           .filter(w => w.length >= 2 && !stopWords.has(w));
-        
-        // Also extract 2-3 word phrases from the message for broader matching
-        const cleanMsg = userMsg.toLowerCase().replace(/[''?!.,;:«»"""()\-]/g, " ").trim();
-        const msgWords = cleanMsg.split(/\s+/).filter(w => w.length >= 2);
-        const phrases = [];
-        for (let i = 0; i < msgWords.length - 1; i++) {
-          phrases.push(msgWords.slice(i, i + 2).join(" "));
-          if (i < msgWords.length - 2) phrases.push(msgWords.slice(i, i + 3).join(" "));
-        }
-        
+
+        let lessonContext = [];
         try {
-          // Search each keyword individually in the dictionary
-          for (const kw of keywords.slice(0, 6)) {
-            const q = encodeURIComponent(kw);
-            
-            // Search French words
-            const words = await supaFetch("words", `select=french_word,senses(dialect_word,examples(sentence_dialect,sentence_french))&language_id=eq.${langId}&french_word=ilike.*${q}*&limit=5`);
-            for (const w of words) {
-              for (const s of (w.senses || [])) {
-                context.push({ fr: w.french_word, ln: s.dialect_word, type: "word", quality: "verified" });
-                for (const ex of (s.examples || [])) {
-                  if (ex.sentence_french && ex.sentence_dialect) {
-                    context.push({ fr: ex.sentence_french, ln: ex.sentence_dialect, type: "sentence", quality: "verified" });
-                  }
-                }
-              }
-            }
-            
-            // Search Lingala words
-            const wordsLn = await supaFetch("words", `select=french_word,senses!inner(dialect_word,examples(sentence_dialect,sentence_french))&language_id=eq.${langId}&senses.dialect_word=ilike.*${q}*&limit=5`);
-            for (const w of wordsLn) {
-              for (const s of (w.senses || [])) {
-                context.push({ fr: w.french_word, ln: s.dialect_word, type: "word", quality: "verified" });
-                for (const ex of (s.examples || [])) {
-                  if (ex.sentence_french && ex.sentence_dialect) {
-                    context.push({ fr: ex.sentence_french, ln: ex.sentence_dialect, type: "sentence", quality: "verified" });
-                  }
-                }
-              }
-            }
-            
-            // Search parallel sentences by keyword
-            const psFr = await supaFetch("parallel_sentences", `language_id=eq.${langId}&french_text=ilike.*${q}*&limit=5`);
-            for (const p of psFr) {
-              context.push({ fr: p.french_text, ln: p.lingala_text, type: "sentence", quality: p.quality || "gold" });
-            }
-          }
-          
-          // Also search example sentences for the full phrases (catches expressions like "comment tu vas")
-          for (const phrase of phrases.slice(0, 4)) {
-            const q = encodeURIComponent(phrase);
-            // Search in example sentences
-            const exResults = await supaFetch("examples", `sentence_french=ilike.*${q}*&select=sentence_french,sentence_dialect,senses!inner(dialect_word,words!inner(french_word,language_id))&limit=5`);
-            for (const ex of exResults) {
-              if (ex.senses?.words?.language_id === langId) {
-                context.push({ fr: ex.sentence_french, ln: ex.sentence_dialect, type: "sentence", quality: "verified" });
-                context.push({ fr: ex.senses.words.french_word, ln: ex.senses.dialect_word, type: "word", quality: "verified" });
-              }
-            }
-            // Search parallel sentences for phrases
-            const psPhrase = await supaFetch("parallel_sentences", `language_id=eq.${langId}&french_text=ilike.*${q}*&limit=5`);
-            for (const p of psPhrase) {
-              context.push({ fr: p.french_text, ln: p.lingala_text, type: "sentence", quality: p.quality || "gold" });
-            }
-          }
-          
           // Search lesson_items (grammar, conjugations, useful phrases, pronouns, etc.)
           for (const kw of keywords.slice(0, 6)) {
             const q = encodeURIComponent(kw);
-            // Search by French side
             const itemsFr = await supaFetch("lesson_items", `french=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
             for (const item of itemsFr) {
               if (item.lessons?.courses?.language_id === langId) {
                 const courseTitle = item.lessons?.courses?.title || "";
                 const lessonTitle = item.lessons?.title || "";
                 if (item.french && item.dialect) {
-                  context.push({ fr: item.french, ln: item.dialect, type: "lesson", quality: "verified", meta: `${courseTitle} > ${lessonTitle}` });
+                  lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: `${courseTitle} > ${lessonTitle}` });
                 }
                 if (item.example_french && item.example_dialect) {
-                  context.push({ fr: item.example_french, ln: item.example_dialect, type: "sentence", quality: "verified" });
+                  lessonContext.push({ fr: item.example_french, ln: item.example_dialect, type: "lesson_ex" });
                 }
               }
             }
-            // Search by dialect side
             const itemsLn = await supaFetch("lesson_items", `dialect=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
             for (const item of itemsLn) {
-              if (item.lessons?.courses?.language_id === langId) {
+              if (item.lessons?.courses?.language_id === langId && item.french && item.dialect) {
                 const courseTitle = item.lessons?.courses?.title || "";
                 const lessonTitle = item.lessons?.title || "";
-                if (item.french && item.dialect) {
-                  context.push({ fr: item.french, ln: item.dialect, type: "lesson", quality: "verified", meta: `${courseTitle} > ${lessonTitle}` });
-                }
+                lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: `${courseTitle} > ${lessonTitle}` });
               }
             }
           }
-          // Also search lesson titles for grammar topics (e.g. "pronoms", "conjugaison", "verbes")
+          // Search lesson titles for grammar topics (e.g. "pronoms", "conjugaison")
           for (const kw of keywords.slice(0, 4)) {
             const q = encodeURIComponent(kw);
             const lessons = await supaFetch("lessons", `title=ilike.*${q}*&select=id,title,courses!inner(language_id)&limit=3`);
             for (const lesson of lessons) {
               if (lesson.courses?.language_id === langId) {
-                // Found a matching lesson — pull all its items
-                const allItems = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=french,dialect,example_french,example_dialect&order=item_order&limit=20`);
+                const allItems = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=french,dialect&order=item_order&limit=20`);
                 for (const item of allItems) {
                   if (item.french && item.dialect) {
-                    context.push({ fr: item.french, ln: item.dialect, type: "lesson", quality: "verified", meta: lesson.title });
+                    lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: lesson.title });
                   }
                 }
               }
             }
           }
-        } catch (e) { console.error("Context search error:", e); }
-        
-        // Deduplicate
+        } catch (e) { console.error("Supabase lesson search error:", e); }
+
+        // Deduplicate lesson results
         const seen = new Set();
-        const unique = [];
-        for (const c of context) {
+        const uniqueLessons = [];
+        for (const c of lessonContext) {
           const key = `${c.fr}|${c.ln}`;
-          if (!seen.has(key)) { seen.add(key); unique.push(c); }
+          if (!seen.has(key)) { seen.add(key); uniqueLessons.push(c); }
         }
-        // Build context string
-        let ctxStr = "";
-        const wordResults = unique.filter(c => c.type === "word");
-        const lessonResults = unique.filter(c => c.type === "lesson");
-        const sentenceResults = unique.filter(c => c.type === "sentence");
-        if (wordResults.length) {
-          ctxStr += "=== VOCABULAIRE VÉRIFIÉ ===\n";
-          wordResults.forEach(w => { ctxStr += `• ${w.fr} → ${w.ln} [vérifié par professeur]\n`; });
-        }
-        if (lessonResults.length) {
-          ctxStr += "\n=== GRAMMAIRE & COURS VÉRIFIÉS ===\n";
+
+        // Build lesson context string
+        let lessonStr = "";
+        if (uniqueLessons.length) {
+          lessonStr += "\n=== GRAMMAIRE & COURS VÉRIFIÉS ===\n";
           let lastMeta = "";
-          lessonResults.forEach(l => {
-            if (l.meta && l.meta !== lastMeta) { ctxStr += `\n📖 ${l.meta}:\n`; lastMeta = l.meta; }
-            ctxStr += `• ${l.fr} → ${l.ln} [vérifié par professeur]\n`;
+          uniqueLessons.forEach(l => {
+            if (l.meta && l.meta !== lastMeta) { lessonStr += `\n📖 ${l.meta}:\n`; lastMeta = l.meta; }
+            lessonStr += `• ${l.fr} → ${l.ln} [vérifié par professeur]\n`;
           });
         }
-        if (sentenceResults.length) {
-          ctxStr += "\n=== PHRASES VÉRIFIÉES ===\n";
-          sentenceResults.forEach(s => { ctxStr += `FR: ${s.fr}\nLN: ${s.ln} [${s.quality}]\n\n`; });
-        }
-        if (!wordResults.length && !sentenceResults.length && !lessonResults.length) {
-          ctxStr = "(Aucune donnée trouvée dans le corpus pour: " + keywords.join(", ") + ")";
-        }
-        return ctxStr;
+
+        // ── Merge: FAISS context first (semantic), then grammar/courses ──────
+        const combined = [faissPart, lessonStr].filter(Boolean).join("\n");
+        return combined || "(Aucune donnée trouvée dans le corpus)";
       };
 
       const sendChat = async () => {
