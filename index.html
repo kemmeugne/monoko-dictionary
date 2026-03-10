@@ -529,6 +529,52 @@
               context.push({ fr: p.french_text, ln: p.lingala_text, type: "sentence", quality: p.quality || "gold" });
             }
           }
+          
+          // Search lesson_items (grammar, conjugations, useful phrases, pronouns, etc.)
+          for (const kw of keywords.slice(0, 6)) {
+            const q = encodeURIComponent(kw);
+            // Search by French side
+            const itemsFr = await supaFetch("lesson_items", `french=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
+            for (const item of itemsFr) {
+              if (item.lessons?.courses?.language_id === langId) {
+                const courseTitle = item.lessons?.courses?.title || "";
+                const lessonTitle = item.lessons?.title || "";
+                if (item.french && item.dialect) {
+                  context.push({ fr: item.french, ln: item.dialect, type: "lesson", quality: "verified", meta: `${courseTitle} > ${lessonTitle}` });
+                }
+                if (item.example_french && item.example_dialect) {
+                  context.push({ fr: item.example_french, ln: item.example_dialect, type: "sentence", quality: "verified" });
+                }
+              }
+            }
+            // Search by dialect side
+            const itemsLn = await supaFetch("lesson_items", `dialect=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
+            for (const item of itemsLn) {
+              if (item.lessons?.courses?.language_id === langId) {
+                const courseTitle = item.lessons?.courses?.title || "";
+                const lessonTitle = item.lessons?.title || "";
+                if (item.french && item.dialect) {
+                  context.push({ fr: item.french, ln: item.dialect, type: "lesson", quality: "verified", meta: `${courseTitle} > ${lessonTitle}` });
+                }
+              }
+            }
+          }
+          // Also search lesson titles for grammar topics (e.g. "pronoms", "conjugaison", "verbes")
+          for (const kw of keywords.slice(0, 4)) {
+            const q = encodeURIComponent(kw);
+            const lessons = await supaFetch("lessons", `title=ilike.*${q}*&select=id,title,courses!inner(language_id)&limit=3`);
+            for (const lesson of lessons) {
+              if (lesson.courses?.language_id === langId) {
+                // Found a matching lesson — pull all its items
+                const allItems = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=french,dialect,example_french,example_dialect&order=item_order&limit=20`);
+                for (const item of allItems) {
+                  if (item.french && item.dialect) {
+                    context.push({ fr: item.french, ln: item.dialect, type: "lesson", quality: "verified", meta: lesson.title });
+                  }
+                }
+              }
+            }
+          }
         } catch (e) { console.error("Context search error:", e); }
         
         // Deduplicate
@@ -541,16 +587,25 @@
         // Build context string
         let ctxStr = "";
         const wordResults = unique.filter(c => c.type === "word");
+        const lessonResults = unique.filter(c => c.type === "lesson");
         const sentenceResults = unique.filter(c => c.type === "sentence");
         if (wordResults.length) {
           ctxStr += "=== VOCABULAIRE VÉRIFIÉ ===\n";
           wordResults.forEach(w => { ctxStr += `• ${w.fr} → ${w.ln} [vérifié par professeur]\n`; });
         }
+        if (lessonResults.length) {
+          ctxStr += "\n=== GRAMMAIRE & COURS VÉRIFIÉS ===\n";
+          let lastMeta = "";
+          lessonResults.forEach(l => {
+            if (l.meta && l.meta !== lastMeta) { ctxStr += `\n📖 ${l.meta}:\n`; lastMeta = l.meta; }
+            ctxStr += `• ${l.fr} → ${l.ln} [vérifié par professeur]\n`;
+          });
+        }
         if (sentenceResults.length) {
           ctxStr += "\n=== PHRASES VÉRIFIÉES ===\n";
           sentenceResults.forEach(s => { ctxStr += `FR: ${s.fr}\nLN: ${s.ln} [${s.quality}]\n\n`; });
         }
-        if (!wordResults.length && !sentenceResults.length) {
+        if (!wordResults.length && !sentenceResults.length && !lessonResults.length) {
           ctxStr = "(Aucune donnée trouvée dans le corpus pour: " + keywords.join(", ") + ")";
         }
         return ctxStr;
