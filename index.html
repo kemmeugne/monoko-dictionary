@@ -348,6 +348,7 @@
       const [apiKeySet, setApiKeySet] = useState(false);
       const [correctionMsg, setCorrectionMsg] = useState(null);
       const [correctionText, setCorrectionText] = useState("");
+      const [correctionFrench, setCorrectionFrench] = useState("");
       const [correctionExample, setCorrectionExample] = useState("");
       const [correctionType, setCorrectionType] = useState("incorrect");
       const [correctionSent, setCorrectionSent] = useState(false);
@@ -625,7 +626,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
       };
 
       const submitCorrection = async (msgIndex) => {
-        if (!correctionText.trim()) return;
+        if (!correctionText.trim() || !correctionFrench.trim()) return;
         const original = chatMessages[msgIndex];
         const userMsg = msgIndex > 0 ? chatMessages[msgIndex - 1]?.content : "";
         try {
@@ -643,6 +644,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
               ai_response: original?.content || "",
               correction_type: correctionType,
               correct_lingala: correctionText.trim(),
+              correct_french: correctionFrench.trim(),
               example_sentence: correctionExample.trim() || null,
               status: "pending",
             }),
@@ -651,6 +653,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
           setTimeout(() => {
             setCorrectionMsg(null);
             setCorrectionText("");
+            setCorrectionFrench("");
             setCorrectionExample("");
             setCorrectionType("incorrect");
             setCorrectionSent(false);
@@ -1658,10 +1661,19 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                             ))}
                           </div>
 
-                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>La bonne traduction en {langName} *</p>
+                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Traduction correcte en {langName} *</p>
                           <textarea value={correctionText} onChange={e => setCorrectionText(e.target.value)}
                             placeholder={`Écrivez la traduction correcte en ${langName}...`}
-                            rows={3}
+                            rows={2}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
+                            onFocus={e => e.target.style.borderColor="#0EA5E9"}
+                            onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                          />
+
+                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Traduction française correspondante *</p>
+                          <textarea value={correctionFrench} onChange={e => setCorrectionFrench(e.target.value)}
+                            placeholder="Écrivez la phrase en français correspondante..."
+                            rows={2}
                             style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
                             onFocus={e => e.target.style.borderColor="#0EA5E9"}
                             onBlur={e => e.target.style.borderColor="#E8E0D4"}
@@ -1677,11 +1689,12 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                           />
 
                           <button onClick={() => submitCorrection(correctionMsg)}
-                            disabled={!correctionText.trim()}
+                            disabled={!correctionText.trim() || !correctionFrench.trim()}
                             style={{
-                              width:"100%", padding:"14px", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor: correctionText.trim() ? "pointer" : "default",
+                              width:"100%", padding:"14px", border:"none", borderRadius:12, fontSize:15, fontWeight:700,
+                              cursor: (correctionText.trim() && correctionFrench.trim()) ? "pointer" : "default",
                               fontFamily:"'DM Sans', sans-serif",
-                              background: correctionText.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
+                              background: (correctionText.trim() && correctionFrench.trim()) ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
                               color: "white",
                             }}>
                             Envoyer la correction
