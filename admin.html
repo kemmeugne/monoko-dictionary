@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monɔkɔ — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#F7F3ED;font-family:'DM Sans',sans-serif}
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-thumb{background:#D4C8B4;border-radius:4px}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
+    const ANON_KEY     = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaW9pY2N1am5jc2VoYWRpcHpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTczMjAsImV4cCI6MjA4NjU5MzMyMH0.ic0JlZ17hOpLOzth_E4YrR122EG4LN6T04TYMcV-_CU";
+    // Service role key is needed for writes (status updates + parallel_sentences insert).
+    // This page is password-protected so it is acceptable to include here.
+    const SERVICE_KEY  = "REDACTED_SERVICE_KEY";
+
+    // ── Change this to your own admin password ──────────────────────────────
+    const ADMIN_PASSWORD = "monoko-admin-2025";
+
+    const PAGE_SIZE = 10;
+
+    // ── Supabase helpers ─────────────────────────────────────────────────────
+    async function supaRead(table, params = "") {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+        headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    async function supaWrite(method, table, body, params = "") {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+        method,
+        headers: {
+          apikey: SERVICE_KEY,
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    async function supaCount(table, filter = "") {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id${filter ? "&" + filter : ""}`, {
+        headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}`, Prefer: "count=exact", Range: "0-0" },
+      });
+      const range = res.headers.get("content-range");
+      return range ? parseInt(range.split("/")[1]) : 0;
+    }
+
+    // ── Icons ─────────────────────────────────────────────────────────────────
+    const CheckIcon  = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+    const XIcon      = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+    const RefreshIcon= () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
+    const Spinner    = () => <div style={{width:24,height:24,border:"3px solid #E8E0D4",borderTopColor:"#2C5F2D",borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"40px auto"}}/>;
+
+    // ── Login screen ─────────────────────────────────────────────────────────
+    function Login({ onLogin }) {
+      const [pw, setPw] = useState("");
+      const [err, setErr] = useState(false);
+      const submit = () => {
+        if (pw === ADMIN_PASSWORD) { onLogin(); }
+        else { setErr(true); setTimeout(() => setErr(false), 1500); }
+      };
+      return (
+        <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#F7F3ED" }}>
+          <div style={{ background:"white", borderRadius:20, padding:"36px 32px", width:360, boxShadow:"0 4px 24px rgba(139,109,71,0.12)", animation:"fadeIn 0.3s" }}>
+            <div style={{ textAlign:"center", marginBottom:28 }}>
+              <div style={{ width:52,height:52,borderRadius:14,background:"linear-gradient(135deg,#2C5F2D,#4A8B4C)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px",fontSize:24 }}>🛡️</div>
+              <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>Monɔkɔ Admin</h1>
+              <p style={{ color:"#9B8A6E", fontSize:13 }}>Gestion des corrections</p>
+            </div>
+            <input
+              type="password" value={pw}
+              onChange={e => setPw(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && submit()}
+              placeholder="Mot de passe administrateur"
+              style={{ width:"100%", padding:"12px 14px", border:`2px solid ${err ? "#EF4444" : "#E8E0D4"}`, borderRadius:12, fontSize:14, outline:"none", marginBottom:12, fontFamily:"'DM Sans',sans-serif", transition:"border-color 0.2s" }}
+              autoFocus
+            />
+            {err && <p style={{ color:"#EF4444", fontSize:12, marginBottom:10, textAlign:"center" }}>Mot de passe incorrect</p>}
+            <button onClick={submit} style={{ width:"100%", padding:"13px", background:"linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+              Connexion
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Stat card ─────────────────────────────────────────────────────────────
+    function StatCard({ label, value, color }) {
+      return (
+        <div style={{ background:"white", borderRadius:14, padding:"16px 20px", border:"1px solid #E8E0D4", flex:1, minWidth:100 }}>
+          <div style={{ fontSize:26, fontWeight:800, color, fontFamily:"'Playfair Display',serif", lineHeight:1 }}>{value ?? "—"}</div>
+          <div style={{ fontSize:11, color:"#9B8A6E", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginTop:4 }}>{label}</div>
+        </div>
+      );
+    }
+
+    // ── Correction card ───────────────────────────────────────────────────────
+    function CorrectionCard({ correction, langName, onApprove, onReject, loading }) {
+      const typeColors = { incorrect:"#EF4444", partial:"#F59E0B", missing:"#6B7280" };
+      const typeLabels = { incorrect:"Incorrecte", partial:"Partielle", missing:"Contexte manquant" };
+      const color = typeColors[correction.correction_type] || "#6B7280";
+
+      return (
+        <div style={{ background:"white", borderRadius:16, border:"1px solid #E8E0D4", overflow:"hidden", marginBottom:12, animation:"slideIn 0.2s ease-out", boxShadow:"0 1px 4px rgba(139,109,71,0.06)" }}>
+          {/* Header */}
+          <div style={{ padding:"12px 16px", borderBottom:"1px solid #F0EBE3", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ background:color+"18", color, fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20, fontFamily:"'DM Mono',monospace" }}>
+                {typeLabels[correction.correction_type] || correction.correction_type}
+              </span>
+              <span style={{ fontSize:11, color:"#9B8A6E", fontFamily:"'DM Mono',monospace" }}>{langName}</span>
+            </div>
+            <span style={{ fontSize:11, color:"#B8A88C", fontFamily:"'DM Mono',monospace" }}>
+              {new Date(correction.created_at).toLocaleDateString("fr-FR", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
+            </span>
+          </div>
+
+          <div style={{ padding:"14px 16px" }}>
+            {/* Original exchange */}
+            <div style={{ marginBottom:12 }}>
+              <p style={{ fontSize:11, fontWeight:600, color:"#B8A88C", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 4px", fontFamily:"'DM Mono',monospace" }}>Question utilisateur</p>
+              <p style={{ fontSize:13, color:"#5C4A2E", margin:0, lineHeight:1.4, background:"#FDFBF7", borderRadius:8, padding:"8px 10px" }}>
+                {correction.user_query || <em style={{color:"#B8A88C"}}>—</em>}
+              </p>
+            </div>
+            <div style={{ marginBottom:14 }}>
+              <p style={{ fontSize:11, fontWeight:600, color:"#B8A88C", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 4px", fontFamily:"'DM Mono',monospace" }}>Réponse IA</p>
+              <p style={{ fontSize:13, color:"#5C4A2E", margin:0, lineHeight:1.4, background:"#FDFBF7", borderRadius:8, padding:"8px 10px", maxHeight:80, overflow:"auto" }}>
+                {correction.ai_response || <em style={{color:"#B8A88C"}}>—</em>}
+              </p>
+            </div>
+
+            {/* The corrected pair — the key data */}
+            <div style={{ background:"linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius:12, padding:"12px 14px", border:"1px solid #BBF7D0", marginBottom:12 }}>
+              <p style={{ fontSize:11, fontWeight:700, color:"#2C5F2D", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 10px", fontFamily:"'DM Mono',monospace" }}>✓ Paire vérifiée proposée</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                <div>
+                  <span style={{ fontSize:10, fontWeight:600, color:"#6B7280", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono',monospace" }}>Français</span>
+                  <p style={{ fontSize:14, fontWeight:600, color:"#2D2118", margin:"2px 0 0", fontFamily:"'DM Sans',sans-serif" }}>
+                    {correction.correct_french || <em style={{color:"#B8A88C", fontWeight:400}}>Non renseigné</em>}
+                  </p>
+                </div>
+                <div style={{ borderTop:"1px solid #BBF7D0", paddingTop:8 }}>
+                  <span style={{ fontSize:10, fontWeight:600, color:"#6B7280", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono',monospace" }}>{langName}</span>
+                  <p style={{ fontSize:14, fontWeight:600, color:"#2C5F2D", margin:"2px 0 0", fontFamily:"'DM Sans',sans-serif" }}>
+                    {correction.correct_lingala || <em style={{color:"#B8A88C", fontWeight:400}}>Non renseigné</em>}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Example sentence if provided */}
+            {correction.example_sentence && (
+              <div style={{ background:"#FDFBF7", borderRadius:10, padding:"10px 12px", borderLeft:"3px solid #D4A843", marginBottom:12 }}>
+                <p style={{ fontSize:11, fontWeight:600, color:"#B8A88C", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 4px", fontFamily:"'DM Mono',monospace" }}>Phrase d'exemple</p>
+                <p style={{ fontSize:13, color:"#5C4A2E", margin:0, fontStyle:"italic", lineHeight:1.4 }}>{correction.example_sentence}</p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display:"flex", gap:8 }}>
+              <button
+                onClick={() => onApprove(correction)}
+                disabled={loading}
+                style={{ flex:1, padding:"11px", background: loading ? "#E8E0D4" : "linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:10, fontSize:13, fontWeight:700, cursor: loading ? "default" : "pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                <CheckIcon /> Approuver → corpus
+              </button>
+              <button
+                onClick={() => onReject(correction.id)}
+                disabled={loading}
+                style={{ padding:"11px 16px", background: loading ? "#F5F0EA" : "white", color:"#EF4444", border:"1px solid #FECACA", borderRadius:10, fontSize:13, fontWeight:700, cursor: loading ? "default" : "pointer", display:"flex", alignItems:"center", gap:6 }}>
+                <XIcon /> Rejeter
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Main admin app ────────────────────────────────────────────────────────
+    function Admin() {
+      const [authed, setAuthed] = useState(false);
+      const [corrections, setCorrections] = useState([]);
+      const [languages, setLanguages] = useState([]);
+      const [stats, setStats] = useState({ pending: null, approved: null, rejected: null });
+      const [filterStatus, setFilterStatus] = useState("pending");
+      const [filterLang, setFilterLang] = useState("all");
+      const [loading, setLoading] = useState(false);
+      const [actionLoading, setActionLoading] = useState(null); // correction id being processed
+      const [bulkLoading, setBulkLoading] = useState(false);
+      const [page, setPage] = useState(0);
+      const [toast, setToast] = useState(null);
+
+      const showToast = (msg, type = "success") => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3000);
+      };
+
+      const loadStats = useCallback(async () => {
+        const [pending, approved, rejected] = await Promise.all([
+          supaCount("corrections", "status=eq.pending"),
+          supaCount("corrections", "status=eq.approved"),
+          supaCount("corrections", "status=eq.rejected"),
+        ]);
+        setStats({ pending, approved, rejected });
+      }, []);
+
+      const loadLanguages = useCallback(async () => {
+        const langs = await supaRead("languages", "select=id,name&status=eq.active&order=name");
+        setLanguages(langs);
+      }, []);
+
+      const loadCorrections = useCallback(async () => {
+        setLoading(true);
+        try {
+          let params = `select=*,languages(name)&status=eq.${filterStatus}&order=created_at.desc&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`;
+          if (filterLang !== "all") params += `&language_id=eq.${filterLang}`;
+          const data = await supaRead("corrections", params);
+          setCorrections(data);
+        } catch(e) { showToast("Erreur de chargement: " + e.message, "error"); }
+        setLoading(false);
+      }, [filterStatus, filterLang, page]);
+
+      useEffect(() => {
+        if (!authed) return;
+        loadLanguages();
+        loadStats();
+      }, [authed]);
+
+      useEffect(() => {
+        if (!authed) return;
+        setPage(0);
+      }, [filterStatus, filterLang]);
+
+      useEffect(() => {
+        if (!authed) return;
+        loadCorrections();
+      }, [authed, filterStatus, filterLang, page]);
+
+      const approve = async (correction) => {
+        if (!correction.correct_lingala || !correction.correct_french) {
+          showToast("La paire FR↔LN est incomplète — impossible d'approuver.", "error");
+          return;
+        }
+        setActionLoading(correction.id);
+        try {
+          // 1. Insert into parallel_sentences as a verified pair
+          await supaWrite("POST", "parallel_sentences", {
+            language_id:  correction.language_id,
+            french_text:  correction.correct_french,
+            lingala_text: correction.correct_lingala,
+            source:       "correction",
+            quality:      "verified",
+          });
+          // 2. Mark correction as approved
+          await supaWrite("PATCH", "corrections", { status: "approved" }, `id=eq.${correction.id}`);
+          showToast("✓ Approuvé et ajouté au corpus vérifié !");
+          await Promise.all([loadCorrections(), loadStats()]);
+        } catch(e) { showToast("Erreur: " + e.message, "error"); }
+        setActionLoading(null);
+      };
+
+      const reject = async (id) => {
+        setActionLoading(id);
+        try {
+          await supaWrite("PATCH", "corrections", { status: "rejected" }, `id=eq.${id}`);
+          showToast("Correction rejetée.");
+          await Promise.all([loadCorrections(), loadStats()]);
+        } catch(e) { showToast("Erreur: " + e.message, "error"); }
+        setActionLoading(null);
+      };
+
+      const bulkApprove = async () => {
+        if (!window.confirm(`Approuver toutes les corrections en attente avec une paire FR↔LN complète ?`)) return;
+        setBulkLoading(true);
+        try {
+          // Fetch ALL pending corrections (not just current page)
+          let params = `select=*&status=eq.pending&order=created_at.desc`;
+          if (filterLang !== "all") params += `&language_id=eq.${filterLang}`;
+          const all = await supaRead("corrections", params);
+
+          const complete = all.filter(c => c.correct_lingala?.trim() && c.correct_french?.trim());
+          const skipped  = all.length - complete.length;
+
+          if (complete.length === 0) {
+            showToast("Aucune correction avec une paire complète trouvée.", "error");
+            setBulkLoading(false);
+            return;
+          }
+
+          // Batch insert into parallel_sentences
+          const rows = complete.map(c => ({
+            language_id:  c.language_id,
+            french_text:  c.correct_french.trim(),
+            lingala_text: c.correct_lingala.trim(),
+            source:       "correction",
+            quality:      "verified",
+          }));
+          await supaWrite("POST", "parallel_sentences", rows);
+
+          // Batch update status to approved
+          const ids = complete.map(c => c.id).join(",");
+          await supaWrite("PATCH", "corrections", { status: "approved" }, `id=in.(${ids})`);
+
+          const msg = skipped > 0
+            ? `✓ ${complete.length} approuvées, ${skipped} ignorées (paire incomplète)`
+            : `✓ ${complete.length} corrections approuvées et ajoutées au corpus !`;
+          showToast(msg);
+          await Promise.all([loadCorrections(), loadStats()]);
+        } catch(e) { showToast("Erreur: " + e.message, "error"); }
+        setBulkLoading(false);
+      };
+
+      if (!authed) return <Login onLogin={() => setAuthed(true)} />;
+
+      return (
+        <div style={{ maxWidth:720, margin:"0 auto", padding:"24px 16px 60px", animation:"fadeIn 0.3s" }}>
+          {/* Header */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
+            <div>
+              <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:800, color:"#2D2118", margin:0 }}>Monɔkɔ Admin</h1>
+              <p style={{ color:"#9B8A6E", fontSize:13, margin:"2px 0 0" }}>Gestion des corrections utilisateurs</p>
+            </div>
+            <button onClick={() => { loadCorrections(); loadStats(); }} style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:10, padding:"8px 12px", cursor:"pointer", display:"flex", alignItems:"center", gap:6, fontSize:13, color:"#5C4A2E", fontWeight:600 }}>
+              <RefreshIcon /> Actualiser
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div style={{ display:"flex", gap:10, marginBottom:24 }}>
+            <StatCard label="En attente" value={stats.pending} color="#F59E0B" />
+            <StatCard label="Approuvées" value={stats.approved} color="#2C5F2D" />
+            <StatCard label="Rejetées"   value={stats.rejected} color="#EF4444" />
+          </div>
+
+          {/* Filters */}
+          <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+            {["pending","approved","rejected"].map(s => (
+              <button key={s} onClick={() => setFilterStatus(s)} style={{
+                padding:"8px 16px", borderRadius:20, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif",
+                background: filterStatus === s ? "#2C5F2D" : "white",
+                color: filterStatus === s ? "white" : "#5C4A2E",
+                border: filterStatus === s ? "2px solid #2C5F2D" : "2px solid #E8E0D4",
+              }}>
+                {{ pending:"En attente", approved:"Approuvées", rejected:"Rejetées" }[s]}
+              </button>
+            ))}
+            <select value={filterLang} onChange={e => setFilterLang(e.target.value)} style={{ marginLeft:"auto", padding:"8px 12px", borderRadius:20, border:"2px solid #E8E0D4", background:"white", fontSize:13, fontWeight:600, color:"#5C4A2E", cursor:"pointer", outline:"none" }}>
+              <option value="all">Toutes les langues</option>
+              {languages.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+            </select>
+          </div>
+
+          {/* Bulk approve — only shown on pending tab with results */}
+          {filterStatus === "pending" && !loading && corrections.length > 0 && (
+            <div style={{ background:"linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius:14, padding:"14px 18px", border:"1px solid #BBF7D0", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+              <div>
+                <p style={{ fontSize:13, fontWeight:700, color:"#2C5F2D", margin:"0 0 2px" }}>Tout approuver d'un coup</p>
+                <p style={{ fontSize:11, color:"#6B7280", margin:0 }}>Seules les corrections avec FR + {filterLang !== "all" ? languages.find(l=>String(l.id)===filterLang)?.name : "Lingala"} complètes seront insérées dans le corpus.</p>
+              </div>
+              <button
+                onClick={bulkApprove}
+                disabled={bulkLoading}
+                style={{ flexShrink:0, padding:"10px 18px", background: bulkLoading ? "#E8E0D4" : "linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:10, fontSize:13, fontWeight:700, cursor: bulkLoading ? "default" : "pointer", whiteSpace:"nowrap" }}>
+                {bulkLoading ? "En cours…" : "✓ Tout approuver"}
+              </button>
+            </div>
+          )}
+
+          {/* Corrections list */}
+          {loading ? <Spinner /> : corrections.length === 0 ? (
+            <div style={{ textAlign:"center", padding:"48px 0", color:"#9B8A6E" }}>
+              <p style={{ fontSize:32, marginBottom:8 }}>✅</p>
+              <p style={{ fontSize:15, fontWeight:600 }}>Aucune correction {filterStatus === "pending" ? "en attente" : filterStatus === "approved" ? "approuvée" : "rejetée"}</p>
+            </div>
+          ) : (
+            <>
+              {corrections.map(c => (
+                <CorrectionCard
+                  key={c.id}
+                  correction={c}
+                  langName={c.languages?.name || "—"}
+                  onApprove={approve}
+                  onReject={reject}
+                  loading={actionLoading === c.id}
+                />
+              ))}
+              {/* Pagination */}
+              <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:16 }}>
+                <button onClick={() => setPage(p => Math.max(0, p-1))} disabled={page === 0} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: page === 0 ? "#F5F0EA" : "white", color: page === 0 ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: page === 0 ? "default" : "pointer", fontSize:13 }}>← Précédent</button>
+                <span style={{ padding:"8px 16px", fontSize:13, color:"#9B8A6E", fontWeight:600 }}>Page {page + 1}</span>
+                <button onClick={() => setPage(p => p+1)} disabled={corrections.length < PAGE_SIZE} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: corrections.length < PAGE_SIZE ? "#F5F0EA" : "white", color: corrections.length < PAGE_SIZE ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: corrections.length < PAGE_SIZE ? "default" : "pointer", fontSize:13 }}>Suivant →</button>
+              </div>
+            </>
+          )}
+
+          {/* Toast */}
+          {toast && (
+            <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", background: toast.type === "error" ? "#EF4444" : "#2C5F2D", color:"white", padding:"12px 24px", borderRadius:12, fontSize:14, fontWeight:600, boxShadow:"0 4px 16px rgba(0,0,0,0.15)", animation:"slideIn 0.2s ease-out", zIndex:999, whiteSpace:"nowrap" }}>
+              {toast.msg}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Admin />);
+  </script>
+</body>
+</html>
