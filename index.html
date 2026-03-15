@@ -344,8 +344,6 @@
       const [chatMessages, setChatMessages] = useState([]);
       const [chatInput, setChatInput] = useState("");
       const [chatLoading, setChatLoading] = useState(false);
-      const [apiKey, setApiKey] = useState("");
-      const [apiKeySet, setApiKeySet] = useState(false);
       const [correctionMsg, setCorrectionMsg] = useState(null);
       const [correctionText, setCorrectionText] = useState("");
       const [correctionFrench, setCorrectionFrench] = useState("");
@@ -461,28 +459,6 @@
       const searchContext = async (userMsg) => {
         if (!langId) return "";
 
-        // ── Part 1: FAISS semantic search via RAG API ──────────────────────
-        // Handles vocabulary + 60K NLLB parallel sentences with dual-path
-        // language detection (French query → FR index, Lingala → LN index)
-        // and quality-ranked retrieval (verified/gold first, then NLLB auto).
-        let faissPart = "";
-        try {
-          const res = await fetch(`${RAG_API_URL}/api/context`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: userMsg, top_k: 20 }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            faissPart = data.context || "";
-          }
-        } catch (e) {
-          console.warn("RAG API unavailable, falling back to Supabase only:", e.message);
-        }
-
-        // ── Part 2: Supabase keyword search for grammar / course data ──────
-        // Lesson items (conjugations, pronouns, useful phrases) live only in
-        // Supabase and are not in the FAISS index — keep querying them here.
         const stopWords = new Set(["comment","dit","on","en","le","la","les","un","une","des","du","de","dit-on","dire","traduis","traduire","traduisez","veut","signifie","ce","cette","ces","et","ou","mais","donc","car","ni","ne","pas","plus","pour","par","sur","dans","avec","sans","chez","vers","entre","que","qui","quoi","quel","quelle","comme","quand","où","pourquoi","parce","si","aussi","très","encore","déjà","toujours","jamais","rien","tout","tous","faire","fait","peut","peux","faut","y","a","au","aux","à","d","l","s","n","m","t","c","j","moi","toi","lui","eux"]);
         const keywords = userMsg
           .toLowerCase()
@@ -490,62 +466,133 @@
           .split(/\s+/)
           .filter(w => w.length >= 2 && !stopWords.has(w));
 
-        let lessonContext = [];
-        try {
-          // Search lesson_items (grammar, conjugations, useful phrases, pronouns, etc.)
-          for (const kw of keywords.slice(0, 6)) {
-            const q = encodeURIComponent(kw);
-            const itemsFr = await supaFetch("lesson_items", `french=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
-            for (const item of itemsFr) {
-              if (item.lessons?.courses?.language_id === langId) {
-                const courseTitle = item.lessons?.courses?.title || "";
-                const lessonTitle = item.lessons?.title || "";
-                if (item.french && item.dialect) {
-                  lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: `${courseTitle} > ${lessonTitle}` });
+        // ── All four sources in parallel ────────────────────────────────────
+        const [dictEntries, lessonEntries, parallelEntries, faissPart] = await Promise.all([
+
+          // ── Source 1: Dictionary (words / senses / examples) ─────────────
+          (async () => {
+            const results = [];
+            try {
+              for (const kw of keywords.slice(0, 5)) {
+                const q = encodeURIComponent(kw);
+                const byFr = await supaFetch("words", `french_word=ilike.*${q}*&language_id=eq.${langId}&select=french_word,senses(dialect_word,examples(sentence_french,sentence_dialect))&limit=5`);
+                for (const w of byFr) {
+                  for (const s of (w.senses || [])) {
+                    if (s.dialect_word) results.push({ fr: w.french_word, ln: s.dialect_word, examples: s.examples || [] });
+                  }
                 }
-                if (item.example_french && item.example_dialect) {
-                  lessonContext.push({ fr: item.example_french, ln: item.example_dialect, type: "lesson_ex" });
-                }
-              }
-            }
-            const itemsLn = await supaFetch("lesson_items", `dialect=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
-            for (const item of itemsLn) {
-              if (item.lessons?.courses?.language_id === langId && item.french && item.dialect) {
-                const courseTitle = item.lessons?.courses?.title || "";
-                const lessonTitle = item.lessons?.title || "";
-                lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: `${courseTitle} > ${lessonTitle}` });
-              }
-            }
-          }
-          // Search lesson titles for grammar topics (e.g. "pronoms", "conjugaison")
-          for (const kw of keywords.slice(0, 4)) {
-            const q = encodeURIComponent(kw);
-            const lessons = await supaFetch("lessons", `title=ilike.*${q}*&select=id,title,courses!inner(language_id)&limit=3`);
-            for (const lesson of lessons) {
-              if (lesson.courses?.language_id === langId) {
-                const allItems = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=french,dialect&order=item_order&limit=20`);
-                for (const item of allItems) {
-                  if (item.french && item.dialect) {
-                    lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: lesson.title });
+                const byLn = await supaFetch("senses", `dialect_word=ilike.*${q}*&select=dialect_word,examples(sentence_french,sentence_dialect),words!inner(french_word,language_id)&limit=5`);
+                for (const s of byLn) {
+                  if (s.words?.language_id === langId && s.dialect_word) {
+                    results.push({ fr: s.words.french_word, ln: s.dialect_word, examples: s.examples || [] });
                   }
                 }
               }
+            } catch(e) { console.error("Dictionary search error:", e); }
+            return results;
+          })(),
+
+          // ── Source 2: lesson_items & lesson titles ────────────────────────
+          (async () => {
+            const results = [];
+            try {
+              for (const kw of keywords.slice(0, 6)) {
+                const q = encodeURIComponent(kw);
+                const itemsFr = await supaFetch("lesson_items", `french=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
+                for (const item of itemsFr) {
+                  if (item.lessons?.courses?.language_id === langId) {
+                    const meta = `${item.lessons?.courses?.title || ""} > ${item.lessons?.title || ""}`;
+                    if (item.french && item.dialect) results.push({ fr: item.french, ln: item.dialect, type: "lesson", meta });
+                    if (item.example_french && item.example_dialect) results.push({ fr: item.example_french, ln: item.example_dialect, type: "lesson_ex" });
+                  }
+                }
+                const itemsLn = await supaFetch("lesson_items", `dialect=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
+                for (const item of itemsLn) {
+                  if (item.lessons?.courses?.language_id === langId && item.french && item.dialect) {
+                    const meta = `${item.lessons?.courses?.title || ""} > ${item.lessons?.title || ""}`;
+                    results.push({ fr: item.french, ln: item.dialect, type: "lesson", meta });
+                  }
+                }
+              }
+              for (const kw of keywords.slice(0, 4)) {
+                const q = encodeURIComponent(kw);
+                const lessons = await supaFetch("lessons", `title=ilike.*${q}*&select=id,title,courses!inner(language_id)&limit=3`);
+                for (const lesson of lessons) {
+                  if (lesson.courses?.language_id === langId) {
+                    const allItems = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=french,dialect&order=item_order&limit=20`);
+                    for (const item of allItems) {
+                      if (item.french && item.dialect) results.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: lesson.title });
+                    }
+                  }
+                }
+              }
+            } catch(e) { console.error("Lesson search error:", e); }
+            return results;
+          })(),
+
+          // ── Source 3: parallel_sentences from Supabase ────────────────────
+          // Covers approved corrections + FLORES gold pairs not yet in FAISS.
+          // Requires a public SELECT policy on parallel_sentences to return data.
+          (async () => {
+            const results = [];
+            try {
+              for (const kw of keywords.slice(0, 4)) {
+                const q = encodeURIComponent(kw);
+                const byFr = await supaFetch("parallel_sentences", `french_text=ilike.*${q}*&language_id=eq.${langId}&select=french_text,lingala_text,quality&order=quality&limit=5`);
+                for (const p of byFr) { if (p.french_text && p.lingala_text) results.push(p); }
+                const byLn = await supaFetch("parallel_sentences", `lingala_text=ilike.*${q}*&language_id=eq.${langId}&select=french_text,lingala_text,quality&order=quality&limit=5`);
+                for (const p of byLn) { if (p.french_text && p.lingala_text) results.push(p); }
+              }
+            } catch(e) { console.error("Parallel sentences search error:", e); }
+            return results;
+          })(),
+
+          // ── Source 4: FAISS semantic search via Railway ───────────────────
+          (async () => {
+            try {
+              const res = await fetch(`${RAG_API_URL}/api/context`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: userMsg, top_k: 20 }),
+              });
+              if (res.ok) {
+                const data = await res.json();
+                return data.context || "";
+              }
+            } catch(e) { console.warn("RAG API unavailable, falling back to Supabase only:", e.message); }
+            return "";
+          })(),
+        ]);
+
+        // ── Deduplicate (dict first = highest priority) ──────────────────────
+        const seen = new Set();
+        const dedup = (arr, keyFn) => arr.filter(x => {
+          const k = keyFn(x);
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+        const uniqueDict    = dedup(dictEntries,     e => `${e.fr}|${e.ln}`);
+        const uniqueLessons = dedup(lessonEntries,   e => `${e.fr}|${e.ln}`);
+        const uniquePS      = dedup(parallelEntries, e => `${e.french_text}|${e.lingala_text}`);
+
+        // ── Build context strings ────────────────────────────────────────────
+
+        let dictStr = "";
+        if (uniqueDict.length) {
+          dictStr = "\n=== DICTIONNAIRE VÉRIFIÉ ===\n";
+          for (const e of uniqueDict) {
+            dictStr += `• ${e.fr} → ${e.ln} [vérifié par professeur]\n`;
+            for (const ex of (e.examples || []).slice(0, 1)) {
+              if (ex.sentence_french && ex.sentence_dialect)
+                dictStr += `  ex: « ${ex.sentence_french} » → « ${ex.sentence_dialect} »\n`;
             }
           }
-        } catch (e) { console.error("Supabase lesson search error:", e); }
-
-        // Deduplicate lesson results
-        const seen = new Set();
-        const uniqueLessons = [];
-        for (const c of lessonContext) {
-          const key = `${c.fr}|${c.ln}`;
-          if (!seen.has(key)) { seen.add(key); uniqueLessons.push(c); }
         }
 
-        // Build lesson context string
         let lessonStr = "";
         if (uniqueLessons.length) {
-          lessonStr += "\n=== GRAMMAIRE & COURS VÉRIFIÉS ===\n";
+          lessonStr = "\n=== GRAMMAIRE & COURS VÉRIFIÉS ===\n";
           let lastMeta = "";
           uniqueLessons.forEach(l => {
             if (l.meta && l.meta !== lastMeta) { lessonStr += `\n📖 ${l.meta}:\n`; lastMeta = l.meta; }
@@ -553,14 +600,23 @@
           });
         }
 
-        // ── Merge: FAISS context first (semantic), then grammar/courses ──────
-        const combined = [faissPart, lessonStr].filter(Boolean).join("\n");
+        let psStr = "";
+        if (uniquePS.length) {
+          psStr = "\n=== PHRASES PARALLÈLES VÉRIFIÉES ===\n";
+          for (const p of uniquePS) {
+            const label = p.quality === "verified" ? "[vérifié par professeur]" : "[gold]";
+            psStr += `• ${p.french_text} → ${p.lingala_text} ${label}\n`;
+          }
+        }
+
+        // ── Priority: dict → lessons → parallel_sentences → FAISS ───────────
+        const combined = [dictStr, lessonStr, psStr, faissPart].filter(Boolean).join("\n");
         return combined || "(Aucune donnée trouvée dans le corpus)";
       };
 
       const sendChat = async () => {
         const msg = chatInput.trim();
-        if (!msg || !apiKey || chatLoading) return;
+        if (!msg || chatLoading) return;
 
         const newMessages = [...chatMessages, { role: "user", content: msg }];
         setChatMessages(newMessages);
@@ -600,39 +656,26 @@ CE QU'IL FAUT ÉVITER:
 ${context || "(Aucune donnée trouvée pour cette requête)"}
 === FIN DU CORPUS ===`;
 
-          const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          const res = await fetch("/api/chat", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${apiKey}`,
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "gpt-4o-mini",
-              temperature: 0.2,
-              max_tokens: 512,
-              messages: [
-                { role: "system", content: systemPrompt },
-                ...newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
-              ],
+              systemPrompt,
+              messages: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
             }),
           });
 
           const data = await res.json();
 
-          if (data.choices && data.choices[0] && data.choices[0].message) {
+          if (res.ok && data.content) {
             setChatMessages(prev => [
               ...prev,
-              { role: "assistant", content: data.choices[0].message.content }
-            ]);
-          } else if (data.error) {
-            setChatMessages(prev => [
-              ...prev,
-              { role: "assistant", content: `⚠️ Erreur: ${data.error.message}` }
+              { role: "assistant", content: data.content }
             ]);
           } else {
             setChatMessages(prev => [
               ...prev,
-              { role: "assistant", content: "⚠️ Réponse vide du modèle." }
+              { role: "assistant", content: `⚠️ Erreur: ${data.error || "Réponse vide du modèle."}` }
             ]);
           }
         } catch (e) {
@@ -1521,36 +1564,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                   </div>
                 </div>
 
-                {/* API Key setup */}
-                {!apiKeySet ? (
-                  <div style={{ background:"white", borderRadius:16, border:"1px solid #E8E0D4", padding:"24px", animation:"slideIn 0.25s ease-out" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-                      <span style={{ fontSize:20 }}>🔑</span>
-                      <h3 style={{ fontSize:16, fontWeight:700, color:"#2D2118", margin:0, fontFamily:"'Playfair Display', serif" }}>Configuration</h3>
-                    </div>
-                    <p style={{ fontSize:13, color:"#8B6D47", lineHeight:1.5, margin:"0 0 16px" }}>
-                      Entrez votre clé API OpenAI pour activer Monoko. Cette clé reste dans votre navigateur et n'est jamais stockée sur nos serveurs.
-                    </p>
-                    <input
-                      type="password"
-                      value={apiKey}
-                      onChange={e => setApiKey(e.target.value)}
-                      placeholder="sk-proj-..."
-                      style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Mono', monospace", background:"#FDFBF7", outline:"none", marginBottom:12 }}
-                      onFocus={e => e.target.style.borderColor = "#0EA5E9"}
-                      onBlur={e => e.target.style.borderColor = "#E8E0D4"}
-                      onKeyDown={e => { if (e.key === "Enter" && apiKey.startsWith("sk-")) setApiKeySet(true); }}
-                    />
-                    <button onClick={() => { if (apiKey.startsWith("sk-")) setApiKeySet(true); else alert("La clé doit commencer par sk-"); }}
-                      style={{ width:"100%", padding:"12px", background:"linear-gradient(135deg, #0EA5E9, #2563EB)", color:"white", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', sans-serif" }}>
-                      Activer Monoko
-                    </button>
-                    <p style={{ fontSize:11, color:"#B8A88C", marginTop:10, textAlign:"center" }}>
-                      Obtenez une clé sur <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" style={{ color:"#0EA5E9" }}>platform.openai.com/api-keys</a>
-                    </p>
-                  </div>
-                ) : (
-                  <React.Fragment>
+                <React.Fragment>
                     {/* Chat messages */}
                     <div style={{ flex:1, overflowY:"auto", marginBottom:12, display:"flex", flexDirection:"column", gap:8 }}>
                       {chatMessages.length === 0 && (
@@ -1644,8 +1658,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                         transition:"all 0.2s", flexShrink:0,
                       }}><SendIcon /></button>
                     </div>
-                  </React.Fragment>
-                )}
+                </React.Fragment>
 
                 {/* Correction modal */}
                 {correctionMsg !== null && (
