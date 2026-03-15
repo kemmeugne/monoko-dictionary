@@ -458,160 +458,20 @@
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
         if (!langId) return "";
-
-        const stopWords = new Set(["comment","dit","on","en","le","la","les","un","une","des","du","de","dit-on","dire","traduis","traduire","traduisez","veut","signifie","ce","cette","ces","et","ou","mais","donc","car","ni","ne","pas","plus","pour","par","sur","dans","avec","sans","chez","vers","entre","que","qui","quoi","quel","quelle","comme","quand","où","pourquoi","parce","si","aussi","très","encore","déjà","toujours","jamais","rien","tout","tous","faire","fait","peut","peux","faut","y","a","au","aux","à","d","l","s","n","m","t","c","j","moi","toi","lui","eux"]);
-        const keywords = userMsg
-          .toLowerCase()
-          .replace(/[''?!.,;:«»"""()\-]/g, " ")
-          .split(/\s+/)
-          .filter(w => w.length >= 2 && !stopWords.has(w));
-
-        // ── All four sources in parallel ────────────────────────────────────
-        const [dictEntries, lessonEntries, parallelEntries, faissPart] = await Promise.all([
-
-          // ── Source 1: Dictionary (words / senses / examples) ─────────────
-          (async () => {
-            const results = [];
-            try {
-              for (const kw of keywords.slice(0, 5)) {
-                const q = encodeURIComponent(kw);
-                const byFr = await supaFetch("words", `french_word=ilike.*${q}*&language_id=eq.${langId}&select=french_word,senses(dialect_word,examples(sentence_french,sentence_dialect))&limit=5`);
-                for (const w of byFr) {
-                  for (const s of (w.senses || [])) {
-                    if (s.dialect_word) results.push({ fr: w.french_word, ln: s.dialect_word, examples: s.examples || [] });
-                  }
-                }
-                const byLn = await supaFetch("senses", `dialect_word=ilike.*${q}*&select=dialect_word,examples(sentence_french,sentence_dialect),words!inner(french_word,language_id)&limit=5`);
-                for (const s of byLn) {
-                  if (s.words?.language_id === langId && s.dialect_word) {
-                    results.push({ fr: s.words.french_word, ln: s.dialect_word, examples: s.examples || [] });
-                  }
-                }
-              }
-            } catch(e) { console.error("Dictionary search error:", e); }
-            return results;
-          })(),
-
-          // ── Source 2: lesson_items & lesson titles ────────────────────────
-          (async () => {
-            const results = [];
-            try {
-              for (const kw of keywords.slice(0, 6)) {
-                const q = encodeURIComponent(kw);
-                const itemsFr = await supaFetch("lesson_items", `french=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
-                for (const item of itemsFr) {
-                  if (item.lessons?.courses?.language_id === langId) {
-                    const meta = `${item.lessons?.courses?.title || ""} > ${item.lessons?.title || ""}`;
-                    if (item.french && item.dialect) results.push({ fr: item.french, ln: item.dialect, type: "lesson", meta });
-                    if (item.example_french && item.example_dialect) results.push({ fr: item.example_french, ln: item.example_dialect, type: "lesson_ex" });
-                  }
-                }
-                const itemsLn = await supaFetch("lesson_items", `dialect=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
-                for (const item of itemsLn) {
-                  if (item.lessons?.courses?.language_id === langId && item.french && item.dialect) {
-                    const meta = `${item.lessons?.courses?.title || ""} > ${item.lessons?.title || ""}`;
-                    results.push({ fr: item.french, ln: item.dialect, type: "lesson", meta });
-                  }
-                }
-              }
-              for (const kw of keywords.slice(0, 4)) {
-                const q = encodeURIComponent(kw);
-                const lessons = await supaFetch("lessons", `title=ilike.*${q}*&select=id,title,courses!inner(language_id)&limit=3`);
-                for (const lesson of lessons) {
-                  if (lesson.courses?.language_id === langId) {
-                    const allItems = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=french,dialect&order=item_order&limit=20`);
-                    for (const item of allItems) {
-                      if (item.french && item.dialect) results.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: lesson.title });
-                    }
-                  }
-                }
-              }
-            } catch(e) { console.error("Lesson search error:", e); }
-            return results;
-          })(),
-
-          // ── Source 3: parallel_sentences from Supabase ────────────────────
-          // Covers approved corrections + FLORES gold pairs not yet in FAISS.
-          // Requires a public SELECT policy on parallel_sentences to return data.
-          (async () => {
-            const results = [];
-            try {
-              for (const kw of keywords.slice(0, 4)) {
-                const q = encodeURIComponent(kw);
-                const byFr = await supaFetch("parallel_sentences", `french_text=ilike.*${q}*&language_id=eq.${langId}&select=french_text,lingala_text,quality&order=quality&limit=5`);
-                for (const p of byFr) { if (p.french_text && p.lingala_text) results.push(p); }
-                const byLn = await supaFetch("parallel_sentences", `lingala_text=ilike.*${q}*&language_id=eq.${langId}&select=french_text,lingala_text,quality&order=quality&limit=5`);
-                for (const p of byLn) { if (p.french_text && p.lingala_text) results.push(p); }
-              }
-            } catch(e) { console.error("Parallel sentences search error:", e); }
-            return results;
-          })(),
-
-          // ── Source 4: FAISS semantic search via Railway ───────────────────
-          (async () => {
-            try {
-              const res = await fetch(`${RAG_API_URL}/api/context`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: userMsg, top_k: 20 }),
-              });
-              if (res.ok) {
-                const data = await res.json();
-                return data.context || "";
-              }
-            } catch(e) { console.warn("RAG API unavailable, falling back to Supabase only:", e.message); }
-            return "";
-          })(),
-        ]);
-
-        // ── Deduplicate (dict first = highest priority) ──────────────────────
-        const seen = new Set();
-        const dedup = (arr, keyFn) => arr.filter(x => {
-          const k = keyFn(x);
-          if (seen.has(k)) return false;
-          seen.add(k);
-          return true;
-        });
-        const uniqueDict    = dedup(dictEntries,     e => `${e.fr}|${e.ln}`);
-        const uniqueLessons = dedup(lessonEntries,   e => `${e.fr}|${e.ln}`);
-        const uniquePS      = dedup(parallelEntries, e => `${e.french_text}|${e.lingala_text}`);
-
-        // ── Build context strings ────────────────────────────────────────────
-
-        let dictStr = "";
-        if (uniqueDict.length) {
-          dictStr = "\n=== DICTIONNAIRE VÉRIFIÉ ===\n";
-          for (const e of uniqueDict) {
-            dictStr += `• ${e.fr} → ${e.ln} [vérifié par professeur]\n`;
-            for (const ex of (e.examples || []).slice(0, 1)) {
-              if (ex.sentence_french && ex.sentence_dialect)
-                dictStr += `  ex: « ${ex.sentence_french} » → « ${ex.sentence_dialect} »\n`;
-            }
-          }
-        }
-
-        let lessonStr = "";
-        if (uniqueLessons.length) {
-          lessonStr = "\n=== GRAMMAIRE & COURS VÉRIFIÉS ===\n";
-          let lastMeta = "";
-          uniqueLessons.forEach(l => {
-            if (l.meta && l.meta !== lastMeta) { lessonStr += `\n📖 ${l.meta}:\n`; lastMeta = l.meta; }
-            lessonStr += `• ${l.fr} → ${l.ln} [vérifié par professeur]\n`;
+        try {
+          const res = await fetch(`${RAG_API_URL}/api/context`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: userMsg, top_k: 30, language_id: langId }),
           });
-        }
-
-        let psStr = "";
-        if (uniquePS.length) {
-          psStr = "\n=== PHRASES PARALLÈLES VÉRIFIÉES ===\n";
-          for (const p of uniquePS) {
-            const label = p.quality === "verified" ? "[vérifié par professeur]" : "[gold]";
-            psStr += `• ${p.french_text} → ${p.lingala_text} ${label}\n`;
+          if (res.ok) {
+            const data = await res.json();
+            return data.context || "(Aucune donnée trouvée dans le corpus)";
           }
+        } catch(e) {
+          console.warn("RAG API unavailable:", e.message);
         }
-
-        // ── Priority: dict → lessons → parallel_sentences → FAISS ───────────
-        const combined = [dictStr, lessonStr, psStr, faissPart].filter(Boolean).join("\n");
-        return combined || "(Aucune donnée trouvée dans le corpus)";
+        return "(Service de recherche indisponible)";
       };
 
       const sendChat = async () => {
@@ -625,7 +485,7 @@
 
         try {
           const context = await searchContext(msg);
-          const systemPrompt = `Tu es Monoko, un assistant IA conversationnel en ${langName}.
+          const systemPrompt = `Tu es Monoko, un assistant IA dédié à la langue ${langName}.
 
 RÈGLE SUJET: Tu ne parles QUE de la langue ${langName}. Pour tout autre sujet, réponds poliment que tu ne traites que le ${langName}.
 
@@ -633,26 +493,27 @@ TON RÔLE:
 Tu aides les gens à apprendre et utiliser le ${langName}. Tu traduis, expliques la grammaire, enseignes du vocabulaire, et tiens des conversations en ${langName}.
 
 COMMENT RÉPONDRE:
-1. Utilise le corpus ci-dessous comme source principale. Quand un mot ou une phrase en provient, indique ✓ (vérifié par professeur).
-2. Tu PEUX combiner des mots vérifiés du corpus pour construire des phrases. Indique ~ (suggestion) pour ces combinaisons.
-3. Tu PEUX utiliser tes connaissances générales du ${langName} pour compléter quand le corpus ne suffit pas. Indique ≈ (approximatif) et précise que la confirmation d'un professeur serait utile.
-4. Sois utile et généreux dans tes réponses. Donne la traduction, des exemples, et des explications grammaticales quand c'est pertinent.
-5. Réponses naturelles et chaleureuses. Pas de format rigide.
+1. Le corpus ci-dessous est ta source principale et la plus fiable. Utilise-le en priorité absolue.
+2. Quand un mot ou une phrase provient directement du corpus, indique ✓ (vérifié par professeur).
+3. Tu peux combiner des mots vérifiés du corpus pour construire des phrases. Indique ~ (suggestion basée sur vocabulaire vérifié).
+4. Si le corpus ne contient pas ce dont tu as besoin, tu peux proposer une traduction, mais reste prudent et indique que la confirmation d'un professeur serait utile via le bouton Corriger.
+5. Réponses courtes, naturelles et chaleureuses.
+6. Donne la traduction, puis décompose les mots clés avec leur source.
 
 EXEMPLE DE BONNE RÉPONSE:
 Question: "Comment dit-on comment va ton père ?"
-Réponse: "Tata azali malamu?" ~
-- Tata = père ✓ (vérifié)
-- Azali = il/elle est ≈
-- Malamu = bien ✓ (vérifié)
-Cette phrase combine du vocabulaire vérifié. Un professeur peut confirmer via le bouton Corriger.
+Réponse: En ${langName}, tu peux dire : "Tata azali malamu?" ~
+- Tata = père ✓ (du corpus vérifié)
+- Azali = il/elle est ~
+- Malamu = bien ✓ (du corpus vérifié)
 
 CE QU'IL FAUT ÉVITER:
-- Ne génère pas de longs monologues en ${langName} inventés de toutes pièces
+- Ne génère pas de longs paragraphes en ${langName}
 - Ne dis pas "je ne sais pas" si tu as des éléments de réponse dans le corpus — utilise ce que tu as
 - Ne sois pas trop prudent au point de ne rien proposer
+- Ne paraphrase pas librement quand le corpus a déjà une bonne correspondance — reste fidèle aux traductions vérifiées
 
-=== CORPUS DE RÉFÉRENCE ===
+=== CORPUS DE RÉFÉRENCE (SOURCE PRIORITAIRE) ===
 ${context || "(Aucune donnée trouvée pour cette requête)"}
 === FIN DU CORPUS ===`;
 
