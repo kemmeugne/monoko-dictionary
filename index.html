@@ -452,10 +452,14 @@
 
       const openWord = (id, fromView) => { setPrevView(fromView || view); setSelectedWordId(id); setView("detail"); };
 
-      // ── RAG API URL (update this when you deploy the backend) ──
-      // ⚠️  Replace with your Railway URL after deployment
-      // e.g. "https://monoko-rag-api-production.up.railway.app"
+      // ── Backend API URL (Railway / server) ──
+      // This backend should expose:
+      //   POST /api/context  -> retrieval context
+      //   POST /api/chat     -> server-side OpenAI proxy
       const RAG_API_URL = "https://monoko-rag-api-production.up.railway.app";
+      const USE_BACKEND_LLM_PROXY = true;
+      const OPENAI_BROWSER_FALLBACK = false;
+      const BACKEND_CHAT_URL = `${RAG_API_URL}/api/chat`;
 
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
@@ -558,9 +562,17 @@
         return combined || "(Aucune donnée trouvée dans le corpus)";
       };
 
+      const normalizeLearnerInput = (text) => {
+        return text
+          .replace(/\bmander\b/gi, "manger")
+          .replace(/\bbananas\b/gi, "bananes")
+          .replace(/\bbanana\b/gi, "banane");
+      };
+
       const sendChat = async () => {
-        const msg = chatInput.trim();
-        if (!msg || !apiKey || chatLoading) return;
+        const rawMsg = chatInput.trim();
+        const msg = normalizeLearnerInput(rawMsg);
+        if (!msg || chatLoading || (!USE_BACKEND_LLM_PROXY && !OPENAI_BROWSER_FALLBACK && !apiKey)) return;
 
         const newMessages = [...chatMessages, { role: "user", content: msg }];
         setChatMessages(newMessages);
@@ -569,70 +581,130 @@
 
         try {
           const context = await searchContext(msg);
-          const systemPrompt = `Tu es Monoko, un assistant IA conversationnel en ${langName}.
+          const systemPrompt = `Tu es Monoko, un tuteur expert en ${langName}, spécialisé dans l'enseignement naturel, précis et prudent de la langue.
 
 RÈGLE SUJET: Tu ne parles QUE de la langue ${langName}. Pour tout autre sujet, réponds poliment que tu ne traites que le ${langName}.
 
-TON RÔLE:
-Tu aides les gens à apprendre et utiliser le ${langName}. Tu traduis, expliques la grammaire, enseignes du vocabulaire, et tiens des conversations en ${langName}.
+TON OBJECTIF:
+Tu aides les gens à apprendre et utiliser le ${langName}. Tu traduis, expliques la grammaire, enseignes du vocabulaire, et tiens des conversations en ${langName}. Ton objectif n'est pas seulement de répondre, mais de proposer la formulation la plus naturelle et la plus fiable possible pour un apprenant.
 
-COMMENT RÉPONDRE:
-1. Utilise le corpus ci-dessous comme source principale. Quand un mot ou une phrase en provient, indique ✓ (vérifié par professeur).
-2. Tu PEUX combiner des mots vérifiés du corpus pour construire des phrases. Indique ~ (suggestion) pour ces combinaisons.
-3. Tu PEUX utiliser tes connaissances générales du ${langName} pour compléter quand le corpus ne suffit pas. Indique ≈ (approximatif) et précise que la confirmation d'un professeur serait utile.
-4. Sois utile et généreux dans tes réponses. Donne la traduction, des exemples, et des explications grammaticales quand c'est pertinent.
-5. Réponses naturelles et chaleureuses. Pas de format rigide.
+PRIORITÉ LINGUISTIQUE:
+Quand plusieurs formulations sont possibles, privilégie toujours la tournure la plus naturelle, idiomatique et conversationnelle en ${langName}, pas la traduction mot-à-mot du français.
+Évite les formulations littérales si une forme plus naturelle existe.
+Préfère les réponses courtes, claires, et pédagogiques.
+
+CORRECTION DES FAUTES:
+Si la question de l'utilisateur contient une faute évidente en français ou dans la langue source, corrige-la mentalement avant de traduire.
+Si la correction est presque certaine, commence par : "Je suppose que vous vouliez dire : ..."
+Puis donne la traduction correcte.
+Ne transforme jamais une faute de frappe en nouveau mot ou en nouveau verbe en ${langName}.
+
+UTILISATION DU CORPUS:
+1. Utilise d'abord les phrases entières récupérées du corpus si elles répondent directement à la question.
+2. Si aucune phrase entière n'existe, construis une réponse à partir d'éléments vérifiés du corpus.
+3. N'utilise tes connaissances générales du ${langName} qu'en dernier recours.
+4. Quand un mot ou une phrase provient directement du corpus, indique ✓ (vérifié par professeur).
+5. Quand tu reconstruis une phrase uniquement à partir d'éléments vérifiés du corpus, indique ~ (suggestion fondée sur le corpus).
+6. Quand tu complètes avec des connaissances générales non présentes dans le corpus, indique ≈ (approximatif) et précise qu'une confirmation d'un professeur serait utile.
+7. Ne mets jamais ✓ sur une phrase complète si elle a été reconstruite.
+
+FORMAT POUR LES TRADUCTIONS:
+Quand l'utilisateur demande "comment dire X":
+1. Donne d'abord la meilleure traduction naturelle.
+2. Si utile, ajoute une courte décomposition mot à mot.
+3. Indique clairement le niveau de confiance avec ✓, ~ ou ≈.
+4. Si une tournure plus naturelle existe, ajoute "Version plus naturelle : ..."
+
+STYLE MONOKO:
+- privilégier le ${langName} conversationnel naturel
+- éviter les traductions trop littérales du français
+- ne pas inventer de longs monologues
+- ne pas répondre de façon trop prudente si le corpus permet une réponse utile
+- signaler honnêtement l'incertitude quand nécessaire
 
 EXEMPLE DE BONNE RÉPONSE:
 Question: "Comment dit-on comment va ton père ?"
-Réponse: "Tata azali malamu?" ~
-- Tata = père ✓ (vérifié)
-- Azali = il/elle est ≈
-- Malamu = bien ✓ (vérifié)
-Cette phrase combine du vocabulaire vérifié. Un professeur peut confirmer via le bouton Corriger.
-
-CE QU'IL FAUT ÉVITER:
-- Ne génère pas de longs monologues en ${langName} inventés de toutes pièces
-- Ne dis pas "je ne sais pas" si tu as des éléments de réponse dans le corpus — utilise ce que tu as
-- Ne sois pas trop prudent au point de ne rien proposer
+Réponse: "Tata azali malamu ?" ~
+- Tata = père ✓
+- Malamu = bien ✓
+- La phrase complète est reconstruite à partir d'éléments vérifiés, donc ~
+Version plus naturelle : "Tata azali malamu ?"
 
 === CORPUS DE RÉFÉRENCE ===
 ${context || "(Aucune donnée trouvée pour cette requête)"}
 === FIN DU CORPUS ===`;
 
-          const res = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: "gpt-4o-mini",
-              temperature: 0.2,
-              max_tokens: 512,
-              messages: [
-                { role: "system", content: systemPrompt },
-                ...newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
-              ],
-            }),
-          });
+          let assistantText = "";
+          let errorText = "";
 
-          const data = await res.json();
+          if (USE_BACKEND_LLM_PROXY) {
+            const res = await fetch(BACKEND_CHAT_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0.2,
+                max_tokens: 512,
+                system_prompt: systemPrompt,
+                messages: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+                client_api_key: apiKey || null,
+              }),
+            });
 
-          if (data.choices && data.choices[0] && data.choices[0].message) {
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+              errorText = data?.error || data?.message || `HTTP ${res.status}`;
+            } else {
+              assistantText =
+                data?.output_text ||
+                data?.content ||
+                data?.message ||
+                data?.response ||
+                data?.choices?.[0]?.message?.content ||
+                "";
+            }
+          } else {
+            const res = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0.2,
+                max_tokens: 512,
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  ...newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+                ],
+              }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+              errorText = data?.error?.message || `HTTP ${res.status}`;
+            } else {
+              assistantText = data?.choices?.[0]?.message?.content || "";
+            }
+          }
+
+          if (assistantText) {
             setChatMessages(prev => [
               ...prev,
-              { role: "assistant", content: data.choices[0].message.content }
+              { role: "assistant", content: assistantText }
             ]);
-          } else if (data.error) {
+          } else if (errorText) {
             setChatMessages(prev => [
               ...prev,
-              { role: "assistant", content: `⚠️ Erreur: ${data.error.message}` }
+              { role: "assistant", content: `⚠️ Erreur: ${errorText}` }
             ]);
           } else {
             setChatMessages(prev => [
               ...prev,
-              { role: "assistant", content: "⚠️ Réponse vide du modèle." }
+              { role: "assistant", content: USE_BACKEND_LLM_PROXY ? "⚠️ Le proxy backend /api/chat n'a pas encore été configuré ou a renvoyé une réponse vide." : "⚠️ Réponse vide du modèle." }
             ]);
           }
         } catch (e) {
@@ -682,6 +754,10 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
           alert("Erreur lors de l'envoi: " + e.message);
         }
       };
+
+      useEffect(() => {
+        if (USE_BACKEND_LLM_PROXY) setApiKeySet(true);
+      }, []);
 
       // Auto-scroll chat
       useEffect(() => {
@@ -1522,7 +1598,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                 </div>
 
                 {/* API Key setup */}
-                {!apiKeySet ? (
+                {!apiKeySet && !USE_BACKEND_LLM_PROXY ? (
                   <div style={{ background:"white", borderRadius:16, border:"1px solid #E8E0D4", padding:"24px", animation:"slideIn 0.25s ease-out" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
                       <span style={{ fontSize:20 }}>🔑</span>
@@ -1552,6 +1628,15 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                 ) : (
                   <React.Fragment>
                     {/* Chat messages */}
+                    {USE_BACKEND_LLM_PROXY && (
+                      <div style={{
+                        background:"#EFF6FF", border:"1px solid #BFDBFE", color:"#1D4ED8",
+                        borderRadius:12, padding:"10px 12px", fontSize:12, lineHeight:1.5,
+                        marginBottom:12, fontFamily:"'DM Sans', sans-serif"
+                      }}>
+                        Mode production activé : les requêtes chat passent par votre backend <strong>/api/chat</strong>. La clé OpenAI ne doit pas être exposée dans le navigateur.
+                      </div>
+                    )}
                     <div style={{ flex:1, overflowY:"auto", marginBottom:12, display:"flex", flexDirection:"column", gap:8 }}>
                       {chatMessages.length === 0 && (
                         <div style={{ textAlign:"center", padding:"40px 20px" }}>
