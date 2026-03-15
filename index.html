@@ -560,11 +560,13 @@
 
       const sendChat = async () => {
         const msg = chatInput.trim();
-        if (!msg || chatLoading) return;
-        setChatInput("");
+        if (!msg || !apiKey || chatLoading) return;
+
         const newMessages = [...chatMessages, { role: "user", content: msg }];
         setChatMessages(newMessages);
+        setChatInput("");
         setChatLoading(true);
+
         try {
           const context = await searchContext(msg);
           const systemPrompt = `Tu es Monoko, un assistant IA conversationnel en ${langName}.
@@ -598,30 +600,48 @@ CE QU'IL FAUT ÉVITER:
 ${context || "(Aucune donnée trouvée pour cette requête)"}
 === FIN DU CORPUS ===`;
 
-          const res = await fetch("https://api.anthropic.com/v1/messages", {
+          const res = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-api-key": apiKey,
-              "anthropic-version": "2023-06-01",
-              "anthropic-dangerous-direct-browser-access": "true",
+              "Authorization": `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-              model: "claude-haiku-4-5-20251001",
+              model: "gpt-4o-mini",
+              temperature: 0.2,
               max_tokens: 512,
-              system: systemPrompt,
-              messages: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+              messages: [
+                { role: "system", content: systemPrompt },
+                ...newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+              ],
             }),
           });
+
           const data = await res.json();
-          if (data.content && data.content[0]) {
-            setChatMessages(prev => [...prev, { role: "assistant", content: data.content[0].text }]);
+
+          if (data.choices && data.choices[0] && data.choices[0].message) {
+            setChatMessages(prev => [
+              ...prev,
+              { role: "assistant", content: data.choices[0].message.content }
+            ]);
           } else if (data.error) {
-            setChatMessages(prev => [...prev, { role: "assistant", content: `⚠️ Erreur: ${data.error.message}` }]);
+            setChatMessages(prev => [
+              ...prev,
+              { role: "assistant", content: `⚠️ Erreur: ${data.error.message}` }
+            ]);
+          } else {
+            setChatMessages(prev => [
+              ...prev,
+              { role: "assistant", content: "⚠️ Réponse vide du modèle." }
+            ]);
           }
         } catch (e) {
-          setChatMessages(prev => [...prev, { role: "assistant", content: `⚠️ Erreur de connexion: ${e.message}` }]);
+          setChatMessages(prev => [
+            ...prev,
+            { role: "assistant", content: `⚠️ Erreur de connexion: ${e.message}` }
+          ]);
         }
+
         setChatLoading(false);
       };
 
@@ -1509,13 +1529,13 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                       <h3 style={{ fontSize:16, fontWeight:700, color:"#2D2118", margin:0, fontFamily:"'Playfair Display', serif" }}>Configuration</h3>
                     </div>
                     <p style={{ fontSize:13, color:"#8B6D47", lineHeight:1.5, margin:"0 0 16px" }}>
-                      Entrez votre clé API Anthropic pour activer Monoko. Cette clé reste dans votre navigateur et n'est jamais stockée sur nos serveurs.
+                      Entrez votre clé API OpenAI pour activer Monoko. Cette clé reste dans votre navigateur et n'est jamais stockée sur nos serveurs.
                     </p>
                     <input
                       type="password"
                       value={apiKey}
                       onChange={e => setApiKey(e.target.value)}
-                      placeholder="sk-ant-api03-..."
+                      placeholder="sk-proj-..."
                       style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Mono', monospace", background:"#FDFBF7", outline:"none", marginBottom:12 }}
                       onFocus={e => e.target.style.borderColor = "#0EA5E9"}
                       onBlur={e => e.target.style.borderColor = "#E8E0D4"}
@@ -1526,7 +1546,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                       Activer Monoko
                     </button>
                     <p style={{ fontSize:11, color:"#B8A88C", marginTop:10, textAlign:"center" }}>
-                      Obtenez une clé sur <a href="https://console.anthropic.com" target="_blank" style={{ color:"#0EA5E9" }}>console.anthropic.com</a>
+                      Obtenez une clé sur <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" style={{ color:"#0EA5E9" }}>platform.openai.com/api-keys</a>
                     </p>
                   </div>
                 ) : (
