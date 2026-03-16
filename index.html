@@ -28,6 +28,7 @@
 
     const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaW9pY2N1am5jc2VoYWRpcHpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTczMjAsImV4cCI6MjA4NjU5MzMyMH0.ic0JlZ17hOpLOzth_E4YrR122EG4LN6T04TYMcV-_CU";
+    const COURSE_AUDIO_MAP_URL = "/course_audio_map.json";
 
     async function supaFetch(table, params = "") {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
@@ -43,6 +44,25 @@
       });
       const range = res.headers.get("content-range");
       return range ? parseInt(range.split("/")[1]) : 0;
+    }
+
+    async function loadCourseAudioMap() {
+      const res = await fetch(`${COURSE_AUDIO_MAP_URL}?v=20260316`);
+      if (!res.ok) throw new Error(`Course audio map error: ${res.status}`);
+      const payload = await res.json();
+      return payload.items || {};
+    }
+
+    function attachCourseAudio(items, courseAudioMap) {
+      return items.map((item) => {
+        const audio = courseAudioMap[String(item.id)];
+        if (!audio) return item;
+        return {
+          ...item,
+          audio_url: item.audio_url || audio.audio_url || "",
+          example_audio_url: item.example_audio_url || audio.example_audio_url || "",
+        };
+      });
     }
 
     // Language colors/flags
@@ -296,6 +316,15 @@
       );
     };
 
+    const LessonAudioText = ({ text, audioUrl, title, color = "#2C5F2D", fontSize = 14, fontWeight = 500, italic = false }) => (
+      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ flex:1, fontSize, color, fontWeight, fontStyle: italic ? "italic" : "normal", lineHeight:1.5 }}>
+          {text}
+        </div>
+        <AudioButton src={audioUrl} title={title} />
+      </div>
+    );
+
     const SenseCard = ({ sense, index }) => (
       <div style={{ background:"white", borderRadius:16, padding:"20px 24px", marginBottom:12, border:"1px solid #E8E0D4", boxShadow:"0 1px 3px rgba(139,109,71,0.06)" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
@@ -385,6 +414,7 @@
       const [selectedCourse, setSelectedCourse] = useState(null);
       const [selectedLesson, setSelectedLesson] = useState(null);
       const [lessonItems, setLessonItems] = useState([]);
+      const [courseAudioMap, setCourseAudioMap] = useState({});
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
       // Chat state
@@ -420,6 +450,21 @@
           setLoadingLangs(false);
         })();
       }, []);
+
+      useEffect(() => {
+        (async () => {
+          try {
+            setCourseAudioMap(await loadCourseAudioMap());
+          } catch (e) {
+            console.error("Failed to load course audio map:", e);
+          }
+        })();
+      }, []);
+
+      useEffect(() => {
+        if (!lessonItems.length || !Object.keys(courseAudioMap).length) return;
+        setLessonItems((prev) => attachCourseAudio(prev, courseAudioMap));
+      }, [courseAudioMap]);
 
       const selectLanguage = async (lang) => {
         setSelectedLang(lang);
@@ -1217,7 +1262,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                         setCardFlipped(false);
                         try {
                           const items = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=*&order=item_order`);
-                          setLessonItems(items);
+                          setLessonItems(attachCourseAudio(items, courseAudioMap));
                         } catch(e) { console.error(e); }
                         setLoading(false);
                         setView("lesson");
@@ -1310,9 +1355,8 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                               <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2D2118", lineHeight:1.5 }}>
                                 {item.french}
                               </div>
-                              <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2C5F2D", fontWeight:500,
-                                lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
-                                {item.dialect}
+                              <div style={{ flex:1, padding:"12px 14px", borderLeft:"1px solid #F0EBE3" }}>
+                                <LessonAudioText text={item.dialect} audioUrl={item.audio_url} title={`Ecouter ${item.dialect}`} />
                               </div>
                             </div>
                           ))}
@@ -1388,9 +1432,8 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                                   <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2D2118", lineHeight:1.5 }}>
                                     {item.french}
                                   </div>
-                                  <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2C5F2D", fontWeight:500,
-                                    lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
-                                    {item.dialect}
+                                  <div style={{ flex:1, padding:"12px 14px", borderLeft:"1px solid #F0EBE3" }}>
+                                    <LessonAudioText text={item.dialect} audioUrl={item.audio_url} title={`Ecouter ${item.dialect}`} />
                                   </div>
                                 </div>
                               ))}
@@ -1426,9 +1469,8 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                             <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2D2118", lineHeight:1.5 }}>
                               {item.french}
                             </div>
-                            <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2C5F2D", fontWeight:500,
-                              lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
-                              {item.dialect}
+                            <div style={{ flex:1, padding:"12px 14px", borderLeft:"1px solid #F0EBE3" }}>
+                              <LessonAudioText text={item.dialect} audioUrl={item.audio_url} title={`Ecouter ${item.dialect}`} />
                             </div>
                           </div>
                           {/* Example sentences if present */}
@@ -1440,9 +1482,15 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                                 </div>
                               )}
                               {item.example_dialect && (
-                                <div style={{ flex:1, padding:"8px 14px", fontSize:12, color:"#2C5F2D", fontStyle:"italic",
-                                  lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
-                                  « {item.example_dialect} »
+                                <div style={{ flex:1, padding:"8px 14px", borderLeft:"1px solid #F0EBE3" }}>
+                                  <LessonAudioText
+                                    text={`« ${item.example_dialect} »`}
+                                    audioUrl={item.example_audio_url}
+                                    title={`Ecouter ${item.example_dialect}`}
+                                    fontSize={12}
+                                    color="#2C5F2D"
+                                    italic={true}
+                                  />
                                 </div>
                               )}
                             </div>
