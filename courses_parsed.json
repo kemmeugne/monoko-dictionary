@@ -1,0 +1,4843 @@
+[
+  {
+    "title": "Construction phrasique",
+    "description": "Apprenez à construire des phrases affirmatives, négatives, interrogatives et passives",
+    "order": 1,
+    "lessons": [
+      {
+        "title": "Affirmatif",
+        "items": [
+          {
+            "french": "Je vais à l’école tous les jours",
+            "dialect": "Mo máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Je suis en train d’aller à l’école",
+            "dialect": "Mo ń lọ síléèwé"
+          },
+          {
+            "french": "Tu vas à l'école tous les jours",
+            "dialect": "O máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Tu es en train d’aller à l’école",
+            "dialect": "Ìwọ ń lọ síléèwé"
+          },
+          {
+            "french": "Il va à l'école tous les jours",
+            "dialect": "Ó máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Il est en train d’aller à l’école",
+            "dialect": "Ó ń lọ síléèwé"
+          },
+          {
+            "french": "Elle va à l'école tous les jours",
+            "dialect": "Ó máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Elle est en train d’aller à l’école",
+            "dialect": "Ó ń lọ síléèwé"
+          },
+          {
+            "french": "Nous allons à l'école tous les jours",
+            "dialect": "A máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Nous sommes en train d’aller à l’école",
+            "dialect": "À ń lọ síléèwé"
+          },
+          {
+            "french": "Vous allez à l'école tous les jours",
+            "dialect": "E máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Vous êtes en train d’aller à l’école",
+            "dialect": "E ń lọ síléèwé"
+          },
+          {
+            "french": "Ils vont à l'école tous les jours",
+            "dialect": "Wọ́n máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Ils sont en train d’aller à l’école",
+            "dialect": "Wọ́n ń lọ síléèwé"
+          },
+          {
+            "french": "Elles vont à l'école tous les jours",
+            "dialect": "Wọ́n máa ń lọ síléèwé lójoojúmọ́"
+          },
+          {
+            "french": "Elles sont en train d’aller à l’école",
+            "dialect": "Wọ́n ń lọ síléèwé"
+          }
+        ]
+      },
+      {
+        "title": "Négatif",
+        "items": [
+          {
+            "french": "Je ne vais pas à l'école s'il pleut beaucoup",
+            "dialect": "Mi ò ní lọ síléèwé tí òjò bá ń rọ̀ gan-an"
+          },
+          {
+            "french": "Je ne suis pas en train d'aller à l'école",
+            "dialect": "Mi ò lọ síléèwé"
+          },
+          {
+            "french": "Tu ne vas pas à l'école s'il pleut beaucoup",
+            "dialect": "O ò ní lọ síléèwé tí òjò bá ń rọ̀ gan-an"
+          },
+          {
+            "french": "Tu n'es pas en train d'aller à l'école",
+            "dialect": "O ò lọ síléèwé"
+          },
+          {
+            "french": "Il ne va pas à l'école s'il pleut beaucoup",
+            "dialect": "Kò ní lọ sílé ìwé tí òjò bá ń rọ̀ gan-an."
+          },
+          {
+            "french": "Il n'est pas en train d'aller à l'école",
+            "dialect": "Kò lọ síléèwé"
+          },
+          {
+            "french": "Elle ne va pas à l'école s'il pleut beaucoup",
+            "dialect": "Kò ní lọ sílé ìwé tí òjò bá ń rọ̀ gan-an."
+          },
+          {
+            "french": "Elle n'est pas en train d'aller à l'école",
+            "dialect": "Kò lọ síléèwé"
+          },
+          {
+            "french": "Nous n'allons pas à l'école s'il pleut beaucoup",
+            "dialect": "A kì í lọ sílé ìwé bí òjò bá ń rọ̀ gan-an."
+          },
+          {
+            "french": "Nous ne sommes pas en train d'aller à l'école",
+            "dialect": "A ò lọ síléèwé."
+          },
+          {
+            "french": "Vous n'allez pas à l'école s'il pleut beaucoup",
+            "dialect": "E ò ni lọ síléèwé tí òjò bá ń rọ̀ gan-an."
+          },
+          {
+            "french": "Vous n'êtes pas en train d'aller à l'école",
+            "dialect": "O ò lọ síléèwé"
+          },
+          {
+            "french": "Ils ne vont pas à l'école s'il pleut beaucoup",
+            "dialect": "Wọn kì í lọ síléèwé tí òjò bá ń rọ̀ gan-an"
+          },
+          {
+            "french": "Ils ne sont pas en train d'aller à l'école",
+            "dialect": "Wọn kì í lọ síléèwé"
+          },
+          {
+            "french": "Je ne vais plus à l'école depuis que je suis malade",
+            "dialect": "Mi ò lọ síléèwé látìgbà tí mo ti ṣàìsàn"
+          },
+          {
+            "french": "Je ne vais jamais à l'école sans mon sac",
+            "dialect": "Mi ò kì í lọ síléèwé láìsí àpò mi"
+          }
+        ]
+      },
+      {
+        "title": "Questions",
+        "items": [
+          {
+            "french": "Que veux-tu manger ?",
+            "dialect": "Kí lo fẹ́ jẹ?"
+          },
+          {
+            "french": "Qu'est-ce que tu cherches ?",
+            "dialect": "Kí lo ń wá?"
+          },
+          {
+            "french": "Quelle fille est la plus belle ?",
+            "dialect": "Èwo nínú àwọn ọmọbìnrin wọ̀nyí ló lẹ́wà jù?"
+          },
+          {
+            "french": "Parmi tous ces enfants, lesquels sont les vôtres ?",
+            "dialect": "Lára gbogbo àwọn ọmọ yìí, èwo ló jẹ́ tìrẹ?"
+          },
+          {
+            "french": "Regarde toutes ces jeunes filles, laquelle tu veux épouser ?",
+            "dialect": "Wo gbogbo àwọn ọmọbìnrin yìí, ta ni wàá fẹ́?"
+          },
+          {
+            "french": "Pourquoi tu mens tout le temps ?",
+            "dialect": "Kí ló dé tó ò ń purọ́ ní gbogbo ìgbà?"
+          },
+          {
+            "french": "Il n’a plus d’argent, c’est pourquoi il reste chez lui.",
+            "dialect": "Owó ti tán lọ́wọ́ ẹ̀, ìdí nìyẹn tó fi ń gbé ílé."
+          },
+          {
+            "french": "Qui est venu chez nous ce matin ?",
+            "dialect": "Ta ló wá sílé wa láàárọ̀ yìí?"
+          },
+          {
+            "french": "Tu veux donner ça à qui ?",
+            "dialect": "Ta ni wàá fún ní èyí?"
+          },
+          {
+            "french": "A qui appartient ce pagne ?",
+            "dialect": "Ta ló ni aṣọ yìí?"
+          },
+          {
+            "french": "Quand est-ce que reprend l'école ?",
+            "dialect": "Ìgbà wo ni iléèwé máa bẹ̀rẹ̀?"
+          },
+          {
+            "french": "Pense à moi quand tu seras là-bas",
+            "dialect": "Ranti mí nígbàtí o bá wà níbẹ̀"
+          },
+          {
+            "french": "Depuis quand tu vis chez ton frère ?",
+            "dialect": "Ọdún mélòó lo ti ń gbé nílé àbúrò rẹ?"
+          },
+          {
+            "french": "Comment tu fais pour porter tout ce bois ?",
+            "dialect": "Báwo lo ṣe ń gbé gbogbo igi yìí?"
+          },
+          {
+            "french": "Où es-tu ? Je viens te chercher immédiatement.",
+            "dialect": "NIbo ni o wà? Èmi yóò wá bá ọ ní kíá mọ́sá."
+          },
+          {
+            "french": "Je sais pas où est ils sont.",
+            "dialect": "Mi ò mọ ibi tí wọ́n wà."
+          },
+          {
+            "french": "A Combien tu vends ce sac de riz ?",
+            "dialect": "Èló ni o ta àpò ìrẹsì yìí?"
+          },
+          {
+            "french": "Combien de fois tu es parti à la mer ?",
+            "dialect": "Ìgbà mélòó lo lọ sí òkun?"
+          },
+          {
+            "french": "Tu vas rester là-bas combien de temps ?",
+            "dialect": "Báwo lo ṣe máa pẹ́ tó níbí?"
+          },
+          {
+            "french": "Combien d'enfant vivent ici ?",
+            "dialect": "Àwọn ọmọ mélòó ló ń gbé níbí?"
+          },
+          {
+            "french": "Oui",
+            "dialect": "Bẹ́ẹ̀ ni"
+          },
+          {
+            "french": "Non",
+            "dialect": "Rara"
+          },
+          {
+            "french": "Est-ce que tu as fait ce que je t'ai demandé hier ?",
+            "dialect": "Ṣé o ṣe ohun tí mo ní kí o ṣe lana?"
+          },
+          {
+            "french": "Est-ce qu'il reste de la sauce dans la marmitte ?",
+            "dialect": "Ṣé òórùn wà nínú ìkòkò náà?"
+          },
+          {
+            "french": "Ont-t-ils déjà visité la ville voisine ?",
+            "dialect": "Ṣé wọ́n ti lọ sí ìlú tó wà nítòsí?"
+          },
+          {
+            "french": "Allez-vous construire la nouvelle école ici ?",
+            "dialect": "Ṣé iléèwé tuntun náà ni ẹ̀yin máa kọ́ níbí?"
+          }
+        ]
+      },
+      {
+        "title": "Passif",
+        "items": [
+          {
+            "french": "C'est ici qu'elle s'est faite agrresser",
+            "dialect": "Ibẹ̀ ni wọ́n ti ṣe jàǹbá"
+          },
+          {
+            "french": "Nous avons été menacés pas les hommes du village voisin",
+            "dialect": "Àwọn ọkùnrin tó wà ní abúlé tó wà nítòsí ló ń halẹ̀ mọ́ wa."
+          },
+          {
+            "french": "Il s'est fait tuer à la tombée de la nuit",
+            "dialect": "Wọ́n pa á nígbà tí ilẹ̀ ṣú"
+          },
+          {
+            "french": "On m'a dit que le grand père était mort",
+            "dialect": "Wọ́n sọ fún mi pé Bàbá àgbà ti kú"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Grammaire & Conjugaison",
+    "description": "Pronoms, possessifs, conjonctions, prépositions, comparatifs et conjugaison",
+    "order": 2,
+    "lessons": [
+      {
+        "title": "Pronoms personnels",
+        "items": [
+          {
+            "french": "Je",
+            "dialect": "Pronoms sujets : Mo",
+            "example_french": "Je suis perdu.",
+            "example_dialect": "Mo ti sọnù."
+          },
+          {
+            "french": "Tu",
+            "dialect": "O",
+            "example_french": "Tu aimes trop la viande",
+            "example_dialect": "O nífẹ̀ẹ́ ẹran gan-an"
+          },
+          {
+            "french": "Il/Elle",
+            "dialect": "Ó",
+            "example_french": "Il/Elle laisse ses enfant avec les autres",
+            "example_dialect": "Ó máa ń fi àwọn ọmọ rẹ̀ sílẹ̀ fáwọn ẹlòmíì"
+          },
+          {
+            "french": "Nous",
+            "dialect": "A",
+            "example_french": "Nous mangeons",
+            "example_dialect": "À ń jẹun"
+          },
+          {
+            "french": "Vous",
+            "dialect": "Ẹ",
+            "example_french": "Vous saluez tout le monde",
+            "example_dialect": "Ẹ kí gbogbo èèyàn"
+          },
+          {
+            "french": "Ils/Elles",
+            "dialect": "Wọ́n",
+            "example_french": "Ils supportent la douleur",
+            "example_dialect": "Wọ́n Fara Da Ìbànújẹ́"
+          },
+          {
+            "french": "Moi",
+            "dialect": "Pronoms toniques : mi",
+            "example_french": "Elle ne veut plus de moi",
+            "example_dialect": "Kò fẹ́ràn mi mọ́"
+          },
+          {
+            "french": "Toi",
+            "dialect": "Ẹ",
+            "example_french": "Elle ne veut plus de toi",
+            "example_dialect": "Kò fẹ́ ẹ mọ́"
+          },
+          {
+            "french": "Lui",
+            "dialect": "ẹ",
+            "example_french": "Elle ne veut plus de lui",
+            "example_dialect": "Kò fẹ́ ẹ mọ́"
+          },
+          {
+            "french": "Elle",
+            "dialect": ". . . un",
+            "example_french": "J’achète ça pour elle",
+            "example_dialect": "Mo ra èyí fún un"
+          },
+          {
+            "french": "Nous",
+            "dialect": "wa",
+            "example_french": "Elle ne veut plus de nous",
+            "example_dialect": "Kò fẹ́ rí wa mọ́"
+          },
+          {
+            "french": "Vous",
+            "dialect": ". . . on",
+            "example_french": "J’achète ça pour vous",
+            "example_dialect": "Mo ra èyí fún on"
+          },
+          {
+            "french": "Ils",
+            "dialect": "wọ́n",
+            "example_french": "J’achète ça pour eux",
+            "example_dialect": "Mo máa ń ra èyí fún wọn"
+          },
+          {
+            "french": "Elles",
+            "dialect": "wọ́n",
+            "example_french": "J’achète ça pour elles",
+            "example_dialect": "Mo máa ń ra èyí fún wọn"
+          },
+          {
+            "french": "Me",
+            "dialect": "Pronoms réfléchis : mi",
+            "example_french": "Je me pince",
+            "example_dialect": "Mo yin ara mi lèékánná"
+          },
+          {
+            "french": "Te",
+            "dialect": "o. . . rẹ",
+            "example_french": "Tu te pinces",
+            "example_dialect": "o yin ara rẹ lèékánná"
+          },
+          {
+            "french": "Se (masculin singulier)",
+            "dialect": "ó. . . rẹ",
+            "example_french": "Il se pince",
+            "example_dialect": "Ó yin ara rẹ lèékánná"
+          },
+          {
+            "french": "Se (féminin singulier)",
+            "dialect": "ó. . . rẹ",
+            "example_french": "Elle se pince",
+            "example_dialect": "Ó yin ara rẹ lèékánná"
+          },
+          {
+            "french": "Nous",
+            "dialect": "wa",
+            "example_french": "Nous nous pinçons",
+            "example_dialect": "A yin ara wa lèékánná"
+          },
+          {
+            "french": "Vous",
+            "dialect": "ara yin",
+            "example_french": "Vous vous pincez",
+            "example_dialect": "Ẹ yin ara yin lèékánná"
+          },
+          {
+            "french": "Se (masculin pluriel)",
+            "dialect": "ja",
+            "example_french": "Ils se pincent",
+            "example_dialect": "Wọ́n yin ara wọn  lèékánná"
+          },
+          {
+            "french": "Se (féminin pluriel)",
+            "dialect": "wón . . . yin",
+            "example_french": "Elles se pincent",
+            "example_dialect": "Wọ́n yin ara wọn  lèékánná"
+          },
+          {
+            "french": "Me (m')",
+            "dialect": "Pronoms COD : Mi",
+            "example_french": "Elle m’a giflé",
+            "example_dialect": "Ó gbá mi lójú"
+          },
+          {
+            "french": "Te (t')",
+            "dialect": "ọ",
+            "example_french": "Elle t’a giflé",
+            "example_dialect": "Ó gbá ọ lójú"
+          },
+          {
+            "french": "Le/La/L'",
+            "dialect": "bá a",
+            "example_french": "Je l’ai accompagnée chez elle",
+            "example_dialect": "Mo bá a lọ sílé"
+          },
+          {
+            "french": "Nous",
+            "dialect": "wa",
+            "example_french": "Tout le monde nous aime, mais vous nous détestez",
+            "example_dialect": "Gbogbo èèyàn ló nífẹ̀ẹ́ wa, àmọ́ ẹ kórìíra wa"
+          },
+          {
+            "french": "Vous",
+            "dialect": "yín",
+            "example_french": "Tout le monde vous aime, mais vous nous détestez",
+            "example_dialect": "Gbogbo èèyàn ló nífẹ̀ẹ́ yín, àmọ́ ẹ kórìíra wa"
+          },
+          {
+            "french": "Les",
+            "dialect": "wọ́n",
+            "example_french": "Nous les aimons",
+            "example_dialect": "A Nífẹ̀ẹ́ Wọn"
+          },
+          {
+            "french": "Moi",
+            "dialect": "Pronoms COI COS : mi",
+            "example_french": "Donne-moi l’argent",
+            "example_dialect": "fún mi lowó"
+          },
+          {
+            "french": "Toi",
+            "dialect": "rẹ",
+            "example_french": "parle de toi",
+            "example_dialect": "sọ̀rọ̀ nípa ara rẹ"
+          },
+          {
+            "french": "Lui",
+            "dialect": ". . . un",
+            "example_french": "Donne-lui l’argent",
+            "example_dialect": "fún un ni owó náà"
+          },
+          {
+            "french": "Y",
+            "dialect": "níbẹ̀",
+            "example_french": "Vous êtes au champ, restez-y jusqu'au soir",
+            "example_dialect": "Ẹ wà ní oko, ẹ wà níbẹ̀ títí di alẹ"
+          },
+          {
+            "french": "Nous",
+            "dialect": "wa",
+            "example_french": "Rendez-nous l’argent",
+            "example_dialect": "Ẹ dá owó náà padà fún wa"
+          },
+          {
+            "french": "Vous",
+            "dialect": "ẹ",
+            "example_french": "parlez vous de moi",
+            "example_dialect": "ẹ sọ̀rọ̀ mi"
+          },
+          {
+            "french": "Leur",
+            "dialect": "wọn",
+            "example_french": "Rendez leur l’argent.",
+            "example_dialect": "Ẹ dá owó wọn padà."
+          },
+          {
+            "french": "Mon",
+            "dialect": "mi",
+            "example_french": "Mon grand frère est grand",
+            "example_dialect": "Arakunrin mi tó gá"
+          },
+          {
+            "french": "Ma",
+            "dialect": "mi",
+            "example_french": "Ma sœur est grande",
+            "example_dialect": "Arábìnrin mi ti gá"
+          },
+          {
+            "french": "Mes",
+            "dialect": "Awọ́n . . . Mi",
+            "example_french": "Mes enfants sont sages",
+            "example_dialect": "Àwọn Ọmọ Mi gbọ́n"
+          }
+        ]
+      },
+      {
+        "title": "dans des langues comme l'anglais",
+        "items": [
+          {
+            "french": "Ton",
+            "dialect": "rẹ",
+            "example_french": "Ton ami est en route",
+            "example_dialect": "Ọ̀rẹ́ rẹ ti ń bọ̀"
+          },
+          {
+            "french": "Ta",
+            "dialect": "rẹ",
+            "example_french": "Ta famille nous regarde",
+            "example_dialect": "Àwọn ẹbí rẹ ń wò wá"
+          },
+          {
+            "french": "Tes",
+            "dialect": "Awọ́n . . . rẹ",
+            "example_french": "Tes affaires sont en désordre",
+            "example_dialect": "Àwọn nǹkan rẹ ò dúró sójú kan."
+          },
+          {
+            "french": "Son",
+            "dialect": "rẹ̀",
+            "example_french": "Son mari l’a quittée",
+            "example_dialect": "Ọkọ rẹ̀ ti fi í sílẹ̀"
+          },
+          {
+            "french": "Sa",
+            "dialect": "rẹ̀",
+            "example_french": "Sa femme est fâchée",
+            "example_dialect": "Ìyàwó rẹ̀ bínú"
+          },
+          {
+            "french": "Ses",
+            "dialect": "awọ́n. . . rẹ̀",
+            "example_french": "Ses ancêtres sont fiers de lui",
+            "example_dialect": "Àwọn baba ńlá rẹ̀ ń fi í yangàn"
+          },
+          {
+            "french": "Notre",
+            "dialect": "wa",
+            "example_french": "Notre maison est loin d’ici",
+            "example_dialect": "Ilé wa jìnnà síbí"
+          },
+          {
+            "french": "Nos",
+            "dialect": "awọ́n . . . wa",
+            "example_french": "Nos professeurs à l’école sont sévères",
+            "example_dialect": "Àwọn olùkọ́ wa ní iléèwé le koko"
+          },
+          {
+            "french": "Votre",
+            "dialect": "yín",
+            "example_french": "Votre langue est difficile",
+            "example_dialect": "Èdè Yín Kò Rọrùn"
+          },
+          {
+            "french": "Vos",
+            "dialect": "awọ́n . . . yín",
+            "example_french": "Vos voisins vous dérangent",
+            "example_dialect": "Ṣé Àwọn Aládùúgbò Rẹ  yọ ọ lẹnu"
+          },
+          {
+            "french": "Leur",
+            "dialect": "wọ́n",
+            "example_french": "Leur pays est bizarre",
+            "example_dialect": "Orílẹ̀-Èdè Tí Wọ́n Ń Gbé jẹ àjèjì"
+          },
+          {
+            "french": "Leurs",
+            "dialect": "Awọ́n . . . wọn",
+            "example_french": "Leurs enfants sont têtus",
+            "example_dialect": "Àwọn Ọmọ Wọn Ò Gbọ́ràn/ni agidi"
+          }
+        ]
+      },
+      {
+        "title": "Pronoms possessifs (même remarque)",
+        "items": [
+          {
+            "french": "Mienne",
+            "dialect": "témi",
+            "example_french": "A qui appartient cette maison ? C’est la mienne",
+            "example_dialect": "Ta ló ni ilé yìí? Òun ni tèmi"
+          },
+          {
+            "french": "Miens",
+            "dialect": "témi",
+            "example_french": "A qui sont ces vêtements ? Ce sont les miens",
+            "example_dialect": "Ta  lo ni àwọn aṣọ yìí? tÈmi ni."
+          },
+          {
+            "french": "Tienne",
+            "dialect": "tirẹ̀",
+            "example_french": "A qui appartient cette maison ? C’est la tienne",
+            "example_dialect": "Ta ló ni ilé yìí? Òun ni tìrẹ"
+          },
+          {
+            "french": "Tiens",
+            "dialect": "tirẹ̀",
+            "example_french": "A qui sont ces vêtements ? Ce sont les tiens",
+            "example_dialect": "Ta ni àwọn aṣọ yìí? tirẹ ni"
+          },
+          {
+            "french": "Sienne",
+            "dialect": "t'òun",
+            "example_french": "A qui appartient cette maison ? C’est la sienne",
+            "example_dialect": "Ta ló ni ilé yìí? t'Òun ni"
+          },
+          {
+            "french": "Siens",
+            "dialect": "t'òun",
+            "example_french": "A qui sont ces vêtements ? Ce sont les siens",
+            "example_dialect": "Ta ni àwọn aṣọ yìí? t'Òun ló ni wọ́n."
+          },
+          {
+            "french": "Nôtre",
+            "dialect": "t'àwa",
+            "example_french": "A qui appartient cette maison ? C’est la nôtre",
+            "example_dialect": "Ta ló ni ilé yìí?t' Àwa ni"
+          },
+          {
+            "french": "Nôtres",
+            "dialect": "t'àwa",
+            "example_french": "A qui sont ces vêtements ? Ce sont les nôtres",
+            "example_dialect": "Ta ni àwọn aṣọ yìí? t'Àwa ni"
+          },
+          {
+            "french": "Vôtre",
+            "dialect": "t'ẹyín",
+            "example_french": "A qui appartient cette maison ? C’est la vôtre",
+            "example_dialect": "Ta ló ni ilé yìí? t'ẹyín ni"
+          },
+          {
+            "french": "Vôtres",
+            "dialect": "t'ẹyín",
+            "example_french": "A qui sont ces vêtements ? Ce sont les vôtres",
+            "example_dialect": "Ta ni àwọn aṣọ yìí? t'ẹyín ni"
+          },
+          {
+            "french": "Sienne",
+            "dialect": "t'òun",
+            "example_french": "A qui appartient cette maison ? C’est la sienne",
+            "example_dialect": "Ta ló ni ilé yìí? t'Òun ni"
+          },
+          {
+            "french": "Leurs",
+            "dialect": "t'awọ́n",
+            "example_french": "A qui sont ces vêtements ? Ce sont les leurs",
+            "example_dialect": "Ta ni àwọn aṣọ yìí? Àwọn ni"
+          }
+        ]
+      },
+      {
+        "title": "Adjectifs démonstratifs",
+        "items": [
+          {
+            "french": "Cet",
+            "dialect": "yìí",
+            "example_french": "Cet enfant n’écoute rien.",
+            "example_dialect": "Ọmọ yìí kò gbọ́ nǹkan kan."
+          },
+          {
+            "french": "Cette",
+            "dialect": "yìí",
+            "example_french": "Cette porte ne s’ouvre plus.",
+            "example_dialect": "Ẹnu ọ̀nà yìí ò lè ṣí mọ́."
+          },
+          {
+            "french": "Ces",
+            "dialect": "awọ́n. . . yìí",
+            "example_french": "Ces moustiques m’empêchent de dormir. J’ai peur qu’ils me piquent.",
+            "example_dialect": "Àwọn ẹ̀fọn yìí kì í jẹ́ kí n sùn. Ẹ̀rù ń bà mí pé wọ́n lè gún mi."
+          },
+          {
+            "french": "Ce",
+            "dialect": "èyi, yìí",
+            "example_french": "Ce (ceci) n’est pas le bon chemin.",
+            "example_dialect": "Èyí kì í ṣe ọ̀nà tí ó tọ́."
+          },
+          {
+            "french": "C'",
+            "dialect": "emi, iwọ, òun, àwa, ẹyín, awọ́n",
+            "example_french": "C’est beau.",
+            "example_dialect": "Ó dára gan-an."
+          }
+        ]
+      },
+      {
+        "title": "Pronoms démonstratifs",
+        "items": [
+          {
+            "french": "Celui/Celle",
+            "dialect": "Ẹni",
+            "example_french": "Celui/celle qui cherche les problèmes sera malheureux(se).",
+            "example_dialect": "Ẹni tó bá ń wá ìṣòro kiri kò ní láyọ̀."
+          },
+          {
+            "french": "Celui/Celle-là",
+            "dialect": "èyí",
+            "example_french": "Tu choisis lequel ? Je veux celui/celle-là",
+            "example_dialect": "Èwo ni wàá yàn? Èmi fẹ́ èyí"
+          },
+          {
+            "french": "Ceux",
+            "dialect": "àwọ́n",
+            "example_french": "Il est généreux avec les enfants, surtout ceux qui travaillent bien à l’école.",
+            "example_dialect": "Ó máa ń fún àwọn ọmọdé ní nǹkan, pàápàá àwọn tó ń ṣe dáadáa níléèwé."
+          },
+          {
+            "french": "Ceux-là/ci",
+            "dialect": "Àwọn wọ̀nyí",
+            "example_french": "Quels enfants ont volé le maïs ? C’est ceux/celles-là",
+            "example_dialect": "Àwọn ọmọ wo ló jí àgbàdo náà? Àwọn wọ̀nyí ni"
+          },
+          {
+            "french": "Ça",
+            "dialect": "iyẹn",
+            "example_french": "Laisse ça !",
+            "example_dialect": "Fi iyẹn silẹ!"
+          }
+        ]
+      },
+      {
+        "title": "Conjonctions de coordination",
+        "items": [
+          {
+            "french": "Mais",
+            "dialect": "ṣùgbọ́n",
+            "example_french": "J’aime le poulet mais je préfère le bœuf.",
+            "example_dialect": "Mo fẹ́ràn adìyẹ, ṣùgbọ́n màá fẹ́ràn ẹran màlúù."
+          },
+          {
+            "french": "Ou",
+            "dialect": "tàbí",
+            "example_french": "Tu peux rester à la maison ou alors venir avec nous.",
+            "example_dialect": "O lè dúró nílé tàbí kó o wá bá wa."
+          },
+          {
+            "french": "Et",
+            "dialect": "àti",
+            "example_french": "Kamga et Fotso vont bientôt arriver. J’aime la viande et le foufou.",
+            "example_dialect": "Kamga àti Fotso máa tó dé. Èmi fẹ́ràn ẹran àti òòfà."
+          },
+          {
+            "french": "Donc",
+            "dialect": "nítorí náà",
+            "example_french": "Je me suis levé tard aujourd’hui donc je n’ai pas pu aller au champ ce matin.",
+            "example_dialect": "Mo ti jí láàárọ̀ lónìí, nítorí náà mi ò lè lọ sí oko láàárọ̀ yìí."
+          },
+          {
+            "french": "Or",
+            "dialect": "àmọ́",
+            "example_french": "Il me demande de l’argent, or il me doit encore 1000 francs.",
+            "example_dialect": "Ó ní kí n fún òun lówó, àmọ́ ó ṣì jẹ mí ní ẹgbẹ̀rún kan [1,500] náírà."
+          },
+          {
+            "french": "Ni",
+            "dialect": "xxxxx",
+            "example_french": "Je n’ai rien apporté pour toi, ni pour lui.",
+            "example_dialect": "Mi ò mú nǹkan kan wá fún ẹ, mi ò sì mú ohunkóhun wá fún un."
+          },
+          {
+            "french": "Car",
+            "dialect": "torí pé",
+            "example_french": "Il s’énerve car tu lui as mal parlé.",
+            "example_dialect": "Inú ń bí i torí pé o sọ̀rọ̀ kòbákùngbé sí i."
+          }
+        ]
+      },
+      {
+        "title": "Conjonctions de subordination",
+        "items": [
+          {
+            "french": "Que",
+            "dialect": "pé",
+            "example_french": "Je crois qu’il ne viendra pas.",
+            "example_dialect": "Mi ò rò pé ó máa wá."
+          },
+          {
+            "french": "Puisque",
+            "dialect": "Níwọ̀n bí",
+            "example_french": "Puisque tu ne veux pas venir je partirai à la guerre sans toi.",
+            "example_dialect": "Níwọ̀n bí o kò ti fẹ́ wá, èmi yóò lọ sí ogun láì sí ọ."
+          },
+          {
+            "french": "Parce que",
+            "dialect": "nítorí pé",
+            "example_french": "Elle est triste parce que son mari est malade.",
+            "example_dialect": "Inú rẹ̀ kò dùn nítorí pé àìsàn ọkọ rẹ̀ ń ṣe é."
+          },
+          {
+            "french": "Aloors que",
+            "dialect": "nígbà tí",
+            "example_french": "Il me critique alors qu’il ne peut rien faire sans moi.",
+            "example_dialect": "Ó ń bẹnu àtẹ́ lu mi nígbà tí kò lè ṣe nǹkan kan láìsí mi."
+          },
+          {
+            "french": "Comme si",
+            "dialect": "bí ẹni pé",
+            "example_french": "Vous me regardez comme si c’était moi qui l’avais tué.",
+            "example_dialect": "Ẹ̀yin ń wò mí bí ẹni pé èmi ni mo pa á."
+          }
+        ]
+      },
+      {
+        "title": "Pronom relatif",
+        "items": [
+          {
+            "french": "Qui",
+            "dialect": "tó",
+            "example_french": "Voici le gars qui me doit de l’argent",
+            "example_dialect": "Ọkùnrin tó jẹ mí lówó rèé"
+          },
+          {
+            "french": "Je le reconnais, c’est lui l’homme qui a volé mon sac hier",
+            "dialect": "Mo mọ̀ ọ́n, òun ni ọkùnrin tó jí àpò mi lọ́jọ́ àná"
+          },
+          {
+            "french": "Que",
+            "dialect": "tí",
+            "example_french": "Souvenez-vous de ce que je vous ai dit.",
+            "example_dialect": "Rántí ohun tí mo sọ fún ọ."
+          },
+          {
+            "french": "C’est la personne que je respecte le plus",
+            "dialect": "Ẹni tí mo bọ̀wọ̀ fún jùlọ ni"
+          },
+          {
+            "french": "Ils nous ont dit que je nous n’étions pas les bienvenus ici.",
+            "dialect": "Wọ́n sọ fún wa pé wọn ò fẹ́ ká wá síbí."
+          },
+          {
+            "french": "Il tient le couteau que je lui ai offert.",
+            "dialect": "Ó mú ọ̀bẹ tí mo fún un."
+          },
+          {
+            "french": "Quoi",
+            "dialect": "ká",
+            "example_french": "Maman nous a expliqué quoi faire quand les invités arriveront.",
+            "example_dialect": "Màmá mi sọ ohun tó yẹ ká ṣe nígbà táwọn àlejò bá dé."
+          },
+          {
+            "french": "Je ne sais pas quoi faire",
+            "dialect": "Mi ò mọ ohun tí màá ṣe"
+          },
+          {
+            "french": "Où",
+            "dialect": "ibi",
+            "example_french": "J’ai oublié où j’ai rangé mes affaires",
+            "example_dialect": "Mo ti gbàgbé ibi tí mo fi àwọn nǹkan mi sí"
+          },
+          {
+            "french": "Lequel",
+            "dialect": "ni",
+            "example_french": "C’est l’enfant pour lequel j’ai le plus d’espoir",
+            "example_dialect": "Ọmọ yìí ni mo ní ìrètí jùlọ fún"
+          },
+          {
+            "french": "Laquelle",
+            "dialect": "tí",
+            "example_french": "C’est la question à laquelle j’ai déjà répondu",
+            "example_dialect": "Ìbéèrè tí mo ti dáhùn ni"
+          },
+          {
+            "french": "Duquel",
+            "dialect": "tí",
+            "example_french": "Elle porte un sac au fond duquel se trouve un collier",
+            "example_dialect": "Ó ń gbé àpò kan tí wọ́n fi òrùka kan sínú rẹ̀"
+          }
+        ]
+      },
+      {
+        "title": "Prépositions & adverbes",
+        "items": [
+          {
+            "french": "À  (la)",
+            "dialect": "Localisation                   sí",
+            "example_french": "Je vais à *nom d’une ville/village*",
+            "example_dialect": "Mo lọ sí *orúkọ ìlú/ìlú*"
+          },
+          {
+            "french": "je suis à *nom d’une ville/village*",
+            "dialect": "Mo wà ní *orúkọ ìlú/abúlé kan*"
+          },
+          {
+            "french": "Je dis à mon frère de m’aider à porter mon sac",
+            "dialect": "Mo sọ fún arákùnrin mi pé kó bá mi gbé àpò mi"
+          },
+          {
+            "french": "Donne ce paquet à ta mère",
+            "dialect": "Fi ẹrù yìí fún màmá rẹ"
+          },
+          {
+            "french": "Dans",
+            "dialect": "nínú",
+            "example_french": "Les voisins sont dans leurs maisons",
+            "example_dialect": "Àwọn aládùúgbò wà nínú ilé wọn"
+          },
+          {
+            "french": "Je rentrerai chez moi dans 10jours",
+            "dialect": "ọjọ mẹ́wàá sígbà náà ni màá padà sílé."
+          },
+          {
+            "french": "On entend son nom dans toutes les sales histoires",
+            "dialect": "Orúkọ rẹ̀ ni a máa ń gbọ́ nínú gbogbo ìtàn àròsọ"
+          },
+          {
+            "french": "La souris se cache dans son trou",
+            "dialect": "Eku ń sá pa mọ́ sínú ihò rẹ̀"
+          },
+          {
+            "french": "Dehors",
+            "dialect": "níta",
+            "example_french": "Je préfère que les enfants jouent dehors plutôt que dedans",
+            "example_dialect": "Mo fẹ́ kí àwọn ọmọdé máa ṣeré níta ju kí wọ́n máa ṣeré nínú ilé lọ"
+          },
+          {
+            "french": "dedans",
+            "dialect": "nínú",
+            "example_french": "je suis dedans",
+            "example_dialect": "mo wà nínú rẹ̀"
+          },
+          {
+            "french": "En Haut",
+            "dialect": "sókè",
+            "example_french": "Elle est restée en haut au lieu de venir nous aider à balayer et faire le ménage en bas",
+            "example_dialect": "Ó dúró sókè, dípò kó wá bá wa ṣòfò, kó sì tún ilé ṣe nísàlẹ̀."
+          },
+          {
+            "french": "En bas",
+            "dialect": "ìsàlẹ̀",
+            "example_french": "il est en bas",
+            "example_dialect": "ó wà ní ìsàlẹ̀"
+          },
+          {
+            "french": "Par",
+            "dialect": "inú",
+            "example_french": "Pour rentrer chez moi je dois passer par le marécage",
+            "example_dialect": "Ọ̀nà tí mo máa gbà délé ni pé kí n gba inú igbó kọjá."
+          },
+          {
+            "french": "Il était par ici tout à l’heure.",
+            "dialect": "Ó ti wà níhìn-ín nígbà kan rí."
+          },
+          {
+            "french": "Ce plat a été cuisiné par ma femme",
+            "dialect": "A se oúnjẹ yìí nipasẹ Ìyàwó mi"
+          },
+          {
+            "french": "Elle décordique les arachides un par un",
+            "dialect": "Ó máa ń yan àwọn ẹ̀pà náà ní ọ̀kọ̀ọ̀kan"
+          },
+          {
+            "french": "Elle a fait tomber le pot par inadvertence",
+            "dialect": "Ó ṣèèṣì ju ìkòkò náà sílẹ̀"
+          },
+          {
+            "french": "En",
+            "dialect": "bó ,bi",
+            "example_french": "Elle nous parle tout en cuisinant",
+            "example_dialect": "Ó máa ń bá wa sọ̀rọ̀ bó ṣe ń se oúnjẹ"
+          },
+          {
+            "french": "Nous croyons en Dieu",
+            "dialect": "A gbàgbọ́ nínú Ọlọ́run"
+          },
+          {
+            "french": "Sur",
+            "dialect": "sórí",
+            "example_french": "Dépose la bouteille d’eau sur la table",
+            "example_dialect": "Fi ìgò omi náà sórí tábìlì"
+          },
+          {
+            "french": "Elle met sa main sur mon front pour sentir si j’ai de la fièvre",
+            "dialect": "aba borobila a ten la a gbanimã flɛ"
+          },
+          {
+            "french": "Est-ce que je peux compter sur toi ?",
+            "dialect": "ṣé mo lè gbára lé ọ"
+          },
+          {
+            "french": "Sous",
+            "dialect": "sábẹ́",
+            "example_french": "Le chien est couché sous la table",
+            "example_dialect": "Ajá náà sùn sábẹ́ tábìlì"
+          },
+          {
+            "french": "Vers",
+            "dialect": "sí",
+            "example_french": "Vous habitez vers la rivière",
+            "example_dialect": "ilé yín wà sí Ọ̀nà odò"
+          },
+          {
+            "french": "À quelle heure ton mari rentre du travail ? Il rentre vers 17h",
+            "dialect": "Ìgbà wo ni ọkọ rẹ máa ń dé láti ibi iṣẹ́? Ó máa dé ní nǹkan bí aago márùn-ún."
+          },
+          {
+            "french": "Chez",
+            "dialect": "Sí",
+            "example_french": "Nous partons chez des notables",
+            "example_dialect": "A Lọ Sílé Àwọn Ọ̀gá Àgbà"
+          },
+          {
+            "french": "Rentre chez toi",
+            "dialect": "Lọ sílé"
+          },
+          {
+            "french": "Binevenue chez moi",
+            "dialect": "Mo kí ọ káàbọ̀ sí ilé mi"
+          },
+          {
+            "french": "Devant",
+            "dialect": "níwájú",
+            "example_french": "Le gardien surveille les gens devant la maison",
+            "example_dialect": "Olùṣọ́ Àgbàlá Ń Ṣọ́ Àwọn Èèyàn tu won wa níwájú ọ́nà."
+          },
+          {
+            "french": "Derrière",
+            "dialect": "lẹ́yìn",
+            "example_french": "On a enterré le grand-père derrière sa maison",
+            "example_dialect": "A sin Bàbá àgbà lẹ́yìn ilé rẹ̀"
+          },
+          {
+            "french": "À Droite",
+            "dialect": "ọwọ́ ọ̀tún /àpá ọ̀tún",
+            "example_french": "Le notable est à la droite du roi",
+            "example_dialect": "Awon ijoye  wà ní ọwọ́ ọ̀tún ọba Ọmọ aládé wà ní ọwọ́ òsì olórí"
+          },
+          {
+            "french": "À Gauche",
+            "dialect": "ọwọ́  òsì /àpá òsì",
+            "example_french": "Le prince est à la gauche du chef",
+            "example_dialect": "Ọmọ aládé wà lápá òsì   /ọwọ́ òsì   olórí"
+          },
+          {
+            "french": "Entre",
+            "dialect": "láàrin",
+            "example_french": "On se donne rendez-vous demain entre la forêt et la rivière",
+            "example_dialect": "A ó pàdé ní òwúrọ̀ láàrin igbó àti odò"
+          },
+          {
+            "french": "Qu’est-ce qui se passe entre eux deux ?",
+            "dialect": "Kí ló ń ṣẹlẹ̀ láàárín àwọn méjèèjì?"
+          },
+          {
+            "french": "Je  n'aime pas quand la viande reste coincée entre mes dents",
+            "dialect": "Mi ò nífẹ̀ẹ́ kí ẹran ara máa wà láàárín eyín mi"
+          },
+          {
+            "french": "Jusque",
+            "dialect": "títí",
+            "example_french": "Elle s’est occupée de son enfant jusqu’à ce qu’il soit grand",
+            "example_dialect": "Ó tọ́jú ọmọ rẹ̀ títí tó fi dàgbà"
+          },
+          {
+            "french": "Nous construisons la barrière d’ici jusqu’à là-bas",
+            "dialect": "A máa kọ́ odi náà láti ibí yìí sí ibí yẹn"
+          },
+          {
+            "french": "Contre",
+            "dialect": "sí",
+            "example_french": "Tu aimes t’adosser contre ce mur",
+            "example_dialect": "O fẹ́ràn láti máa fi ara rẹ̀ gbóná sí ògiri"
+          },
+          {
+            "french": "Il est toujours contre moi",
+            "dialect": "Ó ṣì ń bá mi jà"
+          },
+          {
+            "french": "Il ne s’est jamais battu contre moi",
+            "dialect": "Kò bá mi jà rí"
+          },
+          {
+            "french": "À Côté",
+            "dialect": "sẹ́gbẹ̀ẹ́",
+            "example_french": "Le chien reste à côté de son maître.",
+            "example_dialect": "Ajá náà á dúró sẹ́gbẹ̀ẹ́ ọ̀gá rẹ̀."
+          },
+          {
+            "french": "Loin (de)",
+            "dialect": "jìnnà",
+            "example_french": "Malgré une longue marche, La maison de son fils est encore  loin",
+            "example_dialect": "Bó tilẹ̀ jẹ́ pé ìrìn àjò náà jìnnà, ilé ọmọ rẹ̀ ṣì jìnnà gan-an."
+          },
+          {
+            "french": "Je suis triste quand tu es loin de moi",
+            "dialect": "Inú mi máa ń bà jẹ́ tó o bá jìnnà sí mi"
+          },
+          {
+            "french": "En face",
+            "dialect": "níwájú",
+            "example_french": "Elle s’assoie souvent en face de moi",
+            "example_dialect": "Ó sábà máa ń jókòó níwájú mi"
+          },
+          {
+            "french": "Hors",
+            "dialect": "níta",
+            "example_french": "Elle n'aime pas cuisiner hors de la maison",
+            "example_dialect": "Kò fẹ́ràn láti máa se oúnjẹ níta"
+          },
+          {
+            "french": "Au-delà",
+            "dialect": "jìnnà ju",
+            "example_french": "Mon terrain s’étend au-delà de la prairie",
+            "example_dialect": "Ilẹ̀ mi jìnnà ju pápá ìjẹko lọ"
+          },
+          {
+            "french": "À partir",
+            "dialect": "láti",
+            "example_french": "à partir d’ici.",
+            "example_dialect": "láti ibí yìí lọ."
+          },
+          {
+            "french": "Autour de",
+            "dialect": "káàkiri",
+            "example_french": "L’herbe a poussé de partout autour de la maison pendant la saison des pluies.",
+            "example_dialect": "Ewéko máa ń hù káàkiri ilé náà nígbà òjò."
+          },
+          {
+            "french": "Alors",
+            "dialect": "nígbà náà",
+            "example_french": "Alors parle moi",
+            "example_dialect": "nígbà náà sọ fún mi"
+          },
+          {
+            "french": "Danse alors !",
+            "dialect": "Wá bá mi jó nígbà náà!"
+          },
+          {
+            "french": "J'ai épousé la femme que vous détéstiez, et alors ?",
+            "dialect": "Mo gbé obìnrin tó o kórìíra yìí níyàwó, nígbà náà kí ló wá ṣẹlẹ̀?"
+          },
+          {
+            "french": "À travers",
+            "dialect": "o lè rí",
+            "example_french": "L'eau de cette rivière est si claire qu’on peut voir le fond à travers",
+            "example_dialect": "Omi odò yìí mọ́ tónítóní débi pé o lè rí ìsàlẹ̀ odò náà"
+          },
+          {
+            "french": "La voiture s'est garée de travers sur la route",
+            "dialect": "Ọkọ̀ náà dúró sẹ́gbẹ̀ẹ́ òpópónà"
+          },
+          {
+            "french": "Ici",
+            "dialect": "ibi",
+            "example_french": "J'ai mal juste ici (quelqu'un qui montre du doigt où il a mal)",
+            "example_dialect": "Ibi tó ń dun mí gan-an nìyí (Ẹnìkan tó ń tọ́ka ibi tó ń dun òun)"
+          },
+          {
+            "french": "Est-ce que c’est la première fois que tu viens ici ?",
+            "dialect": "Ṣé ìgbà àkọ́kọ́ nìyí tí o wá síbí?"
+          },
+          {
+            "french": "Ailleurs",
+            "dialect": "níbòmíì",
+            "example_french": "Depuis que je suis fâché avec mon fils il m’évite, il préfère être ailleurs.",
+            "example_dialect": "Látìgbà tí mo ti bínú sí ọmọkùnrin mi ló ti ń yẹra fún mi, ó sì máa ń fẹ́ láti wà níbòmíì."
+          },
+          {
+            "french": "Partout",
+            "dialect": "si gbogbo",
+            "example_french": "Le chat a fait pipi partout.",
+            "example_dialect": "ológbò náà to si gbogbo ibi"
+          },
+          {
+            "french": "Nulle part",
+            "dialect": "síbì kankan",
+            "example_french": "On se promène depuis le matin mais on ne va nulle part.",
+            "example_dialect": "Àti àárọ̀ la ti ń rìn kiri, àmọ́ a ò lọ síbì kankan."
+          },
+          {
+            "french": "Avant",
+            "dialect": "ṣáájú",
+            "example_french": "Tu es née avant moi mais je suis né avant lui.",
+            "example_dialect": "Ìwọ ni wọ́n bí ṣáájú mi, èmi ni wọ́n bí ṣáájú wọn."
+          },
+          {
+            "french": "Avant d’être professeur, j’étais d’abord agriculteur",
+            "dialect": "Kí n tó di olùkọ́, àgbẹ̀ ni mí lákọ̀ọ́kọ́"
+          },
+          {
+            "french": "Après",
+            "dialect": "lẹ́yìn",
+            "example_french": "Les enfant sortiront jouer après manger, et je les rejoindrai après ma sieste",
+            "example_dialect": "Àwọn ọmọdé á jáde lọ ṣeré lẹ́yìn oúnjẹ ọ̀sán, èmi náà á sì lọ bá wọn lẹ́yìn tí mo bá ti sùn."
+          },
+          {
+            "french": "Depuis",
+            "dialect": "láti",
+            "example_french": "J’ai mal au pied depuis hier",
+            "example_dialect": "Ẹsẹ mi ti ń dùn mí láti òwúrọ̀"
+          },
+          {
+            "french": "Nous ne sommes pas retournés au village depuis longtemps",
+            "dialect": "a kò ti padà sí abúlé láti Ọ̀pọ̀lọpọ̀ ọdún"
+          },
+          {
+            "french": "Dès",
+            "dialect": "ní gbàrà",
+            "example_french": "Il s’est levé dès que je lui ai demandé",
+            "example_dialect": "Ó dìde ní gbàrà tí mo sọ fún un"
+          },
+          {
+            "french": "Pendant",
+            "dialect": "fun",
+            "example_french": "On a vécu pendant 2ans à la montagne",
+            "example_dialect": "fun Ọdún méjì gbáko la fi gbé orí òkè"
+          },
+          {
+            "french": "À partir de",
+            "dialect": "Láti",
+            "example_french": "A partir de demain j’irai travailler tous les jours",
+            "example_dialect": "Láti òwúrọ̀ ni màá ti máa ṣiṣẹ́ lójoojúmọ́"
+          },
+          {
+            "french": "D'abord",
+            "dialect": "kọ́kọ́",
+            "example_french": "Tu veux manger ? Pas tout de suite, je vais d’abord me laver",
+            "example_dialect": "Ṣé o fẹ́ jẹun? Mi ò ní tètè lọ, màá kọ́kọ́ wẹ ara mi."
+          },
+          {
+            "french": "Longtemps",
+            "dialect": "Ọ̀pọ̀lọpọ̀",
+            "example_french": "On ne s’était pas vus depuis longtemps",
+            "example_dialect": "Ọ̀pọ̀lọpọ̀ ọdún ni a kò fi ríra"
+          },
+          {
+            "french": "Hier",
+            "dialect": "ọ́jọ́ àná",
+            "example_french": "Hier il n’est pas parti à l’école car il était malade. Il va mieux aujourd'hui, donc il y retournera demain.",
+            "example_dialect": "Kò lọ síléèwé l'ọ́jọ́ àná nítorí pé ó ń ṣàìsàn. Ó ní ara rẹ̀ ti yá lónìí, ó sì máa padà lọ sílé ẹ̀kọ́ lọ́la."
+          },
+          {
+            "french": "Demain",
+            "dialect": "Lọ́la",
+            "example_french": "Demain tu iras récupérer tes petits frères à l’école",
+            "example_dialect": "Lọ́la, o máa lọ kó àwọn àbúrò rẹ lọ sílé ìwé."
+          },
+          {
+            "french": "Dorénavant",
+            "dialect": "Láti ìsinsìnyí",
+            "example_french": "Dorénavant vous réfléchirez avant de parler.",
+            "example_dialect": "Láti ìsinsìnyí lọ, wàá máa ronú kó o tó sọ̀rọ̀."
+          },
+          {
+            "french": "Encore",
+            "dialect": "tún",
+            "example_french": "Est-ce qu’il reste encore de la sauce ?",
+            "example_dialect": "Ṣé ọbẹ̀ tun wà?"
+          },
+          {
+            "french": "Les invités sont encore là ?",
+            "dialect": "Ṣé àwọn àlejò tun ṣì wà?"
+          },
+          {
+            "french": "C'est qui ?     - C'est moi.      - Encore toi ?",
+            "dialect": "- Èmi nìyí. - Èmi ni. iwo tun ni"
+          },
+          {
+            "french": "Elle est encore enceinte, c'est la 3e fois en 3ans",
+            "dialect": "Ó tún lóyún, ìgbà kẹta rèé láàárín ọdún mẹ́ta"
+          },
+          {
+            "french": "Finalement",
+            "dialect": "níkẹyìn",
+            "example_french": "Finalement je préfère rester à la maison aujourd’hui.",
+            "example_dialect": "níkẹyìn Mo rò pé ó máa dáa kí n dúró sílé lónìí."
+          },
+          {
+            "french": "De",
+            "dialect": "ti",
+            "example_french": "La porte de la maison est fermée",
+            "example_dialect": "A ti pa ilẹ̀kùn ilé náà"
+          },
+          {
+            "french": "Le fils de Njoya est parti",
+            "dialect": "Ọmọ Njoya ti lọ"
+          },
+          {
+            "french": "Avec",
+            "dialect": "Pẹ̀lú",
+            "example_french": "Elle voyage avec son mari",
+            "example_dialect": "Ìrìn Àjò Pẹ̀lú Ọkọ Rẹ̀"
+          },
+          {
+            "french": "Si",
+            "dialect": "Bí",
+            "example_french": "Si je suis malade emmène-moi à l’hôpital",
+            "example_dialect": "Bí ara mi kò bá yá, ẹ mú mi lọ sí ilé ìwòsàn"
+          },
+          {
+            "french": "Si tu finis ton travail tu auras ton salaire",
+            "dialect": "Tó o bá parí iṣẹ́ rẹ, wàá rí owó oṣù rẹ gbà"
+          },
+          {
+            "french": "Si je savais que tu ne viendrais pas je serais resté chez moi",
+            "dialect": "Ká ní mo mọ̀ pé o ò ní wá ni, mi ò bá ti kúrò nílé."
+          },
+          {
+            "french": "Pour (que)",
+            "dialect": "kó lè",
+            "example_french": "Il mange bien pour bien grandir",
+            "example_dialect": "Ó ń jẹun dáadáa kó lè dàgbà dáadáa"
+          },
+          {
+            "french": "Nous nous battons pour que notre peuple ne manque de rien",
+            "dialect": "À ń jà fún àwọn èèyàn wa kí wọ́n lè rí ohun tí wọ́n nílò"
+          },
+          {
+            "french": "Sans",
+            "dialect": "láì",
+            "example_french": "Partez sans moi.",
+            "example_dialect": "Ẹ máa lọ láìsí mi."
+          },
+          {
+            "french": "Il a réussi à me retrouver sans que je lui dise où j’étais",
+            "dialect": "Ó wá mi kàn láìjẹ́ pé mo sọ ibi tí mo wà fún un"
+          },
+          {
+            "french": "Sur",
+            "dialect": "sórí",
+            "example_french": "J’ai posé l’argent sur la table ce matin",
+            "example_dialect": "Mo fi owó náà sórí tábìlì láàárọ̀ òní"
+          },
+          {
+            "french": "Le bébé est tombé sur la tête.",
+            "dialect": "Ọmọ náà ṣubú sórí ara rẹ."
+          },
+          {
+            "french": "Répète-moi ce que tu m’as dit sur ton frère",
+            "dialect": "Sọ ohun tó o sọ fún mi nípa àbúrò rẹ fún mi"
+          },
+          {
+            "french": "Sauf",
+            "dialect": "àyàfi",
+            "example_french": "J’aime toutes les viandes sauf le mouton",
+            "example_dialect": "Gbogbo ẹran ni mo fẹ́ àyàfi ti àgùntàn"
+          },
+          {
+            "french": "Envers",
+            "dialect": "sí",
+            "example_french": "Vous êtes souvent méchants envers moi",
+            "example_dialect": "Ẹ sábà máa ń hùwà ìkà sí mi"
+          },
+          {
+            "french": "Parmi",
+            "dialect": "nínú",
+            "example_french": "Je ne sais pas quel plat choisir parmi tous ceux qui sont sur la table.",
+            "example_dialect": "Mi ò mọ oúnjẹ wo ni màá yàn nínú gbogbo àwọn tó wà lórí tábìlì."
+          },
+          {
+            "french": "Selon",
+            "dialect": "gẹgẹ bi",
+            "example_french": "Selon leur chef, leurs ancêtres les ont maudits.",
+            "example_dialect": "Gẹgẹ bi Olórí wọn sọ pé àwọn baba ńlá wọn ti gégùn-ún fún wọn."
+          },
+          {
+            "french": "La semaine prochaine on ira se promener ou manger selon ce que tu choisiras",
+            "dialect": "Ní ọ̀sẹ̀ tó ń bọ̀, a máa rìnrìn àjò tàbí ká jẹun,gẹgẹ bi ohunkóhun tó bá wù ẹ́."
+          },
+          {
+            "french": "Grâce à",
+            "dialect": "ọpẹlọpẹ",
+            "example_french": "Malgré la fatigue, il a pu se lever tôt grâce au chant des oiseaux",
+            "example_dialect": "Bó tilẹ̀ jẹ́ pé ó ti rẹ̀ ẹ́ tẹnutẹnu, ọpẹlọpẹ àwọn ẹyẹ tiwọn kọrin"
+          },
+          {
+            "french": "Merci car je m’en sors dans ma vie grâce à toi",
+            "dialect": "Mo dúpẹ́ nítorí  pé mo ri ṣe ọpẹlọpẹ rẹ"
+          },
+          {
+            "french": "À cause de",
+            "dialect": "nítorí",
+            "example_french": "Je n’arrive pas à dormir à cause du bruit dehors",
+            "example_dialect": "Mi ò lè sùn nítorí ariwo tó wà níta"
+          },
+          {
+            "french": "Ils se sont fâchés à cause de nous",
+            "dialect": "nítorí  Àwa ni wọ́n fi bínú"
+          },
+          {
+            "french": "Beaucoup",
+            "dialect": "Ọ̀pọ̀",
+            "example_french": "Beaucoup de personnes sont malhonnêtes",
+            "example_dialect": "Ọ̀pọ̀ Èèyàn Ni Kò Jẹ́ Olóòótọ́"
+          },
+          {
+            "french": "Elle a épluché beaucoup de banane",
+            "dialect": "Ó ya ọ̀pọ̀lọpọ̀ ọ̀gẹ̀dẹ̀"
+          },
+          {
+            "french": "Vous avez beaucoup fait pour nous, merci.",
+            "dialect": "Ẹ ṣeun gan-an fún gbogbo ohun tẹ́ ẹ ṣe fún wa."
+          },
+          {
+            "french": "Très",
+            "dialect": "gan-an",
+            "example_french": "Il est très méchant",
+            "example_dialect": "Ó burú gan-an ni"
+          },
+          {
+            "french": "Elle a très bien cuisiné",
+            "dialect": "Ó se oúnjẹ dáadáa gan-an"
+          },
+          {
+            "french": "Trop",
+            "dialect": "jù",
+            "example_french": "Il est trop gros pour passer ici, il mange trop.",
+            "example_dialect": "Ó sanra jù láti wọlé, ó ń jẹun jù."
+          },
+          {
+            "french": "Peu",
+            "dialect": "díẹ̀",
+            "example_french": "Elle mange peu puisqu’elle ne veut pas grossir",
+            "example_dialect": "ò  jẹun díẹ̀ nítorí kò fẹ́ sanra"
+          },
+          {
+            "french": "Prends un peu de sauce.",
+            "dialect": "bu ọ̀bẹ díẹ̀"
+          },
+          {
+            "french": "elle sourit un peu",
+            "dialect": "ó rẹ́rìn-ín díẹ̀"
+          },
+          {
+            "french": "Tellement",
+            "dialect": "débi",
+            "example_french": "Il a tellement dépensé qu’il ne lui reste pas assez pour payer le taxi pour rentrer chez lui.",
+            "example_dialect": "Ó ti náwó rẹpẹtẹ débi pé kò ní owó táá fi wọ ọkọ̀ ayọ́kẹ́lẹ́ tó máa gbé e lọ sílé."
+          },
+          {
+            "french": "Elle est tellement belle qu'elle nous rend tous bêtes",
+            "dialect": "Ó lẹ́wà tó bẹ́ẹ̀ tó fi ń mú gbogbo wa dàrú"
+          },
+          {
+            "french": "Environ",
+            "dialect": "nǹkan bí",
+            "example_french": "Elle a vendu pour environ 10 000 francs aujourd’hui.",
+            "example_dialect": "Owó tí wọ́n tà á lọ nǹkan bí ẹgbẹ̀rún mẹ́wàá náírà lọ."
+          },
+          {
+            "french": "Vraiment",
+            "dialect": "gan-an",
+            "example_french": "Elle a vraiment peur de lui.",
+            "example_dialect": "Ẹ̀rù rẹ̀ ń bà á gan-an."
+          },
+          {
+            "french": "Aussi",
+            "dialect": "náà",
+            "example_french": "Elle travaille au marché. Moi aussi.",
+            "example_dialect": "Ó ń ṣiṣẹ́ ní ọjà. Èmi náà fẹ́ bẹ́ẹ̀."
+          },
+          {
+            "french": "Nous vivons à Baham. Elle aussi.",
+            "dialect": "Orílẹ̀-èdè Bahamas là ń gbé. Òun náà sì ṣe bẹ́ẹ̀."
+          },
+          {
+            "french": "comme",
+            "dialect": "bíi",
+            "example_french": "Elle est aussi grande que toi.",
+            "example_dialect": "Ó tóbi bíi tìẹ."
+          },
+          {
+            "french": "Même",
+            "dialect": "xxxx",
+            "example_french": "Tout le monde nous a félicité, même notre ennemi Njitap.",
+            "example_dialect": "Gbogbo èèyàn ló yìn wá, títí kan Njitap tó jẹ́ ọ̀tá wa."
+          },
+          {
+            "french": "Elle porte la même robe que moi",
+            "dialect": "Aṣọ kan  ló wọ̀ bíi mi"
+          },
+          {
+            "french": "Même si elle n’aime pas la nourriture elle mange quand même",
+            "dialect": "Bó tilẹ̀ jẹ́ pé kò fẹ́ràn oúnjẹ, ó ń jẹ é"
+          },
+          {
+            "french": "Je ne ferai jamais ça même si tu me payes",
+            "dialect": "Mi ò ní ṣe bẹ́ẹ̀ bí ẹ bá sanwó fún mi"
+          },
+          {
+            "french": "Elle est quand même venue au deuil malgré qu’elle ne parle plus à sa famille.",
+            "dialect": "Bó tilẹ̀ jẹ́ pé kò lè bá àwọn ẹbí rẹ̀ sọ̀rọ̀ mọ́, síbẹ̀ ó wá síbi ayẹyẹ náà."
+          },
+          {
+            "french": "Autre",
+            "dialect": "òmíràn",
+            "example_french": "Cette assiette est cassée, va en chercher une autre stp.",
+            "example_dialect": "Àwo yìí ti bàjẹ́, lọ mú òmíràn wá."
+          },
+          {
+            "french": "Il faut penser aux autres",
+            "dialect": "A Gbọ́dọ̀ Máa Ro Ti Àwọn Ẹlòmíràn"
+          },
+          {
+            "french": "Va dire ça à quelqu’un d’autre",
+            "dialect": "Lọ sọ̀rọ̀ yìí fún ẹlòmíràn"
+          },
+          {
+            "french": "Certaines personnes aiment les chiens, d’autres aiment les chats",
+            "dialect": "Àwọn ènìyàn kan fẹ́ràn ajá, àwọn mìíràn fẹ́ràn ológbò"
+          },
+          {
+            "french": "Presque",
+            "dialect": "fẹ́rẹ̀ẹ́",
+            "example_french": "Je suis presque arrivé. J’ai presque fini.",
+            "example_dialect": "Mo ti fẹ́rẹ̀ẹ́ débẹ̀. Mo ti fẹ́rẹ̀ẹ́ parí."
+          },
+          {
+            "french": "Je suis presque tombé (j’ai failli tomber)",
+            "dialect": "Mo fẹ́rẹ̀ẹ́ ṣubú (mo fẹ́rẹ̀ẹ́ ṣubú)"
+          },
+          {
+            "french": "Elle est presque adulte",
+            "dialect": "Ó ti fẹ́rẹ̀ẹ́ dàgbà"
+          },
+          {
+            "french": "Sinon",
+            "dialect": "tàbí",
+            "example_french": "J’ai eu peur quand bandit m’a dit : « donne-moi l’argent sinon je te tue. »",
+            "example_dialect": "Ẹ̀rù bà mí nígbà tí ọ̀daràn náà sọ fún mi pé: 'Mú owó náà wá tàbí kí n pa ọ.' »"
+          },
+          {
+            "french": "Ensemble",
+            "dialect": "jọ",
+            "example_french": "Mangeons ensemble.",
+            "example_dialect": "Ẹ jẹ́ ká jọ jẹun."
+          },
+          {
+            "french": "Ils sont ensemble",
+            "dialect": "Wọ́n Wà Pa Pọ̀"
+          },
+          {
+            "french": "Et",
+            "dialect": "àti",
+            "example_french": "Je dois rentrer pour faire le ménage et faire la cuisine.",
+            "example_dialect": "Mo ní láti lọ sílé kí n lè lọ tún ilé ṣe áti láti ṣe òunjẹ"
+          },
+          {
+            "french": "On attend Ngannou et Takam.",
+            "dialect": "A ń dúró de Ngannou àti Takam."
+          },
+          {
+            "french": "Malgré",
+            "dialect": "Bó tilẹ̀",
+            "example_french": "Malgré nos conseils il est quand même parti se baigner au lac et a failli se noyer",
+            "example_dialect": "Bó tilẹ̀ jẹ́ pé a kìlọ̀ fún un, ó lọ wẹ̀ nínú adágún, ó fẹ́rẹ̀ẹ́ rì"
+          },
+          {
+            "french": "Etant donné",
+            "dialect": "torí pé",
+            "example_french": "Je me méfie de lui étant donné qu’il a déjà tué quelqu’un",
+            "example_dialect": "Mi ò fọkàn tán an torí pé ó ti pa ẹnì kan rí"
+          },
+          {
+            "french": "Par rapport à",
+            "dialect": "sí",
+            "example_french": "Cette année les récoltes ont diminué par rapport à l’année dernière.",
+            "example_dialect": "Owó ìkórè ọdún yìí dín kù sí ti ọdún tó kọjá."
+          },
+          {
+            "french": "Je suis gêné par rapport à Naya car je sais où son mari était hier.",
+            "dialect": "Ìtìjú ló jẹ́ fún mi nítorí Naya nítorí mo mọ ibi tí ọkọ rẹ̀ wà lálẹ́ àná."
+          }
+        ]
+      },
+      {
+        "title": "Comparatif / Superlatif",
+        "items": [
+          {
+            "french": "Plus",
+            "dialect": "ju . . .  lọ",
+            "example_french": "Je suis plus beau que lui",
+            "example_dialect": "Mo dára ju òun lọ"
+          },
+          {
+            "french": "Tu es plus intelligent que moi",
+            "dialect": "O gbọ́n jù mí lọ"
+          },
+          {
+            "french": "Moins",
+            "dialect": "keré",
+            "example_french": "Il a moins d'argent",
+            "example_dialect": "owó rẹ keré"
+          },
+          {
+            "french": "Vous êtes moins forts que nous",
+            "dialect": "ágbára yín keré ju tuwa lọ"
+          },
+          {
+            "french": "Le plus / La plus / Les plus",
+            "dialect": "tó . . .  jù",
+            "example_french": "C’est la personne la plus gentille que je connaisse",
+            "example_dialect": "Òun lẹni tó dáa jù tí mo mọ̀"
+          },
+          {
+            "french": "C’est le meilleur des élèves ici",
+            "dialect": "Òun ni akẹ́kọ̀ọ́ tó tayọ jù lọ níbí"
+          }
+        ]
+      },
+      {
+        "title": "Outils de fréqeunce",
+        "items": [
+          {
+            "french": "Toujours",
+            "dialect": "gbogbo ìgbà",
+            "example_french": "Ces enfants veulent toujours jouer",
+            "example_dialect": "Àwọn ọmọdé yìí máa ń fẹ́ láti ṣeré ni gbogbo ìgbà"
+          },
+          {
+            "french": "En général",
+            "dialect": "sábà",
+            "example_french": "En général mon fils refuse de manger le soir",
+            "example_dialect": "Ọmọ mi kì í sábà jẹun lálẹ́"
+          },
+          {
+            "french": "La plupart du temps",
+            "dialect": "Ooru  sábà máa ń mú gan-an níbí ni",
+            "example_french": "Il fait chaud la plupart du temps ici",
+            "example_dialect": "Ooru  sábà máa ń mú gan-an níbí ni"
+          },
+          {
+            "french": "Souvent",
+            "dialect": "Ọ̀pọ̀ ìgbà",
+            "example_french": "La voiture se coince souvent dans la boue les jours de pluie",
+            "example_dialect": "Ọ̀pọ̀ ìgbà ni ọkọ̀ máa ń dí nínú ẹrẹ̀ nígbà òjò"
+          },
+          {
+            "french": "Parfois",
+            "dialect": "Nígbà míì",
+            "example_french": "La voisine nous apporte parfois les vêtements qu’elle ne porte plus",
+            "example_dialect": "Nígbà míì, ìyàwó aládùúgbò wa máa ń mú àwọn aṣọ tó ti bàjẹ́ wá fún wa."
+          },
+          {
+            "french": "Rarement",
+            "dialect": "kì í sábà",
+            "example_french": "Ces gens nous saluent rarement quand ils passent devant chez nous.",
+            "example_dialect": "Àwọn èèyàn wọ̀nyí kì í sábà kí wa nígbà tí wọ́n bá ń kọjá níwájú ilé wa."
+          },
+          {
+            "french": "Jamais",
+            "dialect": "rí",
+            "example_french": "je n'ai jamais mangé",
+            "example_dialect": "mi ò jẹun rí"
+          },
+          {
+            "french": "Je ne suis jamais montée en haut de cette montagne",
+            "dialect": "Mi ò tíì gun òkè yìí rí."
+          }
+        ]
+      },
+      {
+        "title": "Outils de probabilité",
+        "items": [
+          {
+            "french": "Devoir (dans le sens fortement possible)",
+            "dialect": "gbọ́dọ̀",
+            "example_french": "tu dois manger",
+            "example_dialect": "o gbọ́dọ̀ jẹun"
+          },
+          {
+            "french": "Peut-être",
+            "dialect": "bóyá",
+            "example_french": "Nous cherchons Magne, peut-être qu’elle nous cherche aussi",
+            "example_dialect": "Àwa ń wá Magne, bóyá òun náà á wá wa"
+          }
+        ]
+      },
+      {
+        "title": "Conjugaison",
+        "items": [
+          {
+            "french": "Présent ou présent continu",
+            "dialect": "Yoruba",
+            "example_french": "Français"
+          },
+          {
+            "french": "Passé",
+            "dialect": "Yoruba",
+            "example_french": "Français"
+          },
+          {
+            "french": "Futur",
+            "dialect": "Yoruba",
+            "example_french": "Français"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Phrases utiles",
+    "description": "Expressions pratiques pour la vie quotidienne : se présenter, demander son chemin, faire des achats...",
+    "order": 3,
+    "lessons": [
+      {
+        "title": "Présentation",
+        "parent_theme": "Rencontrer quelqu'un",
+        "items": [
+          {
+            "french": "Comment tu t’appelles ?",
+            "dialect": "kí ni orukọọ́ rẹ"
+          },
+          {
+            "french": "Je m’appelle",
+            "dialect": "orukọọ́ mi ni . . ."
+          },
+          {
+            "french": "D’où tu viens ?",
+            "dialect": "nìbo lóti sán wa"
+          },
+          {
+            "french": "Je viens de",
+            "dialect": "mo wá láti . . . ."
+          },
+          {
+            "french": "Quel est ton métier ?",
+            "dialect": "kí ni iṣẹ rẹ"
+          },
+          {
+            "french": "Mon métier est",
+            "dialect": "iṣẹ mi ni. . ."
+          },
+          {
+            "french": "Tu es marié ?",
+            "dialect": "ṣé òti ni ọkọ"
+          },
+          {
+            "french": "Tu habites où ?",
+            "dialect": "nìbo lo gbé"
+          },
+          {
+            "french": "Tu as quel âge ? J’ai 15ans",
+            "dialect": "ọmọ odún mélóò ni ọ ? ọmọ odún mẹ̀ẹ́dogun ni mi."
+          },
+          {
+            "french": "Père",
+            "dialect": "bàbá"
+          },
+          {
+            "french": "Mère",
+            "dialect": "màmá"
+          },
+          {
+            "french": "Sœur",
+            "dialect": "arabinrin"
+          },
+          {
+            "french": "Frère",
+            "dialect": "arakunrin"
+          },
+          {
+            "french": "Enfants : J’ai 2 enfants",
+            "dialect": "awọn ọmọ mo ni ọmọ méji"
+          },
+          {
+            "french": "Fils",
+            "dialect": "ọmọ ọkunrin"
+          },
+          {
+            "french": "Fille",
+            "dialect": "ọmọ ọbinrin"
+          },
+          {
+            "french": "Ami : Voici Simo, mon ami",
+            "dialect": "ọrẹ= ọrẹ mi ni"
+          },
+          {
+            "french": "Grand-père",
+            "dialect": "bàbá mi ni"
+          },
+          {
+            "french": "Grand-mère",
+            "dialect": "iya iya mi ni"
+          },
+          {
+            "french": "Jumeaux",
+            "dialect": "ibeji"
+          },
+          {
+            "french": "Femme",
+            "dialect": "ọbinrin"
+          },
+          {
+            "french": "Mari",
+            "dialect": "ọkọ"
+          },
+          {
+            "french": "Homme",
+            "dialect": "ọkunrin"
+          },
+          {
+            "french": "Mariage",
+            "dialect": "igbeyawo"
+          },
+          {
+            "french": "Grossesse / Enceinte",
+            "dialect": "oyún"
+          },
+          {
+            "french": "Ancêtre",
+            "dialect": "bàbá ńla"
+          },
+          {
+            "french": "Bénédiction",
+            "dialect": "Ìbùkún"
+          },
+          {
+            "french": "Malédiction",
+            "dialect": "epe"
+          },
+          {
+            "french": "La vie",
+            "dialect": "ilé ayé"
+          },
+          {
+            "french": "La mort",
+            "dialect": "iku"
+          }
+        ]
+      },
+      {
+        "title": "Salutations et formules de politesse",
+        "parent_theme": "Rencontrer quelqu'un",
+        "items": [
+          {
+            "french": "Bonjour",
+            "dialect": "káàárọ̀"
+          },
+          {
+            "french": "Bonsoir",
+            "dialect": "káalẹ́"
+          },
+          {
+            "french": "Comment tu vas ?",
+            "dialect": "báwo ni"
+          },
+          {
+            "french": "Je vais bien et toi ?",
+            "dialect": "dáadáa ni,  iwọ nkọ"
+          },
+          {
+            "french": "Couci-Couça",
+            "dialect": "bakan bakan"
+          },
+          {
+            "french": "Je vais mal",
+            "dialect": "ara mi o yá"
+          },
+          {
+            "french": "Au revoir",
+            "dialect": "ọ dàábọ"
+          },
+          {
+            "french": "Merci. Merci beaucoup.",
+            "dialect": "oṣé oṣé pùpọ́"
+          },
+          {
+            "french": "De rien",
+            "dialect": "ko bùrú"
+          },
+          {
+            "french": "Excuse-moi, désolé",
+            "dialect": "Ma binu, ma binu"
+          },
+          {
+            "french": "Bon appétit",
+            "dialect": "yo gba ibí ire"
+          },
+          {
+            "french": "Bonne nuit, dors bien !",
+            "dialect": "orùn ayọ"
+          },
+          {
+            "french": "Passe une bonne journée",
+            "dialect": "Eni a sán ọ o"
+          },
+          {
+            "french": "A plus tard",
+            "dialect": "o dàábọ"
+          },
+          {
+            "french": "Prends soin de toi",
+            "dialect": "moju tó ara rẹ"
+          },
+          {
+            "french": "Enchanté / de même",
+            "dialect": "Inú mi dùn láti rí yín"
+          },
+          {
+            "french": "Au revoir !",
+            "dialect": "o dáàbọ"
+          },
+          {
+            "french": "A bientôt !",
+            "dialect": "a  ríra láìpẹ"
+          },
+          {
+            "french": "Bonne journée",
+            "dialect": "kí o suwọn"
+          },
+          {
+            "french": "Bon voyage",
+            "dialect": "Ni irinajo to dara"
+          }
+        ]
+      },
+      {
+        "title": "Formules de politesse",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Bienvenue",
+            "dialect": "Káàbọ"
+          },
+          {
+            "french": "S’il-te-plait : Va me chercher le couteau stp.",
+            "dialect": "jọwọ ba mi wá ọbẹ"
+          },
+          {
+            "french": "Merci",
+            "dialect": "O ṣeun"
+          },
+          {
+            "french": "Que Dieu te bénisse",
+            "dialect": "kí ọlọrun o bukùn rẹ"
+          }
+        ]
+      },
+      {
+        "title": "Demander son chemin",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Je suis perdu, je me suis trompé de chemin",
+            "dialect": "Mo ti sọnu, Mo gba ọna ti kò tọ"
+          },
+          {
+            "french": "Je cherche à me rendre au marché",
+            "dialect": "Mo ń gbiyanju láti lọ si ọja"
+          },
+          {
+            "french": "Comment faire pour se rendre chez Kamdem ?",
+            "dialect": "Bawo ni mo ṣe le  dé ilé Kamdem?"
+          },
+          {
+            "french": "J’ai pris un chemin trop long et trop compliqué.",
+            "dialect": "Mo gba ọná tí o gun jú áti to rùjú"
+          },
+          {
+            "french": "Montre moi un raccourci pour arriver là-bas",
+            "dialect": "Fi ọná abuja hán mi láti dé ibẹ́"
+          },
+          {
+            "french": "Pour arriver plus tôt tu dois contourner ce quartier",
+            "dialect": "Láti dé iṣáaju o ni láti fori agbegbe yí"
+          },
+          {
+            "french": "Comment faire pour arriver à l’école sans passer par la brousse ?",
+            "dialect": "Bawo ni ń ṣe le dé ilé-iwe láìsi lilọ nipasẹ igbo?"
+          },
+          {
+            "french": "Pour aller là-bas va tout droit, une fois arrivé au carrefour prends la 2e à droite",
+            "dialect": "Láti dé ibẹ́ lọ táàra, ni kete ti o ba de ikórita gba apa ọtun keji"
+          },
+          {
+            "french": "puis marche jusqu’à la maison en bois, et demande ton chemin au vieux.",
+            "dialect": "ki o si rín sí ilé onigi, ki o sí béèré awọn arúgbo fun itọnisọna."
+          },
+          {
+            "french": "Répète doucement, je n’ai pas compris",
+            "dialect": "Tùn rọra ṣọ, kò yé mi"
+          }
+        ]
+      },
+      {
+        "title": "Exprimer une gêne",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "J’ai faim, on mange quoi ? On mange quand ?",
+            "dialect": "Ebi n pa mi, kí ni a o jẹ? Nigbawo ni a jẹun?"
+          },
+          {
+            "french": "Je n’ai pas mangé depuis hier",
+            "dialect": "Nko jẹun láti àná"
+          },
+          {
+            "french": "Je n’ai pas mangé le taro et la sauce jaune depuis longtemps",
+            "dialect": "emi kò jẹ taroo áti ọbẹ ofeefee fún igba pipẹ"
+          },
+          {
+            "french": "C’est trop chaud, je préfère manger ce plat froid.",
+            "dialect": "O gbona ju, Mo fẹ lati jẹ òunjẹ yí ní tútú."
+          },
+          {
+            "french": "Va réchauffer mon assiette stp la nourriture a refroidi",
+            "dialect": "lọ gbe ọbẹ ka iná nítorí o tútú wa"
+          },
+          {
+            "french": "Elle n’a pas besoin de fourchette ni de couteau ni de cuillère puisqu’elle mange avec les doigts",
+            "dialect": "Ko nilo orita, ọbẹ tábi sibi nítorí yóò lo ọwọ rẹ láti fi jẹun"
+          },
+          {
+            "french": "J’ai soif, et mon verre est vide, remplis-le stp",
+            "dialect": "Ongbẹ n gbẹ mi, gilasi mi si ṣofo, jọwọ pán kun"
+          },
+          {
+            "french": "Je te sers du jus bien frais.",
+            "dialect": "mo fún ọ  ni jùsi"
+          },
+          {
+            "french": "Diarrhée",
+            "dialect": "yágbẹ",
+            "example_french": "Tu as la diarrhée parce que tu n’es pas habitué à la nourriture d’ici",
+            "example_dialect": "O yágbẹ nítorí pé o kò mọ oúnjẹ tí wọ́n ń jẹ níbí"
+          },
+          {
+            "french": "Douleur",
+            "dialect": "irora",
+            "example_french": "Je n’ai jamais ressenti une telle douleur",
+            "example_dialect": "Mi ò tíì ní irú ìrora yìí rí láyé mi"
+          },
+          {
+            "french": "S’évanouir",
+            "dialect": "dáku",
+            "example_french": "Heureusement que tu étais là pour la retenir quand elle s’est évanouie",
+            "example_dialect": "Ó dùn mọ́ni pé o wà níbẹ̀ láti dá a dúró nígbà tó dákú."
+          },
+          {
+            "french": "Fièvre",
+            "dialect": "ìba",
+            "example_french": "On lui donne de l’eau froide en espérant que sa fièvre baisse",
+            "example_dialect": "A máa ń fún un ní omi tútù, a sì máa ń retí pé kí ibà náà lọ"
+          },
+          {
+            "french": "Guérir / Guérison",
+            "dialect": "̵wóòsán",
+            "example_french": "Bonne guérison",
+            "example_dialect": "Kí ara rẹ wóòsán gágá."
+          },
+          {
+            "french": "Hôpital",
+            "dialect": "ọspitu",
+            "example_french": "L’hôpital est à une heure de marche d’ici",
+            "example_dialect": "Ìrìn wákàtí kan sí ọspitu."
+          },
+          {
+            "french": "Malade / Maladie",
+            "dialect": "áìsán",
+            "example_french": "Tout malade a besoin qu’on s’occupe de lui. La maladie ne guérit que par les soins. Toute maladie n’a pas un remède.",
+            "example_dialect": "Gbogbo aláìsàn ló nílò àbójútó. Ìtọ́jú nìkan ló lè wo àìsàn náà sàn. Kì í ṣe gbogbo àìsàn ló ní oògùn."
+          },
+          {
+            "french": "Médecin",
+            "dialect": "dọkita",
+            "example_french": "Si tu ne guéris pas d’ici deux jours j’appellerai le médecin",
+            "example_dialect": "Bí ara rẹ kò bá yá láàárín ọjọ́ méjì, màá pe dókítà"
+          },
+          {
+            "french": "Médicaments",
+            "dialect": "oógun",
+            "example_french": "Ces médicaments sont à prendre 3 fois par jour.",
+            "example_dialect": "Ó yẹ kóo máa lo oògùn yìí ní ìgbà mẹ́ta lójúmọ́."
+          },
+          {
+            "french": "Santé",
+            "dialect": "alafia",
+            "example_french": "La santé est lune bénédiction",
+            "example_dialect": "alafia jẹ ibukun"
+          },
+          {
+            "french": "Tousser",
+            "dialect": "wukọ́",
+            "example_french": "Tu as remarqué qu’elle tousse un peu ? Je pense qu’elle a attrapé froid, elle a dû dormir mal couverte.",
+            "example_dialect": "Ṣé o ti kíyè sí i pé ó ń wukọ́? Ó ní láti jẹ́ pé òtútù ló mú un, ó ní láti jẹ́ pé kò fi aṣọ ìkélé bò ó lójú oorun."
+          },
+          {
+            "french": "Vomir",
+            "dialect": "bí",
+            "example_french": "Elle vomit tellement qu’elle a maigri.",
+            "example_dialect": "Ó bí débi wipé o tí ru ."
+          }
+        ]
+      },
+      {
+        "title": "Nombres",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "1",
+            "dialect": "oókan",
+            "example_french": "Il n'y a qu'un seul Dieu",
+            "example_dialect": "ọlọrun kan sòsò ló wa"
+          },
+          {
+            "french": "2",
+            "dialect": "eéji",
+            "example_french": "Une feuille a deux côtés",
+            "example_dialect": "Ewe kan ni ẹgbẹ meji"
+          },
+          {
+            "french": "3",
+            "dialect": "ẹẹ́ta",
+            "example_french": "Chez nous on mange trois fois par jour",
+            "example_dialect": "Ni ilé ọ̀dọ̀ọ́ wa a jẹun ni igba mẹta ni ọjọ kan"
+          },
+          {
+            "french": "4",
+            "dialect": "ẹẹ́rin",
+            "example_french": "Cette pièce a quatre murs et 4 coins",
+            "example_dialect": "Ilé yìí ní ògiri mẹ́rin àti igun mẹ́rin"
+          },
+          {
+            "french": "5",
+            "dialect": "aárùnún",
+            "example_french": "La main a cinq doigts",
+            "example_dialect": "iká márùn-ún ló wà ní ọwọ"
+          },
+          {
+            "french": "6",
+            "dialect": "ẹẹ́fà",
+            "example_french": "Une guitare a six cordres",
+            "example_dialect": "Gíátà kan ní okùn mẹ́fà"
+          },
+          {
+            "french": "7",
+            "dialect": "eéje",
+            "example_french": "L'arc en ciel a sept couleurs",
+            "example_dialect": "Àwọ̀ méje ló wà nínú òṣùmàrè"
+          },
+          {
+            "french": "8",
+            "dialect": "ẹẹ́jọ",
+            "example_french": "Les arraignées ont huit pattes",
+            "example_dialect": "Ẹsẹ mẹ́jọ ni àwọn òdòdó tó wà nínú ewéko"
+          },
+          {
+            "french": "9",
+            "dialect": "ẹẹ́sànán",
+            "example_french": "Notre fils a neuf ans aujourd'hui",
+            "example_dialect": "Ọmọ wa ti pé ọmọ ọdún mẹ́sàn-án báyìí"
+          },
+          {
+            "french": "10",
+            "dialect": "ẹẹ́wàá",
+            "example_french": "Il y a dix commandements dans la bible",
+            "example_dialect": "òfin mẹ́wàá wà nínú bíbélì"
+          },
+          {
+            "french": "11",
+            "dialect": "oókánlá",
+            "example_french": "Il faut 11 joueurs pour faire une équipe de football",
+            "example_dialect": "Ó gba ènìyàn mọ́kànlá láti ṣe ẹgbẹ́ agbábọ́ọ̀lù kan"
+          },
+          {
+            "french": "12",
+            "dialect": "eéjìlá",
+            "example_french": "Il y a douze mois dans l'année",
+            "example_dialect": "Oṣù méjìlá ló wà nínú ọdún"
+          },
+          {
+            "french": "13",
+            "dialect": "ẹẹ́tàlá",
+            "example_french": "Certaines pzersoones croient que le 13 porte malheure",
+            "example_dialect": "Àwọn ènìyàn kan gbàgbọ́ wípé Abawole kẹtàlá jẹ́ ibi."
+          },
+          {
+            "french": "14",
+            "dialect": "ẹẹ́rìnlá",
+            "example_french": "Elle a mis 14 oignons dans la soupe",
+            "example_dialect": "Ó fi àlùbọ́sà mẹ́rìnlá sínú ọbẹ̀ náà"
+          },
+          {
+            "french": "15",
+            "dialect": "aárùnúndínlógún",
+            "example_french": "Il faut arracher les 15 feuilles de la branche",
+            "example_dialect": "A ní láti gé àwọn ewé ogun dìn marún-un náà kúrò lára ẹ̀ka igi náà."
+          },
+          {
+            "french": "16",
+            "dialect": "ẹẹ́rindínlógún",
+            "example_french": "4 fois 4 égal 16",
+            "example_dialect": "mẹ́rin ní ìlọ́po mẹ́rin jẹ́ mẹ́rindínlógún"
+          },
+          {
+            "french": "17",
+            "dialect": "ẹẹ́tadínlógún",
+            "example_french": "10 plus 7 égal 17",
+            "example_dialect": "mẹ́wa àti méje jẹ́  mẹ́tadínlógún"
+          },
+          {
+            "french": "18",
+            "dialect": "eéjidínlógún",
+            "example_french": "A 18ans on est adulte",
+            "example_dialect": "Ọmọ ọdún méjìdínlógún ti dàgbà"
+          },
+          {
+            "french": "19",
+            "dialect": "oókandínlógún",
+            "example_french": "Il a 19 façon de cuisiner le Heru",
+            "example_dialect": "Ó ní ọ̀nà mọ́kàndínlógún tí wọ́n fi ń se oúnjẹ Heru."
+          },
+          {
+            "french": "20",
+            "dialect": "ógún",
+            "example_french": "21 moins 1 fait 20",
+            "example_dialect": "ogún àti ẹyọ kan dínkan jẹ́ ogún"
+          },
+          {
+            "french": "30",
+            "dialect": "ọgbọ̀n"
+          },
+          {
+            "french": "40",
+            "dialect": "ogóji"
+          },
+          {
+            "french": "50",
+            "dialect": "àádọ́ta"
+          },
+          {
+            "french": "60",
+            "dialect": "ọgọ́ta"
+          },
+          {
+            "french": "70",
+            "dialect": "àádọ́rin"
+          },
+          {
+            "french": "80",
+            "dialect": "ọgọrín"
+          },
+          {
+            "french": "90",
+            "dialect": "àádọ́rùnún"
+          },
+          {
+            "french": "100",
+            "dialect": "ọgọ́rúnùn"
+          },
+          {
+            "french": "101",
+            "dialect": "ọgọ́rúnùnlékan"
+          },
+          {
+            "french": "110",
+            "dialect": "ọgọ́rúnùnlémẹwàá"
+          },
+          {
+            "french": "200",
+            "dialect": "ọgọrúnùnmeéji"
+          },
+          {
+            "french": "300",
+            "dialect": "ọgọrúnùnmẹẹ́ta"
+          },
+          {
+            "french": "400",
+            "dialect": "ọgọrúnùnmẹẹrin"
+          },
+          {
+            "french": "500",
+            "dialect": "ọgọrúnùnmaárùnún"
+          },
+          {
+            "french": "600",
+            "dialect": "ọgọrúnùnmẹẹ́fa"
+          },
+          {
+            "french": "700",
+            "dialect": "ọgọrúnùnmeéje"
+          },
+          {
+            "french": "800",
+            "dialect": "ọgọrúnùnmẹẹ́jọ"
+          },
+          {
+            "french": "900",
+            "dialect": "ọgọrúnùnmẹẹ́sánán"
+          },
+          {
+            "french": "1000",
+            "dialect": "ẹgbẹ̀rún"
+          },
+          {
+            "french": "1001",
+            "dialect": "ẹgbẹ̀rúnlékan"
+          },
+          {
+            "french": "1100",
+            "dialect": "ẹgbẹ̀rúnléọgọ́rùnún"
+          },
+          {
+            "french": "2000",
+            "dialect": "ẹgbẹ̀rúnmeéji"
+          },
+          {
+            "french": "3000",
+            "dialect": "ẹgbẹ̀rúnmẹẹ́ta"
+          },
+          {
+            "french": "4000",
+            "dialect": "ẹgbẹ̀rúnmẹẹ́rin"
+          },
+          {
+            "french": "5000",
+            "dialect": "ẹgbẹ̀rúnmaárùnún"
+          },
+          {
+            "french": "6000",
+            "dialect": "ẹgbẹ̀rúnmẹẹ́fa"
+          },
+          {
+            "french": "7000",
+            "dialect": "ẹgbẹ̀rúnmeéje"
+          },
+          {
+            "french": "8000",
+            "dialect": "ẹgbẹ̀rúnmẹjọ"
+          },
+          {
+            "french": "9000",
+            "dialect": "ẹgbẹ̀rúnmẹẹ́sànàn"
+          },
+          {
+            "french": "10000",
+            "dialect": "ẹgbẹ̀rúnmẹẹ́wàá"
+          },
+          {
+            "french": "10100",
+            "dialect": "ẹgbẹ̀rúnmẹẹ́wàáléọgọrùnún"
+          },
+          {
+            "french": "11000",
+            "dialect": "ẹgbẹ̀rúnmẹẹ́wàáẹgbẹrun"
+          },
+          {
+            "french": "100000",
+            "dialect": "ọgọ́rùnúnẹgbẹ̀rún"
+          },
+          {
+            "french": "200000",
+            "dialect": "ọgọ́rùnúnmeéjiẹgbẹ̀rún"
+          },
+          {
+            "french": "1000000",
+            "dialect": "miliónù"
+          },
+          {
+            "french": "1er",
+            "dialect": "alakọkọ(celui qui est premier), le premier(akọkọ)",
+            "example_french": "Son 1er mari l'aimait beaucoup",
+            "example_dialect": "Ọkọ rẹ akọkọ fẹràn rẹ gidigidi"
+          },
+          {
+            "french": "2e",
+            "dialect": "elekéjì(celui qui est deuxième), kéji(deuxième)",
+            "example_french": "C'est la 2e fois qu'elle tombe enceinte",
+            "example_dialect": "Eyi ni igba kéji ti ó ti loyun"
+          },
+          {
+            "french": "3e",
+            "dialect": "ẹlẹkẹ́ta(celui qui est) , kẹ́ta(troisième)",
+            "example_french": "J'ai fini 3e à la course.",
+            "example_dialect": "Mo pari ni ipo kẹ́ta ninu idijẹ náà."
+          }
+        ]
+      },
+      {
+        "title": "Jours de la semaines, semaine, mois",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Jour",
+            "dialect": "ọjọ",
+            "example_french": "Il est resté ici pendant deux jours",
+            "example_dialect": "Ó dúró níbí fún ọjọ́ méjì"
+          },
+          {
+            "french": "Semaine",
+            "dialect": "ọsẹ",
+            "example_french": "Ton voyage va durer une semaine",
+            "example_dialect": "Ìrìn àjò rẹ yóò gba ọ̀sẹ̀ kan"
+          },
+          {
+            "french": "Mois",
+            "dialect": "oṣù",
+            "example_french": "On.a laissé sécher le poisson pendant 1 mois",
+            "example_dialect": "Oṣù kan ni wọ́n fi jẹ ẹja náà kó lè gbẹ"
+          },
+          {
+            "french": "Saison",
+            "dialect": "akókò, asíkó",
+            "example_french": "Les manues mûrissent pendant la saison sèche",
+            "example_dialect": "Àwọn Ẹ̀ka Igi Tó Ń Dàgbà Nígbà Ọ̀dá"
+          },
+          {
+            "french": "Année",
+            "dialect": "ọdún",
+            "example_french": "L'année dernière nous étions en conflit.",
+            "example_dialect": "Ọdún tó kọjá la wà nínú ìjà."
+          },
+          {
+            "french": "Lundi",
+            "dialect": "ọjọ́ ajé"
+          },
+          {
+            "french": "Mardi",
+            "dialect": "ọjọ́ ìṣẹ́gun"
+          },
+          {
+            "french": "Mercredi",
+            "dialect": "ọjórú"
+          },
+          {
+            "french": "Jeudi",
+            "dialect": "ọjọ́bọ̀"
+          },
+          {
+            "french": "Vendredi",
+            "dialect": "ọjọ́ ẹtì"
+          },
+          {
+            "french": "Samedi",
+            "dialect": "ọjọ́ àbámẹ́ta"
+          },
+          {
+            "french": "Dimanche",
+            "dialect": "ọjọ́ àìkú"
+          },
+          {
+            "french": "Janvier",
+            "dialect": "ọsu kìíní"
+          },
+          {
+            "french": "février",
+            "dialect": "ọsu kejì"
+          },
+          {
+            "french": "mars",
+            "dialect": "ọsu kẹta"
+          },
+          {
+            "french": "avril",
+            "dialect": "ọsu kẹrin"
+          },
+          {
+            "french": "mai",
+            "dialect": "ọsu karùnún"
+          },
+          {
+            "french": "juin",
+            "dialect": "ọsu  kẹfà"
+          },
+          {
+            "french": "juillet",
+            "dialect": "ọsu keje"
+          },
+          {
+            "french": "août",
+            "dialect": "ọsu kẹjọ"
+          },
+          {
+            "french": "septembre",
+            "dialect": "ọsu kẹsànán"
+          },
+          {
+            "french": "octobre",
+            "dialect": "ọsu kẹwàá"
+          },
+          {
+            "french": "novembre",
+            "dialect": "ọsu kọkànlá"
+          },
+          {
+            "french": "décembre",
+            "dialect": "ọsu kejìlá"
+          },
+          {
+            "french": "saisons sèches/harmattan",
+            "dialect": "asiko ọyẹ"
+          },
+          {
+            "french": "les saisons de pluies",
+            "dialect": "asiko ojó"
+          },
+          {
+            "french": "le temps de la fraicheur",
+            "dialect": "asiko ọgininti"
+          }
+        ]
+      },
+      {
+        "title": "Salutations & formules de politesse",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Bonjour",
+            "dialect": "káàárọ"
+          },
+          {
+            "french": "Bonsoir",
+            "dialect": "káalẹ́"
+          },
+          {
+            "french": "à demain !",
+            "dialect": "ó dọ̀la"
+          },
+          {
+            "french": "à la semaine prochaine",
+            "dialect": "ó di ọsẹ ti ǹbọ"
+          },
+          {
+            "french": "A bientôt",
+            "dialect": "ó dàábọ"
+          },
+          {
+            "french": "Allons-y",
+            "dialect": "je ki a lọ"
+          },
+          {
+            "french": "Au revoir",
+            "dialect": "ó dàábọ"
+          },
+          {
+            "french": "Bon Appétit",
+            "dialect": "kuounjẹ"
+          },
+          {
+            "french": "Comment tu t’appelles ?",
+            "dialect": "kí ni orukọọ rẹ"
+          },
+          {
+            "french": "Comment va ton père ?",
+            "dialect": "bo ni ara bàbáa rẹ"
+          },
+          {
+            "french": "Comment vas-tu ?",
+            "dialect": "bàwo ni"
+          },
+          {
+            "french": "Stp",
+            "dialect": "jọwọ"
+          },
+          {
+            "french": "Merci",
+            "dialect": "o ṣéùn"
+          }
+        ]
+      },
+      {
+        "title": "Exprimer un problème",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Tu es malade ?",
+            "dialect": "ṣé araa rẹ ó yá ni"
+          },
+          {
+            "french": "Je me sens mal",
+            "dialect": "araa mi ó yá"
+          },
+          {
+            "french": "Il est mort",
+            "dialect": "ó ti ku"
+          },
+          {
+            "french": "Qu’est-ce qu’il y a ? Qu’est-ce qu’il se passe ?",
+            "dialect": "kí lo ṣẹlẹ  / kí lo de"
+          },
+          {
+            "french": "C’est pas grave",
+            "dialect": "kò búrú"
+          },
+          {
+            "french": "J’arrive",
+            "dialect": "mo ń bọ̀"
+          },
+          {
+            "french": "J’ai faim",
+            "dialect": "èbí ǹ pami"
+          },
+          {
+            "french": "J’ai soif",
+            "dialect": "óngbẹ gbẹ mi"
+          },
+          {
+            "french": "Tu veux manger quoi ? Boire quoi ?",
+            "dialect": "kí lo fẹ jẹ /kí lo fẹ mu"
+          },
+          {
+            "french": "J’ai bien mangé",
+            "dialect": "mo jẹun dáadáa"
+          },
+          {
+            "french": "J’ai besoin d’aide / Est-ce que tu peux m’aider stp ?",
+            "dialect": "mo nidi irànlọwọ́ /ṣé o le ràn mi lọwọ́"
+          },
+          {
+            "french": "Merci de m’avoir aidé",
+            "dialect": "oṣé ti o ràn mi lọwọ́"
+          },
+          {
+            "french": "Vous parlez français ?",
+            "dialect": "se ẹ ṣọ faransẹ"
+          },
+          {
+            "french": "Je n’ai pas compris",
+            "dialect": "kò yé mi"
+          },
+          {
+            "french": "Tu peux parler plus lentement stp ? Tu parles trop vite",
+            "dialect": "ṣé o le fi ara balẹ sọrọ/ o ti yara sọrọ"
+          },
+          {
+            "french": "Comment on dit « merci (ou autre mot français) » en ghomala ?",
+            "dialect": "Báwò ni o ṣe sọ “o ṣeun (tabi ọrọ Faranse miiran)” ni Ghomala?"
+          },
+          {
+            "french": "Qu’est-ce que ça veut dire ?",
+            "dialect": "kí lo túmọ sí"
+          },
+          {
+            "french": "Tu comprends ? / Tu as compris ?",
+            "dialect": "ṣé o yé ọ"
+          },
+          {
+            "french": "Qu’est-ce que ça veut dire ?",
+            "dialect": "kí lo túmọ sí"
+          },
+          {
+            "french": "Quelque chose ne va pas ? Il y a un souci ? Quel est le problème",
+            "dialect": "kí ni ń ṣẹlẹ? Njẹ iṣoro kan wa? Kini iṣoro naa"
+          },
+          {
+            "french": "Je me suis fait mal",
+            "dialect": "mo se ara mi leṣe"
+          }
+        ]
+      },
+      {
+        "title": "La langue",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "J’apprends la langue",
+            "dialect": "mo kọ édé"
+          },
+          {
+            "french": "Je ne parle pas bien la langue. Je parle un peu le ghomala",
+            "dialect": "Emi ko sọ ede naa daradara. Mo sọ Ghomala diẹ"
+          },
+          {
+            "french": "Je parle bien le patois",
+            "dialect": "Mo sọ édé ibilẹ daradara"
+          }
+        ]
+      },
+      {
+        "title": "Trouver son chemin",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Je reviens du village",
+            "dialect": "Mo ń pada wa láti abule"
+          },
+          {
+            "french": "Comment était la route ?",
+            "dialect": "Báwo ni ọná?"
+          },
+          {
+            "french": "Où vas-tu ?",
+            "dialect": "Nibo ni o lọ ?"
+          },
+          {
+            "french": "Je suis perdu",
+            "dialect": "mo  ti sọnu"
+          },
+          {
+            "french": "Je cherche la maison de Tel",
+            "dialect": "Mo n wa ilé lagbaja"
+          },
+          {
+            "french": "Je suis chez moi",
+            "dialect": "mo ń bẹ ni ọ̀dọ̀ mi"
+          },
+          {
+            "french": "Je vais à la maison",
+            "dialect": "mo lọ sí ilé"
+          },
+          {
+            "french": "Je rentre en France",
+            "dialect": "Mo pada si France"
+          },
+          {
+            "french": "Je vais au travail",
+            "dialect": "Emi lọ sí ibí iṣẹ"
+          },
+          {
+            "french": "Je suis Camerounais/Français/Anglais/Américain",
+            "dialect": "Ara ilu Kamẹroon ni mi/Faranse/Gẹẹsi/Amẹrika"
+          },
+          {
+            "french": "Tu es d’où ?",
+            "dialect": "Nibo ni o ti wa ?"
+          },
+          {
+            "french": "Où je peux prendre un taxi ?",
+            "dialect": "Ibo ni mo ti le ri takisi kan?"
+          },
+          {
+            "french": "Il faut aller à gauche puis à droit puis continuer tout droit",
+            "dialect": "O ni lati lọ si apa osi lẹhinna sọtun lẹhinna tẹsiwaju taara"
+          }
+        ]
+      },
+      {
+        "title": "Compliments",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Je t’aime",
+            "dialect": "mo nifẹ rẹ"
+          },
+          {
+            "french": "Joyeux Anniversaire",
+            "dialect": "O ku ọjọ́ ibí"
+          },
+          {
+            "french": "Bonne chance",
+            "dialect": "Oríre dáada"
+          },
+          {
+            "french": "Bon courage",
+            "dialect": "kú iGbiyanju"
+          },
+          {
+            "french": "Ne t’inquiète pas",
+            "dialect": "Maṣe yọ ara rẹ lẹnu"
+          },
+          {
+            "french": "Ne pleure pas",
+            "dialect": "máa sùnkùn"
+          },
+          {
+            "french": "Tu es très gentil",
+            "dialect": "O ni áànu pùpọ́"
+          },
+          {
+            "french": "Que tu es belle !",
+            "dialect": "O lẹwa !"
+          },
+          {
+            "french": "Tu danses bien",
+            "dialect": "O jo daradara"
+          },
+          {
+            "french": "Tu chantes bien",
+            "dialect": "O korin daradara"
+          }
+        ]
+      },
+      {
+        "title": "Ordres",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Va à l’école",
+            "dialect": "lọ sí sùkúù"
+          },
+          {
+            "french": "Va te coucher",
+            "dialect": "lọ sùn"
+          },
+          {
+            "french": "Lève-toi",
+            "dialect": "dide"
+          },
+          {
+            "french": "Va me chercher une assiette",
+            "dialect": "lọ wá abọ fun mi"
+          },
+          {
+            "french": "Viens !",
+            "dialect": "wá"
+          },
+          {
+            "french": "Donne-moi ça",
+            "dialect": "Fun mi ni yẹn"
+          }
+        ]
+      },
+      {
+        "title": "Météo",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Il fait beau aujourd’hui",
+            "dialect": "Oju ọjọ oni dáara"
+          },
+          {
+            "french": "Quel temps fera-t-il demain ?",
+            "dialect": "Báwo ni oju ọjọ yóò ri ni ọ̀la?"
+          },
+          {
+            "french": "Il pleut",
+            "dialect": "Ojo ti n rọ́"
+          },
+          {
+            "french": "Il fait beau",
+            "dialect": "Oju ọjọ́ dáara"
+          },
+          {
+            "french": "Il fait chaud",
+            "dialect": "òrú  ń mu"
+          },
+          {
+            "french": "Il fait froid",
+            "dialect": "otútú ń mu"
+          }
+        ]
+      },
+      {
+        "title": "Horaires",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Quelle heure est-il ?",
+            "dialect": "áàgo mèélo ni o lu ?"
+          },
+          {
+            "french": "A quelle heure on part ?",
+            "dialect": "nigbawo ni a o lọ"
+          },
+          {
+            "french": "C’est trop tard",
+            "dialect": "Ó ti pẹ jù"
+          },
+          {
+            "french": "Il est trop tôt",
+            "dialect": "ó ti ya jù"
+          },
+          {
+            "french": "C’est l’heure de partir",
+            "dialect": "Ó to akókó láti lọ"
+          },
+          {
+            "french": "Attends un peu",
+            "dialect": "Dúró diẹ"
+          },
+          {
+            "french": "Je suis prêt / Je ne suis pas prêt",
+            "dialect": "Mo ṣe tán / N kò ṣe tán"
+          }
+        ]
+      },
+      {
+        "title": "Se renseigner / Commerce",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Combien ça coute ?",
+            "dialect": "èélo lo jẹ"
+          },
+          {
+            "french": "C'est trop cher",
+            "dialect": "ó ti wọ́n jù"
+          },
+          {
+            "french": "C'est bon marché",
+            "dialect": "ó dínwó"
+          },
+          {
+            "french": "Je suis perdu. Pouvez-vous m'aider à trouver mon chemin ?",
+            "dialect": "Mi ò mọ ibi tí mo máa lọ. Ṣé ẹ lè ràn mí lọ́wọ́ láti mọ ibi tí mo ń lọ?"
+          }
+        ]
+      },
+      {
+        "title": "Opinions",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Je sais",
+            "dialect": "mo mọ́"
+          },
+          {
+            "french": "Je ne sais pas",
+            "dialect": "ń kò mọ́"
+          },
+          {
+            "french": "D’accord / Je suis d’accord",
+            "dialect": "mo gba / n kò gba"
+          },
+          {
+            "french": "Je ne suis pas d’accord",
+            "dialect": "Emi kò gba"
+          },
+          {
+            "french": "Tu as raison",
+            "dialect": "o jẹ aré"
+          },
+          {
+            "french": "Tu as tort",
+            "dialect": "o jẹ ẹbí"
+          },
+          {
+            "french": "Je ne suis pas sûr",
+            "dialect": "kò dá mi  ni òju"
+          },
+          {
+            "french": "C’est vrai",
+            "dialect": "ọtitọ ni"
+          },
+          {
+            "french": "C’est faux",
+            "dialect": "ọtitọ kọ̀"
+          },
+          {
+            "french": "J’aime courir",
+            "dialect": "mo fẹrán ere sisa"
+          },
+          {
+            "french": "Je déteste ce plat",
+            "dialect": "ń kò fẹrán òunjẹ yi"
+          },
+          {
+            "french": "Quelle est ta musique préférée ?",
+            "dialect": "orin wo ni o fẹrán"
+          },
+          {
+            "french": "J’aime la viande mais je préfère le poisson",
+            "dialect": "Mo fẹran ẹran sùgbọ́n ń kò feran ẹja"
+          },
+          {
+            "french": "Bonne idée / mauvaise idée",
+            "dialect": "Ero ti o dáara / ero bùbúrú"
+          },
+          {
+            "french": "Qu’est-ce que tu en penses ? Qu’est-ce que tu penses de lui ?",
+            "dialect": "Kí ni o ro nipa rẹ? Kí ni o ro nipa rẹ?"
+          },
+          {
+            "french": "D’accord ? (= C’est bon ? = C’est ok ?)",
+            "dialect": "O dara ? (= Ṣe o dara? = Ṣe o dara?)"
+          },
+          {
+            "french": "Voilà",
+            "dialect": "èyí(indiquer) , nítoríná(pour une explication)"
+          },
+          {
+            "french": "Moi aussi",
+            "dialect": "áti èmi náà"
+          },
+          {
+            "french": "Moi non plus",
+            "dialect": "èmi náà ń kò fẹ"
+          },
+          {
+            "french": "Bien sûr",
+            "dialect": "Dajudaju"
+          },
+          {
+            "french": "J’aime cette musique",
+            "dialect": "Mo fẹran orin yí"
+          },
+          {
+            "french": "Je ne veux pas aller à l'école aujourd'hui",
+            "dialect": "Emi kò fẹ láti lọ sí ilé-iwe loni"
+          }
+        ]
+      },
+      {
+        "title": "Emotions",
+        "parent_theme": "Exprimer un besoin",
+        "items": [
+          {
+            "french": "Je suis content",
+            "dialect": "inu mi dun"
+          },
+          {
+            "french": "Je suis heureux",
+            "dialect": "inu mi dun"
+          },
+          {
+            "french": "Je suis triste",
+            "dialect": "Inu mi bajẹ"
+          },
+          {
+            "french": "Je suis étonné",
+            "dialect": "Ò yáa mi lẹnu"
+          },
+          {
+            "french": "Je suis fatigué",
+            "dialect": "Ò rẹ mi"
+          },
+          {
+            "french": "Je suis déçu",
+            "dialect": "inu mi bajẹ"
+          },
+          {
+            "french": "J’ai peur de",
+            "dialect": "Mo bẹru",
+            "example_french": "J'ai peur de l'obscurité"
+          },
+          {
+            "french": "J'ai peur que",
+            "dialect": "Mo bẹru pé",
+            "example_french": "J'ai peur que tu me laisses seul"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Vocabulaire par thème",
+    "description": "Mots organisés par thème : anatomie, nature, animaux, métiers, couleurs...",
+    "order": 4,
+    "lessons": [
+      {
+        "title": "Anatomie",
+        "items": [
+          {
+            "french": "Anus",
+            "dialect": "ihò ẹ̀yìn",
+            "example_french": "Le chat sait nettoyer son anus",
+            "example_dialect": "Ìgbọ̀n mọ bí wọ́n ṣe ń fọ ihò ẹ̀yìn wọn"
+          },
+          {
+            "french": "Avant-bras",
+            "dialect": "apá iwájú",
+            "example_french": "Ses avant-bras sont poilus",
+            "example_dialect": "Àwọn apá iwájú rẹ̀ ní irun"
+          },
+          {
+            "french": "Barbe / Moustache",
+            "dialect": "Irùngbọ̀n",
+            "example_french": "Sa barbe est épaisse",
+            "example_dialect": "Irùngbọ̀n rẹ̀ gún"
+          },
+          {
+            "french": "Beau",
+            "dialect": "dára",
+            "example_french": "C’est le plus beau de ce village",
+            "example_dialect": "Òun ni arẹwà jùlọ ní abúlé yìí"
+          },
+          {
+            "french": "Bouche",
+            "dialect": "ẹnu",
+            "example_french": "Sa bouche sent mauvais",
+            "example_dialect": "Èéfín burúkú máa ń jáde lẹ́nu rẹ̀"
+          },
+          {
+            "french": "Bras",
+            "dialect": "apá",
+            "example_french": "mEs bras sont attachés",
+            "example_dialect": "apá mi ti di"
+          },
+          {
+            "french": "Cheveux",
+            "dialect": "Irun",
+            "example_french": "Tes cheveux sont très crépus.",
+            "example_dialect": "Irun rẹ ti du gan an."
+          },
+          {
+            "french": "Chevilles",
+            "dialect": "orúnkún",
+            "example_french": "Je me suis tordu la cheville en trébuchant sur une racine",
+            "example_dialect": "Mo ti rọ orúnkún mi nígbà tí mo kọsẹ̀ lórí gbòǹgbò kan"
+          },
+          {
+            "french": "Cœur",
+            "dialect": "ọkàn",
+            "example_french": "J’ai eu tellement peur que mon cœur s’est mis à battre fort",
+            "example_dialect": "Ẹ̀rù bà mí débi pé ọkàn mi bẹ̀rẹ̀ sí í lù kìkì"
+          },
+          {
+            "french": "Colonne vertébrale",
+            "dialect": "ọ̀pá ẹ̀yìn",
+            "example_french": "S’il s’est étiré et sa colonne a craqué.",
+            "example_dialect": "Ó ṣeé ṣe kó jẹ́ pé ńṣe ló na ara rẹ̀, tí ọ̀pá ẹ̀yìn rẹ̀ sì fọ́."
+          },
+          {
+            "french": "Corps",
+            "dialect": "Ara",
+            "example_french": "Le corps de chacun est différent",
+            "example_dialect": "Ara kálukú yàtọ̀ síra"
+          },
+          {
+            "french": "Côtes",
+            "dialect": "ìhà",
+            "example_french": "L’homme a douze pires de côtes",
+            "example_dialect": "Ènìyàn ní ìhà méjìlá tó burú jùlọ"
+          },
+          {
+            "french": "Cou",
+            "dialect": "Ọrùn ​​",
+            "example_french": "Son cou est long et fin",
+            "example_dialect": "Ọrùn rẹ̀ gun áti tinrin"
+          },
+          {
+            "french": "Coude",
+            "dialect": "ìgbáròkó",
+            "example_french": "Ne pose pas tes coudes sur la table pendant que tu manges",
+            "example_dialect": "Má ṣe gbé ìgbáròkó rẹ sórí tábìlì nígbà tó o bá ń jẹun"
+          },
+          {
+            "french": "Crâne",
+            "dialect": "Agbárí",
+            "example_french": "Le crâne des ancêtres est sacré",
+            "example_dialect": "Agbárí àwọn baba ńlá jẹ́ mímọ́"
+          },
+          {
+            "french": "Crotte",
+            "dialect": "ìgbẹ́",
+            "example_french": "Le maitre du chien a ramassé sa crotte",
+            "example_dialect": "Ọ̀gá ajá náà kó ìgbẹ́ rẹ̀"
+          },
+          {
+            "french": "Cuisses",
+            "dialect": "ítan",
+            "example_french": "Pose ton assiette sur tes cuisses, il n'y a plus de place à table",
+            "example_dialect": "Gbé àwo rẹ lé ítan rẹ, kò sí àyè fún ọ ní tábìlì"
+          },
+          {
+            "french": "Dents",
+            "dialect": "eyín",
+            "example_french": "Nos dents sont cassées.",
+            "example_dialect": "Àwọn eyín wa ti bà jẹ́."
+          },
+          {
+            "french": "Doigts",
+            "dialect": "ìka",
+            "example_french": "pose tes doigts",
+            "example_dialect": "fi ìka rẹ sí"
+          },
+          {
+            "french": "Dos",
+            "dialect": "ẹ̀yìn",
+            "example_french": "Tu as encore mal au dos ?",
+            "example_dialect": "Ṣé ẹ̀yìn ṣì ń dùn ẹ́?"
+          },
+          {
+            "french": "Epaules",
+            "dialect": "éjìká",
+            "example_french": "Le père porte sa fille sur ses épaules",
+            "example_dialect": "Bàbá gbé ọmọbìnrin rẹ̀ léjìká"
+          },
+          {
+            "french": "Estomac",
+            "dialect": "ikùn",
+            "example_french": "L’estomac contient ce qu’on mange",
+            "example_dialect": "Ohun tá à ń jẹ ló wà nínú ikùn wa"
+          },
+          {
+            "french": "Fesses",
+            "dialect": "ẹ̀yìn",
+            "example_french": "Il passe son temps à regarder les fesses des filles",
+            "example_dialect": "Ó máa ń wo ẹ̀yìn àwọn ọmọbìnrin"
+          },
+          {
+            "french": "Foie",
+            "dialect": "ẹ̀dọ̀",
+            "example_french": "En général les enfants n’aiment pas manger du foie",
+            "example_dialect": "Àwọn ọmọdé kì í sábà fẹ́ jẹ ẹ̀dọ̀"
+          },
+          {
+            "french": "Genoux",
+            "dialect": "orúnkún",
+            "example_french": "mon genoux me fait mal",
+            "example_dialect": "orúnkún mi ń dùn mí"
+          },
+          {
+            "french": "Grand",
+            "dialect": "ga",
+            "example_french": "Personne n’est grand chez eux",
+            "example_dialect": "Kò sí ẹni tó ga nínú wọn"
+          },
+          {
+            "french": "Gros",
+            "dialect": "sanra",
+            "example_french": "Regarde comme il est gros, pourtant il ne mange pas beaucoup.",
+            "example_dialect": "Wo bó ṣe sanra tó, síbẹ̀ kò jẹun tó bó ṣe yẹ."
+          },
+          {
+            "french": "Hanches",
+            "dialect": "Ìbàdí",
+            "example_french": "Les hanches larges facilitent l’accouchement.",
+            "example_dialect": "Ìbàdí tó gbòòrò máa ń jẹ́ kó rọrùn láti bímọ."
+          },
+          {
+            "french": "Intestins",
+            "dialect": "ìfun",
+            "example_french": "Les intestins sont très longs",
+            "example_dialect": "Àwọn ìfun náà gùn gan-an."
+          },
+          {
+            "french": "Jambes",
+            "dialect": "ẹsẹ̀",
+            "example_french": "Courir longtemps me fait mal aux jambes",
+            "example_dialect": "Bí mo bá ń sáré fún àkókò gígùn, ẹsẹ̀ mi á máa dùn mí"
+          },
+          {
+            "french": "Joues",
+            "dialect": "ẹrẹkẹ",
+            "example_french": "Tu es tellement maigre que tes joues sont creusées.",
+            "example_dialect": "O ti rù gan-an débi pé ẹrẹkẹ rẹ ti di hẹ́gẹhẹ̀gẹ."
+          },
+          {
+            "french": "Laid",
+            "dialect": "arìndìn",
+            "example_french": "Avant vous me traitiez de laid, maintenant je suis beau.",
+            "example_dialect": "Tẹ́lẹ̀ ẹ máa ń pè mí ní arìndìn, àmọ́ ní báyìí mo ti di arẹwà."
+          },
+          {
+            "french": "Lèvres",
+            "dialect": "Ètè",
+            "example_french": "Mes lèvres sont sèches",
+            "example_dialect": "Ètè mi ti gbẹ"
+          },
+          {
+            "french": "Mâchoire",
+            "dialect": "ise",
+            "example_french": "Le coup de poing lui a cassé la mâchoire",
+            "example_dialect": "ise tí wọ́n lù ú ti fọ́ ìtẹ́ rẹ̀"
+          },
+          {
+            "french": "Maigre",
+            "dialect": "tinrin",
+            "example_french": "Tu es trop maigre donc mes vêtements ne te vont pas",
+            "example_dialect": "Ìwọ tinrin, nítorí náà aṣọ mi kò bá ọ mu"
+          },
+          {
+            "french": "Mains",
+            "dialect": "Ọwọ́",
+            "example_french": "Les mains sont faites pour travailler",
+            "example_dialect": "Àwọn Ọwọ́ Wà fún Iṣẹ́"
+          },
+          {
+            "french": "Menton",
+            "dialect": "agbon",
+            "example_french": "En se battant il est tombé sur le menton.",
+            "example_dialect": "Nígbà tí wọ́n ń jà, ó ṣubú lé agbon"
+          },
+          {
+            "french": "Nombril",
+            "dialect": "Gbogbo ọmọ tí wọ́n bá bí ni ìdodo ìyá wọn máa ń so mọ́ ara wọn.",
+            "example_french": "Tout enfant qui nait est lié à sa mère par son nombril.",
+            "example_dialect": "Gbogbo ọmọ tí wọ́n bá bí ni ìdodo ìyá wọn máa ń so mọ́ ara wọn."
+          },
+          {
+            "french": "Ongles",
+            "dialect": "èékánná",
+            "example_french": "Mes ongles sont trop courts pour griffer quelqu’un",
+            "example_dialect": "Àwọn èékánná mi kúrú gan-an, mi ò lè fọwọ́ kan ẹnikẹ́ni"
+          },
+          {
+            "french": "Oreilles",
+            "dialect": "etí",
+            "example_french": "Vos oreilles sont pointues et sales.",
+            "example_dialect": "Àwọn etí rẹ kò dáa, wọ́n sì nípọn."
+          },
+          {
+            "french": "Orteils",
+            "dialect": "ìka",
+            "example_french": "On a tous 10 orteils",
+            "example_dialect": "Gbogbo wa la ní ìka mẹ́wàá."
+          },
+          {
+            "french": "Paume de main",
+            "dialect": "àtẹ́lẹwọ̀",
+            "example_french": "Elle écrase la semoule avec sa paume de main",
+            "example_dialect": "Ó ń fi àtẹ́lẹwọ̀ rẹ̀ tẹ ìrẹ̀pẹ̀"
+          },
+          {
+            "french": "Peau",
+            "dialect": "Awọ",
+            "example_french": "Sa peau brille car elle transpire",
+            "example_dialect": "Awọ rẹ̀ ń tàn yòò nítorí pé ó ń gbọ̀n"
+          },
+          {
+            "french": "Petit",
+            "dialect": "kéré",
+            "example_french": "Il est grand pourtant son père est petit",
+            "example_dialect": "Ó ga, ṣùgbọ́n bàbá rẹ̀ kéré"
+          },
+          {
+            "french": "Pied",
+            "dialect": "ẹsẹ̀",
+            "example_french": "Tu as sauté tellement haut que tes pieds n’ont pas touché la barrière",
+            "example_dialect": "O ti fò lọ́nà jíjìn débi pé ẹsẹ̀ rẹ kò dé ibi ààbò"
+          },
+          {
+            "french": "Poignets",
+            "dialect": "Ọwọ́",
+            "example_french": "Il s’est tordu le poignet en tombant. C’est grave docteur ?",
+            "example_dialect": "Ọwọ́ rẹ̀ ló dàrú nígbà tó ṣubú lulẹ̀. Ṣé ó burú, Dókítà?"
+          },
+          {
+            "french": "Poils",
+            "dialect": "Irun",
+            "example_french": "Ses poils sont épars",
+            "example_dialect": "Irun orí rẹ̀ wà káàkiri"
+          },
+          {
+            "french": "Poumons",
+            "dialect": "Ẹ̀dọ̀fóró",
+            "example_french": "Les poumons servent à respirer",
+            "example_dialect": "Àwọn Ẹ̀dọ̀fóró Wà fún Èémí"
+          },
+          {
+            "french": "Reins",
+            "dialect": "Kíndìnrín",
+            "example_french": "Les reins se mangent aussi",
+            "example_dialect": "A maa je Àwọn Kíndìnrín naa"
+          },
+          {
+            "french": "Salive",
+            "dialect": "itọ́",
+            "example_french": "Je crache souvent car je n’arrive pas à avaler ma salive",
+            "example_dialect": "Mo sábà máa ń tutọ́ nítorí pé mi ò lè gbé ọtí mi mì"
+          },
+          {
+            "french": "Seins",
+            "dialect": "ọmú",
+            "example_french": "La mère nourrit son bébé en lui donnant le sein.",
+            "example_dialect": "Ìyá máa ń fún ọmọ rẹ̀ lóúnjẹ nípa fífún un ní ọmú."
+          },
+          {
+            "french": "Sueur",
+            "dialect": "òógùn",
+            "example_french": "la sueur tombe par terre quelle il se penche en avant",
+            "example_dialect": "ńṣe ni òógùn rẹ̀ ń já bó ṣe ń tẹ̀ síwájú"
+          },
+          {
+            "french": "Taille",
+            "dialect": "giga",
+            "example_french": "Les enfants aiment comparer leur taille",
+            "example_dialect": "Àwọn ọmọdé máa ń fẹ́ láti fi bí wọ́n ṣe giga tó wéra"
+          },
+          {
+            "french": "Talon",
+            "dialect": "gìgísè",
+            "example_french": "frappant ses talons au sol",
+            "example_dialect": "lù gìgísè rẹ̀ sí ilẹ̀"
+          },
+          {
+            "french": "Testicules",
+            "dialect": "Koro epan",
+            "example_french": "Les testicules sont spécifiques aux garçons",
+            "example_dialect": "Àwọn ọmọkùnrin nìkan ló koro epan"
+          },
+          {
+            "french": "Tête",
+            "dialect": "Orí",
+            "example_french": "Ma tête est belle",
+            "example_dialect": "Orí mi dára"
+          },
+          {
+            "french": "Torse / Thorax",
+            "dialect": "àyà",
+            "example_french": "La mère pose l’enfant sur son thorax/buste.",
+            "example_dialect": "Ìyá náà gbé ọmọ náà sórí àyà rẹ̀."
+          },
+          {
+            "french": "Urine",
+            "dialect": "ito",
+            "example_french": "Le lit de mon fils sent l’urine puis qu’il pisse encore au lit",
+            "example_dialect": "Ibusun ọmọ mi n run bi ito o si tun wo ni ibusun lẹẹkansi"
+          },
+          {
+            "french": "Ventre",
+            "dialect": "inú",
+            "example_french": "Le ventre de la femme enceinte grossit pendant sa grossesse jusqu’à l’accouchement.",
+            "example_dialect": "Ìyàngbò máa ń bo inú obìnrin tó lóyún títí tó fi máa bímọ."
+          },
+          {
+            "french": "Visage/Face",
+            "dialect": "Ojú",
+            "example_french": "Leur visage plus allongé que celui de leur sœur",
+            "example_dialect": "Ojú wọn gùn ju ti arábìnrin wọn lọ"
+          },
+          {
+            "french": "Yeux",
+            "dialect": "Ojú",
+            "example_french": "Mes yeux se ferment dès qu’on éteint la lumière.",
+            "example_dialect": "Ojú mi máa ń sú nígbà tí wọ́n bá pa iná."
+          }
+        ]
+      },
+      {
+        "title": "Nature",
+        "items": [
+          {
+            "french": "Air",
+            "dialect": "afẹ́fẹ́",
+            "example_french": "L’homme a besoin d’air pour respirer",
+            "example_dialect": "Ènìyàn nílò afẹ́fẹ́ láti mí"
+          },
+          {
+            "french": "Après-midi",
+            "dialect": "lẹ́yìn ọ̀sán",
+            "example_french": "L’après-midi il fait trop chaud pour travailler au soleil",
+            "example_dialect": "lẹ́yìn ọ̀sán Ooru maa gbóná jù láti ṣiṣẹ́ nínú oòrùn"
+          },
+          {
+            "french": "Argile",
+            "dialect": "Amọ̀",
+            "example_french": "Ce pot est fait d’argile",
+            "example_dialect": "Amọ̀ ni ìkòkò yìí"
+          },
+          {
+            "french": "Bois",
+            "dialect": "igi",
+            "example_french": "Les hommes partent ramasser du bois sec pour alimenter le feu",
+            "example_dialect": "Àwọn ọkùnrin náà lọ kó igi gbígbẹ jọ láti fi dáná"
+          },
+          {
+            "french": "Bourgeon",
+            "dialect": "Òdòdó",
+            "example_french": "La fleur sort du bourgeon",
+            "example_dialect": "Òdòdó Náà Ń Tú Kúrò Nínú Ìtẹ̀lé"
+          },
+          {
+            "french": "Brouillard",
+            "dialect": "Ìkùukùu",
+            "example_french": "Le brouillard m’empêche de voir correctement devant moi",
+            "example_dialect": "Ìkùukùu ò jẹ́ kí n ríran dáadáa"
+          },
+          {
+            "french": "Caillou",
+            "dialect": "òkúta",
+            "example_french": "Il nous apprend à tuer le rat en lui lançant un caillou",
+            "example_dialect": "Ó kọ́ wa láti pa eku náà nípa jíju òkúta sí i"
+          },
+          {
+            "french": "Chaleur",
+            "dialect": "Ooru",
+            "example_french": "La chaleur m’empêche de dormir",
+            "example_dialect": "Ooru kì í jẹ́ kí n sùn"
+          },
+          {
+            "french": "Ciel",
+            "dialect": "Ọ̀run",
+            "example_french": "Le ciel est au-dessus de nos têtes",
+            "example_dialect": "Ọ̀run wà lókè wa"
+          },
+          {
+            "french": "Eau",
+            "dialect": "omi",
+            "example_french": "On garde toujours un seau d’eau à la maison au cas où on doit éteindre un feu",
+            "example_dialect": "A máa ń kó omi sínú korobá nílé nígbàkigbà tó bá pọn dandan láti pa iná"
+          },
+          {
+            "french": "Éclair",
+            "dialect": "Manamana Là Wá Ní Òru",
+            "example_french": "L’éclair nous a éclairé dans la nuit",
+            "example_dialect": "Manamana Là Wá Ní Òru"
+          },
+          {
+            "french": "Etoile",
+            "dialect": "ìràwọ̀",
+            "example_french": "La nuit on voit un millier d’étoiles dans le ciel",
+            "example_dialect": "Ní òru, ẹgbẹẹgbẹ̀rún ìràwọ̀ ló wà lójú ọ̀run"
+          },
+          {
+            "french": "Fer",
+            "dialect": "Irin",
+            "example_french": "Les objets en fer sont lourds et solides",
+            "example_dialect": "Àwọn Ohun Èlò Irin Ń wúwo, Wọ́n sì Lágbára"
+          },
+          {
+            "french": "Feu",
+            "dialect": "iná",
+            "example_french": "Une braise sur un bout de bois peut raviver un feu",
+            "example_dialect": "Tí a bá fi ẹ̀ṣẹ́ igi kan sórí iná, ó lè mú kí iná náà túbọ̀ máa jó"
+          },
+          {
+            "french": "Froid",
+            "dialect": "òtútù",
+            "example_french": "Je me couvre pour me protéger du froid",
+            "example_dialect": "Mò ń fi aṣọ bo ara mi kí òtútù má bàa mú mi"
+          },
+          {
+            "french": "Jour",
+            "dialect": "Ọjọ Ìdílé",
+            "example_french": "le jour de la famille",
+            "example_dialect": "Ọjọ Ìdílé"
+          },
+          {
+            "french": "Lune",
+            "dialect": "Oṣùpa",
+            "example_french": "Nous nous sommes repérés grâce à la lune",
+            "example_dialect": "Oṣùpa ló jẹ́ ká mọ ibi tá a wà"
+          },
+          {
+            "french": "Matin",
+            "dialect": "áàárọ̀",
+            "example_french": "Avez-vous beaucoup de choses à faire demain matin ?",
+            "example_dialect": "Ṣé o ní nǹkan tó pọ̀ láti ṣe láàárọ̀?"
+          },
+          {
+            "french": "Midi",
+            "dialect": "ọ̀sán",
+            "example_french": "on fait une pause à midi pour manger.",
+            "example_dialect": "A máa ń sinmi oúnjẹ ọ̀sán."
+          },
+          {
+            "french": "Minuit",
+            "dialect": "òru",
+            "example_french": "La lune brille au milieu du ciel à minuit.",
+            "example_dialect": "Òṣùpá ń tàn lójú ọ̀run ní ọ̀gànjọ́ òru."
+          },
+          {
+            "french": "Nuage",
+            "dialect": "Ìkùukùu",
+            "example_french": "Les nuages cachent le soleil aujourd’hui",
+            "example_dialect": "Ìkùukùu òòrùn òde òní"
+          },
+          {
+            "french": "Nuit",
+            "dialect": "Òru",
+            "example_french": "La nuit porte conseil",
+            "example_dialect": "Ojú Òru Ń Wá Ìmọ̀ràn"
+          },
+          {
+            "french": "Or",
+            "dialect": "wúrà",
+            "example_french": "Son collier en or est très cher",
+            "example_dialect": "ọrun wúrà rẹ̀ sì níye lórí gan-an"
+          },
+          {
+            "french": "Pluie",
+            "dialect": "Omi Òjò",
+            "example_french": "On récolte l’eau de pluie",
+            "example_dialect": "A Ń Kórè Omi Òjò"
+          },
+          {
+            "french": "Rocher",
+            "dialect": "apata",
+            "example_french": "Cette maison est construite sur un rocher",
+            "example_dialect": "A kọ ile yii sori apata"
+          },
+          {
+            "french": "Sable",
+            "dialect": "iyẹ̀pẹ̀",
+            "example_french": "On a besoin de sable et de ciment pour construire une maison",
+            "example_dialect": "A nílò iyẹ̀pẹ̀ àti amọ̀ láti fi kọ́ ilé"
+          },
+          {
+            "french": "Saison des pluies",
+            "dialect": "asiko ojo",
+            "example_french": "On plante les arachides pendant la saison des pluies",
+            "example_dialect": "Ao gbin epa lasiko ojo"
+          },
+          {
+            "french": "Saison sèche",
+            "dialect": "nígbà ẹ̀ẹ̀rùn",
+            "example_french": "On récolte les arachides pendant la siason sèche",
+            "example_dialect": "A máa ń kó ẹ̀pà nígbà ẹ̀ẹ̀rùn"
+          },
+          {
+            "french": "Soir",
+            "dialect": "alẹ́",
+            "example_french": "Le soir au village les ainés nous racontent des histoires autour du feu",
+            "example_dialect": "Ní alẹ́ ní abúlé, àwọn àgbàlagbà máa ń sọ ìtàn fún wa ní àyíká iná"
+          },
+          {
+            "french": "Soleil",
+            "dialect": "Oòrùn",
+            "example_french": "Le soleil m’éblouit",
+            "example_dialect": "Oòrùn ń tàn"
+          },
+          {
+            "french": "Tempête",
+            "dialect": "òjò",
+            "example_french": "Vous devez partir avant ce soir car il y souvent des tempêtes la nuit.",
+            "example_dialect": "O ní láti lọ kí òru tó ṣú nítorí òjò sábà máa ń jà ní òru."
+          },
+          {
+            "french": "Temps",
+            "dialect": "ojú ọjọ́ /àkókò",
+            "example_french": "Nous n’avons pas pu sortir aujourd’hui à cause du mauvais temps",
+            "example_dialect": "A ò lè jáde lónìí nítorí ojú ọjọ́(àkókò) tí kò dára"
+          },
+          {
+            "french": "Terre",
+            "dialect": "Ayé",
+            "example_french": "On vient sur la terre pour être heureux et faire le bien",
+            "example_dialect": "Ìdí Tí Ọlọ́run Fi Mú Wa Wá Ayé Ni Pé Ká Lè Láyọ̀ Ká Sì Máa Ṣe Ohun Tó Dára"
+          },
+          {
+            "french": "Tonnerre",
+            "dialect": "ààrá",
+            "example_french": "Elle a sursauté quand elle a entendu le tonnerre",
+            "example_dialect": "Ó gbọ̀n rìrì nígbà tó gbọ́ ìró ààrá"
+          },
+          {
+            "french": "Vent",
+            "dialect": "afẹ́fẹ́",
+            "example_french": "Vous souffrez depuis que le vent a arraché le toit de votre maison",
+            "example_dialect": "O ti ń jìyà látìgbà tí afẹ́fẹ́ ti ya òrùlé ilé rẹ"
+          },
+          {
+            "french": "Verre",
+            "dialect": "Kíláàsì",
+            "example_french": "Le verre est transparent et fragile",
+            "example_dialect": "Kíláàsì Rára Lójú, Ó sì Lè Yí Padà"
+          }
+        ]
+      },
+      {
+        "title": "Métiers & activités",
+        "items": [
+          {
+            "french": "Accompagner",
+            "dialect": "bá ...lọ",
+            "example_french": "J’accompagne mon ami chez sa mère puisqu’il est aveugle",
+            "example_dialect": "Èmi yóò bá ọ̀rẹ́ mi lọ sọ́dọ̀ ìyá rẹ̀ nítorí pé ó fójú"
+          },
+          {
+            "french": "Agriculteur",
+            "dialect": "Àgbẹ̀",
+            "example_french": "Mon grand-père était agriculteur, il cultivait le haricot et les arachides",
+            "example_dialect": "Àgbẹ̀ ni bàbá bàbá mi, ó máa ń gbin ẹ̀wà àti ewébẹ̀"
+          },
+          {
+            "french": "Arroser",
+            "dialect": "bomi rin",
+            "example_french": "La plante a séché parce qu’on ne l’a pas arrosée tous les jours",
+            "example_dialect": "Irúgbìn náà gbẹ nítorí pé a kò bomi rin ín lójoojúmọ́"
+          },
+          {
+            "french": "Cahier",
+            "dialect": "ìwé",
+            "example_french": "On achète chaque année des cahiers et des livres neufs à nos enfants",
+            "example_dialect": "Ọdọọdún la máa ń ra àwọn ìwé tuntun fún àwọn ọmọ wa."
+          },
+          {
+            "french": "Chasseur",
+            "dialect": "ọdẹ",
+            "example_french": "Les hommes de ce village sont chasseurs",
+            "example_dialect": "Àwọn ọkùnrin abúlé yìí jẹ́ ọdẹ"
+          },
+          {
+            "french": "Chef",
+            "dialect": "Olórí",
+            "example_french": "Le chef aime décider de tout",
+            "example_dialect": "Olórí ni ẹni tó máa ń pinnu gbogbo nǹkan."
+          },
+          {
+            "french": "Commerçant",
+            "dialect": "Òǹtajà",
+            "example_french": "Certains commerçants escroquent les clients",
+            "example_dialect": "Àwọn Òǹtajà Kan Ń Fọwọ́ Di Àwọn Òǹtajà Lọ́rùn"
+          },
+          {
+            "french": "Cultiver",
+            "dialect": "gbin",
+            "example_french": "Il cultivait le haricot et les arachides",
+            "example_dialect": "Ó máa ń gbin ẹ̀wà àti ewébẹ̀"
+          },
+          {
+            "french": "Docteur",
+            "dialect": "dókítà",
+            "example_french": "Le docteur travaille à l’hôpital mais il va aussi chez les malades.",
+            "example_dialect": "Ilé ìwòsàn ni dókítà náà ti ń ṣiṣẹ́, àmọ́ ó tún máa ń lọ sọ́dọ̀ àwọn aláìsàn."
+          },
+          {
+            "french": "Écrire",
+            "dialect": "kọ",
+            "example_french": "Les enfants apprennent d’abord à écrire leur prénom",
+            "example_dialect": "Àwọn ọmọdé kọ́kọ́ máa ń kọ orúkọ ara wọn"
+          },
+          {
+            "french": "Elever",
+            "dialect": "sin",
+            "example_french": "Mon frère élève des chèvres",
+            "example_dialect": "Arákùnrin mi ń sin ewúrẹ́"
+          },
+          {
+            "french": "Gardien",
+            "dialect": "Olùṣọ́",
+            "example_french": "Le gardien veille toute la nuit pour nous protéger",
+            "example_dialect": "Olùṣọ́ Ń Ṣọ́nà Ní Gbogbo Òru Láti Dáàbò Bo Wa"
+          },
+          {
+            "french": "Guerrier / soldat",
+            "dialect": "jagunjagun",
+            "example_french": "Les guerriers sont courageux et savent manier les armes",
+            "example_dialect": "Àwọn jagunjagun jẹ́ onígboyà, wọ́n sì mọ bí wọ́n ṣe ń lo ohun ìjà"
+          },
+          {
+            "french": "Livre",
+            "dialect": "ìwé",
+            "example_french": "On achète chaque année des cahiers et des livres neufs à nos enfants",
+            "example_dialect": "Ọdọọdún la máa ń ra àwọn ìwé tuntun fún àwọn ọmọ wa."
+          },
+          {
+            "french": "Maître",
+            "dialect": "Olùkọ́",
+            "example_french": "Le maitre d’école tient une craie dans sa main pour écrire au tableau",
+            "example_dialect": "Olùkọ́ iléèwé náà gbé kírà ní ọwọ́ rẹ̀ láti kọ nǹkan sórí pátákó"
+          },
+          {
+            "french": "Marabout / Sorcier",
+            "dialect": "Ògbóǹkangí èèyàn",
+            "example_french": "Le sorcier pratique la magie.",
+            "example_dialect": "Ògbóǹkangí èèyàn máa ń ṣe iṣẹ́ òkùnkùn."
+          },
+          {
+            "french": "Notable",
+            "dialect": "Ọ̀tọ̀kùlú (ijoye )",
+            "example_french": "Les notables accompagnent le roi",
+            "example_dialect": "Àwọn Ọ̀tọ̀kùlú (ijoye)Bá Ọba Lọ"
+          },
+          {
+            "french": "Papier",
+            "dialect": "bébà",
+            "example_french": "Les enfants écrivent sur une feuille de papier",
+            "example_dialect": "Àwọn ọmọdé ń kọ nǹkan sórí bébà"
+          },
+          {
+            "french": "Pêcheur",
+            "dialect": "apẹja",
+            "example_french": "Mon grand-père était aussi pêcheur",
+            "example_dialect": "Apá bàbá mi náà jẹ́ apẹja."
+          },
+          {
+            "french": "Planter",
+            "dialect": "gbin",
+            "example_french": "C’est aujourd’hui qu’on doit planter le maïs",
+            "example_dialect": "Òní ni a ó gbin àgbàdo"
+          },
+          {
+            "french": "Professeur",
+            "dialect": "olùkọ́",
+            "example_french": "Le professeur est respecté par tous les élèves",
+            "example_dialect": "Gbogbo àwọn ọmọ iléèwé ló máa ń bọ̀wọ̀ fún olùkọ́"
+          },
+          {
+            "french": "Récolter",
+            "dialect": "ko ìkórè",
+            "example_french": "La récolte se fera dans 6 mois",
+            "example_dialect": "Oṣù mẹ́fà péré ló kù kí ìkórè tó wáyé."
+          },
+          {
+            "french": "Roi",
+            "dialect": "Ọba",
+            "example_french": "Le roi actuel est le fils de l’ancien roi",
+            "example_dialect": "Ọba tó ń ṣàkóso báyìí ni ọmọ ọba tó ti ṣàkóso tẹ́lẹ̀"
+          },
+          {
+            "french": "Sac",
+            "dialect": "àpò",
+            "example_french": "Il y a trop de choses dans ton sac",
+            "example_dialect": "Ọ̀pọ̀ nǹkan ló wà nínú àpò rẹ"
+          },
+          {
+            "french": "Serviteur",
+            "dialect": "masa barakɛ den u be o ʃi kɛ ni aje",
+            "example_french": "Les serviteurs du roi passent leur vie avec lui",
+            "example_dialect": "Àwọn ìránṣẹ́ ọba ń lo gbogbo ìgbésí ayé wọn pẹ̀lú rẹ̀"
+          }
+        ]
+      },
+      {
+        "title": "Animaux",
+        "items": [
+          {
+            "french": "Abeille",
+            "dialect": "oyin",
+            "example_french": "Les abeilles fabriquent le miel dans leur nid",
+            "example_dialect": "Àwọn oyin Máa Ń Ṣàkọ́ Oyin Nínú Ilé Wọn"
+          },
+          {
+            "french": "Animal",
+            "dialect": "ẹranko",
+            "example_french": "Avant j’avais peur de tous les animaux",
+            "example_dialect": "Gbogbo ẹranko ni mo máa ń bẹ̀rù nígbà kan rí"
+          },
+          {
+            "french": "Araignée",
+            "dialect": "aláǹtakùn",
+            "example_french": "Une araignée a 8 pattes",
+            "example_dialect": "aláǹtakùn ní ẹsẹ̀ mẹ́jọ"
+          },
+          {
+            "french": "Bœuf / Vache",
+            "dialect": "akọ màlúù /Abo  màlúù",
+            "example_french": "Sa famille a demandé un bœuf pour la dot. Le petit de la vache et du taureau est le veau",
+            "example_dialect": "Ìdílé rẹ̀ ní kí wọ́n fún òun ní akọ màlúù kan gẹ́gẹ́ bí owó ìyàwó. Ọmọ màlúù àti akọ màlúù ni ọmọ màlúù"
+          },
+          {
+            "french": "Chat",
+            "dialect": "ológbò",
+            "example_french": "Ce chat a toujours été fou",
+            "example_dialect": "Gbogbo ìgbà ni ologbo yìí máa ń ṣe bí òmùgọ̀"
+          },
+          {
+            "french": "Chenille / Vers",
+            "dialect": "kòkòró",
+            "example_french": "Certaines chenilles se transforment en papillon",
+            "example_dialect": "Àwọn kòkòró máa  Ń Di labalábá"
+          },
+          {
+            "french": "Cheval",
+            "dialect": "ẹṣin",
+            "example_french": "On utilise parfois la queue de cheval dans nos traditions",
+            "example_dialect": "A máa ń lo ìrù ẹṣin nínú àṣà ìbílẹ̀ wa."
+          },
+          {
+            "french": "Chèvre",
+            "dialect": "ewúrẹ́",
+            "example_french": "On a tué la chèvre pour le deuil",
+            "example_dialect": "A pa ewúrẹ́ náà nítorí ofo"
+          },
+          {
+            "french": "Chien",
+            "dialect": "Ajá",
+            "example_french": "Le chien est le meilleur ami de l’homme, il est même capable de guider un aveugle",
+            "example_dialect": "Ajá ni ọ̀rẹ́ tímọ́tímọ́ fún ènìyàn, ó lè tọ́jú afọ́jú pàápàá"
+          },
+          {
+            "french": "Coq",
+            "dialect": "Àkùkọ",
+            "example_french": "Le coq nous réveille tous les matins en chantant dès le lever du soleil.",
+            "example_dialect": "Àkùkọ máa ń jí wa lójoojúmọ́ nípa kíké ní ìlà oòrùn."
+          },
+          {
+            "french": "Crocodile",
+            "dialect": "ọ̀nì",
+            "example_french": "Le crocodile vit sous l’eau et sur terre",
+            "example_dialect": "Àwọn ọ̀nì Ń Gbé Lábẹ́ Omi àti Lórí Ilẹ̀"
+          },
+          {
+            "french": "Éléphant",
+            "dialect": "erin , àjànàkú",
+            "example_french": "La peau de l’éléphant est très épaisse",
+            "example_dialect": "Awọ erin máa ń wúwo gan-an"
+          },
+          {
+            "french": "Fourmi",
+            "dialect": "èèrà",
+            "example_french": "Les fourmis travaillent toutes ensemble.",
+            "example_dialect": "Gbogbo àwọn èèrà ló ń ṣiṣẹ́ pa pọ̀."
+          },
+          {
+            "french": "Grenouille",
+            "dialect": "Ọpọlọ",
+            "example_french": "La grenouille glisse beaucoup quand on l’attrape",
+            "example_dialect": "Ọpọlọ yìí máa ń rọra rọ̀ nígbà tí wọ́n bá ń mú un"
+          },
+          {
+            "french": "Insectes",
+            "dialect": "kòkòrò",
+            "example_french": "Je n’aime pas les insectes",
+            "example_dialect": "Mi ò fẹ́ràn kòkòrò"
+          },
+          {
+            "french": "Lapin/Lièvre",
+            "dialect": "ehoro",
+            "example_french": "Les lièvres ont de grandes oreilles",
+            "example_dialect": "Àwọn Ehoro  Ni Etí ńlá"
+          },
+          {
+            "french": "Lézard",
+            "dialect": "aláǹgbá",
+            "example_french": "Les lézards sont difficiles à attraper car ils sont trop rapides",
+            "example_dialect": "Ó máa ń ṣòro láti mú aláǹgbá nítorí pé ó máa ń yára gan - an."
+          },
+          {
+            "french": "Lion",
+            "dialect": "kìnnìún",
+            "example_french": "Le lion domine la brousse",
+            "example_dialect": "Kìnnìún Ń Darí Ọgbà"
+          },
+          {
+            "french": "Mouche",
+            "dialect": "eṣinṣin",
+            "example_french": "Ces mouches aiment trop la saleté",
+            "example_dialect": "Àwọn eṣinṣin yìí máa ń fẹ́ràn ẹ̀gbin gan-an"
+          },
+          {
+            "french": "Moustique",
+            "dialect": "ẹ̀fọn, yànmùyánmú",
+            "example_french": "Les moustiques m’ont piqué toute la nuit et empêché de dormir correctement.",
+            "example_dialect": "Àwọn ẹ̀fọn máa ń jẹ mí ní gbogbo òru, wọn kì í jẹ́ kí n rí oorun sùn dáadáa."
+          },
+          {
+            "french": "Mouton",
+            "dialect": "àgùtàn",
+            "example_french": "Ils élèvent des moutons pour tisser leur fourrure",
+            "example_dialect": "Wọ́n Máa Ń sin Àwọn Àgùntàn Kí Wọ́n Lè lo irun Awọ wọn."
+          },
+          {
+            "french": "Oiseau",
+            "dialect": "ẹyẹ",
+            "example_french": "Les oiseaux peuvent voler très loin, jusqu’à d’autres pays",
+            "example_dialect": "Àwọn ẹyẹ lè fò jìnnà gan-an, wọ́n lè fò lọ sáwọn orílẹ̀-èdè míì"
+          },
+          {
+            "french": "Panthère",
+            "dialect": "ẹkun",
+            "example_french": "La panthère est très forte",
+            "example_dialect": "ẹkun yìí lágbára gan-an."
+          },
+          {
+            "french": "Papillon",
+            "dialect": "labalábá",
+            "example_french": "Les papillons ont beaucoup de couleurs",
+            "example_dialect": "Oríṣiríṣi àwọ̀ làwọn labalábá máa ń ní"
+          },
+          {
+            "french": "Poisson",
+            "dialect": "ẹja",
+            "example_french": "prendre le poisson dans l'eau",
+            "example_dialect": "mú ẹja ninú omi"
+          },
+          {
+            "french": "Porc/Cochon",
+            "dialect": "ẹlẹ́dẹ̀",
+            "example_french": "Certains peuples ne mangent pas de porc",
+            "example_dialect": "Àwọn èèyàn kan kì í jẹ ẹran ẹlẹdẹ"
+          },
+          {
+            "french": "Poule / Poulet",
+            "dialect": "adìyẹ",
+            "example_french": "Le poulet ne sait pas voler.",
+            "example_dialect": "Adìyẹ ò lè fò."
+          },
+          {
+            "french": "Rat",
+            "dialect": "eku",
+            "example_french": "On trouve les rats dans les champs ou dans le caniveau",
+            "example_dialect": "A lè rí àwọn eku nínú pápá tàbí inú kòtò"
+          },
+          {
+            "french": "Serpent",
+            "dialect": "èjo",
+            "example_french": "Le serpent a étranglé le rat",
+            "example_dialect": "Ejò náà fún eku náà lọrun."
+          },
+          {
+            "french": "Singe",
+            "dialect": "ọbọ",
+            "example_french": "Le singe ressemble à l’homme",
+            "example_dialect": "ọbọ jọ ènìyàn"
+          },
+          {
+            "french": "Souris",
+            "dialect": "eku",
+            "example_french": "La souris se cache dans son trou",
+            "example_dialect": "Eku ń sá pa mọ́ sínú ihò rẹ̀"
+          },
+          {
+            "french": "Tortue",
+            "dialect": "ahun, alábahun, ìjàpá",
+            "example_french": "La tortue est lente",
+            "example_dialect": "ahun lọra"
+          },
+          {
+            "french": "cafard",
+            "dialect": "aáyán",
+            "example_french": "tuer le cafard",
+            "example_dialect": "Pa aáyán"
+          },
+          {
+            "french": "buffle",
+            "dialect": "ẹfọ̀n",
+            "example_french": "les buffles arrivent",
+            "example_dialect": "Àwọ́n ẹfọ̀n n bọ"
+          },
+          {
+            "french": "chauve souris",
+            "dialect": "àdán",
+            "example_french": "Ils voient une chauve souris",
+            "example_dialect": "wọn ri àdán"
+          },
+          {
+            "french": "hippopotame",
+            "dialect": "erinmi",
+            "example_french": "l'hippopotame est énorme",
+            "example_dialect": "erinmi tóbi"
+          },
+          {
+            "french": "chien",
+            "dialect": "ajá",
+            "example_french": "le chien aboie",
+            "example_dialect": "ajá ǹ gbó"
+          },
+          {
+            "french": "chimpanzé",
+            "dialect": "ìnàkí",
+            "example_french": "le chimpanzé est gentil",
+            "example_dialect": "ìnàkí jẹ́ onínúure"
+          },
+          {
+            "french": "pangolin",
+            "dialect": "aaka",
+            "example_french": "la chaire du pangolin est tendre",
+            "example_dialect": "Ẹran ara aaka rọ̀"
+          },
+          {
+            "french": "paon",
+            "dialect": "ọ̀kín",
+            "example_french": "le paon est le plus beaux des oiseaux",
+            "example_dialect": "ọ́kin jẹ ẹyẹ tó rẹwà jùlọ"
+          },
+          {
+            "french": "phacochère",
+            "dialect": "túùkú",
+            "example_french": "le phacochère est brutale",
+            "example_dialect": "túùkú buru"
+          },
+          {
+            "french": "pintade",
+            "dialect": "awó, ẹtù",
+            "example_french": "la pintade est un animal sauvage",
+            "example_dialect": "Awó jẹ ẹranko ẹhànnà"
+          },
+          {
+            "french": "perdrix",
+            "dialect": "àparò",
+            "example_french": "la perdrix est très rapide",
+            "example_dialect": "àparò má sare gan han"
+          },
+          {
+            "french": "pou",
+            "dialect": "iná orí",
+            "example_french": "Ces cheveux sont remplis de poux",
+            "example_dialect": "Àwọn iná orí  wà nínú irun rẹ"
+          }
+        ]
+      },
+      {
+        "title": "Ustensile cuisine",
+        "items": [
+          {
+            "french": "Assiette",
+            "dialect": "àwo",
+            "example_french": "Chacun son assiette",
+            "example_dialect": "olúkúlùkù pẹlu àwo re"
+          },
+          {
+            "french": "Bouteille",
+            "dialect": "ìgò",
+            "example_french": "Ferme bien la bouteille pour que l’eau ne se renverse pas",
+            "example_dialect": "Pa ìgò náà dáadáa kí omi má baà tú"
+          },
+          {
+            "french": "Calebasse",
+            "dialect": "igbá/àdó/ìgbakọ",
+            "example_french": "Tu sais piler le foufou dans la calebasse ?",
+            "example_dialect": "Ǹjẹ́ o mọ bí a ṣe ń rí ẹni tó ń ṣe fufu nínú igbá?"
+          },
+          {
+            "french": "Conserver",
+            "dialect": "tọju",
+            "example_french": "Les aliments se conservent mieux au frais",
+            "example_dialect": "Awọn ounjẹ tọju dara julọ nigbati o ba wa ni firiji"
+          },
+          {
+            "french": "Couteau",
+            "dialect": "ọ̀bẹ",
+            "example_french": "Je sors toujours avec mon couteau pour défendre ma famille",
+            "example_dialect": "Gbogbo ìgbà ni mo máa ń mú ọ̀bẹ mi jáde láti gbèjà ìdílé mi"
+          },
+          {
+            "french": "Couvrir",
+            "dialect": "bo",
+            "example_french": "C’est bientôt prêt, couvre la marmite et appelle les autres",
+            "example_dialect": "Kò ní pẹ́ tó fi máa gbára dì, wá bo ìkòkò náà, kó o sì pe àwọn yòókù"
+          },
+          {
+            "french": "Cuillère",
+            "dialect": "ṣíbí",
+            "example_french": "Je remue la sauce avec ma cuillère",
+            "example_dialect": "Mo máa ń fi ṣíbí mi rọ ọ̀rá náà"
+          },
+          {
+            "french": "Emballer",
+            "dialect": "Fi ...sínú",
+            "example_french": "Emballe les boules de koki dans les feuilles et distribue-les à chacun des invités",
+            "example_dialect": "Fi àwọn bọ́ọ̀lù koki náà sínú àwọn ewé, kó o sì pín wọn fún àwọn àlejò kọ̀ọ̀kan"
+          },
+          {
+            "french": "Marmite / Casserole",
+            "dialect": "Ìkòkò",
+            "example_french": "La marmite a noirci au feu",
+            "example_dialect": "Ìkòkò Náà Dúdú Nínú Iná"
+          },
+          {
+            "french": "Plat",
+            "dialect": "àwo",
+            "example_french": "Servez-vous tous dans ce plat",
+            "example_dialect": "Ẹ jẹun nínú àwo yii"
+          },
+          {
+            "french": "Verre",
+            "dialect": "ife",
+            "example_french": "Il a renversé l’eau qui était dans le verre sans faire exprès",
+            "example_dialect": "Ó da omi tó wà nínú ife náà sílẹ̀ láìmọ̀ọ́mọ̀"
+          }
+        ]
+      },
+      {
+        "title": "Couleurs",
+        "items": [
+          {
+            "french": "Blanc",
+            "dialect": "funfun",
+            "example_french": "Les nuages sont blancs",
+            "example_dialect": "Àwọsánmà funfun"
+          },
+          {
+            "french": "Bleu",
+            "dialect": "búlù",
+            "example_french": "Le ciel est bleu",
+            "example_dialect": "Oju ọrun jẹ búlù"
+          },
+          {
+            "french": "Clair",
+            "dialect": "pupa",
+            "example_french": "Ce petit est plus clair que son grand frère",
+            "example_dialect": "Ọmọ kékeré yìí pupa nǹkan ju àbúrò rẹ̀ lọ"
+          },
+          {
+            "french": "Jaune",
+            "dialect": "yẹ́lò",
+            "example_french": "L'urine est jaune",
+            "example_dialect": "Ìtọ̀ náà yẹ́lò"
+          },
+          {
+            "french": "Marron",
+            "dialect": "dúdú",
+            "example_french": "Le bois est marron",
+            "example_dialect": "Igi náà dúdú"
+          },
+          {
+            "french": "Noir",
+            "dialect": "dúdú",
+            "example_french": "Mes cheveux sont noirs",
+            "example_dialect": "Irun orí mi dúdú"
+          },
+          {
+            "french": "Orange",
+            "dialect": "àwọ̀ ọsàn",
+            "example_french": "La mangue est orange",
+            "example_dialect": "mangolo alawọ́ ọsàn"
+          },
+          {
+            "french": "Rose",
+            "dialect": "pọ́n",
+            "example_french": "Sa langue est rose",
+            "example_dialect": "Ahọ́n rẹ pọ́n"
+          },
+          {
+            "french": "Rouge",
+            "dialect": "pupa",
+            "example_french": "Le sang est rouge",
+            "example_dialect": "Ẹ̀jẹ̀ pupa"
+          },
+          {
+            "french": "Sombre/Foncé",
+            "dialect": "ṣokunkun",
+            "example_french": "Elle est plus foncée que sa mère",
+            "example_dialect": "O ṣokunkun ju iya rẹ lọ"
+          },
+          {
+            "french": "Vert",
+            "dialect": "àwọ̀ ewé",
+            "example_french": "L’herbe est verte",
+            "example_dialect": "Ewé alawọ́ ewé"
+          },
+          {
+            "french": "Violet",
+            "dialect": "Àwọ̀ àlùkò",
+            "example_french": "La prune est violette",
+            "example_dialect": "Àwọ̀ àlùkò ni èso ọ̀pẹ"
+          }
+        ]
+      },
+      {
+        "title": "Végétaux",
+        "items": [
+          {
+            "french": "Ail",
+            "dialect": "ata ilẹ",
+            "example_french": "Écrase tout l’ail ici.",
+            "example_dialect": "Fọ gbogbo ata ilẹ nibi."
+          },
+          {
+            "french": "Ananas",
+            "dialect": "ọ̀pọ̀n òyìnbó",
+            "example_french": "La peau de l’ananas est dure et piquante.",
+            "example_dialect": "Awọ  ọ̀pọ̀n òyìnbó máa ń le gan-an, ó sì máa ń gbọ̀n."
+          },
+          {
+            "french": "Arachides",
+            "dialect": "ẹ̀pà",
+            "example_french": "Il faut décortiquer les arachides car leur coquille ne se mange pas.",
+            "example_dialect": "O ní láti gé ẹ̀pà kúrò nínú ewé, nítorí pé wọn kì í jẹ é."
+          },
+          {
+            "french": "Arbre",
+            "dialect": "igi",
+            "example_french": "L’ombre de l’arbre nous protège des brulures du soleil",
+            "example_dialect": "Òjìji igi máa ń dáàbò bò wá lọ́wọ́ oòrùn"
+          },
+          {
+            "french": "Avocat",
+            "dialect": "avuca",
+            "example_french": "Cet avocat est bien mou sans être pourri",
+            "example_dialect": "Avuca yìí rọ̀ mọ́ra láìjẹ́ pé ó ti bà jẹ́"
+          },
+          {
+            "french": "Banane",
+            "dialect": "ọ̀gọ̀dẹ̀",
+            "example_french": "Les petites bananes du village sont les meilleures",
+            "example_dialect": "Àwọn ọ̀gẹ̀dẹ̀ kékeré tó wà ní abúlé ló dára jù lọ"
+          },
+          {
+            "french": "Bouillir",
+            "dialect": "hó",
+            "example_french": "Mets l’eau à bouillir avant d’y verser le riz",
+            "example_dialect": "Gbe omib hó kí o tó fi ìrẹsì sínú rẹ̀"
+          },
+          {
+            "french": "Branche",
+            "dialect": "ẹ̀ka",
+            "example_french": "Le singe ne lâche jamais une branche sans en avoir attrapé une autre",
+            "example_dialect": "Kò sí ìbejì tó máa ń ju ẹ̀ka kan sílẹ̀ láìjẹ́ pé ó ti gbá ẹ̀ka mìíràn mú"
+          },
+          {
+            "french": "Canne à sucre",
+            "dialect": "ìrèké",
+            "example_french": "La canne à sucre est très coupante",
+            "example_dialect": "Ìrèké máa ń gún gan - an"
+          },
+          {
+            "french": "Chair",
+            "dialect": "ẹran",
+            "example_french": "Il y a plus d’os que de chair dans la viande que tu as préparée",
+            "example_dialect": "Àwọn egungun pọ̀ ju ẹran lọ nínú ẹran tí o sè"
+          },
+          {
+            "french": "Citron",
+            "dialect": "òroǹbó, ọsàn wẹ́wẹ́",
+            "example_french": "Le citron est acide",
+            "example_dialect": "óroǹbó kán"
+          },
+          {
+            "french": "Cuire",
+            "dialect": "sè",
+            "example_french": "La viande-ci n’est pas bien cuite",
+            "example_dialect": "A ò sè ẹran yìí dáadáa"
+          },
+          {
+            "french": "Eau",
+            "dialect": "omi",
+            "example_french": "Boire de l’eau permet de vivre longtemps",
+            "example_dialect": "Omi mímu ń mú kí ẹ̀mí èèyàn gùn sí i"
+          },
+          {
+            "french": "Ecorce",
+            "dialect": "èèpo",
+            "example_french": "Nos ancêtres préparaient des médicaments avec des écorces.",
+            "example_dialect": "Awọn baba wa pese oògùn pẹlu èèpo."
+          },
+          {
+            "french": "Feuille",
+            "dialect": "ewé",
+            "example_french": "On utilise les feuilles de bananier pour emballer la nourriture",
+            "example_dialect": "A máa ń fi ewé ọ̀gẹ̀dẹ̀ wé oúnjẹ"
+          },
+          {
+            "french": "Fleur",
+            "dialect": "òdòdó",
+            "example_french": "Les fleurs attirent les abeilles",
+            "example_dialect": "Àwọn Òdòdó Máa Ń Fa Àwọn ọyin"
+          },
+          {
+            "french": "Foufou",
+            "dialect": "fufu",
+            "example_french": "Le foufou se mange",
+            "example_dialect": "A ma jẹ fufu"
+          },
+          {
+            "french": "Frire",
+            "dialect": "dín",
+            "example_french": "Faire frire le poulet gagne du temps",
+            "example_dialect": "Fífi adìyẹ se oúnjẹ máa ń dín àkókò kù"
+          },
+          {
+            "french": "Fruit",
+            "dialect": "èso",
+            "example_french": "Quand j’étais petit je ne mangeais que des fruits",
+            "example_dialect": "Èso nìkan ni mo máa ń jẹ nígbà tí mo wà ní kékeré"
+          },
+          {
+            "french": "Gombo",
+            "dialect": "ilá",
+            "example_french": "Le gombo devient gluant une fois écrasé",
+            "example_dialect": "Tí wọ́n bá fọ́ ilá, ó máa ń di dídì"
+          },
+          {
+            "french": "Graine",
+            "dialect": "irúgbìn",
+            "example_french": "Les graines qu’on a plantées n’ont rien donné.",
+            "example_dialect": "Àwọn irúgbìn tá a gbìn kò sèso kankan."
+          },
+          {
+            "french": "Graisse",
+            "dialect": "gírísì, ọ̀rá",
+            "example_french": "Il y a trop de graisse dans cette viande",
+            "example_dialect": "Àpọ̀jù ọ̀rá wà nínú ẹran yìí"
+          },
+          {
+            "french": "Griller",
+            "dialect": "sun, yan",
+            "example_french": "Elle vend le maïs grillé pour nourrir ses enfants",
+            "example_dialect": "Ó ń ta àgbàdo sísun láti fi bọ́ àwọn ọmọ rẹ̀"
+          },
+          {
+            "french": "Haricots rouges",
+            "dialect": "erèé pupa",
+            "example_french": "Les haricots rouges se marient bien avec les beignets",
+            "example_dialect": "Erèé pupa máa ń dára gan - an pẹ̀lú àwọn búrẹ́dì oníhòòhò"
+          },
+          {
+            "french": "Herbe",
+            "dialect": "koríko",
+            "example_french": "Nous avons envoyé les enfants arracher les herbes autour de la maison",
+            "example_dialect": "A rán àwọn ọmọdé lọ kó àwọn koríko tó wà ní àyíká ilé náà"
+          },
+          {
+            "french": "Huile",
+            "dialect": "epo, òróró",
+            "example_french": "L’huile rouge est présente dans beaucoup de plats",
+            "example_dialect": "Ọ̀pọ̀ oúnjẹ ni wọ́n máa ń fi òróró pupa ṣe"
+          },
+          {
+            "french": "Igname",
+            "dialect": "iṣu",
+            "example_french": "L’igname peut remplacer le manioc s’il n’y en a plus",
+            "example_dialect": "iṣu lè rọ́pò ẹ̀gẹ́ tí kò bá sí mọ́"
+          },
+          {
+            "french": "Lait",
+            "dialect": "mìlíìkí, wàrà",
+            "example_french": "Seuls les enfants boivent du lait au village",
+            "example_dialect": "Àwọn ọmọdé nìkan ló ń mu wàrà ní abúlé wa"
+          },
+          {
+            "french": "Légumes",
+            "dialect": "ewébẹ̀",
+            "example_french": "Les enfants préfèrent la viande aux légumes",
+            "example_dialect": "Àwọn ọmọdé fẹ́ràn ẹran ju ewébẹ̀ lọ"
+          },
+          {
+            "french": "Maïs",
+            "dialect": "àgbàdo",
+            "example_french": "Elle vend le maïs grillé pour nourrir ses enfants",
+            "example_dialect": "Ó ń ta àgbàdo sísun láti fi bọ́ àwọn ọmọ rẹ̀"
+          },
+          {
+            "french": "Mangue",
+            "dialect": "máńgòrò",
+            "example_french": "Cette mangue est pourrie",
+            "example_dialect": "Máńgòrò yìí ti bàjé"
+          },
+          {
+            "french": "Manioc",
+            "dialect": "ẹ̀gẹ́, pákí",
+            "example_french": "L’igname peut remplacer le manioc s’il n’y en a plus",
+            "example_dialect": "iṣu lè rọ́pò ẹ̀gẹ́  tí kò bá sí mọ́"
+          },
+          {
+            "french": "Miel",
+            "dialect": "oyin",
+            "example_french": "Les abeilles piquent ceux qui veulent voler leur miel",
+            "example_dialect": "Àwọn oyin máa ń ta àwọn tó bá fẹ́ jí oyin wọn"
+          },
+          {
+            "french": "Noyau",
+            "dialect": "kóró",
+            "example_french": "Je plante ce noyau en espérant qu’un arbre pousse",
+            "example_dialect": "Mo gbin kóró yìí, mo sì nírètí pé igi kan máa hù"
+          },
+          {
+            "french": "Œufs",
+            "dialect": "ẹyin",
+            "example_french": "La poule cache bien ses œufs jusqu’à leur éclosion",
+            "example_dialect": "Adìyẹ máa ń bo ẹyin rẹ̀ dáadáa títí wọ́n á fi yọ"
+          },
+          {
+            "french": "Oignons",
+            "dialect": "àlùbọ́sà",
+            "example_french": "Emince les oignons-là !",
+            "example_dialect": "bẹ àlùbọ́sà"
+          },
+          {
+            "french": "Orange",
+            "dialect": "ọsàn",
+            "example_french": "L’orange ne pousse pas ici",
+            "example_dialect": "Àwọn ọsàn yìí kì í hù níbí"
+          },
+          {
+            "french": "Patate douce",
+            "dialect": "ànàmọ́",
+            "example_french": "La patate douce ne pousse pas partout.",
+            "example_dialect": "Kì í ṣe gbogbo ibi ni ànàmọ́ yìí ti ń hù."
+          },
+          {
+            "french": "Pâtes",
+            "dialect": "pasta",
+            "example_french": "Les enfants de France ne mangent que les pâtes",
+            "example_dialect": "Àwọn ọmọ ilè Faransé kì í jẹ ohunkóhun àyàfi pasta."
+          },
+          {
+            "french": "Piment",
+            "dialect": "ata",
+            "example_french": "Attention ! Ce piment pique trop la bouche",
+            "example_dialect": "Ẹ máa ṣọ́ra! ata yìí ta mí lẹnu  gan-an"
+          },
+          {
+            "french": "Pistache",
+            "dialect": "ẹgusi",
+            "example_french": "Je n’ai jamais mangé de pistache",
+            "example_dialect": "Mi ò jẹ ẹgusi rí."
+          },
+          {
+            "french": "Plantain",
+            "dialect": "ọ̀gẹ̀dẹ̀",
+            "example_french": "Le régime de plantain-ci est encore vert",
+            "example_dialect": "Oúnjẹ ọ̀gẹ̀dẹ̀ kò tíì bàjẹ́"
+          },
+          {
+            "french": "Plat",
+            "dialect": "pẹrẹsẹ",
+            "example_french": "Nous mangeons dans même plat",
+            "example_dialect": "A jẹun ninu pẹrẹsẹ kan náà"
+          },
+          {
+            "french": "Poisson",
+            "dialect": "ẹja",
+            "example_french": "Pêcher le poisson en difficile en saison sèche",
+            "example_dialect": "Ipẹja tí kò rọrùn láti ṣe nígbà tí òjò kò bá rọ̀"
+          },
+          {
+            "french": "Poivre",
+            "dialect": "ata",
+            "example_french": "Les graines de moutarde sont minuscules",
+            "example_dialect": "kóró ata kéré gan-an"
+          },
+          {
+            "french": "Pomme de terre",
+            "dialect": "ànàmọ́",
+            "example_french": "Si tu perd ton argent tu ne pourras même plus acheter des pommes de terre.",
+            "example_dialect": "Tó o bá pàdánù owó rẹ, o ò ní lè ra ànàmọ́ mọ́."
+          },
+          {
+            "french": "Racine",
+            "dialect": "egbò, gbòǹgbò",
+            "example_french": "Les racines rendent l’arbre solide",
+            "example_dialect": "Àwọn Gbòǹgbò Máa Ń Jẹ́ Kí Igi Náà Lágbára"
+          },
+          {
+            "french": "Riz",
+            "dialect": "̀ìrẹsì, ráìsí",
+            "example_french": "Comment tu as fait pour que le riz ne colle pas ?",
+            "example_dialect": "Báwo lo ṣe ṣe é tí ìrẹsì náà kò fi dì?"
+          },
+          {
+            "french": "Sauce",
+            "dialect": "ọbẹ̀",
+            "example_french": "Tu as mis quoi dans cette sauce ?",
+            "example_dialect": "Kí lo fi sínú ọbẹ̀ yìí?"
+          },
+          {
+            "french": "Sel",
+            "dialect": "iyọ̀",
+            "example_french": "La nourriture manque de sel.",
+            "example_dialect": "Oúnjẹ ò ní iyọ̀ tó pọ̀."
+          },
+          {
+            "french": "Soupe / Bouillon",
+            "dialect": "ọbẹ̀",
+            "example_french": "Tu as l’habitude de tremper ton pain dans la soupe",
+            "example_dialect": "O máa ń fi búrẹ́dì sínú ọbẹ̀ rẹ"
+          },
+          {
+            "french": "Sucre",
+            "dialect": "ṣúgà",
+            "example_french": "Le sucre vient de la canne",
+            "example_dialect": "Ṣúgà Tí Wọ́n Ń Mú Wá Látinú Ìrèké"
+          },
+          {
+            "french": "Tomate",
+            "dialect": "tòmátì",
+            "example_french": "Je ne trouve pas les tomates, tu les as rangées où ?",
+            "example_dialect": "Mi ò rí àwọn tòmátì, ibo lo gbé wọn sí?"
+          },
+          {
+            "french": "Tronc",
+            "dialect": "igi",
+            "example_french": "Le tronc soutient les branches",
+            "example_dialect": "Àwọn Ẹ̀ka Ń Gbé Igi Náà Ró"
+          },
+          {
+            "french": "Viande / Poisson",
+            "dialect": "Ẹran / Ẹja",
+            "example_french": "Je mange de la viande à chaque repas, et du poisson une fois par semaine.",
+            "example_dialect": "Mo máa ń jẹ ẹran ní gbogbo ìgbà tí mo bá jẹun, mo sì máa ń jẹ ẹja lẹ́ẹ̀kan lọ́sẹ̀."
+          }
+        ]
+      },
+      {
+        "title": "Maison ville / village",
+        "items": [
+          {
+            "french": "Armoire",
+            "dialect": "yàrá ìkó-nǹkan-sí",
+            "example_french": "Nous vêtements sont pliés dans l’armoire",
+            "example_dialect": "Àwọn aṣọ wa ni a tẹ̀ sínú yàrá ìkó-nǹkan-sí"
+          },
+          {
+            "french": "Cave / Sous-sol",
+            "dialect": "yàrá...ísàlẹ̀",
+            "example_french": "On range nos affaires au sous-sol",
+            "example_dialect": "A máa ń kó àwọn ẹrù wa sínú yàrá tó wà nísàlẹ̀"
+          },
+          {
+            "french": "Chaise",
+            "dialect": "àga",
+            "example_french": "Seul mon père s’assoit toujours sur cette chaise",
+            "example_dialect": "Bàbá mi nìkan ló máa ń jókòó sórí àga yìí."
+          },
+          {
+            "french": "Chambre",
+            "dialect": "yàrá",
+            "example_french": "Mon frère et moi dormons dans la même chambre",
+            "example_dialect": "Èmi àti àbúrò mi ọkùnrin jọ ń sùn nínú yàrá kan náà"
+          },
+          {
+            "french": "Concession",
+            "dialect": "àgbègbè",
+            "example_french": "Tous nos ancêtres sont enterrés dans cette concession",
+            "example_dialect": "Gbogbo àwọn baba ńlá wa ni wọ́n sin ní àgbègbè yìí"
+          },
+          {
+            "french": "Couverture",
+            "dialect": "aṣọ ibora",
+            "example_french": "Je ne trouve pas la nouvelle couverture, et l’ancienne est déchirée.",
+            "example_dialect": "Mi ò rí aṣọ ibora tuntun náà, aṣọ tó wà nínú rẹ̀ sì ti bà jẹ́."
+          },
+          {
+            "french": "Cuisine",
+            "dialect": "ilé ìdáná",
+            "example_french": "Elle passe sa journée à la cuisine",
+            "example_dialect": "Inú ilé ìdáná ló ti máa ń wà látàárọ̀ ṣúlẹ̀"
+          },
+          {
+            "french": "École",
+            "dialect": "íléèwé",
+            "example_french": "Tous les enfants doivent aller à l’école pour apprendre à lire et à compter",
+            "example_dialect": "Gbogbo ọmọdé ní láti lọ síléèwé kí wọ́n lè mọ̀wéé kà, kí wọ́n sì mọ ìṣirò"
+          },
+          {
+            "french": "Fenêtre",
+            "dialect": "ojú fèrèsé",
+            "example_french": "Les mères regardent de la fenêtre leurs enfants rentrer de l’école",
+            "example_dialect": "Àwọn abiyamọ ń wo àwọn ọmọ wọn láti ojú fèrèsé bí wọ́n ṣe ń padà bọ̀ láti iléèwé"
+          },
+          {
+            "french": "Habitants (de)",
+            "dialect": "olùgbé",
+            "example_french": "Nos ennemis sont les habitants du village voisin",
+            "example_dialect": "Àwọn olùgbé tó wà ní abúlé tó wà nítòsí ni ọ̀tá wa"
+          },
+          {
+            "french": "Hôpital",
+            "dialect": "ilé ìwòsàn",
+            "example_french": "Certaines personnes meurent à l’hôpital, d’autres sont sauvées",
+            "example_dialect": "Àwọn kan ń kú ní ilé ìwòsàn, àwọn míì sì ń yè é"
+          },
+          {
+            "french": "Jardin",
+            "dialect": "ọgbà",
+            "example_french": "J’ai un petit potager dans le jardin",
+            "example_dialect": "Mo ní ọgbà kékeré kan nínú ọgbà"
+          },
+          {
+            "french": "Lit",
+            "dialect": "ibùsùn",
+            "example_french": "Elle a passé la journée allongée dans le lit",
+            "example_dialect": "Ó ti fi gbogbo òru sùn nínú ibùsùn"
+          },
+          {
+            "french": "Lumière",
+            "dialect": "iná",
+            "example_french": "N’oublie pas d’éteindre la lumière en sortant.",
+            "example_dialect": "Má gbàgbé láti pa iná nígbà tí o bá ń jáde."
+          },
+          {
+            "french": "Magasin / Boutique",
+            "dialect": "ilé ìtajà",
+            "example_french": "Ma mère tient sa boutique depuis 10 ans",
+            "example_dialect": "Màmá mi ti ní ilé ìtajà fún ọdún mẹ́wàá"
+          },
+          {
+            "french": "Maison",
+            "dialect": "ílé",
+            "example_french": "J’ai hâte de rentrer à la maison après cette dure journée de travail",
+            "example_dialect": "Ó wù mí kí n pa dà sílé lẹ́yìn iṣẹ́ àṣekúdórógbó tí mò ń ṣe"
+          },
+          {
+            "french": "Mur",
+            "dialect": "Odi",
+            "example_french": "Un mur nous sépare de chez le voisin",
+            "example_dialect": "Odi Kan Ń Yà Wá Sọ́tọ̀ Láti Ilé Aládùúgbò Wa"
+          },
+          {
+            "french": "Peuple",
+            "dialect": "ènìyàn",
+            "example_french": "Les gens de mon peuple parlent tous le patois",
+            "example_dialect": "Gbogbo àwọn ènìyàn mi ló ń sọ èdè patou"
+          },
+          {
+            "french": "Plafond",
+            "dialect": "Ojú òrùlé",
+            "example_french": "Le plafond est sale",
+            "example_dialect": "Ojú òrùlé náà dọ̀tí"
+          },
+          {
+            "french": "Quartier",
+            "dialect": "ádùúgbò",
+            "example_french": "Il faut sortir du quartier pour aller au marché",
+            "example_dialect": "O ní láti kúrò ládùúgbò kó o tó lè lọ sí ọjà"
+          },
+          {
+            "french": "Route",
+            "dialect": "Ọ̀nà",
+            "example_french": "Attention les enfants ! Marchez au bord de la route",
+            "example_dialect": "Ẹ ṣọ́ra, ẹ̀yin ọmọdé! Máa Rìn Lẹ́gbẹ̀ẹ́ Ọ̀nà"
+          },
+          {
+            "french": "Salon",
+            "dialect": "yàrá",
+            "example_french": "Demande aux invités de m’attendre au salon",
+            "example_dialect": "Sọ fún àwọn àlejò pé kí wọ́n dúró ní yàrá ìjẹun."
+          },
+          {
+            "french": "Table",
+            "dialect": "Tábìlì",
+            "example_french": "Cette table est très ancienne",
+            "example_dialect": "Tábìlì yìí ti pẹ́ gan-an"
+          },
+          {
+            "french": "Toilettes",
+            "dialect": "Ilé ìgbọ̀nsẹ̀",
+            "example_french": "Les toilettes sont dehors",
+            "example_dialect": "Ilé ìgbọ̀nsẹ̀ wà níta"
+          },
+          {
+            "french": "Toit",
+            "dialect": "Òrùlé",
+            "example_french": "Ce toit a des fuites mais nous protège quand même",
+            "example_dialect": "Òrùlé yìí máa ń tú, àmọ́ ó ń dáàbò bò wá"
+          },
+          {
+            "french": "Village",
+            "dialect": "abúlé",
+            "example_french": "Ma sœur s’est mariée avec un homme d’un autre village",
+            "example_dialect": "Arábìnrin mi fẹ́ ọkùnrin kan láti abúlé míì"
+          },
+          {
+            "french": "Ville",
+            "dialect": "ìlú ńlá",
+            "example_french": "Je ne pars jamais en ville",
+            "example_dialect": "Mi ò kì í lọ sí ìlú ńlá"
+          }
+        ]
+      },
+      {
+        "title": "Vêtements et tenues traditionnelles",
+        "items": [
+          {
+            "french": "Bague",
+            "dialect": "òrùka",
+            "example_french": "Son mari lui a mis sa bague de fiançailles",
+            "example_dialect": "Ọkọ rẹ̀ ló fi òrùka ìgbéyàwó rẹ̀ sí i lára."
+          },
+          {
+            "french": "Bracelet",
+            "dialect": "àlàbora",
+            "example_french": "Qui t’a offert ce bracelet ? Ton amie ?",
+            "example_dialect": "Ta ló fún ọ ní àlàbora yìí? Ṣé ọ̀rẹ́ rẹ ni?"
+          },
+          {
+            "french": "Caleçon",
+            "dialect": "aṣọ abẹ",
+            "example_french": "On change de caleçon tous les jours",
+            "example_dialect": "Ojoojúmọ́ la máa ń pààrọ̀ aṣọ abẹ wa."
+          },
+          {
+            "french": "Chapeau",
+            "dialect": "fila",
+            "example_french": "Mon chapeau est trop serré",
+            "example_dialect": "fila mi ti le jù"
+          },
+          {
+            "french": "Chaussures",
+            "dialect": "bàtà",
+            "example_french": "Est-ce que tu as vu leurs chaussures ?",
+            "example_dialect": "Ṣé o rí bàtà wọn?"
+          },
+          {
+            "french": "Chemise",
+            "dialect": "aṣọ",
+            "example_french": "Il attache sa chemise jusqu’en haut pour aller travailler",
+            "example_dialect": "Ó máa ń di aṣọ rẹ̀ sókè kó tó lọ síbi iṣẹ́"
+          },
+          {
+            "french": "Collier",
+            "dialect": "òrùka",
+            "example_french": "J’ai le même collier que toi",
+            "example_dialect": "Mo ní òrùka kan náà tí ìwọ ní"
+          },
+          {
+            "french": "Foulard",
+            "dialect": "aṣọ ìbòjú",
+            "example_french": "Elle a un foulard sur sa tête",
+            "example_dialect": "Ó ní aṣọ ìbòjú lórí"
+          },
+          {
+            "french": "Grand / Petit",
+            "dialect": "ga /kéré",
+            "example_french": "Ça ne te va pas, c’est trop grand / c’est trop petit.",
+            "example_dialect": "Kò bá ọ mu, ó ga jù/ó kéré jù."
+          },
+          {
+            "french": "Lunettes",
+            "dialect": "gíláàsì",
+            "example_french": "Mes lunettes sont sales, je dois les laver",
+            "example_dialect": "Àwọn gíláàsì mi ti dọ̀tí, mo ní láti wẹ̀ wọ́n"
+          },
+          {
+            "french": "Pagne",
+            "dialect": "aṣọ ìmúra",
+            "example_french": "Nos mamans sont souvent en pagne",
+            "example_dialect": "Àwọn ìyá wa sábà máa ń wọ aṣọ ìmúra"
+          },
+          {
+            "french": "Pagne",
+            "dialect": "ìró",
+            "example_french": "Elle ceint un pagne",
+            "example_dialect": "Ó ro ìró"
+          },
+          {
+            "french": "Pantalon",
+            "dialect": "sokoto",
+            "example_french": "Mon argent est dans la poche de mon pantalon",
+            "example_dialect": "Owó mi wà nínú sokoto mi"
+          },
+          {
+            "french": "Parapluie",
+            "dialect": "abùradà",
+            "example_french": "Je sors toujours avec mon parapluie",
+            "example_dialect": "Mo máa ń mú abùradà mi jáde nígbà gbogbo."
+          },
+          {
+            "french": "Sandales",
+            "dialect": "bàtà",
+            "example_french": "Je portes les sandales quand il fait chaud",
+            "example_dialect": "Mo máa ń wọ bàtà nígbà tí ojú ọjọ́ bá gbóná"
+          },
+          {
+            "french": "Short",
+            "dialect": "ṣokoto kukuru",
+            "example_french": "J’aime ce short",
+            "example_dialect": "Mo fẹ́ràn sokoto kukuru yìí gan-an"
+          },
+          {
+            "french": "T-shirt",
+            "dialect": "Aṣọ",
+            "example_french": "Mon t-shirt est sale",
+            "example_dialect": "Aṣọ mi ti dọ̀tí"
+          },
+          {
+            "french": "Tunique",
+            "dialect": "Bùbá",
+            "example_french": "Il porte une tunique",
+            "example_dialect": "Ó bọ bùbá"
+          },
+          {
+            "french": "Tunique",
+            "dialect": "agbada",
+            "example_french": "Il porte une tunique",
+            "example_dialect": "Ó bọ agbada"
+          },
+          {
+            "french": "Veste",
+            "dialect": "Jákẹ́ẹ̀tì",
+            "example_french": "Cette veste me protège du vent",
+            "example_dialect": "Jakẹti yìí máa ń dáàbò bò mí lọ́wọ́ ẹ̀fúùfù"
+          },
+          {
+            "french": "Vêtement / Habit",
+            "dialect": "aṣọ",
+            "example_french": "Ses vêtements sont déchirés",
+            "example_dialect": "Wọ́n fa aṣọ rẹ̀ ya"
+          },
+          {
+            "french": "Voile",
+            "dialect": "ìborùn",
+            "example_french": "Elle porte une voile",
+            "example_dialect": "Ó bo ìborùn"
+          }
+        ]
+      }
+    ]
+  }
+]

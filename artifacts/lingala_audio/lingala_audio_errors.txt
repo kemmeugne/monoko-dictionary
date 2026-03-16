@@ -1,0 +1,6 @@
+/Users/anthonykemmeugne/Documents/App dialectes/Lingala/Audios Lingala Finaux (01.02.2026)/Lettre A/A.G34.mp3: Dialect word cell is empty for A.G34.mp3
+/Users/anthonykemmeugne/Documents/App dialectes/Lingala/Audios Lingala Finaux (01.02.2026)/Lettre F/F.G17.mp3: Dialect word cell is empty for F.G17.mp3
+/Users/anthonykemmeugne/Documents/App dialectes/Lingala/Audios Lingala Finaux (01.02.2026)/Lettre P/P.G70.mp3: Dialect word cell is empty for P.G70.mp3
+/Users/anthonykemmeugne/Documents/App dialectes/Lingala/Audios Lingala Finaux (01.02.2026)/Lettre S/S.F105.mp3: Dialect word cell is empty for S.F105.mp3
+/Users/anthonykemmeugne/Documents/App dialectes/Lingala/Audios Lingala Finaux (01.02.2026)/Lettre S/S.G114.mp3: Dialect word cell is empty for S.G114.mp3
+/Users/anthonykemmeugne/Documents/App dialectes/Lingala/Audios Lingala Finaux (01.02.2026)/Lettre V/V.G58.mp3: Dialect word cell is empty for V.G58.mp3

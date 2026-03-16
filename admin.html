@@ -25,12 +25,8 @@
 
     const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
     const ANON_KEY     = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaW9pY2N1am5jc2VoYWRpcHpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTczMjAsImV4cCI6MjA4NjU5MzMyMH0.ic0JlZ17hOpLOzth_E4YrR122EG4LN6T04TYMcV-_CU";
-    // Service role key is needed for writes (status updates + parallel_sentences insert).
-    // This page is password-protected so it is acceptable to include here.
-    const SERVICE_KEY  = "REDACTED_SERVICE_KEY";
-
-    // ── Change this to your own admin password ──────────────────────────────
-    const ADMIN_PASSWORD = "monoko-admin-2025";
+    // Service key lives in Vercel env vars — never in client code.
+    // All writes go through /api/admin-action which verifies the password server-side.
 
     const PAGE_SIZE = 10;
 
@@ -43,19 +39,15 @@
       return res.json();
     }
 
-    async function supaWrite(method, table, body, params = "") {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
-        method,
-        headers: {
-          apikey: SERVICE_KEY,
-          Authorization: `Bearer ${SERVICE_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify(body),
+    async function adminAction(payload, password) {
+      const res = await fetch("/api/admin-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, password }),
       });
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Server error");
+      return data;
     }
 
     async function supaCount(table, filter = "") {
@@ -76,9 +68,20 @@
     function Login({ onLogin }) {
       const [pw, setPw] = useState("");
       const [err, setErr] = useState(false);
-      const submit = () => {
-        if (pw === ADMIN_PASSWORD) { onLogin(); }
-        else { setErr(true); setTimeout(() => setErr(false), 1500); }
+      const [checking, setChecking] = useState(false);
+      const submit = async () => {
+        if (!pw.trim()) return;
+        setChecking(true);
+        try {
+          const res = await fetch("/api/admin-action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "verify", password: pw }),
+          });
+          if (res.ok) { onLogin(pw); }
+          else { setErr(true); setTimeout(() => setErr(false), 1500); }
+        } catch { setErr(true); setTimeout(() => setErr(false), 1500); }
+        setChecking(false);
       };
       return (
         <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#F7F3ED" }}>
@@ -97,8 +100,8 @@
               autoFocus
             />
             {err && <p style={{ color:"#EF4444", fontSize:12, marginBottom:10, textAlign:"center" }}>Mot de passe incorrect</p>}
-            <button onClick={submit} style={{ width:"100%", padding:"13px", background:"linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-              Connexion
+            <button onClick={submit} disabled={checking} style={{ width:"100%", padding:"13px", background:"linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor: checking ? "default" : "pointer", fontFamily:"'DM Sans',sans-serif", opacity: checking ? 0.7 : 1 }}>
+              {checking ? "Vérification…" : "Connexion"}
             </button>
           </div>
         </div>
@@ -201,6 +204,7 @@
     // ── Main admin app ────────────────────────────────────────────────────────
     function Admin() {
       const [authed, setAuthed] = useState(false);
+      const [password, setPassword] = useState("");
       const [corrections, setCorrections] = useState([]);
       const [languages, setLanguages] = useState([]);
       const [stats, setStats] = useState({ pending: null, approved: null, rejected: null });
@@ -265,16 +269,7 @@
         }
         setActionLoading(correction.id);
         try {
-          // 1. Insert into parallel_sentences as a verified pair
-          await supaWrite("POST", "parallel_sentences", {
-            language_id:  correction.language_id,
-            french_text:  correction.correct_french,
-            lingala_text: correction.correct_lingala,
-            source:       "correction",
-            quality:      "verified",
-          });
-          // 2. Mark correction as approved
-          await supaWrite("PATCH", "corrections", { status: "approved" }, `id=eq.${correction.id}`);
+          await adminAction({ action: "approve", correction }, password);
           showToast("✓ Approuvé et ajouté au corpus vérifié !");
           await Promise.all([loadCorrections(), loadStats()]);
         } catch(e) { showToast("Erreur: " + e.message, "error"); }
@@ -284,7 +279,7 @@
       const reject = async (id) => {
         setActionLoading(id);
         try {
-          await supaWrite("PATCH", "corrections", { status: "rejected" }, `id=eq.${id}`);
+          await adminAction({ action: "reject", id }, password);
           showToast("Correction rejetée.");
           await Promise.all([loadCorrections(), loadStats()]);
         } catch(e) { showToast("Erreur: " + e.message, "error"); }
@@ -295,7 +290,6 @@
         if (!window.confirm(`Approuver toutes les corrections en attente avec une paire FR↔LN complète ?`)) return;
         setBulkLoading(true);
         try {
-          // Fetch ALL pending corrections (not just current page)
           let params = `select=*&status=eq.pending&order=created_at.desc`;
           if (filterLang !== "all") params += `&language_id=eq.${filterLang}`;
           const all = await supaRead("corrections", params);
@@ -309,7 +303,6 @@
             return;
           }
 
-          // Batch insert into parallel_sentences
           const rows = complete.map(c => ({
             language_id:  c.language_id,
             french_text:  c.correct_french.trim(),
@@ -317,22 +310,19 @@
             source:       "correction",
             quality:      "verified",
           }));
-          await supaWrite("POST", "parallel_sentences", rows);
-
-          // Batch update status to approved
-          const ids = complete.map(c => c.id).join(",");
-          await supaWrite("PATCH", "corrections", { status: "approved" }, `id=in.(${ids})`);
+          const ids = complete.map(c => c.id);
+          const result = await adminAction({ action: "bulk_approve", rows, ids }, password);
 
           const msg = skipped > 0
-            ? `✓ ${complete.length} approuvées, ${skipped} ignorées (paire incomplète)`
-            : `✓ ${complete.length} corrections approuvées et ajoutées au corpus !`;
+            ? `✓ ${result.count} approuvées, ${skipped} ignorées (paire incomplète)`
+            : `✓ ${result.count} corrections approuvées et ajoutées au corpus !`;
           showToast(msg);
           await Promise.all([loadCorrections(), loadStats()]);
         } catch(e) { showToast("Erreur: " + e.message, "error"); }
         setBulkLoading(false);
       };
 
-      if (!authed) return <Login onLogin={() => setAuthed(true)} />;
+      if (!authed) return <Login onLogin={(pw) => { setPassword(pw); setAuthed(true); }} />;
 
       return (
         <div style={{ maxWidth:720, margin:"0 auto", padding:"24px 16px 60px", animation:"fadeIn 0.3s" }}>
