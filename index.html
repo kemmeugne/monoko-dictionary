@@ -412,6 +412,7 @@
       const [correctionType, setCorrectionType] = useState("incorrect");
       const [correctionSent, setCorrectionSent] = useState(false);
       const [testerName, setTesterName] = useState("");
+      const [pendingTesterName, setPendingTesterName] = useState("");
       const [testerSessionId, setTesterSessionId] = useState("");
       const chatEndRef = useRef(null);
       const inputRef = useRef(null);
@@ -425,6 +426,7 @@
           localStorage.setItem(TESTER_SESSION_KEY, savedSessionId);
         }
         setTesterName(savedTesterName);
+        setPendingTesterName(savedTesterName);
         setTesterSessionId(savedSessionId);
       }, []);
 
@@ -479,6 +481,22 @@
         setBrowseWords([]);
         setWordOfDay(null);
         setStats({ words: 0, senses: 0 });
+      };
+
+      const openChat = () => {
+        if (!testerName.trim()) {
+          setPendingTesterName(testerName);
+          setView("tester_setup");
+          return;
+        }
+        setView("chat");
+      };
+
+      const saveTesterNameAndOpenChat = () => {
+        const normalized = pendingTesterName.trim();
+        if (!normalized) return;
+        setTesterName(normalized);
+        setView("chat");
       };
 
       useEffect(() => {
@@ -1004,6 +1022,10 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                     { icon:<ChatIcon/>, title:"Parler avec Monoko", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
                   ].map((c,i) => (
                     <button key={i} onClick={async () => {
+                      if (c.v === "chat") {
+                        openChat();
+                        return;
+                      }
                       setView(c.v);
                       if (c.v === "courses" && langId) {
                         setLoading(true);
@@ -1495,6 +1517,51 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
               </div>
             )}
 
+            {view === "tester_setup" && selectedLang && (
+              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
+                <button onClick={() => { setView("home"); }} style={{
+                  display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
+                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
+                  fontFamily:"'DM Sans', sans-serif",
+                }}><ArrowLeft /> Accueil</button>
+
+                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:20, padding:"24px 20px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                    <div style={{ width:48, height:48, borderRadius:14, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🧪</div>
+                    <div>
+                      <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"#2D2118", margin:0, lineHeight:1.1 }}>Nom du testeur</h2>
+                      <p style={{ fontSize:13, color:"#9B8A6E", margin:"4px 0 0" }}>Cette information est requise avant d'ouvrir le chat.</p>
+                    </div>
+                  </div>
+
+                  <p style={{ fontSize:14, color:"#5C4A2E", lineHeight:1.6, marginBottom:12 }}>
+                    Le nom du testeur sera envoyé avec chaque message et chaque correction pour suivre correctement le travail effectué.
+                  </p>
+
+                  <input
+                    value={pendingTesterName}
+                    onChange={e => setPendingTesterName(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); saveTesterNameAndOpenChat(); } }}
+                    placeholder="Nom du professeur ou du testeur"
+                    style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:14, outline:"none", fontSize:15, padding:"13px 14px", color:"#2D2118", fontFamily:"'DM Sans', sans-serif", background:"#FCFBF8", marginBottom:14 }}
+                  />
+
+                  <button
+                    onClick={saveTesterNameAndOpenChat}
+                    disabled={!pendingTesterName.trim()}
+                    style={{
+                      width:"100%", border:"none", borderRadius:14, padding:"14px 18px",
+                      background: pendingTesterName.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
+                      color:"white", fontSize:14, fontWeight:700, cursor: pendingTesterName.trim() ? "pointer" : "default",
+                      fontFamily:"'DM Sans', sans-serif",
+                    }}
+                  >
+                    Continuer vers le chat
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* CHAT WITH MONOKO */}
             {view === "chat" && selectedLang && (
               <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, display:"flex", flexDirection:"column", minHeight:"calc(100vh - 120px)" }}>
@@ -1512,19 +1579,21 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                   </div>
                 </div>
 
-                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"12px 14px", marginBottom:12 }}>
-                  <p style={{ fontSize:11, fontWeight:600, color:"#8B6D47", margin:"0 0 6px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>
-                    Suivi testeur
-                  </p>
-                  <input
-                    value={testerName}
-                    onChange={e => setTesterName(e.target.value)}
-                    placeholder="Nom du testeur ou du professeur"
-                    style={{ width:"100%", border:"1px solid #E8E0D4", borderRadius:10, outline:"none", fontSize:14, padding:"10px 12px", color:"#2D2118", fontFamily:"'DM Sans', sans-serif", background:"#FCFBF8" }}
-                  />
-                  <p style={{ fontSize:11, color:"#9B8A6E", margin:"6px 0 0" }}>
-                    Ce nom et cette session seront envoyés avec chaque message et chaque correction.
-                  </p>
+                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"10px 14px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+                  <div>
+                    <p style={{ fontSize:11, fontWeight:600, color:"#8B6D47", margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>
+                      Session testeur
+                    </p>
+                    <p style={{ fontSize:14, color:"#2D2118", margin:0, fontWeight:600 }}>
+                      {testerName || "Non renseigné"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { setPendingTesterName(testerName); setView("tester_setup"); }}
+                    style={{ background:"none", border:"1px solid #E8E0D4", borderRadius:10, padding:"8px 12px", fontSize:12, color:"#8B6D47", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", fontWeight:600 }}
+                  >
+                    Modifier
+                  </button>
                 </div>
 
                 <React.Fragment>
