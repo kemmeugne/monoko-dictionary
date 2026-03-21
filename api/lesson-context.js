@@ -19,6 +19,7 @@ const SUPABASE_URL  = "https://haioiccujncsehadipzb.supabase.co";
 const EMBED_MODEL   = "text-embedding-3-small";
 const EMBED_DIMS    = 384;
 const DEFAULT_MATCH = 8;
+const SIMILARITY_THRESHOLD = 0.4; // only expand lessons that are clearly relevant
 
 async function embedQuery(query) {
   const res = await fetch("https://api.openai.com/v1/embeddings", {
@@ -66,6 +67,27 @@ async function matchLessonItems(embedding, languageId, matchCount) {
   return res.json();
 }
 
+// Fetch all items belonging to the given lesson_ids (to get complete conjugation tables).
+async function fetchFullLessons(lessonIds) {
+  const ids = lessonIds.join(",");
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/lesson_items?lesson_id=in.(${ids})&select=id,lesson_id,french,dialect,example_french,example_dialect,audio_url,example_audio_url&order=lesson_id,item_order`,
+    {
+      headers: {
+        "apikey":        process.env.SUPABASE_SERVICE_KEY,
+        "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase fetch full lessons error: ${err}`);
+  }
+
+  return res.json();
+}
+
 function formatContext(rows) {
   if (!rows || rows.length === 0) return "";
 
@@ -103,9 +125,24 @@ export default async function handler(req, res) {
 
   try {
     const embedding = await embedQuery(query);
-    const rows      = await matchLessonItems(embedding, language_id, match_count || DEFAULT_MATCH);
-    const context   = formatContext(rows);
+    const topMatches = await matchLessonItems(embedding, language_id, match_count || DEFAULT_MATCH);
 
+    // Expand: for matches above the similarity threshold, fetch all rows from
+    // the same lesson so conjugation tables and vocabulary lists are complete.
+    const relevantLessonIds = [
+      ...new Set(
+        topMatches
+          .filter(r => r.similarity >= SIMILARITY_THRESHOLD)
+          .map(r => r.lesson_id)
+      ),
+    ];
+
+    let rows = topMatches;
+    if (relevantLessonIds.length > 0) {
+      rows = await fetchFullLessons(relevantLessonIds);
+    }
+
+    const context = formatContext(rows);
     return res.status(200).json({ context, result_count: rows.length });
   } catch (e) {
     console.error("lesson-context error:", e.message);
