@@ -554,20 +554,27 @@
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
         if (!langId) return "";
-        try {
-          const res = await fetch(`${RAG_API_URL}/api/context`, {
+
+        // Fire FAISS (Railway) and lesson-context (pgvector) in parallel
+        const [faissResult, lessonResult] = await Promise.allSettled([
+          fetch(`${RAG_API_URL}/api/context`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: userMsg, top_k: 30, language_id: langId }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            return data.context || "(Aucune donnée trouvée dans le corpus)";
-          }
-        } catch(e) {
-          console.warn("RAG API unavailable:", e.message);
-        }
-        return "(Service de recherche indisponible)";
+          }).then(r => r.ok ? r.json() : null).catch(() => null),
+
+          fetch("/api/lesson-context", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: userMsg, language_id: langId }),
+          }).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+
+        const faissContext  = faissResult.value?.context   || "";
+        const lessonContext = lessonResult.value?.context  || "";
+
+        const parts = [faissContext, lessonContext].filter(Boolean);
+        return parts.length ? parts.join("\n\n") : "(Aucune donnée trouvée dans le corpus)";
       };
 
       const sendChat = async () => {
