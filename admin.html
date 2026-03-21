@@ -119,10 +119,26 @@
     }
 
     // ── Correction card ───────────────────────────────────────────────────────
+    const taStyle = {
+      width:"100%", marginTop:4, padding:"8px 10px",
+      border:"1.5px solid #BBF7D0", borderRadius:8,
+      fontSize:14, fontWeight:600, fontFamily:"'DM Sans',sans-serif",
+      lineHeight:1.4, resize:"vertical", outline:"none",
+      background:"white", boxSizing:"border-box",
+    };
+
     function CorrectionCard({ correction, langName, onApprove, onReject, loading }) {
+      const [french,  setFrench]  = useState(correction.correct_french   || "");
+      const [dialect, setDialect] = useState(correction.correct_lingala  || "");
+      const [example, setExample] = useState(correction.example_sentence || "");
+
       const typeColors = { incorrect:"#EF4444", partial:"#F59E0B", missing:"#6B7280" };
       const typeLabels = { incorrect:"Incorrecte", partial:"Partielle", missing:"Contexte manquant" };
       const color = typeColors[correction.correction_type] || "#6B7280";
+
+      const handleApprove = () => {
+        onApprove({ ...correction, correct_french: french.trim(), correct_lingala: dialect.trim(), example_sentence: example.trim() });
+      };
 
       return (
         <div style={{ background:"white", borderRadius:16, border:"1px solid #E8E0D4", overflow:"hidden", marginBottom:12, animation:"slideIn 0.2s ease-out", boxShadow:"0 1px 4px rgba(139,109,71,0.06)" }}>
@@ -154,37 +170,52 @@
               </p>
             </div>
 
-            {/* The corrected pair — the key data */}
+            {/* Editable corrected pair */}
             <div style={{ background:"linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius:12, padding:"12px 14px", border:"1px solid #BBF7D0", marginBottom:12 }}>
-              <p style={{ fontSize:11, fontWeight:700, color:"#2C5F2D", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 10px", fontFamily:"'DM Mono',monospace" }}>✓ Paire vérifiée proposée</p>
-              <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              <p style={{ fontSize:11, fontWeight:700, color:"#2C5F2D", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 10px", fontFamily:"'DM Mono',monospace" }}>✓ Paire vérifiée — éditable avant approbation</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 <div>
                   <span style={{ fontSize:10, fontWeight:600, color:"#6B7280", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono',monospace" }}>Français</span>
-                  <p style={{ fontSize:14, fontWeight:600, color:"#2D2118", margin:"2px 0 0", fontFamily:"'DM Sans',sans-serif" }}>
-                    {correction.correct_french || <em style={{color:"#B8A88C", fontWeight:400}}>Non renseigné</em>}
-                  </p>
+                  <textarea
+                    rows={2}
+                    value={french}
+                    onChange={e => setFrench(e.target.value)}
+                    disabled={loading}
+                    placeholder="Traduction française…"
+                    style={{ ...taStyle, color:"#2D2118", borderColor:"#BBF7D0" }}
+                  />
                 </div>
-                <div style={{ borderTop:"1px solid #BBF7D0", paddingTop:8 }}>
+                <div>
                   <span style={{ fontSize:10, fontWeight:600, color:"#6B7280", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono',monospace" }}>{langName}</span>
-                  <p style={{ fontSize:14, fontWeight:600, color:"#2C5F2D", margin:"2px 0 0", fontFamily:"'DM Sans',sans-serif" }}>
-                    {correction.correct_lingala || <em style={{color:"#B8A88C", fontWeight:400}}>Non renseigné</em>}
-                  </p>
+                  <textarea
+                    rows={2}
+                    value={dialect}
+                    onChange={e => setDialect(e.target.value)}
+                    disabled={loading}
+                    placeholder={`Traduction en ${langName}…`}
+                    style={{ ...taStyle, color:"#2C5F2D", borderColor:"#BBF7D0" }}
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Example sentence if provided */}
-            {correction.example_sentence && (
-              <div style={{ background:"#FDFBF7", borderRadius:10, padding:"10px 12px", borderLeft:"3px solid #D4A843", marginBottom:12 }}>
-                <p style={{ fontSize:11, fontWeight:600, color:"#B8A88C", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 4px", fontFamily:"'DM Mono',monospace" }}>Phrase d'exemple</p>
-                <p style={{ fontSize:13, color:"#5C4A2E", margin:0, fontStyle:"italic", lineHeight:1.4 }}>{correction.example_sentence}</p>
-              </div>
-            )}
+            {/* Editable example sentence */}
+            <div style={{ background:"#FDFBF7", borderRadius:10, padding:"10px 12px", borderLeft:"3px solid #D4A843", marginBottom:12 }}>
+              <p style={{ fontSize:11, fontWeight:600, color:"#B8A88C", textTransform:"uppercase", letterSpacing:"0.06em", margin:"0 0 4px", fontFamily:"'DM Mono',monospace" }}>Phrase d'exemple (optionnel)</p>
+              <textarea
+                rows={2}
+                value={example}
+                onChange={e => setExample(e.target.value)}
+                disabled={loading}
+                placeholder="Phrase d'exemple…"
+                style={{ ...taStyle, fontStyle:"italic", color:"#5C4A2E", borderColor:"#E8D4A0", fontSize:13, fontWeight:400 }}
+              />
+            </div>
 
             {/* Actions */}
             <div style={{ display:"flex", gap:8 }}>
               <button
-                onClick={() => onApprove(correction)}
+                onClick={handleApprove}
                 disabled={loading}
                 style={{ flex:1, padding:"11px", background: loading ? "#E8E0D4" : "linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:10, fontSize:13, fontWeight:700, cursor: loading ? "default" : "pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                 <CheckIcon /> Approuver → corpus
