@@ -639,6 +639,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
               sessionId: testerSessionId || null,
               languageId: langId,
               userQuery: msg,
+              turnNumber: Math.ceil(newMessages.length / 2),
             }),
           });
 
