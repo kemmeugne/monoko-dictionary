@@ -47,63 +47,46 @@
 │              https://monoko-dictionary.vercel.app                    │
 └───────────────────────────┬─────────────────────────────────────────┘
                             │
-              ┌─────────────▼─────────────┐
-              │     VERCEL (Frontend)      │
-              │   index.html  admin.html   │
-              │   /api/admin-action.js     │  ← Serverless function
-              └──────┬────────────┬────────┘
-                     │            │
-          ┌──────────▼──┐   ┌────▼──────────────────┐
-          │  OPENAI     │   │      SUPABASE          │
-          │  gpt-4o-mini│   │  (PostgreSQL DB)        │
-          │  via Vercel │   │                         │
-          │  /api/chat  │   │  Tables:                │
-          │ LLM for chat│   │  • languages            │
-          │  responses  │   │  • words                │
-          └─────────────┘   │  • senses               │
-                            │  • examples             │
-                            │  • parallel_sentences   │
-                            │  • corrections          │
-                            │  • courses              │
-                            │  • lessons              │
-                            │  • lesson_items         │
-                            └────────────────────────┘
-                     │
-          ┌──────────▼──────────────────────┐
-          │     RAILWAY (Backend)            │
-          │   rag_api.py  (FastAPI)          │
-          │                                  │
-          │  POST /api/context               │
-          │    ↓                             │
-          │  Language detection              │
-          │    ↓                             │
-          │  FAISS search (FR or LN index)   │
-          │    ↓                             │
-          │  Quality partitioning            │
-          │    ↓                             │
-          │  Returns formatted context       │
-          └───────────────┬─────────────────┘
-                          │ indexes downloaded at startup
-          ┌───────────────▼─────────────────┐
-          │    CLOUDFLARE R2 (Storage)       │
-          │  faiss_index_fr.bin  (99 MB)     │
-          │  faiss_index_ln.bin  (99 MB)     │
-          │  documents.pkl       (19 MB)     │
-          └──────────────────────────────────┘
+              ┌─────────────▼──────────────────────────┐
+              │            VERCEL                        │
+              │   index.html  admin.html                 │
+              │   /api/chat.js          ← LLM proxy      │
+              │   /api/rag-context.js   ← RAG corpus     │
+              │   /api/lesson-context.js← course search  │
+              │   /api/admin-action.js  ← admin writes   │
+              └──────┬─────────────────────┬────────────┘
+                     │                     │
+          ┌──────────▼──┐   ┌─────────────▼──────────────┐
+          │  OPENAI     │   │      SUPABASE               │
+          │  gpt-4o-mini│   │  (PostgreSQL + pgvector)    │
+          │  embeddings │   │                             │
+          └─────────────┘   │  Tables:                    │
+                            │  • languages                │
+                            │  • words / senses / examples│
+                            │  • parallel_sentences       │
+                            │    (embedding vector(384))  │
+                            │  • corrections              │
+                            │  • courses / lessons        │
+                            │  • lesson_items             │
+                            │    (embedding vector(384))  │
+                            └─────────────────────────────┘
 ```
 
 ### Request flow for a chat message
 
 ```
 1. User types message in index.html chat
-2. index.html calls Railway POST /api/context  →  FAISS retrieves top-30 semantically similar FR↔LN pairs (with language_id)
-3. index.html calls Vercel POST /api/chat  →  OpenAI gpt-4o-mini with corpus-first system prompt + context
-4. Response displayed in chat
-5. (Optional) User clicks "Corriger" → correction saved to Supabase corrections table
-6. Admin approves correction in admin.html → pair inserted into parallel_sentences as verified
+2. If no tester name exists locally, index.html forces a `nom du testeur` step before chat opens
+3. index.html fires two parallel context fetches:
+   a. Vercel POST /api/rag-context  →  OpenAI embed → pgvector match_parallel_sentences → top-30 FR↔LN pairs
+   b. Vercel POST /api/lesson-context → OpenAI embed → pgvector match_lesson_items → top-8 course rows
+4. Both contexts merged → Vercel POST /api/chat → OpenAI gpt-4o-mini with corpus-first system prompt + context + tester metadata
+5. Response displayed in chat
+6. (Optional) User clicks "Corriger" → correction saved to Supabase corrections table with tester metadata
+7. Admin approves correction in admin.html → pair inserted into parallel_sentences as verified
 ```
 
-**Note**: Supabase `lesson_items` keyword search was removed from the chat pipeline (March 2026). All context comes from FAISS only; `top_k` increased 20 → 30 to compensate.
+**Migration note (2026-03-31)**: Railway/FAISS backend was decommissioned. All vector search now runs on Supabase pgvector. NLLB auto-quality data was dropped — the corpus is verified/gold pairs only (~7k rows).
 
 ---
 
@@ -201,10 +184,26 @@ User-submitted AI corrections awaiting admin review.
 | `correct_lingala` | TEXT | Corrected dialect text (required) |
 | `correct_french` | TEXT | Corresponding French text (required) |
 | `example_sentence` | TEXT | Optional example |
+| `tester_name` | TEXT | Tester/professor name entered before chat |
+| `session_id` | TEXT | Browser session identifier used for activity tracking |
 | `status` | TEXT | `"pending"`, `"approved"`, `"rejected"` |
 | `created_at` | TIMESTAMPTZ | Auto |
 
 **Flow**: `pending` → admin review → `approved` (auto-inserts into `parallel_sentences`) or `rejected`
+
+### `chat_events`
+Tester-tracked Monoko chat activity written server-side by `/api/chat`.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | BIGSERIAL PK | |
+| `created_at` | TIMESTAMPTZ | Auto |
+| `tester_name` | TEXT | Tester/professor name |
+| `session_id` | TEXT | Browser session identifier |
+| `language_id` | BIGINT FK → languages | |
+| `user_query` | TEXT | User message sent to chat |
+| `assistant_response` | TEXT | Model response returned to the user |
+| `message_count` | INT | Number of conversation messages sent to `/api/chat` |
 
 ---
 
@@ -244,6 +243,12 @@ Individual vocabulary/grammar pairs within a lesson.
 | `dialect` | TEXT | Dialect equivalent |
 | `example_french` | TEXT | Example sentence FR (optional) |
 | `example_dialect` | TEXT | Example sentence dialect (optional) |
+| `audio_url` | TEXT | Public audio URL for the lesson item dialect line |
+| `audio_key` | TEXT | Cloudflare R2 object key for the lesson item line |
+| `audio_source_cell` | TEXT | Original workbook source cell for the lesson item line |
+| `example_audio_url` | TEXT | Public audio URL for the example dialect sentence |
+| `example_audio_key` | TEXT | Cloudflare R2 object key for the example dialect sentence |
+| `example_audio_source_cell` | TEXT | Original workbook source cell for the example dialect sentence |
 | `item_order` | INT | Display order |
 
 ---
@@ -271,6 +276,27 @@ languages
 
 ALTER TABLE corrections ADD COLUMN IF NOT EXISTS correct_french TEXT;
 ALTER TABLE corrections ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE corrections ADD COLUMN IF NOT EXISTS tester_name TEXT;
+ALTER TABLE corrections ADD COLUMN IF NOT EXISTS session_id TEXT;
+
+CREATE TABLE IF NOT EXISTS chat_events (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  tester_name TEXT,
+  session_id TEXT,
+  language_id BIGINT REFERENCES languages(id),
+  user_query TEXT,
+  assistant_response TEXT,
+  message_count INT
+);
+
+ALTER TABLE lesson_items
+  ADD COLUMN IF NOT EXISTS audio_url TEXT,
+  ADD COLUMN IF NOT EXISTS audio_key TEXT,
+  ADD COLUMN IF NOT EXISTS audio_source_cell TEXT,
+  ADD COLUMN IF NOT EXISTS example_audio_url TEXT,
+  ADD COLUMN IF NOT EXISTS example_audio_key TEXT,
+  ADD COLUMN IF NOT EXISTS example_audio_source_cell TEXT;
 
 -- Optional: trigram index for faster ilike searches on parallel_sentences
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
@@ -286,33 +312,33 @@ CREATE INDEX IF NOT EXISTS idx_parallel_sentences_lingala_trgm
 
 ### Overview
 
-When a user sends a message in the chat, context is retrieved via two parallel paths and merged before calling Claude.
+When a user sends a message in the chat, context is retrieved via two parallel paths and merged before calling the LLM. Both paths run on Vercel + Supabase — no external backend required.
 
 ```
 User message
      │
-     ├─── Path A: FAISS Semantic Search (Railway)
+     ├─── Path A: pgvector Corpus Search (Vercel → Supabase)
      │         │
-     │         ├─ Language detection (FR/EN → FR index | other → LN index)
-     │         ├─ Embed query with paraphrase-multilingual-MiniLM-L12-v2
-     │         ├─ Search FAISS (pool_size=300 candidates)
-     │         ├─ Partition: verified/gold first, NLLB auto second
-     │         ├─ Re-rank NLLB by: sim_score + 0.5 × vocab_score
-     │         └─ Return top-20 FR↔LN pairs
+     │         ├─ POST /api/rag-context
+     │         ├─ Embed query with OpenAI text-embedding-3-small (384 dim)
+     │         ├─ Call match_parallel_sentences RPC (filtered by language_id)
+     │         ├─ Filter results by similarity >= 0.3
+     │         ├─ Sort: verified/gold first
+     │         └─ Return top-30 FR↔LN pairs
      │
-     └─── Path B: Supabase Keyword Search (direct from browser)
+     └─── Path B: pgvector Course Search (Vercel → Supabase)
                │
-               ├─ Extract keywords (stopword filtering)
-               ├─ Search lesson_items.french ilike *kw*
-               ├─ Search lesson_items.dialect ilike *kw*
-               ├─ Search lessons.title ilike *kw* → pull all items
-               └─ Return matching grammar/course entries
+               ├─ POST /api/lesson-context
+               ├─ Embed query with OpenAI text-embedding-3-small (384 dim)
+               ├─ Call match_lesson_items RPC (filtered by language_id)
+               ├─ Expand: fetch full lesson rows for matches above similarity 0.4
+               └─ Return top-8 course lesson_items rows
      │
      ▼
-Merge both contexts into one string
+Merge both contexts into one string (Promise.allSettled — either can fail silently)
      │
      ▼
-Claude Haiku (claude-haiku-4-5-20251001)
+OpenAI gpt-4o-mini
   System prompt: Monoko persona + language rules + corpus
   Max tokens: 512
   Last 6 messages of conversation history
@@ -321,72 +347,20 @@ Claude Haiku (claude-haiku-4-5-20251001)
 AI response displayed with ✓ / ~ / ≈ quality indicators
 ```
 
----
+Course lesson audio comes directly from Supabase on `lesson_items.audio_url` and `lesson_items.example_audio_url`.
 
-### Dual-path language detection
-
-```python
-# From step3_build_rag.py — MonokoRAG._detect_language()
-_FR_LANGS = {"fr", "en"}
-
-def _detect_language(self, text):
-    lang = detect(text)  # langdetect
-    return "fr" if lang in _FR_LANGS else "ln"
-```
-
-**Key insight**: Lingala has no langdetect model — it gets classified as Swahili, Indonesian, Tagalog, etc. Treating "anything not French/English" as Lingala works reliably in practice.
-
-| Query language | Index used | Rationale |
-|---|---|---|
-| French / English | `faiss_index_fr.bin` | Looking up translations → search by French meaning |
-| Lingala / other | `faiss_index_ln.bin` | Conversation/grammar → search by Lingala content |
-
----
-
-### Quality partitioning & NLLB re-ranking
-
-```python
-# Constants
-_HIGH_QUALITY = {"verified", "gold"}
-_POOL_SIZE    = 300   # candidates fetched from FAISS
-_VOCAB_BLEND  = 0.5   # NLLB blending factor
-
-# For each FAISS result:
-if quality in _HIGH_QUALITY:
-    high_quality.append(doc)       # sorted by sim_score DESC
-else:
-    doc["_nllb_rank"] = sim_score + 0.5 * vocab_score
-    auto.append(doc)               # sorted by _nllb_rank DESC
-
-# Final result: verified/gold first, NLLB fills remaining slots
-return (high_quality + auto[:remaining])[:top_k]
-```
-
-`vocab_score` = fraction of Lingala tokens in the sentence that appear in the verified Monoko dictionary. A sentence with more known Lingala words ranks higher among auto-quality results.
-
----
-
-### FAISS index technical details
-
-| Parameter | Value |
-|---|---|
-| Model | `paraphrase-multilingual-MiniLM-L12-v2` |
-| Embedding dimensions | 384 |
-| Index type | `IndexFlatIP` (inner product = cosine on normalized vectors) |
-| Total vectors | 67,687 per index |
-| Index file size | ~99 MB each |
-| Documents file | 19 MB (pickled list) |
+**Migration note (2026-03-31)**: Railway/FAISS backend was decommissioned. NLLB auto-quality data was dropped. All vector search now runs on Supabase pgvector against verified/gold pairs only.
 
 ---
 
 ### Knowledge base composition
 
-| Source | Count | Quality | How it enters FAISS |
+| Source | Count | Quality | Table |
 |---|---|---|---|
-| Monoko dictionary (words) | 5,227 | verified | Always included (Tier 1) |
-| FLORES-200 | 2,008 | gold | Always included (Tier 2) |
-| NLLB HC (ngram_score > -6.0) | ~60,452 | auto | Tier 3 |
-| **Total** | **~67,687** | | |
+| Monoko dictionary (words) | 5,227 | verified | `parallel_sentences` |
+| FLORES-200 | 2,008 | gold | `parallel_sentences` |
+| Approved user corrections | growing | verified | `parallel_sentences` |
+| Course lesson items | 1,740 | verified | `lesson_items` |
 
 ---
 
@@ -394,57 +368,14 @@ return (high_quality + auto[:remaining])[:top_k]
 
 ### Overview
 
-| Source | Raw pairs | After cleaning | Quality |
+| Source | Count | Quality | Table |
 |---|---|---|---|
-| NLLB (Meta) | 673,786 | ~60,452 | auto |
-| FLORES-200 | 2,008 | 2,008 | gold |
-| Monoko dictionary | 5,227 | 5,227 | verified |
-| **Total in FAISS** | | **~67,687** | |
+| FLORES-200 | 2,008 | gold | `parallel_sentences` |
+| Monoko dictionary | 5,227 | verified | `parallel_sentences` |
+| Approved user corrections | growing | verified | `parallel_sentences` |
+| **Total in corpus** | **~7,235+** | | |
 
----
-
-### NLLB (No Language Left Behind — Meta AI)
-
-**What it is**: Web-mined parallel sentences automatically aligned by Meta's multilingual model.
-
-**Download**: Via OPUS API through `opustools`
-```bash
-python step1_download_data.py  # downloads to monoko_data/raw/nllb/
-```
-Output: `nllb_ln.txt` (Lingala) + `nllb_fr.txt` (French) — one sentence per line, aligned by position.
-
-**Raw count**: 673,786 pairs
-
-**Cleaning pipeline** (2 stages):
-
-**Stage 1 — `clean_nllb.py`** (language detection + vocabulary overlap)
-```
-Input:  673,786 pairs
-Filter 1: langdetect rejects Lingala side if detected as fr or en
-Filter 2: vocab_score < 0.05 rejected
-          (vocab_score = fraction of tokens matching verified Monoko dictionary)
-Output: 542,860 pairs  →  nllb_clean.jsonl
-Stats:  nllb_clean_stats.json
-```
-
-**Stage 2 — `score_nllb_ngram.py`** (character n-gram perplexity scoring)
-```
-Input:  542,860 pairs from Stage 1
-Method: Build character 3-gram language model from verified Lingala text
-        Score each sentence by log-perplexity against the model
-        Threshold: ngram_score > -7.16 (5th percentile of calibration corpus)
-Output: 344,570 pairs  →  nllb_ngram_filtered.jsonl
-Stats:  nllb_ngram_stats.json
-```
-
-**Stage 3 — FAISS threshold** (in `step3_build_rag.py`)
-```
-Input:  344,570 pairs from Stage 2
-Filter: ngram_score > -6.0 (stricter threshold for the actual index)
-Output: ~60,452 pairs included in FAISS
-```
-
-**Final keep rate**: 60,452 / 673,786 = **~9%** of raw NLLB retained
+**Note**: NLLB (Meta) auto-quality data (~60k pairs) was evaluated and dropped in March 2026 — it introduced more noise than signal for this use case.
 
 ---
 
@@ -469,37 +400,12 @@ python step1_download_data.py  # downloads flores dev/devtest splits
 
 **Source**: Supabase tables: `words` → `senses` → `examples`
 
-**Format in FAISS**:
-- Words: `"Mot: {french} → Lingala: {lingala}"` (type: `"word"`)
-- Sentences: `"Français: {fr}\nLingala: {ln}"` (type: `"sentence"`)
-
 **Upload from Excel**: `upload_to_supabase.py`
 - Reads structured `.xlsx` files
 - Excel layout: Row per French word, columns grouped in sets of 3 (dialect word, dialect sentence, French sentence)
 - Uploads to `words` → `senses` → `examples` hierarchy
 
----
-
-### WAXAL (Google)
-
-**What it is**: Lingala speech transcriptions (audio + text). Monolingual — no French translation.
-
-**Status**: Downloaded but not yet integrated into FAISS (no FR counterpart). Intended for future STT fine-tuning.
-
----
-
-### Evaluation results
-
-From `eval_results.json` / `eval_report.txt`:
-
-The RAG was evaluated on a set of test queries. Key metrics tracked:
-- Retrieval precision (relevant pairs in top-k)
-- Similarity score distribution
-- Routing accuracy (FR queries → FR index, LN queries → LN index)
-
-**Test results (from `--test` mode)**:
-- French queries: similarity scores ~0.65–0.85
-- Lingala queries: similarity scores ~0.80–0.90 (LN index significantly outperforms routing through FR index for Lingala input)
+The dictionary pairs are also mirrored into `parallel_sentences` (quality: `verified`) so they are searchable by the RAG pipeline.
 
 ---
 
@@ -607,8 +513,20 @@ Quality indicators:
    - Corrected dialect text (required)
    - Corresponding French translation (required)
    - Optional example sentence
-3. Submitted to `POST /rest/v1/corrections` with `status: "pending"`
-4. Admin reviews in `admin.html`
+3. Frontend includes `tester_name` + `session_id` on the correction payload
+4. Submitted to `POST /rest/v1/corrections` with `status: "pending"`
+5. Admin reviews in `admin.html`
+
+### Tester tracking
+
+Implemented in March 2026 to measure professor/tester activity during Lingala QA sessions.
+
+- Before entering chat, the frontend requires a `nom du testeur`
+- `tester_name` is stored in `localStorage`
+- `session_id` is generated locally once and reused for that browser
+- Every chat call sends `testerName`, `sessionId`, `languageId`, and the current `userQuery` to `/api/chat`
+- `/api/chat` writes a best-effort row to `chat_events` when `SUPABASE_SERVICE_KEY` is configured
+- Every correction row now also carries `tester_name` and `session_id`
 
 ---
 
@@ -712,7 +630,11 @@ Proxies chat completions to OpenAI so the API key never touches the browser.
 ```json
 {
   "systemPrompt": "Tu es Monoko...",
-  "messages": [{ "role": "user", "content": "Comment dit-on bonjour ?" }]
+  "messages": [{ "role": "user", "content": "Comment dit-on bonjour ?" }],
+  "testerName": "Prof Lingala",
+  "sessionId": "session_...",
+  "languageId": 1,
+  "userQuery": "Comment dit-on bonjour ?"
 }
 ```
 
@@ -725,6 +647,7 @@ Proxies chat completions to OpenAI so the API key never touches the browser.
 | Variable | Value |
 |---|---|
 | `OPENAI_API_KEY` | OpenAI API key (`sk-proj-...`) |
+| `SUPABASE_SERVICE_KEY` | Supabase service role key for chat tracking (optional but recommended) |
 
 **Model**: `gpt-4o-mini`, `temperature: 0.2`, `max_tokens: 512`
 
@@ -1004,6 +927,31 @@ What it does:
 - updates `senses.audio_url/audio_key/audio_source_cell`
 - updates `examples.audio_url/audio_key/audio_source_cell`
 
+#### `course_audio_mapper.py`
+Builds the Lingala course-audio lookup from the workbook cell references and the
+four `cours` audio groups.
+
+What it does:
+- scans the final course audio package
+- matches workbook cell references to live `lesson_items`
+- prepares main-line and example-line course audio metadata
+
+Current result:
+- `1,251` matched course audio files prepared for writeback
+
+#### `apply_course_audio_to_lesson_items.py`
+One-time loader that writes Lingala course audio directly to Supabase
+`lesson_items`.
+
+What it does:
+- reads the generated course mapping
+- updates `lesson_items.audio_url/audio_key/audio_source_cell`
+- updates `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell`
+
+Current result:
+- `830` `lesson_items` rows updated
+- representative verified IDs: `4376`, `4438`, `5000`
+
 #### `LINGALA_AUDIO_WORKFLOW.md`
 Runbook for the full Lingala audio ingestion flow:
 - manifest generation
@@ -1223,6 +1171,20 @@ Completed on **2026-03-15**.
 - `6` files reference blank workbook cells and require source-data review
 - Frontend playback is currently implemented in `WordDetail` for the headword and first visible example only
 
+### Course audio migration results
+
+| Metric | Count |
+|---|---|
+| Matched course audio files | 1,251 |
+| `lesson_items` rows linked with course audio | 830 |
+| Course audio storage | `lesson_items.audio_url` + `lesson_items.example_audio_url` |
+
+### Course audio implementation notes
+
+- Course audio now lives directly in Supabase on `lesson_items`
+- The temporary frontend file `course_audio_map.json` was removed after backfilling the DB
+- Lesson playback now uses direct Supabase audio fields instead of a static JSON fallback
+
 ---
 
 ## 12. Known Limitations & Next Steps
@@ -1243,7 +1205,7 @@ Completed on **2026-03-15**.
 ### Recommended next steps
 
 **Short term**
-- [ ] Add pgvector to Supabase for semantic search of lesson_items (currently keyword-only)
+- [x] Add pgvector to Supabase for semantic search of lesson_items — done 2026-03-21
 - [ ] Per-language FAISS indexes to support Yoruba and future languages without collision
 - [ ] Improve language detection for Yoruba vs Lingala disambiguation
 - [ ] Upload NLLB-filtered Yoruba data to parallel_sentences
@@ -1264,5 +1226,101 @@ Completed on **2026-03-15**.
 
 ---
 
-*Documentation last updated: 2026-03-15*
-*Stack: React · Supabase · FastAPI · FAISS · sentence-transformers · OpenAI gpt-4o-mini · Vercel · Railway · Cloudflare R2*
+---
+
+## 13. pgvector Lesson-Items Semantic Search
+
+Implemented on **2026-03-21**.
+
+### What it does
+
+Adds a second context source to the chat pipeline alongside FAISS. Every `lesson_items` row (professor-verified grammar course data) is embedded and stored in Supabase. At query time, the user's message is embedded and the closest course rows are retrieved semantically, then merged with FAISS results in the system prompt.
+
+### Architecture
+
+```
+User query ──┬── FAISS (Railway)         → top-30 NLLB/FLORES/dict pairs
+             └── /api/lesson-context      → embed query (OpenAI)
+                                             → match_lesson_items RPC (pgvector)
+                                             → top-8 course rows
+                         ↓
+               merged context → LLM
+```
+
+Both fetches fire in parallel (`Promise.allSettled` in `searchContext`). Either source can fail silently without breaking chat.
+
+### Files
+
+| File | Purpose |
+|---|---|
+| `sql/pgvector_lesson_items.sql` | Enable `vector` ext, add `embedding vector(384)` col, create `match_lesson_items` RPC |
+| `embed_lesson_items.py` | One-time script: embed all rows via OpenAI, upsert to Supabase |
+| `api/lesson-context.js` | Vercel serverless: embed query → call RPC → return formatted context |
+
+### Embedding details
+
+| Parameter | Value |
+|---|---|
+| Model | `text-embedding-3-small` |
+| Dimensions | 384 |
+| Input | `french / dialect / example_french / example_dialect` concatenated |
+| Rows embedded | 1,740 |
+| Storage | `lesson_items.embedding vector(384)` |
+
+### Supabase RPC
+
+```sql
+match_lesson_items(
+  query_embedding vector(384),
+  match_count     int,
+  p_language_id   bigint
+)
+```
+Joins `lesson_items → lessons → courses` to filter by language, orders by cosine similarity, returns top `match_count` rows including `lesson_id`.
+
+### Lesson expansion (complete conjugation tables)
+
+After the RPC returns top matches, `api/lesson-context.js` checks each match's similarity score against a threshold (0.4). For all matches above the threshold, it fetches **all rows from the same lesson** via a follow-up Supabase query. This ensures conjugation tables and vocabulary lists are always returned in full — not as a partial slice — so the model never has to guess missing forms.
+
+### Re-embedding
+
+Run after any bulk update to `lesson_items`:
+
+```bash
+export SUPABASE_URL="https://haioiccujncsehadipzb.supabase.co"
+export SUPABASE_SERVICE_KEY="..."
+export OPENAI_API_KEY="..."
+
+python3 embed_lesson_items.py           # only rows missing embeddings
+python3 embed_lesson_items.py --force   # re-embed everything
+```
+
+### Context format injected into the LLM
+
+```
+=== COURS (DONNÉES VÉRIFIÉES) ===
+• Je → Ngai [cours vérifié]
+  Ex: Je veux manger → Ngai nalingi kolia
+• Nous allons → Tokei [cours vérifié]
+```
+
+---
+
+## 14. System Prompt Fixes (2026-03-21)
+
+- **RÈGLE SUJET** clarified: grammar, conjugation, vocabulary, pronunciation are explicitly listed as always on-topic. Previously the vague wording caused the model to treat "comment tu conjugues" as an off-topic question about itself.
+- **Rule 4** softened: the model now uses partial corpus content when available and only mentions "Corriger" as a last resort when nothing relevant is found. The old rule caused immediate deflection on any conjugation question with thin corpus coverage.
+- Added an explicit rule: never treat a grammar or conjugation question as off-topic.
+
+---
+
+## 15. Admin Panel — Editable Corrections
+
+Implemented on **2026-03-21**.
+
+The `correct_french`, `correct_lingala`, and `example_sentence` fields in the correction review cards are now editable textareas. The admin can fix typos or improve the pair before clicking "Approuver". The edited values (not the originals) are what gets inserted into `parallel_sentences`.
+
+---
+
+*Documentation last updated: 2026-03-21 (session 2)*
+*Stack: React · Supabase · pgvector · FastAPI · FAISS · sentence-transformers · OpenAI gpt-4o-mini · Vercel · Railway · Cloudflare R2*
