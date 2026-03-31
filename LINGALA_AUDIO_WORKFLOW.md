@@ -1,8 +1,9 @@
 # Lingala Audio Workflow
 
-This workflow maps the final Lingala audio files back to the exact normalized
-dictionary rows already uploaded to Monoko, uploads the files to Cloudflare R2,
-and then links the uploaded object URLs to `senses` and `examples`.
+This workflow covers both Lingala dictionary audio and Lingala course audio. It
+maps the final audio files back to the exact normalized rows already uploaded to
+Monoko, uploads the files to Cloudflare R2 where needed, and then links the
+audio metadata to `senses`, `examples`, and `lesson_items`.
 
 ## 1. Generate the manifest
 
@@ -38,6 +39,14 @@ alter table examples
   add column if not exists audio_url text,
   add column if not exists audio_key text,
   add column if not exists audio_source_cell text;
+
+alter table lesson_items
+  add column if not exists audio_url text,
+  add column if not exists audio_key text,
+  add column if not exists audio_source_cell text,
+  add column if not exists example_audio_url text,
+  add column if not exists example_audio_key text,
+  add column if not exists example_audio_source_cell text;
 ```
 
 ## 3. Upload to Cloudflare R2
@@ -87,3 +96,40 @@ After the links are present in Supabase:
 - read `audio_url` on `senses`
 - read `audio_url` on `examples`
 - render a play button only when the URL exists
+
+## 6. Build the course-audio mapping
+
+Generate the Lingala course-audio mapping from the workbook references and the
+four `cours` audio folders:
+
+```bash
+python3 course_audio_mapper.py
+```
+
+Current result:
+
+- `1,251` matched course audio files
+- mapping prepared for direct `lesson_items` updates
+
+## 7. Apply course-audio DB updates
+
+Write the matched course audio directly to Supabase:
+
+```bash
+python3 apply_course_audio_to_lesson_items.py
+```
+
+Current result:
+
+- `830` `lesson_items` rows updated
+- main lesson audio stored in `lesson_items.audio_url`
+- example lesson audio stored in `lesson_items.example_audio_url`
+
+## 8. Course frontend follow-up
+
+After the course links are present in Supabase:
+
+- read `audio_url` on `lesson_items`
+- read `example_audio_url` on `lesson_items`
+- render course lesson play buttons only when the URL exists
+- no static `course_audio_map.json` fallback is needed anymore
