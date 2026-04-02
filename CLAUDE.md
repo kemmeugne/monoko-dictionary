@@ -29,18 +29,16 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 
 ```
 index.html                        — entire frontend (React, ~1700 lines)
-admin.html                        — admin panel for reviewing corrections (fields now editable before approval)
+admin.html                        — admin panel: per-card approve/reject, pagination top+bottom, page X/Y counter
 api/admin-action.js               — Vercel serverless function (secure Supabase writes)
 api/chat.js                       — Vercel serverless function (proxies chat to OpenAI gpt-4o-mini)
 api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences)
 api/lesson-context.js             — Vercel serverless function (pgvector semantic search over lesson_items)
 sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match_parallel_sentences RPC
-sql/pgvector_lesson_items.sql     — SQL migration: add embedding col + match_lesson_items RPC
-embed_parallel_sentences.py       — one-time script: embeds all parallel_sentences rows via OpenAI → Supabase
-embed_lesson_items.py             — one-time script: embeds all lesson_items rows via OpenAI → Supabase
+monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
+benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
+liste_200_phrases.docx            — 200 phrase types across 19 themes used by monoko_auto_test.py
 TECHNICAL_DOCS.md                 — full system documentation
-upload_to_supabase.py             — uploads Excel dictionary files to Supabase
-upload_courses.py                 — uploads course/lesson JSON to Supabase
 ```
 
 ---
@@ -116,6 +114,9 @@ User flags AI error → corrections table (status: pending, now with optional `t
 - Lingala dictionary audio is now linked through `senses.audio_url` and `examples.audio_url`
 - Lingala course audio is now linked directly through `lesson_items.audio_url` and `lesson_items.example_audio_url`
 - `index.html` `WordDetail` renders audio buttons only when an audio URL exists
+- The LLM system prompt allows best-guess translations when words are absent from the corpus (changed 2026-04-02) — the model uses its own Lingala knowledge to fill gaps rather than refusing
+- `monoko_auto_test.py` inserts corrections with `tester_name='auto_test_script'` — use this to filter/delete auto-generated corrections in Supabase if needed
+- **Vercel env vars**: `SUPABASE_SERVICE_KEY` must be set on the correct Vercel project (monoko, not anthony's project) and for the Production environment
 
 ## Lingala audio status
 

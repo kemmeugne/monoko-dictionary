@@ -33,9 +33,10 @@
 ### Core features
 - **Dictionary**: French ↔ dialect word lookup with multiple senses and example sentences
 - **Courses**: Structured grammar lessons (conjugation, pronouns, useful phrases, vocabulary by theme)
-- **AI Chat (Monoko)**: Conversational AI that translates, explains grammar, and holds dialogue — backed by a FAISS semantic search RAG
+- **AI Chat (Monoko)**: Conversational AI that translates, explains grammar, and holds dialogue — backed by a pgvector RAG on Supabase
 - **Correction system**: Users flag AI errors; admins approve corrections which flow back into the verified corpus
-- **Admin panel**: Password-protected review interface with bulk-approve
+- **Admin panel**: Password-protected review interface with per-card approve/reject and pagination
+- **Automated quality testing**: `monoko_auto_test.py` generates test sentences, evaluates Monoko's Lingala output, and auto-inserts failures as pending corrections
 
 ---
 
@@ -482,22 +483,24 @@ LN: Aza na kelasi banda tongo. [vérifié par professeur]
 
 ### LLM system prompt
 
-Strict corpus-first rules (updated March 2026):
+Corpus-first with best-guess fallback (updated 2026-04-02):
 ```
 Tu es Monoko, un assistant IA dédié à la langue {langName}.
 RÈGLE SUJET: Tu ne parles QUE de la langue {langName}.
-1. Le corpus ci-dessous est ta SEULE source de vérité.
-   Utilise UNIQUEMENT les mots et structures qui apparaissent dans le corpus.
+1. Le corpus ci-dessous est ta source prioritaire — paires vérifiées par des experts.
 2. Indique ✓ UNIQUEMENT pour des mots/phrases copiés directement depuis le corpus.
 3. Tu peux assembler des éléments vérifiés → indique ~ pour ces assemblages.
-4. Si un mot clé est absent du corpus, dis-le clairement — ne propose JAMAIS une traduction inventée.
+4. Si un mot est absent du corpus, utilise ta connaissance du {langName} pour compléter.
+   Tu as le droit de faire une estimation raisonnée — indique ~ pour ces éléments.
+   Mentionne "Corriger" si ta réponse est incertaine.
 5. Réponses courtes, naturelles et chaleureuses.
 ```
 
+**Design rationale**: The corpus provides verified anchors; the model fills gaps using its own Lingala training knowledge rather than refusing. This is more useful for learners than a refusal when a word isn't in the corpus. The correction system captures errors when the model guesses wrong.
+
 Quality indicators:
 - ✓ = copied verbatim from corpus
-- ~ = assembled from verified corpus elements
-- ≈ indicator **removed** — model must not guess
+- ~ = assembled from verified corpus elements, or estimated from model knowledge
 
 **Model**: `gpt-4o-mini` (via `/api/chat.js` Vercel serverless)
 **Max tokens**: 512
@@ -550,10 +553,9 @@ Password-protected admin panel at `/admin.html`.
 **Features**:
 - Stats dashboard (pending / approved / rejected counts)
 - Filter by status and language
-- Per-correction card showing: user query, AI response, corrected FR↔LN pair
-- Individual approve/reject buttons
-- **Bulk approve**: approves all pending corrections with complete pairs in one operation
-- Pagination (10 per page)
+- Per-correction card showing: user query, AI response, corrected FR↔LN pair (all fields editable before approval)
+- Individual approve/reject buttons per card
+- Pagination at top and bottom of list (10 per page) with page X/Y counter and total count
 
 **Approve flow**:
 ```
@@ -568,44 +570,25 @@ Click "Approuver"
 
 ## 7. Backend API
 
-### `rag_api.py` — FastAPI on Railway
+> **Note (2026-03-31)**: The Railway/FastAPI backend (`rag_api.py`) was decommissioned. All vector search now runs on Supabase pgvector via Vercel serverless functions. The sections below document the current Vercel API.
 
-**Base URL**: `https://[your-railway-url].up.railway.app`
+### `POST /api/rag-context`
 
----
-
-#### `GET /health`
-
-Liveness check.
-
-**Response**:
-```json
-{
-  "status": "ok",
-  "vectors": 67687
-}
-```
-Returns `"index_not_loaded"` if startup failed.
-
----
-
-#### `POST /api/context`
-
-Main RAG endpoint. Takes a user query, returns semantically relevant context.
+Embeds the user query with OpenAI `text-embedding-3-small` (384 dim) and calls the `match_parallel_sentences` Supabase RPC to retrieve semantically relevant FR↔Lingala pairs.
 
 **Request**:
 ```json
 {
   "query": "comment dit-on bonjour ?",
-  "top_k": 20
+  "language_id": 1,
+  "match_count": 30
 }
 ```
 
 **Response**:
 ```json
 {
-  "context": "=== VOCABULAIRE VÉRIFIÉ ===\n• bonjour → Mbote [vérifié par professeur]\n\n=== PHRASES PARALLÈLES ===\nFR: Bonjour tout le monde\nLN: Mbote na bino nyonso [vérifié par professeur]\n",
-  "query_lang": "fr",
+  "context": "=== CORPUS VÉRIFIÉ (paires FR↔Lingala) ===\n• Bonjour → Mbote [vérifié]\n...",
   "result_count": 14
 }
 ```
@@ -706,6 +689,70 @@ Batch inserts all rows into `parallel_sentences`, batch updates all IDs to `"app
 ---
 
 ## 8. Scripts Reference
+
+### Automated quality testing — `monoko_auto_test.py`
+
+Added **2026-04-02**. Reads 200 phrase types from `liste_200_phrases.docx` across 19 themes, generates natural French sentences via GPT, tests Monoko's Lingala output, and auto-inserts failures as pending corrections into Supabase for professor review.
+
+```bash
+python3 monoko_auto_test.py --supabase-key "eyJ..." --output artifacts/auto_test_log.json
+
+# Test a single theme first
+python3 monoko_auto_test.py --themes 11 --dry-run
+
+# Resume after a timeout (reads existing log, skips done phrases)
+python3 monoko_auto_test.py --supabase-key "eyJ..." --output artifacts/auto_test_log.json
+```
+
+**Pipeline per phrase type**:
+1. Generate 6 French sentences (present / past / future / question / negative / other person) via `gpt-4o-mini` — prompt explicitly avoids using "dire" as a subject
+2. For each sentence: POST to `/api/rag-context` → POST to `/api/chat` → get Monoko's Lingala response
+3. Send FR + Lingala response to `gpt-5-mini` evaluator → returns `pass`, `score/10`, `issues`, `correct_lingala`, `correction_type`
+4. If `pass=false` → insert row into `corrections` table (`status=pending`, `tester_name=auto_test_script`)
+5. Save progress to JSON log after every phrase (resume-safe)
+
+**Key flags**:
+| Flag | Default | Description |
+|---|---|---|
+| `--themes` | all | Comma-separated theme numbers, e.g. `1,3,11` |
+| `--limit` | none | Max phrase types (for quick tests) |
+| `--dry-run` | false | Skip Supabase inserts |
+| `--delay` | 0.6s | Sleep between API calls |
+| `--output` | `artifacts/auto_test_log.json` | Log file path |
+
+**Results (first full run, 2026-04-02)**: 598 sentences tested, ~5% pass rate — primarily due to corpus gaps. 570 corrections inserted as pending. After professor approval and re-embedding, a second run is expected to show significantly higher pass rates.
+
+---
+
+### Model benchmark — `benchmark_monoko_models.py`
+
+Evaluates and compares OpenAI models on Lingala translation quality using chrF scoring against verified/gold reference pairs.
+
+```bash
+# Compare 3 models, translate-only prompt (cleanest chrF signal)
+OPENAI_API_KEY=sk-... python3 benchmark_monoko_models.py \
+  --mode openai \
+  --openai-models gpt-4o-mini,gpt-5-nano,gpt-5-mini \
+  --samples-per-quality 10 \
+  --prompt-mode translate-only \
+  --output artifacts/model_benchmark_results_3way.json
+```
+
+**Benchmark results (2026-04-01)**:
+
+| Model | chrF (translate-only) | Latency | Cost/1k |
+|---|---|---|---|
+| gpt-4o-mini | 0.4006 | 1,271ms | $0.026 |
+| gpt-5-nano | 0.3639 | 980ms | $0.018 |
+| gpt-5-mini | 0.4293 | 1,429ms | $0.087 |
+
+**Decision**: Keep `gpt-4o-mini`. gpt-5-mini wins on raw translation (+3 chrF pts) but at 3x the cost — not significant enough to justify switching at current volumes. Revisit when volumes grow.
+
+**Prompt modes**:
+- `full` — Monoko RAG+format prompt (tests the full pipeline)
+- `translate-only` — bare translation, no RAG (tests raw model Lingala quality)
+
+---
 
 ### Data pipeline (in `monoko_rag/`)
 
