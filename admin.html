@@ -393,22 +393,6 @@
             </select>
           </div>
 
-          {/* Bulk approve — only shown on pending tab with results */}
-          {filterStatus === "pending" && !loading && corrections.length > 0 && (
-            <div style={{ background:"linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius:14, padding:"14px 18px", border:"1px solid #BBF7D0", marginBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-              <div>
-                <p style={{ fontSize:13, fontWeight:700, color:"#2C5F2D", margin:"0 0 2px" }}>Tout approuver d'un coup</p>
-                <p style={{ fontSize:11, color:"#6B7280", margin:0 }}>Seules les corrections avec FR + {filterLang !== "all" ? languages.find(l=>String(l.id)===filterLang)?.name : "Lingala"} complètes seront insérées dans le corpus.</p>
-              </div>
-              <button
-                onClick={bulkApprove}
-                disabled={bulkLoading}
-                style={{ flexShrink:0, padding:"10px 18px", background: bulkLoading ? "#E8E0D4" : "linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:10, fontSize:13, fontWeight:700, cursor: bulkLoading ? "default" : "pointer", whiteSpace:"nowrap" }}>
-                {bulkLoading ? "En cours…" : "✓ Tout approuver"}
-              </button>
-            </div>
-          )}
-
           {/* Corrections list */}
           {loading ? <Spinner /> : corrections.length === 0 ? (
             <div style={{ textAlign:"center", padding:"48px 0", color:"#9B8A6E" }}>
@@ -417,6 +401,16 @@
             </div>
           ) : (
             <>
+              {/* Pagination — top */}
+              <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:16 }}>
+                <button onClick={() => setPage(p => Math.max(0, p-1))} disabled={page === 0} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: page === 0 ? "#F5F0EA" : "white", color: page === 0 ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: page === 0 ? "default" : "pointer", fontSize:13 }}>← Précédent</button>
+                <span style={{ padding:"8px 16px", fontSize:13, color:"#9B8A6E", fontWeight:600 }}>
+                  Page {page + 1} / {Math.ceil((stats[filterStatus] || 0) / PAGE_SIZE) || 1}
+                  <span style={{ fontWeight:400, marginLeft:8 }}>({stats[filterStatus] || 0} au total)</span>
+                </span>
+                <button onClick={() => setPage(p => p+1)} disabled={corrections.length < PAGE_SIZE} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: corrections.length < PAGE_SIZE ? "#F5F0EA" : "white", color: corrections.length < PAGE_SIZE ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: corrections.length < PAGE_SIZE ? "default" : "pointer", fontSize:13 }}>Suivant →</button>
+              </div>
+
               {corrections.map(c => (
                 <CorrectionCard
                   key={c.id}
@@ -427,7 +421,8 @@
                   loading={actionLoading === c.id}
                 />
               ))}
-              {/* Pagination */}
+
+              {/* Pagination — bottom */}
               <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:16 }}>
                 <button onClick={() => setPage(p => Math.max(0, p-1))} disabled={page === 0} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: page === 0 ? "#F5F0EA" : "white", color: page === 0 ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: page === 0 ? "default" : "pointer", fontSize:13 }}>← Précédent</button>
                 <span style={{ padding:"8px 16px", fontSize:13, color:"#9B8A6E", fontWeight:600 }}>
