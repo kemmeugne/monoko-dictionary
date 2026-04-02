@@ -27,7 +27,7 @@
     const { useState, useRef, useEffect, useCallback } = React;
 
     const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaW9pY2N1am5jc2VoYWRpcHpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTczMjAsImV4cCI6MjA4NjU5MzMyMH0.ic0JlZ17hOpLOzth_E4YrR122EG4LN6T04TYMcV-_CU";
+    const SUPABASE_KEY = "sb_publishable_W6hYzyecMTm06Cr9siLV1A_4qtR5ect";
     async function supaFetch(table, params = "") {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
         headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
