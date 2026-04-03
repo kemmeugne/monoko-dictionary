@@ -29,7 +29,7 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 
 ```
 index.html                        — entire frontend (React, ~1700 lines)
-admin.html                        — admin panel: per-card approve/reject, pagination top+bottom, page X/Y counter
+admin.html                        — admin panel: per-card approve (no reject), pagination top+bottom, page X/Y counter, professor_modified tracking
 api/admin-action.js               — Vercel serverless function (secure Supabase writes)
 api/chat.js                       — Vercel serverless function (proxies chat to OpenAI gpt-4o-mini)
 api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences)
@@ -50,7 +50,7 @@ TECHNICAL_DOCS.md                 — full system documentation
 - `senses.audio_url/audio_key/audio_source_cell` — Lingala word audio links (added 2026-03-15)
 - `examples.audio_url/audio_key/audio_source_cell` — Lingala example audio links (added 2026-03-15)
 - `parallel_sentences` — FR↔dialect sentence pairs for RAG (FLORES + approved corrections); `embedding vector(384)` added 2026-03-31
-- `corrections` — user-submitted AI corrections (pending → approved/rejected)
+- `corrections` — user-submitted AI corrections (pending → approved); `professor_modified boolean` tracks whether the professor edited the correction before approving
 - `chat_events` — tester-tracked chat activity (`tester_name`, `session_id`, query/response, timestamps)
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
@@ -78,11 +78,19 @@ TECHNICAL_DOCS.md                 — full system documentation
 ## Correction flow
 
 ```
-User flags AI error → corrections table (status: pending, now with optional `tester_name` + `session_id`)
-→ Admin reviews at /admin.html
-  → Admin can edit correct_french, correct_lingala, example_sentence directly in the card before approving
-→ Approve → inserts into parallel_sentences (quality: verified) + status: approved
-→ Reject → status: rejected
+User flags AI error → corrections table (status: pending, with optional `tester_name` + `session_id`)
+→ Professor reviews at /admin.html
+  → Professor edits correct_french, correct_lingala, example_sentence directly in the card if needed
+→ Approve → inserts into parallel_sentences (quality: verified) + status: approved + professor_modified: true/false
+```
+
+**Monitoring query** — % of corrections the professor had to fix:
+```sql
+SELECT
+  COUNT(*) FILTER (WHERE professor_modified = true)  AS edited,
+  COUNT(*)                                            AS total,
+  ROUND(100.0 * COUNT(*) FILTER (WHERE professor_modified = true) / COUNT(*), 1) AS pct_edited
+FROM corrections WHERE status = 'approved';
 ```
 
 ---

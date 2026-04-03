@@ -136,8 +136,14 @@
       const typeLabels = { incorrect:"Incorrecte", partial:"Partielle", missing:"Contexte manquant" };
       const color = typeColors[correction.correction_type] || "#6B7280";
 
+      const wasEdited = (
+        french.trim()  !== (correction.correct_french   || "").trim() ||
+        dialect.trim() !== (correction.correct_lingala  || "").trim() ||
+        example.trim() !== (correction.example_sentence || "").trim()
+      );
+
       const handleApprove = () => {
-        onApprove({ ...correction, correct_french: french.trim(), correct_lingala: dialect.trim(), example_sentence: example.trim() });
+        onApprove({ ...correction, correct_french: french.trim(), correct_lingala: dialect.trim(), example_sentence: example.trim(), professor_modified: wasEdited });
       };
 
       return (
@@ -219,12 +225,6 @@
                 disabled={loading}
                 style={{ flex:1, padding:"11px", background: loading ? "#E8E0D4" : "linear-gradient(135deg,#2C5F2D,#4A8B4C)", color:"white", border:"none", borderRadius:10, fontSize:13, fontWeight:700, cursor: loading ? "default" : "pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                 <CheckIcon /> Approuver → corpus
-              </button>
-              <button
-                onClick={() => onReject(correction.id)}
-                disabled={loading}
-                style={{ padding:"11px 16px", background: loading ? "#F5F0EA" : "white", color:"#EF4444", border:"1px solid #FECACA", borderRadius:10, fontSize:13, fontWeight:700, cursor: loading ? "default" : "pointer", display:"flex", alignItems:"center", gap:6 }}>
-                <XIcon /> Rejeter
               </button>
             </div>
           </div>

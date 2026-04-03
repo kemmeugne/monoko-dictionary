@@ -59,10 +59,11 @@ export default async function handler(req, res) {
         quality:      "verified",
       });
       await supaWrite("PATCH", "corrections", {
-        status:           "approved",
-        correct_french:   correction.correct_french,
-        correct_lingala:  correction.correct_lingala,
-        example_sentence: correction.example_sentence,
+        status:               "approved",
+        correct_french:       correction.correct_french,
+        correct_lingala:      correction.correct_lingala,
+        example_sentence:     correction.example_sentence,
+        professor_modified:   correction.professor_modified ?? false,
       }, `id=eq.${correction.id}`);
       return res.status(200).json({ ok: true });
     }

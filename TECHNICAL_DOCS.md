@@ -187,10 +187,13 @@ User-submitted AI corrections awaiting admin review.
 | `example_sentence` | TEXT | Optional example |
 | `tester_name` | TEXT | Tester/professor name entered before chat |
 | `session_id` | TEXT | Browser session identifier used for activity tracking |
-| `status` | TEXT | `"pending"`, `"approved"`, `"rejected"` |
+| `status` | TEXT | `"pending"`, `"approved"` |
+| `professor_modified` | BOOLEAN | `true` if the professor edited the correction before approving |
 | `created_at` | TIMESTAMPTZ | Auto |
 
-**Flow**: `pending` → admin review → `approved` (auto-inserts into `parallel_sentences`) or `rejected`
+**Flow**: `pending` → admin review → professor edits if needed → `approved` (auto-inserts into `parallel_sentences`)
+
+**Monitoring**: Query `SELECT COUNT(*) FROM corrections WHERE professor_modified = true AND status = 'approved'` to track how often auto-generated corrections needed manual fixing before entering the corpus.
 
 ### `chat_events`
 Tester-tracked Monoko chat activity written server-side by `/api/chat`.
