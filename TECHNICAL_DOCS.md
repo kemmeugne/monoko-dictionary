@@ -193,7 +193,16 @@ User-submitted AI corrections awaiting admin review.
 
 **Flow**: `pending` → admin review → professor edits if needed → `approved` (auto-inserts into `parallel_sentences`)
 
-**Monitoring**: Query `SELECT COUNT(*) FROM corrections WHERE professor_modified = true AND status = 'approved'` to track how often auto-generated corrections needed manual fixing before entering the corpus.
+**Monitoring**: Query below tracks how often auto-generated corrections needed manual fixing before entering the corpus. Use `CASE WHEN COUNT(*) = 0 THEN NULL` to avoid division-by-zero when no corrections are approved yet.
+```sql
+SELECT
+  COUNT(*) FILTER (WHERE professor_modified = true) AS edited,
+  COUNT(*) AS total,
+  CASE WHEN COUNT(*) = 0 THEN NULL
+       ELSE ROUND(100.0 * COUNT(*) FILTER (WHERE professor_modified = true) / COUNT(*), 1)
+  END AS pct_edited
+FROM corrections WHERE status = 'approved';
+```
 
 ### `chat_events`
 Tester-tracked Monoko chat activity written server-side by `/api/chat`.

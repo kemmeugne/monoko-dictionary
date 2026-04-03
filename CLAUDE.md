@@ -87,9 +87,11 @@ User flags AI error → corrections table (status: pending, with optional `teste
 **Monitoring query** — % of corrections the professor had to fix:
 ```sql
 SELECT
-  COUNT(*) FILTER (WHERE professor_modified = true)  AS edited,
-  COUNT(*)                                            AS total,
-  ROUND(100.0 * COUNT(*) FILTER (WHERE professor_modified = true) / COUNT(*), 1) AS pct_edited
+  COUNT(*) FILTER (WHERE professor_modified = true) AS edited,
+  COUNT(*) AS total,
+  CASE WHEN COUNT(*) = 0 THEN NULL
+       ELSE ROUND(100.0 * COUNT(*) FILTER (WHERE professor_modified = true) / COUNT(*), 1)
+  END AS pct_edited
 FROM corrections WHERE status = 'approved';
 ```
 
