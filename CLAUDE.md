@@ -29,7 +29,7 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 
 ```
 index.html                        — entire frontend (React, ~1700 lines)
-admin.html                        — admin panel: per-card approve (no reject), pagination top+bottom, page X/Y counter, professor_modified tracking
+admin.html                        — admin panel: per-card approve/reject, pagination top+bottom, page X/Y counter, professor_modified tracking
 api/admin-action.js               — Vercel serverless function (secure Supabase writes)
 api/chat.js                       — Vercel serverless function (proxies chat to OpenAI gpt-4o-mini)
 api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences)
@@ -82,6 +82,7 @@ User flags AI error → corrections table (status: pending, with optional `teste
 → Professor reviews at /admin.html
   → Professor edits correct_french, correct_lingala, example_sentence directly in the card if needed
 → Approve → inserts into parallel_sentences (quality: verified) + status: approved + professor_modified: true/false
+→ Reject → status: rejected (used when a sentence has no valid Lingala translation)
 ```
 
 **Monitoring query** — % of corrections the professor had to fix:
