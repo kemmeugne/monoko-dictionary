@@ -232,6 +232,44 @@
       );
     }
 
+    // ── Pagination ────────────────────────────────────────────────────────────
+    function Pagination({ page, totalPages, totalCount, onPage }) {
+      const btnBase = { padding:"7px 12px", borderRadius:8, border:"1px solid #E8E0D4", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", minWidth:36, textAlign:"center" };
+
+      // Build page number list with ellipsis
+      const pages = [];
+      if (totalPages <= 7) {
+        for (let i = 0; i < totalPages; i++) pages.push(i);
+      } else {
+        pages.push(0);
+        if (page > 3) pages.push("...");
+        for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) pages.push(i);
+        if (page < totalPages - 4) pages.push("...");
+        pages.push(totalPages - 1);
+      }
+
+      return (
+        <div style={{ display:"flex", justifyContent:"center", alignItems:"center", gap:4, flexWrap:"wrap" }}>
+          <button onClick={() => onPage(p => Math.max(0, p-1))} disabled={page === 0}
+            style={{ ...btnBase, padding:"7px 14px", background: page === 0 ? "#F5F0EA" : "white", color: page === 0 ? "#B8A88C" : "#2D2118", cursor: page === 0 ? "default" : "pointer" }}>←</button>
+
+          {pages.map((p, i) => p === "..." ? (
+            <span key={`e${i}`} style={{ padding:"7px 4px", color:"#B8A88C", fontSize:13 }}>…</span>
+          ) : (
+            <button key={p} onClick={() => onPage(() => p)}
+              style={{ ...btnBase, background: p === page ? "#2C5F2D" : "white", color: p === page ? "white" : "#2D2118", border: p === page ? "1px solid #2C5F2D" : "1px solid #E8E0D4", cursor: p === page ? "default" : "pointer" }}>
+              {p + 1}
+            </button>
+          ))}
+
+          <button onClick={() => onPage(p => Math.min(totalPages - 1, p+1))} disabled={page >= totalPages - 1}
+            style={{ ...btnBase, padding:"7px 14px", background: page >= totalPages - 1 ? "#F5F0EA" : "white", color: page >= totalPages - 1 ? "#B8A88C" : "#2D2118", cursor: page >= totalPages - 1 ? "default" : "pointer" }}>→</button>
+
+          <span style={{ marginLeft:8, fontSize:12, color:"#9B8A6E", fontWeight:500 }}>{totalCount} au total</span>
+        </div>
+      );
+    }
+
     // ── Main admin app ────────────────────────────────────────────────────────
     function Admin() {
       const [authed, setAuthed] = useState(false);
@@ -402,13 +440,8 @@
           ) : (
             <>
               {/* Pagination — top */}
-              <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:16 }}>
-                <button onClick={() => setPage(p => Math.max(0, p-1))} disabled={page === 0} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: page === 0 ? "#F5F0EA" : "white", color: page === 0 ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: page === 0 ? "default" : "pointer", fontSize:13 }}>← Précédent</button>
-                <span style={{ padding:"8px 16px", fontSize:13, color:"#9B8A6E", fontWeight:600 }}>
-                  Page {page + 1} / {Math.ceil((stats[filterStatus] || 0) / PAGE_SIZE) || 1}
-                  <span style={{ fontWeight:400, marginLeft:8 }}>({stats[filterStatus] || 0} au total)</span>
-                </span>
-                <button onClick={() => setPage(p => p+1)} disabled={corrections.length < PAGE_SIZE} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: corrections.length < PAGE_SIZE ? "#F5F0EA" : "white", color: corrections.length < PAGE_SIZE ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: corrections.length < PAGE_SIZE ? "default" : "pointer", fontSize:13 }}>Suivant →</button>
+              <div style={{ marginBottom:16 }}>
+                <Pagination page={page} totalPages={Math.ceil((stats[filterStatus] || 0) / PAGE_SIZE) || 1} totalCount={stats[filterStatus] || 0} onPage={setPage} />
               </div>
 
               {corrections.map(c => (
@@ -423,13 +456,8 @@
               ))}
 
               {/* Pagination — bottom */}
-              <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:16 }}>
-                <button onClick={() => setPage(p => Math.max(0, p-1))} disabled={page === 0} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: page === 0 ? "#F5F0EA" : "white", color: page === 0 ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: page === 0 ? "default" : "pointer", fontSize:13 }}>← Précédent</button>
-                <span style={{ padding:"8px 16px", fontSize:13, color:"#9B8A6E", fontWeight:600 }}>
-                  Page {page + 1} / {Math.ceil((stats[filterStatus] || 0) / PAGE_SIZE) || 1}
-                  <span style={{ fontWeight:400, marginLeft:8 }}>({stats[filterStatus] || 0} au total)</span>
-                </span>
-                <button onClick={() => setPage(p => p+1)} disabled={corrections.length < PAGE_SIZE} style={{ padding:"8px 20px", borderRadius:10, border:"1px solid #E8E0D4", background: corrections.length < PAGE_SIZE ? "#F5F0EA" : "white", color: corrections.length < PAGE_SIZE ? "#B8A88C" : "#2D2118", fontWeight:600, cursor: corrections.length < PAGE_SIZE ? "default" : "pointer", fontSize:13 }}>Suivant →</button>
+              <div style={{ marginTop:16 }}>
+                <Pagination page={page} totalPages={Math.ceil((stats[filterStatus] || 0) / PAGE_SIZE) || 1} totalCount={stats[filterStatus] || 0} onPage={setPage} />
               </div>
             </>
           )}
