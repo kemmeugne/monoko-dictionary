@@ -306,9 +306,9 @@
       voyelles: [
         { letter:"A", word:"Bokáni",    meaning:"Décision",   hint:"comme dans « patte »" },
         { letter:"E", word:"Emétu",     meaning:"Genre",      hint:"comme dans « été »" },
-        { letter:"I", word:"Lisakoli",  meaning:"Discours",   hint:"comme dans « vie »" },
-        { letter:"O", word:"Motoki",    meaning:"Sueur",      hint:"comme dans « eau »" },
-        { letter:"U", word:"Kozuza",    meaning:"Déformer",   hint:"comme dans « ou »" },
+        { letter:"I", word:"Lisakolí",  meaning:"Discours",   hint:"comme dans « vie »" },
+        { letter:"O", word:"Motóki",    meaning:"Sueur",      hint:"comme dans « eau »" },
+        { letter:"U", word:"Kozúza",    meaning:"Déformer",   hint:"comme dans « ou »" },
         { letter:"Ɛ", word:"Tɛmbɛlɛ",  meaning:"Timbre",     hint:"comme dans « fête »" },
         { letter:"Ɔ", word:"Mpɔ",       meaning:"Pour",       hint:"comme dans « or »" },
       ],
@@ -346,6 +346,11 @@
         { letter:"NY", word:"Nyama",       meaning:"Animal" },
         { letter:"NZ", word:"Nzále",       meaning:"Buffle" },
         { letter:"TS", word:"Etsúséláká",  meaning:"Grammaire" },
+      ],
+      trigraphes: [
+        { letter:"NGB", word:"Ngbá",    meaning:"Hachette" },
+        { letter:"NGW", word:"Ngwaa",   meaning:"Brillant" },
+        { letter:"TSH", word:"Tshádi",  meaning:"Tchad" },
       ],
       tons: [
         { letter:"—",  mark:"(sans accent)", word:"Kopésa",  meaning:"Donner",  desc:"Ton bas" },
@@ -458,17 +463,24 @@
             ))}
           </div>
 
-          <SectionLabel>Sons composés — {ALPHABET_DATA.composes.length} combinaisons</SectionLabel>
+          <SectionLabel>Sons composés — {ALPHABET_DATA.composes.length} digraphes</SectionLabel>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
             {ALPHABET_DATA.composes.map((c, i) => (
               <Tile key={c.letter} {...c} itemOrder={i+23} accent="compose" />
             ))}
           </div>
 
+          <SectionLabel>Sons composés — {ALPHABET_DATA.trigraphes.length} trigraphes</SectionLabel>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+            {ALPHABET_DATA.trigraphes.map((c, i) => (
+              <Tile key={c.letter} {...c} itemOrder={i+39} accent="compose" />
+            ))}
+          </div>
+
           <SectionLabel>Les 4 tons du lingala</SectionLabel>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
             {ALPHABET_DATA.tons.map((t, i) => (
-              <ToneTile key={t.desc} item={t} itemOrder={i+39} />
+              <ToneTile key={t.desc} item={t} itemOrder={i+42} />
             ))}
           </div>
 
