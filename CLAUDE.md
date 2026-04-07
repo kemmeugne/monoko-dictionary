@@ -39,6 +39,12 @@ monoko_auto_test.py               — automated quality tester: generates senten
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
 liste_200_phrases.docx            — 200 phrase types across 19 themes used by monoko_auto_test.py
 TECHNICAL_DOCS.md                 — full system documentation
+
+Cours/MONOKO_CURRICULUM.md        — universal CEFR-aligned curriculum (6 levels, 29 modules) for all languages
+Cours/lingala_curriculum_migration.sql — migration script: restructures old 4 courses into 6-level CEFR curriculum
+generate_audio_collection_html.py — generates one HTML recording app per module for items missing audio
+populate_stub_modules.py          — populates stub modules with suggested French content, then re-runs HTML generator
+audio_collection_html/            — generated HTML recording apps (one per module), sent to professor for audio recording
 ```
 
 ---
@@ -55,7 +61,7 @@ TECHNICAL_DOCS.md                 — full system documentation
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
 - `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell` — Lingala course example audio links (added 2026-03-16)
-- `lesson_items.embedding vector(384)` — OpenAI text-embedding-3-small embeddings for pgvector search (added 2026-03-21, 1,740 rows embedded)
+- `lesson_items.embedding vector(384)` — OpenAI text-embedding-3-small embeddings for pgvector search (added 2026-03-21, 1,740 rows embedded on old structure; new structure needs re-embedding via `embed_lesson_items.py`)
 
 ---
 
@@ -128,6 +134,62 @@ FROM corrections WHERE status = 'approved';
 - The LLM system prompt allows best-guess translations when words are absent from the corpus (changed 2026-04-02) — the model uses its own Lingala knowledge to fill gaps rather than refusing
 - `monoko_auto_test.py` inserts corrections with `tester_name='auto_test_script'` — use this to filter/delete auto-generated corrections in Supabase if needed
 - **Vercel env vars**: `SUPABASE_SERVICE_KEY` must be set on the correct Vercel project (monoko, not anthony's project) and for the Production environment
+- **New Supabase API key** (legacy keys disabled 2026-04-02): `sb_secret_*** (see Vercel env vars or ask Anthony)` — update this in Vercel env vars
+
+## Lingala curriculum restructure (2026-04-06)
+
+The old 4-course flat structure (courses id=22,23,24,25) was migrated to a CEFR-aligned 6-level curriculum.
+
+**New structure:**
+- 6 courses (levels A1→B2+), 29 modules, ~948 lesson_items
+- Migration script: `Cours/lingala_curriculum_migration.sql`
+- Old courses (22,23,24,25) still exist — **delete only after verifying new structure in app and re-embedding**
+
+**Audio preservation:**
+- Step 4 in migration SQL copies audio from old items to new items by `french + dialect` match
+- Step 4b copies audio from `senses` and `examples` tables for new dictionary-sourced items
+- Audio coverage after migration: ~89% overall (some modules 100%, stubs 0%)
+
+**Post-migration completed (2026-04-07):**
+1. ✅ `embed_lesson_items.py` run — new lesson_items embedded
+2. ✅ Chat verified working with new course content
+3. ✅ Old courses deleted: `DELETE FROM courses WHERE id IN (22, 23, 24, 25);`
+4. ✅ Vercel `SUPABASE_SERVICE_KEY` updated to new key `sb_secret_*** (see Vercel env vars or ask Anthony)`
+
+**Audio collection for missing items (2026-04-07):**
+- Generated 23 HTML recording apps in `audio_collection_html/` — one per module with missing audio
+- Stub modules (8 modules with placeholder content) were populated with suggested French content via `populate_stub_modules.py`
+- Proverbes et expressions idiomatiques (4.3) left entirely to the professor
+- Workflow: professor opens HTML in browser → fills in Lingala (where empty) → records audio → exports ZIP → sends back
+- After receiving ZIPs: upload audio to R2, update `lesson_items.audio_url` in Supabase
+
+**Module audio coverage (verified post-migration):**
+
+| Module | Items | With audio |
+|--------|-------|-----------|
+| Pronoms et possessifs | 12 | 12 (100%) |
+| Famille | 14 | 14 (100%) |
+| Maison et objets | 36 | 36 (100%) |
+| Travail et métiers | 25 | 25 (100%) |
+| Marché et argent | 11 | 11 (100%) |
+| Ville et lieux | 29 | 29 (100%) |
+| Chiffres/jours | 92 | 90 (98%) |
+| Nature et animaux | 75 | 73 (97%) |
+| Cuisine | 66 | 65 (98%) |
+| Salutations | 41 | 36 (88%) |
+| Construction 2 | 237 | 209 (88%) |
+| Présentation | 33 | 27 (82%) |
+| Manger et boire | 24 | 18 (75%) |
+| Corps et santé | 50 | 38 (76%) |
+| Construction 1 | 62 | 52 (84%) |
+| Déplacements | 23 | 18 (78%) |
+| Conjugaison passé | 18 | 11 (61%) |
+| Sentiments | 30 | 20 (67%) |
+| Débats et opinions | 22 | 13 (59%) |
+| Langue dans le monde | 6 | 2 (33%) |
+| Stubs (8 modules) | 3-20 | 0 (professor needed) |
+
+---
 
 ## Lingala audio status
 

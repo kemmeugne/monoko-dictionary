@@ -301,6 +301,192 @@
       );
     };
 
+    // ── Alphabet Panel (Module 1.1 Sons et alphabet) ─────────────────────────
+    const ALPHABET_DATA = {
+      voyelles: [
+        { letter:"A", word:"Bokáni",    meaning:"Décision",   hint:"comme dans « patte »" },
+        { letter:"E", word:"Emétu",     meaning:"Genre",      hint:"comme dans « été »" },
+        { letter:"I", word:"Lisakoli",  meaning:"Discours",   hint:"comme dans « vie »" },
+        { letter:"O", word:"Motoki",    meaning:"Sueur",      hint:"comme dans « eau »" },
+        { letter:"U", word:"Kozuza",    meaning:"Déformer",   hint:"comme dans « ou »" },
+        { letter:"Ɛ", word:"Tɛmbɛlɛ",  meaning:"Timbre",     hint:"comme dans « fête »" },
+        { letter:"Ɔ", word:"Mpɔ",       meaning:"Pour",       hint:"comme dans « or »" },
+      ],
+      consonnes: [
+        { letter:"B", word:"Bokono",   meaning:"Maladie" },
+        { letter:"D", word:"Dangu",    meaning:"Panier" },
+        { letter:"F", word:"Fúlu",     meaning:"Poubelle" },
+        { letter:"G", word:"Gádi",     meaning:"Jardin" },
+        { letter:"K", word:"Kala",     meaning:"Autrefois" },
+        { letter:"L", word:"Likásu",   meaning:"Noix de cola" },
+        { letter:"M", word:"Mbúla",    meaning:"Pluie" },
+        { letter:"N", word:"Ngúma",    meaning:"Python" },
+        { letter:"P", word:"Pépélé",   meaning:"Lumière" },
+        { letter:"S", word:"Sánzá",    meaning:"Lune" },
+        { letter:"T", word:"Taú",      meaning:"Fragile" },
+        { letter:"V", word:"Víno",     meaning:"Vin" },
+        { letter:"W", word:"Wangíla",  meaning:"Sésame" },
+        { letter:"Y", word:"Yambí",    meaning:"Bienvenue" },
+        { letter:"Z", word:"Zála",     meaning:"Nid" },
+      ],
+      composes: [
+        { letter:"GB", word:"Gbagba",      meaning:"Pont" },
+        { letter:"KP", word:"Ekpángba",    meaning:"Entrepôt" },
+        { letter:"KW", word:"Mokwéte",     meaning:"Vénus" },
+        { letter:"MB", word:"Mbano",       meaning:"Récompense" },
+        { letter:"MF", word:"Mfúti",       meaning:"Taxe" },
+        { letter:"MP", word:"Mpéma",       meaning:"Respirer" },
+        { letter:"MV", word:"Litamvula",   meaning:"Frange" },
+        { letter:"MW", word:"Mwambe",      meaning:"Huit" },
+        { letter:"ND", word:"Ndáko",       meaning:"Maison" },
+        { letter:"NG", word:"Ngúlu",       meaning:"Cochon" },
+        { letter:"NK", word:"Nkámá",       meaning:"Cent" },
+        { letter:"NS", word:"Nsinga",      meaning:"Fil" },
+        { letter:"NT", word:"Ntaba",       meaning:"Chèvre" },
+        { letter:"NY", word:"Nyama",       meaning:"Animal" },
+        { letter:"NZ", word:"Nzále",       meaning:"Buffle" },
+        { letter:"TS", word:"Etsúséláká",  meaning:"Grammaire" },
+      ],
+      tons: [
+        { letter:"—",  mark:"(sans accent)", word:"Kopésa",  meaning:"Donner",  desc:"Ton bas" },
+        { letter:"´",  mark:"accent aigu",   word:"Tatá",    meaning:"Père",    desc:"Ton haut" },
+        { letter:"^",  mark:"circonflexe",   word:"Sâmbóle", meaning:"Énigme",  desc:"Ton descendant" },
+        { letter:"ˇ",  mark:"caron",         word:"Mwǎsi",   meaning:"Femme",   desc:"Ton montant" },
+      ],
+    };
+
+    const AlphabetPanel = ({ lessonItems }) => {
+      // Build audio map: item_order (1-based) → audio_url
+      const audioMap = {};
+      lessonItems.forEach(item => { if (item.audio_url) audioMap[item.item_order] = item.audio_url; });
+
+      // Sequential item_order: vowels=1-7, consonants=8-22, digraphs=23-38, tones=39-42
+      const playAudio = (src) => {
+        if (!src) return;
+        const a = new Audio(src); a.play().catch(()=>{});
+      };
+
+      const SectionLabel = ({ children }) => (
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase",
+          color:"#9B8A6E", margin:"24px 0 10px", fontFamily:"'DM Mono', monospace" }}>
+          {children}
+        </div>
+      );
+
+      const Tile = ({ letter, word, meaning, hint, itemOrder, accent }) => {
+        const audio = audioMap[itemOrder];
+        const colors = {
+          voyelle:  { bg:"#FFF7ED", border:"#FDBA74", letter:"#C2410C", badge:"#FED7AA" },
+          consonne: { bg:"#F5F3FF", border:"#C4B5FD", letter:"#6D28D9", badge:"#EDE9FE" },
+          compose:  { bg:"#F0FDF4", border:"#86EFAC", letter:"#15803D", badge:"#DCFCE7" },
+          ton:      { bg:"#EFF6FF", border:"#93C5FD", letter:"#1D4ED8", badge:"#DBEAFE" },
+        };
+        const c = colors[accent] || colors.consonne;
+        return (
+          <button onClick={() => playAudio(audio)} style={{
+            background: c.bg,
+            border: `1.5px solid ${audio ? c.border : "#E8E0D4"}`,
+            borderRadius: 16,
+            padding: "14px 10px 12px",
+            cursor: audio ? "pointer" : "default",
+            textAlign: "center",
+            transition: "all 0.15s",
+            opacity: audio ? 1 : 0.7,
+            position: "relative",
+          }}
+          onMouseOver={e => { if(audio) { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 4px 12px ${c.border}88`; }}}
+          onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="none"; }}>
+            {audio && (
+              <div style={{ position:"absolute", top:6, right:6,
+                width:14, height:14, borderRadius:"50%", background:c.border,
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <svg width="7" height="7" viewBox="0 0 10 10" fill={c.letter}><polygon points="2,1 9,5 2,9"/></svg>
+              </div>
+            )}
+            <div style={{ fontSize:28, fontWeight:800, color:c.letter,
+              fontFamily:"'Playfair Display', serif", lineHeight:1, marginBottom:6 }}>
+              {letter}
+            </div>
+            <div style={{ fontSize:12, fontWeight:700, color:"#2D2118", marginBottom:2 }}>{word}</div>
+            <div style={{ fontSize:10, color:"#9B8A6E", lineHeight:1.3 }}>{meaning}</div>
+            {hint && <div style={{ fontSize:9, color:"#B8A99E", marginTop:3, fontStyle:"italic" }}>{hint}</div>}
+          </button>
+        );
+      };
+
+      const ToneTile = ({ item, itemOrder }) => {
+        const audio = audioMap[itemOrder];
+        return (
+          <button onClick={() => playAudio(audio)} style={{
+            background:"#EFF6FF", border:`1.5px solid ${audio ? "#93C5FD" : "#E8E0D4"}`,
+            borderRadius:16, padding:"14px 12px", cursor: audio ? "pointer" : "default",
+            textAlign:"center", transition:"all 0.15s", opacity: audio ? 1 : 0.7,
+            display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+          }}>
+            <div style={{ fontSize:10, fontWeight:700, color:"#1D4ED8", textTransform:"uppercase",
+              letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>{item.desc}</div>
+            <div style={{ fontSize:22, fontWeight:800, color:"#1D4ED8",
+              fontFamily:"'Playfair Display', serif" }}>{item.word}</div>
+            <div style={{ fontSize:11, color:"#2D2118", fontWeight:600 }}>{item.meaning}</div>
+            <div style={{ fontSize:10, color:"#9B8A6E", fontStyle:"italic" }}>{item.mark}</div>
+          </button>
+        );
+      };
+
+      const hasAudio = Object.keys(audioMap).length > 0;
+      return (
+        <div>
+          {!hasAudio && (
+            <div style={{ background:"#FFFBEB", border:"1px solid #FCD34D", borderRadius:12,
+              padding:"10px 14px", marginBottom:16, fontSize:12, color:"#92400E", display:"flex", gap:8 }}>
+              <span>🎙️</span>
+              <span>Les audios de ce module seront disponibles une fois enregistrés par le professeur.</span>
+            </div>
+          )}
+
+          <SectionLabel>Voyelles — {ALPHABET_DATA.voyelles.length} sons</SectionLabel>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+            {ALPHABET_DATA.voyelles.map((v, i) => (
+              <Tile key={v.letter} {...v} itemOrder={i+1} accent="voyelle" />
+            ))}
+          </div>
+
+          <SectionLabel>Consonnes simples — {ALPHABET_DATA.consonnes.length} sons</SectionLabel>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+            {ALPHABET_DATA.consonnes.map((c, i) => (
+              <Tile key={c.letter} {...c} itemOrder={i+8} accent="consonne" />
+            ))}
+          </div>
+
+          <SectionLabel>Sons composés — {ALPHABET_DATA.composes.length} combinaisons</SectionLabel>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+            {ALPHABET_DATA.composes.map((c, i) => (
+              <Tile key={c.letter} {...c} itemOrder={i+23} accent="compose" />
+            ))}
+          </div>
+
+          <SectionLabel>Les 4 tons du lingala</SectionLabel>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
+            {ALPHABET_DATA.tons.map((t, i) => (
+              <ToneTile key={t.desc} item={t} itemOrder={i+39} />
+            ))}
+          </div>
+
+          <div style={{ marginTop:20, padding:"12px 16px", background:"#FAFAF8",
+            borderRadius:12, border:"1px solid #E8E0D4", fontSize:11, color:"#9B8A6E", lineHeight:1.6 }}>
+            <strong style={{ color:"#5C4A2E" }}>Note :</strong> Le lingala est une langue tonale.
+            Le sens d'un mot change selon le ton employé. Les couleurs indiquent :
+            <span style={{ color:"#C2410C", fontWeight:600 }}> ■ voyelles</span>
+            <span style={{ color:"#6D28D9", fontWeight:600 }}> ■ consonnes</span>
+            <span style={{ color:"#15803D", fontWeight:600 }}> ■ sons composés</span>
+            <span style={{ color:"#1D4ED8", fontWeight:600 }}> ■ tons</span>.
+            Cliquez sur une tuile pour entendre le son.
+          </div>
+        </div>
+      );
+    };
+    // ── End AlphabetPanel ─────────────────────────────────────────────────────
+
     const LessonAudioText = ({ text, audioUrl, title, color = "#2C5F2D", fontSize = 14, fontWeight = 500, italic = false }) => (
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
         <div style={{ flex:1, fontSize, color, fontWeight, fontStyle: italic ? "italic" : "normal", lineHeight:1.5 }}>
@@ -1347,6 +1533,10 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                 </div>
 
                 {loading ? <Spinner /> : (() => {
+                  // Sons et alphabet — special tile view
+                  const isAlphabet = selectedLesson?.title === "Sons et alphabet";
+                  if (isAlphabet) return <AlphabetPanel lessonItems={lessonItems} />;
+
                   // Determine if this is a paired lesson (Cours 1 style)
                   // Paired lessons have items that alternate: phrase1/translation1, phrase2/translation2
                   const isCours1 = selectedCourse?.course_order === 1;
