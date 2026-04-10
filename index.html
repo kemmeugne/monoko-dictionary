@@ -9,6 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#F7F3ED}
@@ -28,6 +29,8 @@
 
     const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
     const SUPABASE_KEY = "sb_publishable_W6hYzyecMTm06Cr9siLV1A_4qtR5ect";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     async function supaFetch(table, params = "") {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
         headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
@@ -612,6 +615,16 @@
       const [testerName, setTesterName] = useState("");
       const [pendingTesterName, setPendingTesterName] = useState("");
       const [testerSessionId, setTesterSessionId] = useState("");
+      // Auth
+      const [currentUser, setCurrentUser] = useState(null);
+      const [authLoading, setAuthLoading] = useState(true);
+      const [authMode, setAuthMode] = useState("login"); // "login" | "signup"
+      const [authEmail, setAuthEmail] = useState("");
+      const [authPassword, setAuthPassword] = useState("");
+      const [authDisplayName, setAuthDisplayName] = useState("");
+      const [authError, setAuthError] = useState("");
+      const [authSubmitting, setAuthSubmitting] = useState(false);
+      const [authReturnTo, setAuthReturnTo] = useState(null); // "chat" | "courses"
       const chatEndRef = useRef(null);
       const inputRef = useRef(null);
       const LETTERS = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split(" ");
@@ -631,6 +644,28 @@
       useEffect(() => {
         localStorage.setItem(TESTER_NAME_KEY, testerName);
       }, [testerName]);
+
+      // Auth: check session on mount + listen to changes
+      useEffect(() => {
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+          const user = session?.user || null;
+          setCurrentUser(user);
+          if (user) {
+            const name = user.user_metadata?.display_name || user.email;
+            setTesterName(name);
+          }
+          setAuthLoading(false);
+        });
+        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+          const user = session?.user || null;
+          setCurrentUser(user);
+          if (user) {
+            const name = user.user_metadata?.display_name || user.email;
+            setTesterName(name);
+          }
+        });
+        return () => subscription.unsubscribe();
+      }, []);
 
       // Load languages on mount
       useEffect(() => {
@@ -681,12 +716,15 @@
         setStats({ words: 0, senses: 0 });
       };
 
+      const requireAuth = (returnTo) => {
+        setAuthReturnTo(returnTo);
+        setAuthMode("login");
+        setAuthEmail(""); setAuthPassword(""); setAuthDisplayName(""); setAuthError("");
+        setView("auth");
+      };
+
       const openChat = () => {
-        if (!testerName.trim()) {
-          setPendingTesterName(testerName);
-          setView("tester_setup");
-          return;
-        }
+        if (!currentUser) { requireAuth("chat"); return; }
         setView("chat");
       };
 
@@ -695,6 +733,52 @@
         if (!normalized) return;
         setTesterName(normalized);
         setView("chat");
+      };
+
+      const handleAuthSubmit = async () => {
+        setAuthError(""); setAuthSubmitting(true);
+        try {
+          if (authMode === "signup") {
+            const { data, error } = await supabaseClient.auth.signUp({
+              email: authEmail.trim(),
+              password: authPassword,
+              options: { data: { display_name: authDisplayName.trim() || authEmail.trim().split("@")[0] } },
+            });
+            if (error) throw error;
+            if (data.user && !data.session) {
+              setAuthError("✓ Vérifiez votre email pour confirmer votre compte.");
+              setAuthSubmitting(false); return;
+            }
+          } else {
+            const { error } = await supabaseClient.auth.signInWithPassword({ email: authEmail.trim(), password: authPassword });
+            if (error) throw error;
+          }
+          // Success — navigate to intended destination
+          if (authReturnTo === "chat") { setView("chat"); }
+          else if (authReturnTo === "courses") {
+            setView("courses");
+            if (langId) {
+              setLoading(true);
+              try { const d = await supaFetch("courses", `language_id=eq.${langId}&select=*&order=course_order`); setCourses(d); }
+              catch(e) { console.error(e); }
+              setLoading(false);
+            }
+          } else { setView("home"); }
+          setAuthReturnTo(null);
+        } catch(e) {
+          const msg = e.message || "";
+          if (msg.includes("Invalid login")) setAuthError("Email ou mot de passe incorrect.");
+          else if (msg.includes("already registered")) setAuthError("Cet email est déjà utilisé. Connectez-vous.");
+          else if (msg.includes("Password")) setAuthError("Mot de passe trop court (6 caractères minimum).");
+          else setAuthError(msg);
+        }
+        setAuthSubmitting(false);
+      };
+
+      const handleSignOut = async () => {
+        await supabaseClient.auth.signOut();
+        setTesterName("");
+        setView("home");
       };
 
       useEffect(() => {
@@ -1210,6 +1294,31 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                   }}>
                     <GlobeIcon /> Changer de langue
                   </button>
+
+                  {/* Auth status */}
+                  <div style={{ marginTop:12, display:"flex", justifyContent:"center" }}>
+                    {currentUser ? (
+                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontSize:12, color:"#5C4A2E", fontWeight:600 }}>
+                          👤 {currentUser.user_metadata?.display_name || currentUser.email}
+                        </span>
+                        <button onClick={handleSignOut} style={{
+                          background:"none", border:"1px solid #E8E0D4", borderRadius:12,
+                          padding:"3px 10px", fontSize:11, color:"#9B8A6E", cursor:"pointer",
+                          fontFamily:"'DM Sans', sans-serif", fontWeight:600,
+                        }}>Déconnexion</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => requireAuth(null)} style={{
+                        display:"inline-flex", alignItems:"center", gap:6,
+                        background:"#F0EBE3", border:"1px solid #E8E0D4", borderRadius:20,
+                        padding:"6px 14px", fontSize:12, fontWeight:600, color:"#8B6D47",
+                        cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
+                      }}>
+                        🔑 Se connecter
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div style={{
@@ -1236,10 +1345,8 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                     { icon:<ChatIcon/>, title:"Parler avec Monoko", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
                   ].map((c,i) => (
                     <button key={i} onClick={async () => {
-                      if (c.v === "chat") {
-                        openChat();
-                        return;
-                      }
+                      if (c.v === "chat") { openChat(); return; }
+                      if (c.v === "courses" && !currentUser) { requireAuth("courses"); return; }
                       setView(c.v);
                       if (c.v === "courses" && langId) {
                         setLoading(true);
@@ -1735,6 +1842,100 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
               </div>
             )}
 
+            {/* AUTH */}
+            {view === "auth" && (
+              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
+                <button onClick={() => setView(authReturnTo ? "home" : "home")} style={{
+                  display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
+                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
+                  fontFamily:"'DM Sans', sans-serif",
+                }}><ArrowLeft /> Accueil</button>
+
+                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:20, padding:"28px 24px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
+                  {/* Icon + title */}
+                  <div style={{ textAlign:"center", marginBottom:24 }}>
+                    <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:26 }}>📖</div>
+                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>
+                      {authMode === "login" ? "Se connecter" : "Créer un compte"}
+                    </h2>
+                    {authReturnTo && (
+                      <p style={{ fontSize:13, color:"#9B8A6E", margin:0 }}>
+                        Un compte est requis pour accéder aux {authReturnTo === "chat" ? "conversations" : "cours"}.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Toggle */}
+                  <div style={{ display:"flex", background:"#F0EBE3", borderRadius:12, padding:3, marginBottom:20 }}>
+                    {[["login","Se connecter"],["signup","Créer un compte"]].map(([m, label]) => (
+                      <button key={m} onClick={() => { setAuthMode(m); setAuthError(""); }} style={{
+                        flex:1, padding:"8px 0", border:"none", borderRadius:10, fontSize:13, fontWeight:600, cursor:"pointer",
+                        background: authMode === m ? "white" : "transparent",
+                        color: authMode === m ? "#2D2118" : "#9B8A6E",
+                        boxShadow: authMode === m ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+                        fontFamily:"'DM Sans', sans-serif", transition:"all 0.2s",
+                      }}>{label}</button>
+                    ))}
+                  </div>
+
+                  {/* Display name (signup only) */}
+                  {authMode === "signup" && (
+                    <div style={{ marginBottom:12 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Prénom</label>
+                      <input value={authDisplayName} onChange={e => setAuthDisplayName(e.target.value)}
+                        placeholder="Comment vous appelez-vous ?"
+                        style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
+                        onFocus={e => e.target.style.borderColor="#2C5F2D"}
+                        onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                      />
+                    </div>
+                  )}
+
+                  {/* Email */}
+                  <div style={{ marginBottom:12 }}>
+                    <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Email</label>
+                    <input value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                      type="email" placeholder="votre@email.com"
+                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
+                      onFocus={e => e.target.style.borderColor="#2C5F2D"}
+                      onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div style={{ marginBottom:20 }}>
+                    <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Mot de passe</label>
+                    <input value={authPassword} onChange={e => setAuthPassword(e.target.value)}
+                      type="password" placeholder="••••••••"
+                      onKeyDown={e => { if (e.key === "Enter") handleAuthSubmit(); }}
+                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
+                      onFocus={e => e.target.style.borderColor="#2C5F2D"}
+                      onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                    />
+                    {authMode === "signup" && <p style={{ fontSize:11, color:"#9B8A6E", margin:"4px 0 0" }}>6 caractères minimum</p>}
+                  </div>
+
+                  {/* Error */}
+                  {authError && (
+                    <div style={{ background: authError.startsWith("✓") ? "#E8F5EE" : "#FFF0F0", border:`1px solid ${authError.startsWith("✓") ? "#2C5F2D" : "#FFC0C0"}`, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, color: authError.startsWith("✓") ? "#2C5F2D" : "#C62828", fontWeight:600 }}>
+                      {authError}
+                    </div>
+                  )}
+
+                  {/* Submit */}
+                  <button onClick={handleAuthSubmit} disabled={authSubmitting || !authEmail.trim() || !authPassword}
+                    style={{
+                      width:"100%", border:"none", borderRadius:14, padding:"14px 18px",
+                      background: (authSubmitting || !authEmail.trim() || !authPassword) ? "#E8E0D4" : "linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                      color:"white", fontSize:15, fontWeight:700, cursor: (authSubmitting || !authEmail.trim() || !authPassword) ? "default" : "pointer",
+                      fontFamily:"'DM Sans', sans-serif", transition:"all 0.2s",
+                    }}>
+                    {authSubmitting ? "..." : authMode === "login" ? "Se connecter" : "Créer mon compte"}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {view === "tester_setup" && selectedLang && (
               <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
                 <button onClick={() => { setView("home"); }} style={{
@@ -1800,17 +2001,17 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                 <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"10px 14px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
                   <div>
                     <p style={{ fontSize:11, fontWeight:600, color:"#8B6D47", margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>
-                      Session testeur
+                      Connecté
                     </p>
                     <p style={{ fontSize:14, color:"#2D2118", margin:0, fontWeight:600 }}>
-                      {testerName || "Non renseigné"}
+                      {currentUser ? (currentUser.user_metadata?.display_name || currentUser.email) : (testerName || "Non renseigné")}
                     </p>
                   </div>
                   <button
-                    onClick={() => { setPendingTesterName(testerName); setView("tester_setup"); }}
+                    onClick={handleSignOut}
                     style={{ background:"none", border:"1px solid #E8E0D4", borderRadius:10, padding:"8px 12px", fontSize:12, color:"#8B6D47", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", fontWeight:600 }}
                   >
-                    Modifier
+                    Déconnexion
                   </button>
                 </div>
 
