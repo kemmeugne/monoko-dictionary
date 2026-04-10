@@ -121,13 +121,49 @@ FROM corrections WHERE status = 'approved';
 
 ---
 
+## Authentication (added 2026-04-10)
+
+Supabase Auth v2 is integrated into `index.html`. Dictionary is fully public; courses and chat require a logged-in account.
+
+**How it works:**
+- Supabase JS SDK loaded via CDN: `@supabase/supabase-js@2`
+- `supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)` initialized at app load
+- Auth state managed via `onAuthStateChange` listener — `currentUser` React state always reflects live session
+- `testerName` auto-populated from `user_metadata.display_name` or `email` on login (no manual tester setup needed)
+- `requireAuth(returnTo)` redirects to auth view with a return destination ("courses" or "chat")
+- After login/signup, user is sent back to their intended destination
+
+**Auth view (`view === "auth"`):**
+- Login / signup toggle
+- Email + password fields
+- Display name field (signup only)
+- Error display
+- On success: redirects to `authReturnTo` or home
+
+**Gated screens:**
+- Courses (`view === "courses"`) — requires login
+- Chat (`view === "chat"`) — requires login
+- Dictionary, search, browse — fully public
+
+**Chat header:**
+- "Session testeur / Modifier" card replaced with logged-in user name + "Déconnexion" button
+
+**Future auth work needed:**
+- `profiles` table in Supabase (display_name, preferred_language_id)
+- `user_progress` table (lesson_id, completed_at, exam_score)
+- Row-Level Security (RLS) policies on progress tables
+- Role field for professor/admin access (replaces shared admin password)
+
+---
+
 ## Important conventions
 
 - `index.html` uses the **anon key** (public, read-only by default) for Supabase reads and correction inserts
 - All Supabase **writes** from the browser go through `/api/admin-action.js` (service key never in client code)
 - All **LLM calls** go through `/api/chat.js` (OpenAI key never in client code; no user-entered API key)
-- Chat now requires a `nom du testeur` before the user can enter the Monoko chat screen
-- `tester_name` is stored in `localStorage`; `session_id` is generated locally and reused for that browser session
+- Dictionary is public; courses + chat require Supabase Auth login
+- `testerName` is now auto-populated from the authenticated user — manual tester setup flow is bypassed for logged-in users
+- `session_id` is still generated locally and reused for that browser session
 - `admin.html` password is verified **server-side** only — no password logic in client code, no secrets in `admin.html`
 - Lingala dictionary audio is now linked through `senses.audio_url` and `examples.audio_url`
 - Lingala course audio is now linked directly through `lesson_items.audio_url` and `lesson_items.example_audio_url`
