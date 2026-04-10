@@ -42,9 +42,10 @@ TECHNICAL_DOCS.md                 — full system documentation
 
 Cours/MONOKO_CURRICULUM.md        — universal CEFR-aligned curriculum (6 levels, 29 modules) for all languages
 Cours/lingala_curriculum_migration.sql — migration script: restructures old 4 courses into 6-level CEFR curriculum
-generate_audio_collection_html.py — generates one HTML recording app per module for items missing audio
+generate_audio_collection_html.py — generates one HTML recording app per module for Lingala items missing audio
 populate_stub_modules.py          — populates stub modules with suggested French content, then re-runs HTML generator
 audio_collection_html/            — generated HTML recording apps (one per module), sent to professor for audio recording
+generate_course_templates.py      — generates generic HTML recording apps for all 29 modules for any new language
 ```
 
 ---
@@ -188,6 +189,48 @@ The old 4-course flat structure (courses id=22,23,24,25) was migrated to a CEFR-
 | Débats et opinions | 22 | 13 (59%) |
 | Langue dans le monde | 6 | 2 (33%) |
 | Stubs (8 modules) | 3-20 | 0 (professor needed) |
+
+---
+
+## Generic course template system (2026-04-10)
+
+`generate_course_templates.py` produces a complete set of HTML recording apps for any new language, based on the 6-level CEFR curriculum.
+
+**How it works:**
+- Queries all Lingala `lesson_items` to get the French curriculum content (1,076 items across 29 modules)
+- Strips all dialect translations → empty fields for the professor to fill in
+- Sets `db_id = null` (language-agnostic; linked to Supabase after upload)
+- Generates one HTML file per module following the same recording app format
+
+**Output:** `/Users/anthonykemmeugne/Documents/App dialectes/Collection de données/Template/general/`
+
+**Usage:**
+```bash
+# Generic template (language shown as "[Langue]")
+SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py
+
+# Language-specific (replaces [Langue] with the language name)
+SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py --language Yoruba
+```
+
+**Output files (29 total):** `Monoko_[langue]_1.1_sons_et_alphabet.html` … `Monoko_[langue]_6.4_la_langue_dans_le_monde.html`
+
+**Differences vs `generate_audio_collection_html.py`:**
+| | `generate_audio_collection_html.py` | `generate_course_templates.py` |
+|---|---|---|
+| Purpose | Lingala items **missing audio** | All items, **any language** |
+| Dialect fields | Pre-filled from DB | Empty (professor writes) |
+| `db_id` | Real Supabase ID | `null` |
+| Output | `audio_collection_html/` | `Template/general/` |
+| Language | Always Lingala | Configurable via `--language` |
+
+**Modules under curriculum target** (thin Lingala content, professor should expand):
+- 4.1 Marché et argent — 11 items (target: 30-40)
+- 3.3/3.4 Conjugaison — 18 items each (target: 40-60)
+- 4.3 Proverbes — 3 items (requires native speaker input)
+- 6.4 Langue dans le monde — 6 items (target: 20-30)
+
+Re-run the script after adding content to Lingala to pick up new items automatically.
 
 ---
 
