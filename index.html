@@ -742,7 +742,10 @@
             const { data, error } = await supabaseClient.auth.signUp({
               email: authEmail.trim(),
               password: authPassword,
-              options: { data: { display_name: authDisplayName.trim() || authEmail.trim().split("@")[0] } },
+              options: {
+                data: { display_name: authDisplayName.trim() || authEmail.trim().split("@")[0] },
+                emailRedirectTo: "https://monoko-dictionary.vercel.app",
+              },
             });
             if (error) throw error;
             if (data.user && !data.session) {
