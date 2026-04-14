@@ -625,6 +625,7 @@
       const [authError, setAuthError] = useState("");
       const [authSubmitting, setAuthSubmitting] = useState(false);
       const [authReturnTo, setAuthReturnTo] = useState(null); // "chat" | "courses"
+      const [emailConfirmed, setEmailConfirmed] = useState(false);
       const chatEndRef = useRef(null);
       const inputRef = useRef(null);
       const LETTERS = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split(" ");
@@ -647,12 +648,23 @@
 
       // Auth: check session on mount + listen to changes
       useEffect(() => {
+        // Detect email confirmation callback (Supabase puts type=signup in hash)
+        const hash = window.location.hash;
+        const isEmailConfirmation = hash.includes("type=signup") || hash.includes("type=email_change");
+
         supabaseClient.auth.getSession().then(({ data: { session } }) => {
           const user = session?.user || null;
           setCurrentUser(user);
           if (user) {
             const name = user.user_metadata?.display_name || user.email;
             setTesterName(name);
+          }
+          if (isEmailConfirmation && user) {
+            setEmailConfirmed(true);
+            // Clean the hash from the URL without reloading
+            window.history.replaceState(null, "", window.location.pathname);
+            // Auto-redirect to home after 3 seconds
+            setTimeout(() => { setEmailConfirmed(false); }, 3000);
           }
           setAuthLoading(false);
         });
@@ -1842,6 +1854,75 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                     </div>
                   );
                 })()}
+              </div>
+            )}
+
+            {/* EMAIL CONFIRMED */}
+            {emailConfirmed && (
+              <div style={{
+                position:"fixed", inset:0, background:"#F7F3ED", zIndex:999,
+                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+                animation:"fadeIn 0.4s ease-out", padding:32,
+              }}>
+                {/* Logo mark */}
+                <div style={{
+                  width:80, height:80, borderRadius:24, marginBottom:28,
+                  background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:40,
+                  boxShadow:"0 12px 32px rgba(44,95,45,0.25)",
+                }}>📖</div>
+
+                {/* Checkmark circle */}
+                <div style={{
+                  width:64, height:64, borderRadius:"50%", background:"#E8F5E9",
+                  border:"3px solid #2C5F2D", display:"flex", alignItems:"center", justifyContent:"center",
+                  fontSize:30, marginBottom:24,
+                }}>✓</div>
+
+                <h1 style={{
+                  fontFamily:"'Playfair Display', serif", fontSize:28, fontWeight:800,
+                  color:"#2D2118", margin:"0 0 10px", textAlign:"center", lineHeight:1.2,
+                }}>Compte créé avec succès !</h1>
+
+                <p style={{
+                  fontSize:16, color:"#6B5744", textAlign:"center", margin:"0 0 8px",
+                  fontFamily:"'DM Sans', sans-serif", maxWidth:320, lineHeight:1.5,
+                }}>
+                  Bienvenue sur Monɔkɔ.
+                </p>
+
+                <p style={{
+                  fontSize:13, color:"#9B8A6E", textAlign:"center",
+                  fontFamily:"'DM Sans', sans-serif",
+                }}>
+                  Redirection en cours…
+                </p>
+
+                {/* Progress bar */}
+                <div style={{ width:200, height:3, background:"#E8E0D4", borderRadius:4, marginTop:20, overflow:"hidden" }}>
+                  <div style={{
+                    height:"100%", background:"linear-gradient(90deg, #2C5F2D, #4A8B4C)",
+                    borderRadius:4, animation:"confirmProgress 3s linear forwards",
+                  }} />
+                </div>
+
+                <style>{`
+                  @keyframes confirmProgress {
+                    from { width: 0% }
+                    to   { width: 100% }
+                  }
+                `}</style>
+
+                <button
+                  onClick={() => setEmailConfirmed(false)}
+                  style={{
+                    marginTop:28, padding:"12px 28px", borderRadius:14,
+                    background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                    border:"none", color:"white", fontSize:15, fontWeight:700,
+                    cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
+                    boxShadow:"0 4px 12px rgba(44,95,45,0.3)",
+                  }}
+                >Commencer</button>
               </div>
             )}
 
