@@ -28,13 +28,14 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 ## Key files in this repo
 
 ```
-index.html                        — entire frontend (React, ~1700 lines)
+index.html                        — entire frontend (React, ~1850 lines)
 admin.html                        — admin panel: per-card approve/reject, pagination top+bottom, page X/Y counter, professor_modified tracking
 api/admin-action.js               — Vercel serverless function (secure Supabase writes)
 api/chat.js                       — Vercel serverless function (proxies chat to OpenAI gpt-4o-mini)
 api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences)
 api/lesson-context.js             — Vercel serverless function (pgvector semantic search over lesson_items)
 sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match_parallel_sentences RPC
+sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
 liste_200_phrases.docx            — 200 phrase types across 19 themes used by monoko_auto_test.py
@@ -63,6 +64,8 @@ generate_course_templates.py      — generates generic HTML recording apps for 
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
 - `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell` — Lingala course example audio links (added 2026-03-16)
 - `lesson_items.embedding vector(384)` — OpenAI text-embedding-3-small embeddings for pgvector search (added 2026-03-21, 1,740 rows embedded on old structure; new structure needs re-embedding via `embed_lesson_items.py`)
+- `profiles` — one row per auth user: `display_name`, `preferred_language_id` (added 2026-04-14)
+- `user_progress` — lesson completion tracking: `user_id`, `lesson_id`, `language_id`, `completed_at`, `exam_score` (null until Phase 3); RLS ensures users only access their own rows (added 2026-04-14)
 
 ---
 
@@ -149,9 +152,6 @@ Supabase Auth v2 is integrated into `index.html`. Dictionary is fully public; co
 - "Session testeur / Modifier" card replaced with logged-in user name + "Déconnexion" button
 
 **Future auth work needed:**
-- `profiles` table in Supabase (display_name, preferred_language_id)
-- `user_progress` table (lesson_id, completed_at, exam_score)
-- Row-Level Security (RLS) policies on progress tables
 - Role field for professor/admin access (replaces shared admin password)
 
 ---
@@ -159,7 +159,8 @@ Supabase Auth v2 is integrated into `index.html`. Dictionary is fully public; co
 ## Important conventions
 
 - `index.html` uses the **anon key** (public, read-only by default) for Supabase reads and correction inserts
-- All Supabase **writes** from the browser go through `/api/admin-action.js` (service key never in client code)
+- Admin **writes** (approve/reject corrections) go through `/api/admin-action.js` (service key never in client code)
+- **User progress writes** (`user_progress` inserts/upserts) go directly through `supabaseClient` with the authenticated user's session token — RLS enforces that users can only write their own rows
 - All **LLM calls** go through `/api/chat.js` (OpenAI key never in client code; no user-entered API key)
 - Dictionary is public; courses + chat require Supabase Auth login
 - `testerName` is now auto-populated from the authenticated user — manual tester setup flow is bypassed for logged-in users
@@ -238,7 +239,7 @@ The old 4-course flat structure (courses id=22,23,24,25) was migrated to a CEFR-
 - Sets `db_id = null` (language-agnostic; linked to Supabase after upload)
 - Generates one HTML file per module following the same recording app format
 
-**Output:** `/Users/anthonykemmeugne/Documents/App dialectes/Collection de données/Template/general/`
+**Output:** `../professor_tools/templates/general/` (relative to repo root — updated 2026-04-14, was previously a hardcoded absolute path)
 
 **Usage:**
 ```bash
@@ -247,6 +248,9 @@ SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py
 
 # Language-specific (replaces [Langue] with the language name)
 SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py --language Yoruba
+
+# Custom output directory
+SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py --language Yoruba --output /path/to/output
 ```
 
 **Output files (29 total):** `Monoko_[langue]_1.1_sons_et_alphabet.html` … `Monoko_[langue]_6.4_la_langue_dans_le_monde.html`
@@ -257,7 +261,7 @@ SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py --langua
 | Purpose | Lingala items **missing audio** | All items, **any language** |
 | Dialect fields | Pre-filled from DB | Empty (professor writes) |
 | `db_id` | Real Supabase ID | `null` |
-| Output | `audio_collection_html/` | `Template/general/` |
+| Output | `audio_collection_html/` | `../professor_tools/templates/general/` |
 | Language | Always Lingala | Configurable via `--language` |
 
 **Modules under curriculum target** (thin Lingala content, professor should expand):
@@ -298,6 +302,31 @@ Course audio completed on `2026-03-16`.
 Artifacts and scripts:
 - `course_audio_mapper.py`
 - `apply_course_audio_to_lesson_items.py`
+
+## User progress tracking (added 2026-04-14)
+
+Phase 2 of the product roadmap. Users can now track their advancement through the CEFR curriculum.
+
+**Database** (`sql/progress_tracking.sql`):
+- `profiles (user_id PK, display_name, preferred_language_id, created_at)` — one row per auth user
+- `user_progress (id, user_id, lesson_id, language_id, completed_at, exam_score)` — one row per completed lesson per user; `UNIQUE(user_id, lesson_id)` prevents duplicates
+- Both tables have RLS enabled: users can only read/write their own rows
+- `exam_score` is `null` for now — populated in Phase 3 when the exam system ships
+
+**Frontend mechanics:**
+- `loadUserProgress(userId, languageId)` — called automatically via `useEffect` whenever the logged-in user or active language changes; populates `userProgress` state (a `Set` of completed lesson IDs)
+- `markLessonComplete()` — called when user taps "J'ai terminé ce module"; upserts a row into `user_progress` via `supabaseClient` (uses the authenticated session, not the anon key)
+- `resumeLesson()` — called from the "Continuer" home card; navigates directly to the last opened lesson using `courseId`+`lessonId` stored in `localStorage`
+- Last opened lesson is persisted to `localStorage` key `monoko_last_lesson` every time a lesson is opened
+
+**What's visible in the UI:**
+- **Home screen**: Dark green "Continuer ▶" card shows the last visited lesson (logged-in users only, same language)
+- **Level list**: Each level card shows `X/Y` completed modules + a mini progress bar (purple → green when level complete)
+- **Module list**: Completed lesson rows show a green `✓` instead of the step number
+- **Lesson bottom**: "✓ J'ai terminé ce module" button for logged-in users; turns into green "Module terminé" confirmation once pressed
+- No level locking yet — deferred to Phase 3 with the exam system
+
+---
 
 ## Deploy
 

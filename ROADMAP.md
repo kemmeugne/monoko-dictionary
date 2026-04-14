@@ -1,6 +1,6 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-04-10
+Last updated: 2026-04-14
 
 ---
 
@@ -12,6 +12,7 @@ Last updated: 2026-04-10
 - Monoko AI chat (RAG-backed, pgvector, gpt-4o-mini)
 - Supabase Auth — dictionary public, courses + chat require login
 - Admin panel for professor corrections at `/admin.html`
+- User progress tracking — lesson completion, per-level progress bars, "Continuer" home shortcut
 
 ---
 
@@ -34,36 +35,18 @@ Last updated: 2026-04-10
 
 ---
 
-## Phase 2 — User progress tracking
+## Phase 2 — User progress tracking ✅ Shipped 2026-04-14
 
 **Goal:** Know where each user is in the curriculum.
 
-**Supabase tables to create:**
-```sql
--- User profile (display name, language preference)
-profiles (
-  user_id uuid references auth.users primary key,
-  display_name text,
-  preferred_language_id int references languages(id),
-  created_at timestamptz default now()
-)
-
--- Lesson completion tracking
-user_progress (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users,
-  lesson_id int references lessons(id),
-  completed_at timestamptz,
-  exam_score numeric  -- null until exam taken
-)
-```
-
-**Row-Level Security:** users can only read/write their own rows.
-
-**Frontend changes:**
-- Course view shows checkmarks on completed lessons
-- Home screen shows progress bar per level (A1 → B2+)
-- "Continue where you left off" shortcut on home screen
+**Delivered:**
+- `profiles` and `user_progress` Supabase tables with RLS (`sql/progress_tracking.sql`)
+- `user_progress` has `UNIQUE(user_id, lesson_id)` and a `(user_id, language_id)` index; `exam_score` column is `null` until Phase 3
+- "✓ J'ai terminé ce module" button at the bottom of every lesson
+- Checkmarks on completed lesson rows in the course detail view
+- Per-level progress bar (X/Y modules) on every level card
+- "Continuer ▶" shortcut card on home screen — drops the user directly back into their last lesson
+- Progress auto-loads on login and language switch via `supabaseClient` + RLS
 
 ---
 

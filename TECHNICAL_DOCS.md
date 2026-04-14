@@ -266,9 +266,46 @@ Individual vocabulary/grammar pairs within a lesson.
 
 ---
 
+### `profiles`
+One row per authenticated user.
+
+| Column | Type | Description |
+|---|---|---|
+| `user_id` | UUID PK → auth.users | |
+| `display_name` | TEXT | User's chosen display name |
+| `preferred_language_id` | INT FK → languages | |
+| `created_at` | TIMESTAMPTZ | Auto |
+
+RLS: users can only read/write their own row.
+
+---
+
+### `user_progress`
+One row per (user, lesson) pair. Tracks which modules a user has completed.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | UUID PK | `gen_random_uuid()` |
+| `user_id` | UUID FK → auth.users | |
+| `lesson_id` | INT FK → lessons | ON DELETE CASCADE |
+| `language_id` | INT FK → languages | Denormalized for efficient per-language queries |
+| `completed_at` | TIMESTAMPTZ | When the user tapped "J'ai terminé" |
+| `exam_score` | NUMERIC | NULL until Phase 3 exam system ships |
+
+Unique constraint: `(user_id, lesson_id)` — one completion row per lesson per user.
+Index: `(user_id, language_id)` for fast per-user progress queries.
+RLS: users can only read/write their own rows.
+
+---
+
 ### Entity relationships
 
 ```
+auth.users
+  └── profiles (user_id)
+  └── user_progress (user_id)
+        └── lessons (lesson_id)
+
 languages
   └── words (language_id)
         └── senses (word_id)
@@ -278,11 +315,16 @@ languages
   └── courses (language_id)
         └── lessons (course_id)
               └── lesson_items (lesson_id)
+  └── user_progress (language_id)
 ```
 
 ---
 
-### SQL migrations needed
+### SQL migrations
+
+**`sql/progress_tracking.sql`** (2026-04-14) — `profiles` + `user_progress` tables with RLS. Run once in Supabase SQL editor. Idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`).
+
+**Legacy one-off migrations** (run directly in Supabase SQL editor, not tracked as files):
 
 ```sql
 -- Run these once in Supabase SQL Editor if not already present
@@ -447,10 +489,11 @@ State-based routing with a `view` variable:
 | `search` | Search results |
 | `browse` | A–Z letter browser |
 | `detail` | Word detail with senses and examples |
-| `courses` | Course list |
-| `course_detail` | Lesson list within a course |
-| `lesson_detail` | Lesson items table (FR ↔ dialect) |
+| `courses` | Course list (with per-level progress bars) |
+| `course_detail` | Lesson list within a course (with completion checkmarks) |
+| `lesson` | Lesson items table (FR ↔ dialect) + "J'ai terminé" CTA |
 | `chat` | AI chat with Monoko |
+| `auth` | Login / signup form |
 
 ---
 
@@ -469,17 +512,21 @@ State-based routing with a `view` variable:
 
 ### Chat interface (`searchContext` function)
 
-Called before every chat API request. Returns a context string injected into the system prompt.
+Called before every chat API request. Fires two parallel context fetches and merges both into the system prompt.
 
-**FAISS (Railway)**:
-```javascript
-POST https://[railway-url]/api/context
-Body: { query: userMsg, top_k: 30, language_id: langId }
-Returns: { context: "...", query_lang: "fr"|"ln", result_count: N }
-```
-Falls back to `"(Service de recherche indisponible)"` if Railway is unavailable.
+**Path A — corpus search** (`POST /api/rag-context`):
+- Embeds the query with OpenAI `text-embedding-3-small` (384 dim)
+- Calls `match_parallel_sentences` RPC (filtered by `language_id`)
+- Returns top-30 verified FR↔dialect pairs
 
-**Note**: Supabase `lesson_items` keyword search was removed (March 2026) — FAISS is now the sole context source.
+**Path B — course content search** (`POST /api/lesson-context`):
+- Same embedding approach
+- Calls `match_lesson_items` RPC
+- Returns top-8 course lesson rows
+
+Both use `Promise.allSettled` — either can fail silently without breaking chat.
+
+**Note (2026-03-31)**: Railway/FAISS backend was decommissioned. All vector search now runs on Supabase pgvector.
 
 **Context format passed to the LLM**:
 ```
@@ -542,6 +589,22 @@ Implemented in March 2026 to measure professor/tester activity during Lingala QA
 - Every chat call sends `testerName`, `sessionId`, `languageId`, and the current `userQuery` to `/api/chat`
 - `/api/chat` writes a best-effort row to `chat_events` when `SUPABASE_SERVICE_KEY` is configured
 - Every correction row now also carries `tester_name` and `session_id`
+
+---
+
+### User progress tracking (added 2026-04-14)
+
+State: `userProgress` (React `Set` of completed lesson IDs), `lastLesson` (cached from `localStorage`).
+
+**Load**: `useEffect` fires `loadUserProgress(userId, languageId)` via `supabaseClient` whenever the logged-in user or selected language changes. Clears to an empty Set on logout.
+
+**Complete a module**: `markLessonComplete()` — upserts a `user_progress` row using the authenticated session token. RLS guarantees the user can only insert their own rows. Optimistically updates `userProgress` state on success.
+
+**Resume**: `resumeLesson()` — reads `localStorage["monoko_last_lesson"]` (set whenever any lesson is opened), fetches the course + lesson from Supabase, and navigates directly to that lesson view.
+
+**Progress bars**: Courses are queried with `select=*,lessons(id)` so each course object carries its lesson IDs. `courseProgress(course)` derives `{done, total}` by intersecting `course.lessons` with the `userProgress` Set — no extra DB round-trip.
+
+**Courses query**: Both places that load courses (home button + auth success redirect) include `lessons(id)` so progress bars always have the data they need.
 
 ---
 
@@ -895,7 +958,7 @@ export ANTHROPIC_API_KEY="..."
 
 ---
 
-### Upload scripts (in `dictionary-normalizer/`)
+### Upload scripts (in `monoko-app/`)
 
 #### `upload_to_supabase.py`
 Uploads dictionary Excel files to Supabase.
@@ -1050,44 +1113,13 @@ git push
 
 ---
 
-### Backend — Railway
+### Backend — Railway (decommissioned 2026-03-31)
 
-**Repo**: separate `monoko-rag-api` GitHub repo
-
-**Files**:
-```
-monoko-rag-api/
-├── rag_api.py
-├── step3_build_rag.py
-├── requirements.txt
-├── Procfile                   ← web: uvicorn rag_api:app --host 0.0.0.0 --port $PORT
-└── monoko_data/rag_index/     ← LFS-tracked or auto-downloaded from R2
-```
-
-**Environment variables** (set in Railway dashboard):
-| Variable | Description |
-|---|---|
-| `R2_PUBLIC_URL` | Cloudflare R2 public bucket URL e.g. `https://pub-xxx.r2.dev` |
-
-**FAISS index files** (stored in Cloudflare R2):
-- `faiss_index_fr.bin` (99 MB)
-- `faiss_index_ln.bin` (99 MB)
-- `documents.pkl` (19 MB)
-
-On startup, `rag_api.py` detects if files are missing or are Git LFS pointer files, and downloads from R2 automatically.
-
-**Deploy process**:
-```bash
-# In monoko-rag-api repo
-git add rag_api.py step3_build_rag.py
-git commit -m "update"
-git push
-# Railway auto-deploys on push
-```
+The Railway/FastAPI backend (`rag_api.py`) and FAISS indexes were decommissioned. All vector search now runs on Supabase pgvector via Vercel serverless functions. The prototype code is archived in `App_dialectes/Monoko/monoko_rag/` (local only, not in this repo).
 
 ---
 
-### Cloudflare R2 (index file storage)
+### Cloudflare R2 (audio file storage)
 
 **Bucket**: `monoko-rag` (public access enabled)
 
