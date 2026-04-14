@@ -602,6 +602,9 @@
       const [lessonItems, setLessonItems] = useState([]);
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
+      // Progress tracking
+      const [userProgress, setUserProgress] = useState(new Set()); // Set of completed lesson IDs
+      const [lastLesson, setLastLesson] = useState(null);          // { lessonId, lessonTitle, courseTitle, courseId, langId }
       // Chat state
       const [chatMessages, setChatMessages] = useState([]);
       const [chatInput, setChatInput] = useState("");
@@ -640,6 +643,8 @@
         setTesterName(savedTesterName);
         setPendingTesterName(savedTesterName);
         setTesterSessionId(savedSessionId);
+        const savedLesson = localStorage.getItem("monoko_last_lesson");
+        if (savedLesson) { try { setLastLesson(JSON.parse(savedLesson)); } catch(e) {} }
       }, []);
 
       useEffect(() => {
@@ -728,6 +733,56 @@
         setStats({ words: 0, senses: 0 });
       };
 
+      // ── Progress helpers ──────────────────────────────────────────────────────
+      const loadUserProgress = async (userId, languageId) => {
+        if (!userId || !languageId) return;
+        try {
+          const { data } = await supabaseClient
+            .from("user_progress")
+            .select("lesson_id")
+            .eq("user_id", userId)
+            .eq("language_id", languageId);
+          if (data) setUserProgress(new Set(data.map(r => r.lesson_id)));
+        } catch(e) { console.error("loadUserProgress:", e); }
+      };
+
+      const markLessonComplete = async () => {
+        if (!currentUser || !selectedLesson || userProgress.has(selectedLesson.id)) return;
+        try {
+          const { error } = await supabaseClient.from("user_progress").upsert(
+            { user_id: currentUser.id, lesson_id: selectedLesson.id, language_id: langId },
+            { onConflict: "user_id,lesson_id" }
+          );
+          if (!error) setUserProgress(prev => new Set([...prev, selectedLesson.id]));
+        } catch(e) { console.error("markLessonComplete:", e); }
+      };
+
+      const resumeLesson = async () => {
+        if (!lastLesson || !currentUser) return;
+        setLoading(true);
+        try {
+          const [courseArr, lessonsData] = await Promise.all([
+            supaFetch("courses", `id=eq.${lastLesson.courseId}&select=*`),
+            supaFetch("lessons", `course_id=eq.${lastLesson.courseId}&select=*,lesson_items(id)&order=lesson_order`),
+          ]);
+          const course = courseArr[0];
+          if (!course) { setLoading(false); return; }
+          setSelectedCourse({ ...course, lessons: lessonsData.map(l => ({ ...l, itemCount: l.lesson_items?.length || 0 })) });
+          const target = lessonsData.find(l => l.id === lastLesson.lessonId);
+          if (target) {
+            setSelectedLesson(target);
+            const items = await supaFetch("lesson_items", `lesson_id=eq.${target.id}&select=*&order=item_order`);
+            setLessonItems(items);
+            setCurrentCardIdx(0);
+            setCardFlipped(false);
+            setView("lesson");
+          } else {
+            setView("course_detail");
+          }
+        } catch(e) { console.error(e); }
+        setLoading(false);
+      };
+
       const requireAuth = (returnTo) => {
         setAuthReturnTo(returnTo);
         setAuthMode("login");
@@ -774,7 +829,7 @@
             setView("courses");
             if (langId) {
               setLoading(true);
-              try { const d = await supaFetch("courses", `language_id=eq.${langId}&select=*&order=course_order`); setCourses(d); }
+              try { const d = await supaFetch("courses", `language_id=eq.${langId}&select=*,lessons(id)&order=course_order`); setCourses(d); }
               catch(e) { console.error(e); }
               setLoading(false);
             }
@@ -800,8 +855,21 @@
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
       }, [view]);
 
+      // Reload progress whenever the logged-in user or active language changes
+      useEffect(() => {
+        if (currentUser && selectedLang) loadUserProgress(currentUser.id, selectedLang.id);
+        else setUserProgress(new Set());
+      }, [currentUser?.id, selectedLang?.id]);
+
       const langId = selectedLang?.id;
       const langName = selectedLang?.name || "";
+
+      // Derived per-course completion counts (requires courses to have been loaded with lessons(id))
+      const courseProgress = (course) => {
+        if (!course.lessons) return { done: 0, total: 0 };
+        const done = course.lessons.filter(l => userProgress.has(l.id)).length;
+        return { done, total: course.lessons.length };
+      };
       const theme = LANG_THEMES[langName] || defaultTheme;
 
       const doSearch = useCallback(async () => {
@@ -1352,6 +1420,30 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                   ))}
                 </div>
 
+                {/* Continuer — last visited lesson shortcut */}
+                {currentUser && lastLesson && lastLesson.langId === langId && (
+                  <button onClick={resumeLesson} style={{
+                    display:"flex", alignItems:"center", gap:14, width:"100%",
+                    background:"linear-gradient(135deg, #1A3A1A, #2C5F2D)",
+                    border:"none", borderRadius:18, padding:"18px 22px",
+                    cursor:"pointer", textAlign:"left", marginBottom:12,
+                    boxShadow:"0 4px 16px rgba(44,95,45,0.2)", transition:"all 0.2s",
+                  }}
+                  onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 8px 24px rgba(44,95,45,0.28)"; }}
+                  onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 16px rgba(44,95,45,0.2)"; }}>
+                    <div style={{
+                      width:44, height:44, borderRadius:12, background:"rgba(255,255,255,0.12)",
+                      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:20,
+                    }}>▶</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontWeight:700, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>Continuer</div>
+                      <div style={{ fontSize:15, fontWeight:700, color:"white", fontFamily:"'Playfair Display', serif", marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{lastLesson.lessonTitle}</div>
+                      <div style={{ fontSize:12, color:"rgba(255,255,255,0.55)", marginTop:2 }}>{lastLesson.courseTitle}</div>
+                    </div>
+                    <div style={{ color:"rgba(255,255,255,0.4)", flexShrink:0 }}><ChevronRight /></div>
+                  </button>
+                )}
+
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   {[
                     { icon:<SearchIcon/>, title:"Rechercher un mot", sub:`Français → ${langName} ou ${langName} → Français`, grad:"linear-gradient(135deg, #D4A843, #C4912E)", v:"search" },
@@ -1366,7 +1458,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                       if (c.v === "courses" && langId) {
                         setLoading(true);
                         try {
-                          const coursesData = await supaFetch("courses", `language_id=eq.${langId}&select=*&order=course_order`);
+                          const coursesData = await supaFetch("courses", `language_id=eq.${langId}&select=*,lessons(id)&order=course_order`);
                           setCourses(coursesData);
                         } catch(e) { console.error(e); setCourses([]); }
                         setLoading(false);
@@ -1564,13 +1656,31 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                             {course.description}
                           </div>
                         </div>
-                        <div style={{
-                          background:"#F3F0FF", color:"#6B21A8", fontSize:11, fontWeight:700,
-                          padding:"4px 10px", borderRadius:12, flexShrink:0,
-                          fontFamily:"'DM Mono', monospace",
-                        }}>
-                          {i + 1}/{courses.length}
-                        </div>
+                        {(() => {
+                          const prog = courseProgress(course);
+                          const pct = prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0;
+                          const done = prog.done === prog.total && prog.total > 0;
+                          return (
+                            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5, flexShrink:0 }}>
+                              <div style={{
+                                background: done ? "#E8F5E9" : "#F3F0FF",
+                                color: done ? "#2C5F2D" : "#6B21A8",
+                                fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:12,
+                                fontFamily:"'DM Mono', monospace",
+                              }}>
+                                {done ? "✓ " : ""}{prog.done}/{prog.total}
+                              </div>
+                              {prog.total > 0 && (
+                                <div style={{ width:52, height:4, background:"#E8E0D4", borderRadius:4, overflow:"hidden" }}>
+                                  <div style={{ height:"100%", borderRadius:4, transition:"width 0.4s",
+                                    background: done ? "#2C5F2D" : "linear-gradient(90deg, #6B21A8, #9333EA)",
+                                    width:`${pct}%`,
+                                  }}/>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </button>
                     ))}
                   </div>
@@ -1610,6 +1720,10 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                         setLoading(true);
                         setCurrentCardIdx(0);
                         setCardFlipped(false);
+                        // Persist for "Continuer" shortcut on home screen
+                        const ll = { lessonId: lesson.id, lessonTitle: lesson.title, courseTitle: selectedCourse.title, courseId: selectedCourse.id, langId };
+                        localStorage.setItem("monoko_last_lesson", JSON.stringify(ll));
+                        setLastLesson(ll);
                         try {
                           const items = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=*&order=item_order`);
                           setLessonItems(items);
@@ -1626,11 +1740,12 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                       onMouseOver={e => { e.currentTarget.style.borderColor="#9333EA"; e.currentTarget.style.boxShadow="0 2px 8px rgba(107,33,168,0.1)"; }}
                       onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}>
                         <div style={{
-                          width:36, height:36, borderRadius:10,
-                          background:"#F3F0FF", display:"flex", alignItems:"center", justifyContent:"center",
-                          fontSize:14, fontWeight:800, color:"#6B21A8", flexShrink:0,
-                          fontFamily:"'DM Mono', monospace",
-                        }}>{i + 1}</div>
+                          width:36, height:36, borderRadius:10, flexShrink:0,
+                          background: userProgress.has(lesson.id) ? "#E8F5E9" : "#F3F0FF",
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                          fontSize:14, fontWeight:800, fontFamily:"'DM Mono', monospace",
+                          color: userProgress.has(lesson.id) ? "#2C5F2D" : "#6B21A8",
+                        }}>{userProgress.has(lesson.id) ? "✓" : i + 1}</div>
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:15, fontWeight:600, color:"#2D2118" }}>{lesson.title}</div>
                           <div style={{ fontSize:12, color:"#9B8A6E", marginTop:2 }}>{lesson.itemCount} expressions</div>
@@ -1854,6 +1969,34 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                     </div>
                   );
                 })()}
+
+                {/* Complete module CTA */}
+                {currentUser && (
+                  <div style={{ marginTop:32, paddingBottom:28 }}>
+                    {userProgress.has(selectedLesson.id) ? (
+                      <div style={{
+                        display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                        padding:"15px 20px", borderRadius:14,
+                        background:"#E8F5E9", border:"2px solid #2C5F2D",
+                      }}>
+                        <span style={{ fontSize:18 }}>✓</span>
+                        <span style={{ fontSize:14, fontWeight:700, color:"#2C5F2D", fontFamily:"'DM Sans', sans-serif" }}>Module terminé</span>
+                      </div>
+                    ) : (
+                      <button onClick={markLessonComplete} style={{
+                        width:"100%", padding:"16px 20px", borderRadius:14, border:"none",
+                        background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                        color:"white", fontSize:15, fontWeight:700, cursor:"pointer",
+                        fontFamily:"'DM Sans', sans-serif",
+                        boxShadow:"0 4px 14px rgba(44,95,45,0.3)", transition:"all 0.2s",
+                      }}
+                      onMouseOver={e => e.currentTarget.style.transform="translateY(-1px)"}
+                      onMouseOut={e => e.currentTarget.style.transform="translateY(0)"}>
+                        ✓ J'ai terminé ce module
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
