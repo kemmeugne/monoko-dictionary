@@ -64,13 +64,17 @@ export default async function handler(req, res) {
         correct_lingala:      correction.correct_lingala,
         example_sentence:     correction.example_sentence,
         professor_modified:   correction.professor_modified ?? false,
+        reviewed_at:          new Date().toISOString(),
       }, `id=eq.${correction.id}`);
       return res.status(200).json({ ok: true });
     }
 
     if (action === "reject") {
       const { id } = params;
-      await supaWrite("PATCH", "corrections", { status: "rejected" }, `id=eq.${id}`);
+      await supaWrite("PATCH", "corrections", {
+        status:      "rejected",
+        reviewed_at: new Date().toISOString(),
+      }, `id=eq.${id}`);
       return res.status(200).json({ ok: true });
     }
 
@@ -78,7 +82,10 @@ export default async function handler(req, res) {
       // Bulk: rows already filtered to complete pairs by the client
       const { rows, ids } = params;
       await supaWrite("POST", "parallel_sentences", rows);
-      await supaWrite("PATCH", "corrections", { status: "approved" }, `id=in.(${ids.join(",")})`);
+      await supaWrite("PATCH", "corrections", {
+        status:      "approved",
+        reviewed_at: new Date().toISOString(),
+      }, `id=in.(${ids.join(",")})`);
       return res.status(200).json({ ok: true, count: rows.length });
     }
 
