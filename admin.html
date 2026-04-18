@@ -313,7 +313,8 @@
       const loadCorrections = useCallback(async () => {
         setLoading(true);
         try {
-          let params = `select=*,languages(name)&status=eq.${filterStatus}&order=created_at.desc&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`;
+          const order = filterStatus === "pending" ? "created_at.asc" : "reviewed_at.desc.nullslast";
+          let params = `select=*,languages(name)&status=eq.${filterStatus}&order=${order}&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`;
           if (filterLang !== "all") params += `&language_id=eq.${filterLang}`;
           const data = await supaRead("corrections", params);
           setCorrections(data);
