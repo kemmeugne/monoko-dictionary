@@ -47,6 +47,8 @@ generate_audio_collection_html.py — generates one HTML recording app per modul
 populate_stub_modules.py          — populates stub modules with suggested French content, then re-runs HTML generator
 audio_collection_html/            — generated HTML recording apps (one per module), sent to professor for audio recording
 generate_course_templates.py      — generates generic HTML recording apps for all 29 modules for any new language
+translate_examples_to_parallel_sentences.py — translates professor example sentences (Lingala) to French via GPT and inserts into parallel_sentences; supports --dry-run and --from-log to insert directly from existing JSON log
+sql/corrections_reviewed_at.sql   — migration: adds reviewed_at to corrections + pace monitoring queries
 ```
 
 ---
@@ -58,7 +60,7 @@ generate_course_templates.py      — generates generic HTML recording apps for 
 - `senses.audio_url/audio_key/audio_source_cell` — Lingala word audio links (added 2026-03-15)
 - `examples.audio_url/audio_key/audio_source_cell` — Lingala example audio links (added 2026-03-15)
 - `parallel_sentences` — FR↔dialect sentence pairs for RAG (FLORES + approved corrections); `embedding vector(384)` added 2026-03-31
-- `corrections` — user-submitted AI corrections (pending → approved); `professor_modified boolean` tracks whether the professor edited the correction before approving
+- `corrections` — user-submitted AI corrections (pending → approved); `professor_modified boolean` tracks whether the professor edited the correction before approving; `reviewed_at timestamptz` set on approve/reject for session pace tracking (added 2026-04-18)
 - `chat_events` — tester-tracked chat activity (`tester_name`, `session_id`, query/response, timestamps)
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
@@ -91,8 +93,8 @@ generate_course_templates.py      — generates generic HTML recording apps for 
 User flags AI error → corrections table (status: pending, with optional `tester_name` + `session_id`)
 → Professor reviews at /admin.html
   → Professor edits correct_french, correct_lingala, example_sentence directly in the card if needed
-→ Approve → inserts into parallel_sentences (quality: verified) + status: approved + professor_modified: true/false
-→ Reject → status: rejected (used when a sentence has no valid Lingala translation)
+→ Approve → inserts into parallel_sentences (quality: verified) + status: approved + professor_modified: true/false + reviewed_at: now()
+→ Reject → status: rejected + reviewed_at: now()
 ```
 
 **Monitoring query** — % of corrections the professor had to fix:
@@ -104,6 +106,17 @@ SELECT
        ELSE ROUND(100.0 * COUNT(*) FILTER (WHERE professor_modified = true) / COUNT(*), 1)
   END AS pct_edited
 FROM corrections WHERE status = 'approved';
+```
+
+**Monitoring query** — professor review pace (see `sql/corrections_reviewed_at.sql` for full queries):
+```sql
+SELECT
+  DATE(reviewed_at) AS day,
+  COUNT(*) AS reviewed,
+  ROUND(EXTRACT(EPOCH FROM (MAX(reviewed_at) - MIN(reviewed_at))) / NULLIF(COUNT(*) - 1, 0)) AS avg_seconds_between
+FROM corrections
+WHERE reviewed_at IS NOT NULL
+GROUP BY day ORDER BY day DESC;
 ```
 
 ---

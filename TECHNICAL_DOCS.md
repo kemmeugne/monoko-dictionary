@@ -187,13 +187,14 @@ User-submitted AI corrections awaiting admin review.
 | `example_sentence` | TEXT | Optional example |
 | `tester_name` | TEXT | Tester/professor name entered before chat |
 | `session_id` | TEXT | Browser session identifier used for activity tracking |
-| `status` | TEXT | `"pending"`, `"approved"` |
+| `status` | TEXT | `"pending"`, `"approved"`, `"rejected"` |
 | `professor_modified` | BOOLEAN | `true` if the professor edited the correction before approving |
+| `reviewed_at` | TIMESTAMPTZ | Set by `admin-action.js` on approve or reject — used for pace tracking (added 2026-04-18) |
 | `created_at` | TIMESTAMPTZ | Auto |
 
-**Flow**: `pending` → admin review → professor edits if needed → `approved` (auto-inserts into `parallel_sentences`)
+**Flow**: `pending` → admin review → professor edits if needed → `approved` (auto-inserts into `parallel_sentences`) + `reviewed_at` stamped
 
-**Monitoring**: Query below tracks how often auto-generated corrections needed manual fixing before entering the corpus. Use `CASE WHEN COUNT(*) = 0 THEN NULL` to avoid division-by-zero when no corrections are approved yet.
+**Monitoring** — % of corrections the professor had to fix:
 ```sql
 SELECT
   COUNT(*) FILTER (WHERE professor_modified = true) AS edited,
@@ -202,6 +203,17 @@ SELECT
        ELSE ROUND(100.0 * COUNT(*) FILTER (WHERE professor_modified = true) / COUNT(*), 1)
   END AS pct_edited
 FROM corrections WHERE status = 'approved';
+```
+
+**Monitoring** — professor review pace per day (full queries in `sql/corrections_reviewed_at.sql`):
+```sql
+SELECT
+  DATE(reviewed_at) AS day,
+  COUNT(*) AS reviewed,
+  ROUND(EXTRACT(EPOCH FROM (MAX(reviewed_at) - MIN(reviewed_at))) / NULLIF(COUNT(*) - 1, 0)) AS avg_seconds_between
+FROM corrections
+WHERE reviewed_at IS NOT NULL
+GROUP BY day ORDER BY day DESC;
 ```
 
 ### `chat_events`
