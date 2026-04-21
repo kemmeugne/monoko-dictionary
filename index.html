@@ -600,6 +600,10 @@
       const sourceEndRef = useRef(null);
       const transEndRef = useRef(null);
 
+      // Warm-up MMS Space as soon as the view mounts so the Gradio Space wakes
+      // before the user actually needs audio (Spaces sleep after ~30min idle).
+      useEffect(() => { fetch("/api/mms-tts").catch(() => {}); }, []);
+
       // Keep refs in sync with state (needed inside async callbacks)
       useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
       useEffect(() => { directionRef.current = direction; }, [direction]);
@@ -807,7 +811,13 @@
           setTimeout(() => window.speechSynthesis.speak(u), 50);
           return;
         }
-        // Target is Lingala → Meta MMS-TTS (facebook/mms-tts-lin)
+        // Target is Lingala → Meta MMS-TTS via HuggingFace Space (real Lingala accent)
+        // ── ElevenLabs fallback (English accent but reliable) ─────────────────
+        // const res = await fetch("/api/elevenlabs-tts", {
+        //   method:"POST", headers:{"Content-Type":"application/json"},
+        //   body: JSON.stringify({ text: seg.translation }),
+        // });
+        // ─────────────────────────────────────────────────────────────────────
         if (audioCacheRef.current[seg.translation]) {
           const audio = new Audio(audioCacheRef.current[seg.translation]);
           audio.onended = () => setPlayingId(null);
@@ -819,17 +829,25 @@
             method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ text: seg.translation }),
           });
-          if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `TTS ${res.status}`); }
+          if (!res.ok) {
+            const e = await res.json().catch(() => ({}));
+            throw new Error(e.error || `TTS ${res.status}`);
+          }
           const blob = await res.blob();
           const url = URL.createObjectURL(blob);
           audioCacheRef.current[seg.translation] = url;
-          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioUrl:url } : s));
+          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioUrl:url, spaceLoading:false } : s));
           const audio = new Audio(url);
           audio.onended = () => setPlayingId(null);
           audio.play();
         } catch(e) {
           console.error("TTS error:", e);
-          setError(`Audio Lingala indisponible: ${e.message}`);
+          if (e.message === "space_unavailable") {
+            // Space is waking up — mark segment for retry, don't show generic error
+            setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, spaceLoading:true } : s));
+          } else {
+            setError(`Audio Lingala indisponible: ${e.message}`);
+          }
           setPlayingId(null);
         }
       };
@@ -943,22 +961,33 @@
               <p style={{ fontSize:15, color:"#0EA5E9", fontStyle:"italic", margin:"0 0 8px" }}>…</p>
             )}
             {segments.map(s => (
-              <div key={s.id} style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:14 }}>
-                <p style={{ flex:1, fontSize:15, color:"#0C4A6E", lineHeight:1.7, margin:0, fontFamily:"'Source Serif 4', serif", fontWeight:600 }}>
-                  {s.translation}
-                </p>
-                <button
-                  onClick={() => playAudio(s)}
-                  title="Écouter"
-                  style={{
-                    background: playingId === s.id ? "#0EA5E9" : "white",
-                    border:"1px solid #BAE6FD", borderRadius:8,
-                    padding:"5px 10px", fontSize:13, cursor:"pointer", flexShrink:0,
-                    color: playingId === s.id ? "white" : "#0EA5E9",
-                    transition:"all 0.15s",
-                  }}>
-                  {playingId === s.id ? "▶▶" : "▶"}
-                </button>
+              <div key={s.id} style={{ marginBottom:14 }}>
+                <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+                  <p style={{ flex:1, fontSize:15, color:"#0C4A6E", lineHeight:1.7, margin:0, fontFamily:"'Source Serif 4', serif", fontWeight:600 }}>
+                    {s.translation}
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (s.spaceLoading) setSegments(prev => prev.map(p => p.id === s.id ? { ...p, spaceLoading:false } : p));
+                      playAudio(s);
+                    }}
+                    title={s.spaceLoading ? "Réessayer" : "Écouter"}
+                    style={{
+                      background: playingId === s.id ? "#0EA5E9" : s.spaceLoading ? "#FFF7ED" : "white",
+                      border: `1px solid ${s.spaceLoading ? "#FED7AA" : "#BAE6FD"}`,
+                      borderRadius:8, padding:"5px 10px", fontSize:13,
+                      cursor:"pointer", flexShrink:0,
+                      color: playingId === s.id ? "white" : s.spaceLoading ? "#EA580C" : "#0EA5E9",
+                      transition:"all 0.15s",
+                    }}>
+                    {playingId === s.id ? "▶▶" : s.spaceLoading ? "↺" : "▶"}
+                  </button>
+                </div>
+                {s.spaceLoading && !s.fromLingala && (
+                  <p style={{ fontSize:11, color:"#EA580C", margin:"4px 0 0", fontStyle:"italic" }}>
+                    Audio en chargement — réessayez dans quelques secondes
+                  </p>
+                )}
               </div>
             ))}
             <div ref={transEndRef} />
