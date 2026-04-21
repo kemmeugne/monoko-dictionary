@@ -16,7 +16,7 @@
  */
 
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM"; // Rachel
-const MODEL_ID = "eleven_v3";
+const MODEL_ID = "eleven_multilingual_v2";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           text: text.trim(),
           model_id: MODEL_ID,
-          language_code: "lin", // Lingala ISO 639-3
+          // language_code omitted — "lin" is not supported; v2 auto-detects from text
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
