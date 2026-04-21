@@ -7,16 +7,18 @@ API endpoint (Gradio 4.x):
   GET  /call/synthesise/{event_id}  → SSE → audio file URL
 """
 
+import os
 import numpy as np
 import torch
 import gradio as gr
 from transformers import VitsModel, AutoTokenizer
 
 MODEL_ID = "facebook/mms-tts-lin"
+HF_TOKEN = os.environ.get("HF_TOKEN")  # set in Space Settings → Secrets
 
 print("Loading facebook/mms-tts-lin …")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-model = VitsModel.from_pretrained(MODEL_ID)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, token=HF_TOKEN)
+model = VitsModel.from_pretrained(MODEL_ID, token=HF_TOKEN)
 model.eval()
 SAMPLE_RATE = model.config.sampling_rate  # 16 000 Hz
 print(f"Model ready — sample rate {SAMPLE_RATE} Hz")
