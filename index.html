@@ -807,7 +807,7 @@
           setTimeout(() => window.speechSynthesis.speak(u), 50);
           return;
         }
-        // Target is Lingala → ElevenLabs TTS
+        // Target is Lingala → Meta MMS-TTS (facebook/mms-tts-lin)
         if (audioCacheRef.current[seg.translation]) {
           const audio = new Audio(audioCacheRef.current[seg.translation]);
           audio.onended = () => setPlayingId(null);
@@ -815,7 +815,7 @@
           return;
         }
         try {
-          const res = await fetch("/api/elevenlabs-tts", {
+          const res = await fetch("/api/mms-tts", {
             method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ text: seg.translation }),
           });
