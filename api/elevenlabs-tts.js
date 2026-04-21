@@ -42,7 +42,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           text: text.trim(),
           model_id: MODEL_ID,
-          language_code: "lin",
+          // language_code omitted — eleven_v3 auto-detects Lingala from text content
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,

@@ -594,6 +594,8 @@
       const mediaRecorderRef = useRef(null);
       const audioChunksRef = useRef([]);
       const chunkTimerRef = useRef(null);
+      const translateTimerRef = useRef(null);
+      const mimeTypeRef = useRef("audio/webm");
       const audioCacheRef = useRef({});
       const sourceEndRef = useRef(null);
       const transEndRef = useRef(null);
@@ -611,6 +613,7 @@
 
       const stopAll = () => {
         clearTimeout(chunkTimerRef.current);
+        clearTimeout(translateTimerRef.current);
         if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch(e) {} recognitionRef.current = null; }
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
           try { mediaRecorderRef.current.stop(); } catch(e) {}
@@ -650,12 +653,17 @@
             else interim += r[0].transcript;
           }
           setLiveText(finalBuffer + interim);
-          // Translate on sentence boundary
-          if (finalBuffer.trim().match(/[.!?](\s*)$/)) {
-            const toTranslate = finalBuffer.trim();
-            finalBuffer = "";
-            setLiveText("");
-            handleTranslate(toTranslate, directionRef.current);
+          // Auto-translate after 1s pause — no punctuation needed
+          if (finalBuffer.trim()) {
+            clearTimeout(translateTimerRef.current);
+            translateTimerRef.current = setTimeout(() => {
+              const toTranslate = finalBuffer.trim();
+              if (toTranslate) {
+                finalBuffer = "";
+                setLiveText("");
+                handleTranslate(toTranslate, directionRef.current);
+              }
+            }, 1000);
           }
         };
 
@@ -690,16 +698,17 @@
 
       const sendChunk = async () => {
         if (!audioChunksRef.current.length) return;
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const mime = mimeTypeRef.current;
+        const blob = new Blob(audioChunksRef.current, { type: mime });
         audioChunksRef.current = [];
-        if (blob.size < 2000) { restartChunk(); return; } // skip silence
+        if (blob.size < 500) { restartChunk(); return; } // skip silence
 
         try {
           const base64 = await blobToBase64(blob);
           const res = await fetch("/api/elevenlabs-stt", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ audio: base64, mimeType: "audio/webm" }),
+            body: JSON.stringify({ audio: base64, mimeType: mime }),
           });
           if (res.ok) {
             const data = await res.json();
@@ -709,6 +718,9 @@
               await handleTranslate(transcript, directionRef.current);
               setLiveText("");
             }
+          } else {
+            const err = await res.json().catch(() => ({}));
+            setError(`STT Lingala: ${err.error || res.status}. Vérifiez la clé ElevenLabs.`);
           }
         } catch(e) { console.error("Lingala STT error:", e); }
         restartChunk();
@@ -727,12 +739,17 @@
       const startLingalaSTT = async () => {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+          const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+            ? "audio/webm;codecs=opus"
+            : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
+            : "audio/mp4";
+          mimeTypeRef.current = mimeType;
           const recorder = new MediaRecorder(stream, { mimeType });
+          // timeslice=250 ensures ondataavailable fires reliably every 250ms
           recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
           recorder.onstop = sendChunk;
           mediaRecorderRef.current = recorder;
-          recorder.start();
+          recorder.start(250);
           setIsListening(true);
           isListeningRef.current = true;
           chunkTimerRef.current = setTimeout(() => {
@@ -808,6 +825,7 @@
           audio.play();
         } catch(e) {
           console.error("TTS error:", e);
+          setError(`Audio Lingala indisponible: ${e.message}`);
           setPlayingId(null);
         }
       };
@@ -942,10 +960,6 @@
             <div ref={transEndRef} />
           </div>
 
-          {/* Accuracy note */}
-          <p style={{ fontSize:10, color:"#C4B8A4", textAlign:"center", margin:"6px 0 0", fontFamily:"'DM Mono', monospace", flexShrink:0 }}>
-            {isFromLingala ? `STT Lingala par ElevenLabs Scribe · précision modérée` : `STT Français natif · TTS Lingala par ElevenLabs`}
-          </p>
         </div>
       );
     }
