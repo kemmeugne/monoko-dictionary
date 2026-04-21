@@ -1,0 +1,5 @@
+transformers>=4.35.0
+torch>=2.0.0
+scipy
+numpy
+gradio>=4.0.0
