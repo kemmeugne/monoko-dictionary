@@ -4,16 +4,19 @@
  * Accepts: POST { text: string }
  * Returns: audio/mpeg binary
  *
- * Voice: Rachel (21m00Tcm4TlvDq8ikWAM) — multilingual, works with eleven_v3.
- * To swap voice: update VOICE_ID below or add a ELEVENLABS_VOICE_ID env var.
+ * Voice: Rachel (21m00Tcm4TlvDq8ikWAM)
+ * Model: eleven_v3 with language_code "lin" (Lingala ISO 639-3)
  *
- * Future path: replace ElevenLabs with a VITS/Coqui model fine-tuned on
- * Lingala studio recordings from native speakers. The voice_id and model_id
- * params map cleanly to that architecture.
+ * NOTE: ElevenLabs has English accent bias for Lingala — no native Lingala
+ * TTS model exists publicly (facebook/mms covers ASR only, not TTS).
+ *
+ * TODO: ElevenLabs Lingala TTS has English accent bias.
+ * Future plan: fine-tune VITS model on native Lingala recordings (Borgeas studio sessions)
+ * and host on our own HuggingFace Space. No pre-trained Lingala TTS model exists publicly.
  */
 
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM"; // Rachel
-const MODEL_ID = "eleven_multilingual_v2"; // eleven_v3 not yet GA; v2 supports all languages
+const MODEL_ID = "eleven_v3";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -42,7 +45,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           text: text.trim(),
           model_id: MODEL_ID,
-          // language_code omitted — eleven_v3 auto-detects Lingala from text content
+          language_code: "lin", // Lingala ISO 639-3
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
@@ -56,12 +59,12 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const err = await response.text();
       console.error("ElevenLabs TTS error:", response.status, err);
-      return res.status(500).json({ error: `ElevenLabs TTS ${response.status}: ${err.slice(0, 200)}` });
+      return res.status(response.status).json({ error: `ElevenLabs TTS ${response.status}: ${err.slice(0, 200)}` });
     }
 
     const audioBuffer = await response.arrayBuffer();
     res.setHeader("Content-Type", "audio/mpeg");
-    res.setHeader("Cache-Control", "public, max-age=86400"); // cache 24h at CDN level
+    res.setHeader("Cache-Control", "public, max-age=86400");
     return res.send(Buffer.from(audioBuffer));
   } catch (err) {
     console.error("ElevenLabs TTS exception:", err);

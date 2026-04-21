@@ -1,0 +1,102 @@
+{
+  "generated_at": "2026-03-20 12:25:11",
+  "dataset_size": 6,
+  "samples_per_quality": 3,
+  "seed": 42,
+  "kb_path": "/Users/anthonykemmeugne/Documents/App dialectes/Monoko/monoko_rag/monoko_data/merged/lingala_knowledge_base.jsonl",
+  "pricing_reference_date": "2026-03-20",
+  "results": [
+    {
+      "name": "monoko_proxy",
+      "sample_count": 6,
+      "mean_chrf": 0.4782,
+      "median_chrf": 0.4727,
+      "exact_match_rate": 0,
+      "mean_latency_ms": 5337.8,
+      "mean_input_tokens": 1373.2,
+      "mean_output_tokens": 104.7,
+      "mean_cost_usd": 0.000269,
+      "projected_cost_per_1000_usd": 0.269,
+      "rows": [
+        {
+          "quality": "verified",
+          "source": "monoko_supabase",
+          "french": "Il a aimé les aubergines que tu as préparées",
+          "reference": "Alingi ba solo oyo olambi.",
+          "answer": "En Lingala, tu peux dire : \"Alingi ba solo oyo olambi.\" ~\n- Alingi = il a aimé ✓ (corpus : \"Il a aimé\")\n- ba solo = les aubergines ✓ (corpus : \"ba solo\")\n- oyo = que ✓ (corpus : \"oyo\")\n- olambi = tu as préparées ✓ (corpus : \"olambi\")",
+          "exact_match": false,
+          "chrf": 0.3617,
+          "latency_ms": 3410.2,
+          "input_tokens": 804,
+          "output_tokens": 58,
+          "cost_usd": 0.0001554
+        },
+        {
+          "quality": "verified",
+          "source": "monoko_supabase",
+          "french": "Votre décision était mauvaise",
+          "reference": "Mokano na bino ezalaki mabe.",
+          "answer": "En Lingala, tu peux dire : \"Mokano na bino ezalaki mabe.\" ~\n- Mokano = décision ✓ (corpus : \"Mokano na bino ezalaki mabe\")\n- Na bino = votre ✓\n- Ezalaki mabe = était mauvaise ~ (assemblage de \"ezalaki\" + \"mabe\" vérifiés)",
+          "exact_match": false,
+          "chrf": 0.3986,
+          "latency_ms": 2675.0,
+          "input_tokens": 889,
+          "output_tokens": 55,
+          "cost_usd": 0.00016635
+        },
+        {
+          "quality": "verified",
+          "source": "monoko_supabase",
+          "french": "Nous nous reposons au bord de la rivière.",
+          "reference": "To zo pema na mondelo ya ebale.",
+          "answer": "En Lingala, tu peux dire : \"To zo pema na mondelo ya ebale.\" ~\n- To = nous ✓ (corpus : \"To = nous\")\n- zo pema = nous nous reposons ~ (assemblage de \"zo\" + \"pema\" vérifiés)\n- na = à, au ✓ (corpus : \"na = à, au\")\n- mondelo = bord ✓ (corpus : \"mondelo = bord\")\n- ya = de ✓ (corpus : \"ya = de\")\n- ebale = rivière ✓ (corpus : \"ebale = rivière\")",
+          "exact_match": false,
+          "chrf": 0.3161,
+          "latency_ms": 6033.1,
+          "input_tokens": 1008,
+          "output_tokens": 85,
+          "cost_usd": 0.00020219999999999998
+        },
+        {
+          "quality": "gold",
+          "source": "flores200",
+          "french": "On prétend notamment que l’on peut détecter si une personne ment en interprétant correctement des micro-expressions.",
+          "reference": "Mingimingi, balobaka ete moto akoki koyeba soki moto azokosa na kolandaka maloba na ye malamumalamu.",
+          "answer": "En Lingala, tu peux dire : \"Mingimingi, balobaka ete moto akoki koyeba soki moto azokosa na kolandaka maloba na ye malamumalamu.\" ~\n- Mingimingi = notamment ✓\n- Balobaka = ils disent ✓\n- Moto = personne ✓\n- Akoki = il peut ✓\n- Koyeba = détecter ✓\n- Soki = si ✓\n- Azokosa = ment ✓\n- Na = en ✓\n- Kolandaka = interprétant ✓\n- Maloba = des mots ✓\n- Na = à ✓\n- Ye = lui ✓\n- Malamumalamu = correctement ✓",
+          "exact_match": false,
+          "chrf": 0.6206,
+          "latency_ms": 5996.2,
+          "input_tokens": 2044,
+          "output_tokens": 100,
+          "cost_usd": 0.00036659999999999997
+        },
+        {
+          "quality": "gold",
+          "source": "flores200",
+          "french": "L'étude a révélé que la dépression, la peur et le catastrophisme étaient à l'origine de la relation entre la douleur et le handicap chez les personnes souffrant de douleurs au bas du dos.",
+          "reference": "Bolukiluki emonisi ete koniokwama na makasi, kobanga pe minioko ekotaka na boyokani kati na mpasi na ebosono ya moto oyo abelaka mpasi ya mukongo.",
+          "answer": "En Lingala, tu peux dire : \"Bolukiluki emonisi ete koniokwama na makasi, kobanga pe minioko ekotaka na boyokani kati na mpasi na ebosono ya moto oyo abelaka mpasi ya mukongo.\" ~\n- Bolukiluki = étude ✓\n- Emonisi = a révélé ✓\n- Koniokwama = dépression ✓\n- Kobanga = peur ✓\n- Minioko = catastrophisme ✓\n- Ekotaka = étaient à l'origine ✓\n- Boyokani = relation ✓\n- Kati na = entre ✓\n- Mpasi = douleur ✓\n- Ebosono = handicap ✓\n- Moto = personne ✓\n- Oyo = qui ✓\n- Abelaka = souffrant ✓\n- Mpasi ya mukongo = douleurs au bas du dos ~ (assemblage de \"mpasi\" + \"ya\" + \"mukongo\" vérifiés)",
+          "exact_match": false,
+          "chrf": 0.6253,
+          "latency_ms": 7870.7,
+          "input_tokens": 1674,
+          "output_tokens": 144,
+          "cost_usd": 0.00033749999999999996
+        },
+        {
+          "quality": "gold",
+          "source": "flores200",
+          "french": "Les enfants prennent très tôt conscience de la notion de race et des stéréotypes raciaux, et ces stéréotypes ont une incidence sur le comportement.",
+          "reference": "Bana bakolisaka mayele ya koyeba baposo ya nzoto pe baposo ya nzoto ekeseni ntango baza naino mike pe yango ezalaka na bopusi na bizaleli na bango.",
+          "answer": "En Lingala, tu peux dire : \"Bana bakolisaka mayele ya koyeba baposo ya nzoto pe baposo ya nzoto ekeseni ntango baza naino mike pe yango ezalaka na bopusi na bizaleli na bango.\" ~\n- Bana = enfants ✓ (corpus : \"Bana = enfants\")\n- Bakolisaka = prennent conscience ✓ (corpus : \"bakolisaka\")\n- Mayele = connaissance ✓ (corpus : \"mayele\")\n- Koyeba = de la notion de ✓ (corpus : \"koyeba\")\n- Baposo ya nzoto = notion de race ✓ (corpus : \"baposo ya nzoto\")\n- Ekeseni = ont une incidence ✓ (corpus : \"ekeseni\")\n- Ntango = lorsque ✓ (corpus : \"ntango\")\n- Baza naino mike = très tôt ✓ (corpus : \"naino mike\")\n- Yango = cela ✓ (corpus : \"yango\")\n- Ezalaka = a ✓ (corpus : \"ezalaka\")\n- Na bopusi = sur le comportement ✓ (corpus : \"bopusi na bizaleli na bango\")",
+          "exact_match": false,
+          "chrf": 0.5467,
+          "latency_ms": 6041.6,
+          "input_tokens": 1820,
+          "output_tokens": 186,
+          "cost_usd": 0.00038459999999999997
+        }
+      ]
+    }
+  ]
+}

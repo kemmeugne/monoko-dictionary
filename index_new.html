@@ -9,7 +9,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#F7F3ED}
@@ -20,8 +19,6 @@
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
     @keyframes spin{to{transform:rotate(360deg)}}
-    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.5),0 4px 20px rgba(22,163,74,0.4)}50%{box-shadow:0 0 0 18px rgba(22,163,74,0),0 4px 20px rgba(22,163,74,0.4)}}
-    @keyframes dots{0%,100%{opacity:0.2}50%{opacity:1}}
   </style>
 </head>
 <body>
@@ -30,8 +27,7 @@
     const { useState, useRef, useEffect, useCallback } = React;
 
     const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_W6hYzyecMTm06Cr9siLV1A_4qtR5ect";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaW9pY2N1am5jc2VoYWRpcHpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMTczMjAsImV4cCI6MjA4NjU5MzMyMH0.ic0JlZ17hOpLOzth_E4YrR122EG4LN6T04TYMcV-_CU";
 
     async function supaFetch(table, params = "") {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
@@ -55,12 +51,6 @@
       "Yoruba": { emoji: "🇳🇬", gradient: "linear-gradient(135deg, #1B5E20, #388E3C)", accent: "#1B5E20" },
     };
     const defaultTheme = { emoji: "🌍", gradient: "linear-gradient(135deg, #2C5F2D, #4A8B4C)", accent: "#2C5F2D" };
-    const TESTER_NAME_KEY = "monoko_tester_name";
-    const TESTER_SESSION_KEY = "monoko_tester_session_id";
-
-    function generateSessionId() {
-      return `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    }
 
     // Geographic data for each language
     const LANG_GEO = {
@@ -97,7 +87,6 @@
     };
 
     const MapIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>);
-    const HeadphonesIcon = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>);
 
     // Leaflet Map Component
     const LeafletMap = ({ selectedMapLang, onSelectLang }) => {
@@ -265,270 +254,16 @@
     const CloseIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>);
     const Spinner = () => (<div style={{display:"flex",justifyContent:"center",padding:40}}><div style={{width:32,height:32,border:"3px solid #E8E0D4",borderTopColor:"#2C5F2D",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/></div>);
 
-    const AudioButton = ({ src, title }) => {
-      const [playing, setPlaying] = useState(false);
-
-      const playAudio = async () => {
-        if (!src) return;
-        try {
-          const audio = new Audio(src);
-          setPlaying(true);
-          audio.addEventListener("ended", () => setPlaying(false), { once: true });
-          audio.addEventListener("pause", () => setPlaying(false), { once: true });
-          await audio.play();
-        } catch (e) {
-          setPlaying(false);
-          console.error(e);
-        }
-      };
-
-      if (!src) return null;
-
-      return (
-        <button
-          onClick={playAudio}
-          style={{
-            background: playing ? "#2C5F2D" : "#F0EBE3",
-            border: "none",
-            borderRadius: "50%",
-            width: 32,
-            height: 32,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: playing ? "white" : "#8B6D47",
-            flexShrink: 0
-          }}
-          title={title}
-        >
-          <VolumeIcon />
-        </button>
-      );
-    };
-
-    // ── Alphabet Panel (Module 1.1 Sons et alphabet) ─────────────────────────
-    const ALPHABET_DATA = {
-      voyelles: [
-        { letter:"A", word:"Bokáni",    meaning:"Décision",   hint:"comme dans « patte »" },
-        { letter:"E", word:"Emétu",     meaning:"Genre",      hint:"comme dans « été »" },
-        { letter:"I", word:"Lisakolí",  meaning:"Discours",   hint:"comme dans « vie »" },
-        { letter:"O", word:"Motóki",    meaning:"Sueur",      hint:"comme dans « eau »" },
-        { letter:"U", word:"Kozúza",    meaning:"Déformer",   hint:"comme dans « ou »" },
-        { letter:"Ɛ", word:"Tɛmbɛlɛ",  meaning:"Timbre",     hint:"comme dans « fête »" },
-        { letter:"Ɔ", word:"Mpɔ",       meaning:"Pour",       hint:"comme dans « or »" },
-      ],
-      consonnes: [
-        { letter:"B", word:"Bokono",   meaning:"Maladie" },
-        { letter:"D", word:"Dangu",    meaning:"Panier" },
-        { letter:"F", word:"Fúlu",     meaning:"Poubelle" },
-        { letter:"G", word:"Gádi",     meaning:"Jardin" },
-        { letter:"K", word:"Kala",     meaning:"Autrefois" },
-        { letter:"L", word:"Likásu",   meaning:"Noix de cola" },
-        { letter:"M", word:"Mbúla",    meaning:"Pluie" },
-        { letter:"N", word:"Ngúma",    meaning:"Python" },
-        { letter:"P", word:"Pépélé",   meaning:"Lumière" },
-        { letter:"S", word:"Sánzá",    meaning:"Lune" },
-        { letter:"T", word:"Taú",      meaning:"Fragile" },
-        { letter:"V", word:"Víno",     meaning:"Vin" },
-        { letter:"W", word:"Wangíla",  meaning:"Sésame" },
-        { letter:"Y", word:"Yambí",    meaning:"Bienvenue" },
-        { letter:"Z", word:"Zála",     meaning:"Nid" },
-      ],
-      composes: [
-        { letter:"GB", word:"Gbagba",      meaning:"Pont" },
-        { letter:"KP", word:"Ekpángba",    meaning:"Entrepôt" },
-        { letter:"KW", word:"Mokwéte",     meaning:"Vénus" },
-        { letter:"MB", word:"Mbano",       meaning:"Récompense" },
-        { letter:"MF", word:"Mfúti",       meaning:"Taxe" },
-        { letter:"MP", word:"Mpéma",       meaning:"Respirer" },
-        { letter:"MV", word:"Litamvula",   meaning:"Frange" },
-        { letter:"MW", word:"Mwambe",      meaning:"Huit" },
-        { letter:"ND", word:"Ndáko",       meaning:"Maison" },
-        { letter:"NG", word:"Ngúlu",       meaning:"Cochon" },
-        { letter:"NK", word:"Nkámá",       meaning:"Cent" },
-        { letter:"NS", word:"Nsinga",      meaning:"Fil" },
-        { letter:"NT", word:"Ntaba",       meaning:"Chèvre" },
-        { letter:"NY", word:"Nyama",       meaning:"Animal" },
-        { letter:"NZ", word:"Nzále",       meaning:"Buffle" },
-        { letter:"TS", word:"Etsúséláká",  meaning:"Grammaire" },
-      ],
-      trigraphes: [
-        { letter:"NGB", word:"Ngbá",    meaning:"Hachette" },
-        { letter:"NGW", word:"Ngwaa",   meaning:"Brillant" },
-        { letter:"TSH", word:"Tshádi",  meaning:"Tchad" },
-      ],
-      tons: [
-        { letter:"—",  mark:"(sans accent)", word:"Kopésa",  meaning:"Donner",  desc:"Ton bas" },
-        { letter:"´",  mark:"accent aigu",   word:"Tatá",    meaning:"Père",    desc:"Ton haut" },
-        { letter:"^",  mark:"circonflexe",   word:"Sâmbóle", meaning:"Énigme",  desc:"Ton descendant" },
-        { letter:"ˇ",  mark:"caron",         word:"Mwǎsi",   meaning:"Femme",   desc:"Ton montant" },
-      ],
-    };
-
-    const AlphabetPanel = ({ lessonItems }) => {
-      // Build audio map: item_order (1-based) → audio_url
-      const audioMap = {};
-      lessonItems.forEach(item => { if (item.audio_url) audioMap[item.item_order] = item.audio_url; });
-
-      // Sequential item_order: vowels=1-7, consonants=8-22, digraphs=23-38, tones=39-42
-      const playAudio = (src) => {
-        if (!src) return;
-        const a = new Audio(src); a.play().catch(()=>{});
-      };
-
-      const SectionLabel = ({ children }) => (
-        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase",
-          color:"#9B8A6E", margin:"24px 0 10px", fontFamily:"'DM Mono', monospace" }}>
-          {children}
-        </div>
-      );
-
-      const Tile = ({ letter, word, meaning, hint, itemOrder, accent }) => {
-        const audio = audioMap[itemOrder];
-        const colors = {
-          voyelle:  { bg:"#FFF7ED", border:"#FDBA74", letter:"#C2410C", badge:"#FED7AA" },
-          consonne: { bg:"#F5F3FF", border:"#C4B5FD", letter:"#6D28D9", badge:"#EDE9FE" },
-          compose:  { bg:"#F0FDF4", border:"#86EFAC", letter:"#15803D", badge:"#DCFCE7" },
-          ton:      { bg:"#EFF6FF", border:"#93C5FD", letter:"#1D4ED8", badge:"#DBEAFE" },
-        };
-        const c = colors[accent] || colors.consonne;
-        return (
-          <button onClick={() => playAudio(audio)} style={{
-            background: c.bg,
-            border: `1.5px solid ${audio ? c.border : "#E8E0D4"}`,
-            borderRadius: 16,
-            padding: "14px 10px 12px",
-            cursor: audio ? "pointer" : "default",
-            textAlign: "center",
-            transition: "all 0.15s",
-            opacity: audio ? 1 : 0.7,
-            position: "relative",
-          }}
-          onMouseOver={e => { if(audio) { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 4px 12px ${c.border}88`; }}}
-          onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="none"; }}>
-            {audio && (
-              <div style={{ position:"absolute", top:6, right:6,
-                width:14, height:14, borderRadius:"50%", background:c.border,
-                display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <svg width="7" height="7" viewBox="0 0 10 10" fill={c.letter}><polygon points="2,1 9,5 2,9"/></svg>
-              </div>
-            )}
-            <div style={{ fontSize:28, fontWeight:800, color:c.letter,
-              fontFamily:"'Playfair Display', serif", lineHeight:1, marginBottom:6 }}>
-              {letter}
-            </div>
-            <div style={{ fontSize:12, fontWeight:700, color:"#2D2118", marginBottom:2 }}>{word}</div>
-            <div style={{ fontSize:10, color:"#9B8A6E", lineHeight:1.3 }}>{meaning}</div>
-            {hint && <div style={{ fontSize:9, color:"#B8A99E", marginTop:3, fontStyle:"italic" }}>{hint}</div>}
-          </button>
-        );
-      };
-
-      const ToneTile = ({ item, itemOrder }) => {
-        const audio = audioMap[itemOrder];
-        return (
-          <button onClick={() => playAudio(audio)} style={{
-            background:"#EFF6FF", border:`1.5px solid ${audio ? "#93C5FD" : "#E8E0D4"}`,
-            borderRadius:16, padding:"14px 12px", cursor: audio ? "pointer" : "default",
-            textAlign:"center", transition:"all 0.15s", opacity: audio ? 1 : 0.7,
-            display:"flex", flexDirection:"column", alignItems:"center", gap:4,
-          }}>
-            <div style={{ fontSize:10, fontWeight:700, color:"#1D4ED8", textTransform:"uppercase",
-              letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>{item.desc}</div>
-            <div style={{ fontSize:22, fontWeight:800, color:"#1D4ED8",
-              fontFamily:"'Playfair Display', serif" }}>{item.word}</div>
-            <div style={{ fontSize:11, color:"#2D2118", fontWeight:600 }}>{item.meaning}</div>
-            <div style={{ fontSize:10, color:"#9B8A6E", fontStyle:"italic" }}>{item.mark}</div>
-          </button>
-        );
-      };
-
-      const hasAudio = Object.keys(audioMap).length > 0;
-      return (
-        <div>
-          {!hasAudio && (
-            <div style={{ background:"#FFFBEB", border:"1px solid #FCD34D", borderRadius:12,
-              padding:"10px 14px", marginBottom:16, fontSize:12, color:"#92400E", display:"flex", gap:8 }}>
-              <span>🎙️</span>
-              <span>Les audios de ce module seront disponibles une fois enregistrés par le professeur.</span>
-            </div>
-          )}
-
-          <SectionLabel>Voyelles — {ALPHABET_DATA.voyelles.length} sons</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.voyelles.map((v, i) => (
-              <Tile key={v.letter} {...v} itemOrder={i+1} accent="voyelle" />
-            ))}
-          </div>
-
-          <SectionLabel>Consonnes simples — {ALPHABET_DATA.consonnes.length} sons</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.consonnes.map((c, i) => (
-              <Tile key={c.letter} {...c} itemOrder={i+8} accent="consonne" />
-            ))}
-          </div>
-
-          <SectionLabel>Sons composés — {ALPHABET_DATA.composes.length} digraphes</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.composes.map((c, i) => (
-              <Tile key={c.letter} {...c} itemOrder={i+23} accent="compose" />
-            ))}
-          </div>
-
-          <SectionLabel>Sons composés — {ALPHABET_DATA.trigraphes.length} trigraphes</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.trigraphes.map((c, i) => (
-              <Tile key={c.letter} {...c} itemOrder={i+39} accent="compose" />
-            ))}
-          </div>
-
-          <SectionLabel>Les 4 tons du lingala</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.tons.map((t, i) => (
-              <ToneTile key={t.desc} item={t} itemOrder={i+42} />
-            ))}
-          </div>
-
-          <div style={{ marginTop:20, padding:"12px 16px", background:"#FAFAF8",
-            borderRadius:12, border:"1px solid #E8E0D4", fontSize:11, color:"#9B8A6E", lineHeight:1.6 }}>
-            <strong style={{ color:"#5C4A2E" }}>Note :</strong> Le lingala est une langue tonale.
-            Le sens d'un mot change selon le ton employé. Les couleurs indiquent :
-            <span style={{ color:"#C2410C", fontWeight:600 }}> ■ voyelles</span>
-            <span style={{ color:"#6D28D9", fontWeight:600 }}> ■ consonnes</span>
-            <span style={{ color:"#15803D", fontWeight:600 }}> ■ sons composés</span>
-            <span style={{ color:"#1D4ED8", fontWeight:600 }}> ■ tons</span>.
-            Cliquez sur une tuile pour entendre le son.
-          </div>
-        </div>
-      );
-    };
-    // ── End AlphabetPanel ─────────────────────────────────────────────────────
-
-    const LessonAudioText = ({ text, audioUrl, title, color = "#2C5F2D", fontSize = 14, fontWeight = 500, italic = false }) => (
-      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-        <div style={{ flex:1, fontSize, color, fontWeight, fontStyle: italic ? "italic" : "normal", lineHeight:1.5 }}>
-          {text}
-        </div>
-        <AudioButton src={audioUrl} title={title} />
-      </div>
-    );
-
     const SenseCard = ({ sense, index }) => (
       <div style={{ background:"white", borderRadius:16, padding:"20px 24px", marginBottom:12, border:"1px solid #E8E0D4", boxShadow:"0 1px 3px rgba(139,109,71,0.06)" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
           <span style={{ background:"#2C5F2D", color:"white", fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20, letterSpacing:"0.05em", fontFamily:"'DM Mono', monospace" }}>SENS {index+1}</span>
           <span style={{ fontSize:22, fontWeight:700, color:"#2C5F2D", fontFamily:"'Playfair Display', serif" }}>{sense.dialect_word}</span>
-          <div style={{ marginLeft:"auto" }}>
-            <AudioButton src={sense.audio_url} title={`Ecouter ${sense.dialect_word}`} />
-          </div>
+          <button style={{ background:"#F0EBE3", border:"none", borderRadius:"50%", width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"#8B6D47", marginLeft:"auto", flexShrink:0 }} title="Audio (bientôt disponible)"><VolumeIcon /></button>
         </div>
         {sense.examples && sense.examples.length > 0 && (
           <div style={{ background:"#FDFBF7", borderRadius:12, padding:"14px 18px", borderLeft:"3px solid #D4A843" }}>
-            <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-              <p style={{ margin:0, fontSize:15, color:"#5C4A2E", fontStyle:"italic", lineHeight:1.5, fontFamily:"'Source Serif 4', serif", flex:1 }}>« {sense.examples[0].sentence_dialect} »</p>
-              <AudioButton src={sense.examples[0].audio_url} title="Ecouter l'exemple" />
-            </div>
+            <p style={{ margin:0, fontSize:15, color:"#5C4A2E", fontStyle:"italic", lineHeight:1.5, fontFamily:"'Source Serif 4', serif" }}>« {sense.examples[0].sentence_dialect} »</p>
             <p style={{ margin:"8px 0 0", fontSize:13, color:"#9B8A6E", lineHeight:1.4, fontFamily:"'DM Sans', sans-serif" }}>{sense.examples[0].sentence_french}</p>
           </div>
         )}
@@ -578,411 +313,6 @@
       </button>
     );
 
-    // ── Live Translation View ─────────────────────────────────────────────────
-    function LiveTranslationView({ langName, langId, onBack }) {
-      const [direction, setDirection] = useState("fr_to_lingala");
-      const [isListening, setIsListening] = useState(false);
-      const [segments, setSegments] = useState([]);
-      const [liveText, setLiveText] = useState("");
-      const [translating, setTranslating] = useState(false);
-      const [error, setError] = useState("");
-      const [playingId, setPlayingId] = useState(null);
-
-      const isListeningRef = useRef(false);
-      const directionRef = useRef("fr_to_lingala");
-      const recognitionRef = useRef(null);
-      const mediaRecorderRef = useRef(null);
-      const audioChunksRef = useRef([]);
-      const chunkTimerRef = useRef(null);
-      const translateTimerRef = useRef(null);
-      const mimeTypeRef = useRef("audio/webm");
-      const audioCacheRef = useRef({});
-      const sourceEndRef = useRef(null);
-      const transEndRef = useRef(null);
-
-      // Keep refs in sync with state (needed inside async callbacks)
-      useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
-      useEffect(() => { directionRef.current = direction; }, [direction]);
-
-      // Auto-scroll both panels when new content arrives
-      useEffect(() => { sourceEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText]);
-      useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, translating]);
-
-      // Cleanup on unmount
-      useEffect(() => () => stopAll(), []);
-
-      const stopAll = () => {
-        clearTimeout(chunkTimerRef.current);
-        clearTimeout(translateTimerRef.current);
-        if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch(e) {} recognitionRef.current = null; }
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-          try { mediaRecorderRef.current.stop(); } catch(e) {}
-        }
-      };
-
-      const toggleListening = async () => {
-        if (isListening) {
-          stopAll();
-          setIsListening(false);
-          setLiveText("");
-        } else {
-          setError("");
-          if (direction === "lingala_to_fr") await startLingalaSTT();
-          else startFrenchSTT();
-        }
-      };
-
-      // ── French STT via Web Speech API ─────────────────────────────────────
-      const startFrenchSTT = () => {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) {
-          setError("La reconnaissance vocale n'est pas supportée dans ce navigateur. Utilisez Chrome ou Safari.");
-          return;
-        }
-        const recognition = new SR();
-        recognition.lang = "fr-FR";
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        let finalBuffer = "";
-
-        recognition.onresult = (e) => {
-          let interim = "";
-          for (let i = e.resultIndex; i < e.results.length; i++) {
-            const r = e.results[i];
-            if (r.isFinal) finalBuffer += r[0].transcript + " ";
-            else interim += r[0].transcript;
-          }
-          setLiveText(finalBuffer + interim);
-          // Auto-translate after 1s pause — no punctuation needed
-          if (finalBuffer.trim()) {
-            clearTimeout(translateTimerRef.current);
-            translateTimerRef.current = setTimeout(() => {
-              const toTranslate = finalBuffer.trim();
-              if (toTranslate) {
-                finalBuffer = "";
-                setLiveText("");
-                handleTranslate(toTranslate, directionRef.current);
-              }
-            }, 1000);
-          }
-        };
-
-        recognition.onerror = (e) => {
-          if (e.error === "not-allowed") {
-            setError("Accès au microphone refusé. Autorisez le microphone dans les paramètres de votre navigateur.");
-            setIsListening(false); isListeningRef.current = false;
-          }
-          // "no-speech" is normal — ignore
-        };
-
-        recognition.onend = () => {
-          // Flush remaining text as a sentence
-          if (finalBuffer.trim()) { handleTranslate(finalBuffer.trim(), directionRef.current); finalBuffer = ""; }
-          // Chrome sometimes stops mid-session — restart if still active
-          if (isListeningRef.current) { try { recognition.start(); } catch(e) {} }
-        };
-
-        recognitionRef.current = recognition;
-        recognition.start();
-        setIsListening(true);
-        isListeningRef.current = true;
-      };
-
-      // ── Lingala STT via ElevenLabs Scribe (chunked) ───────────────────────
-      const blobToBase64 = (blob) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
-      const sendChunk = async () => {
-        if (!audioChunksRef.current.length) return;
-        const mime = mimeTypeRef.current;
-        const blob = new Blob(audioChunksRef.current, { type: mime });
-        audioChunksRef.current = [];
-        if (blob.size < 500) { restartChunk(); return; } // skip silence
-
-        try {
-          const base64 = await blobToBase64(blob);
-          const res = await fetch("/api/elevenlabs-stt", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ audio: base64, mimeType: mime }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const transcript = (data.text || "").trim();
-            if (transcript) {
-              setLiveText(transcript);
-              await handleTranslate(transcript, directionRef.current);
-              setLiveText("");
-            }
-          } else {
-            const err = await res.json().catch(() => ({}));
-            setError(`STT Lingala: ${err.error || res.status}. Vérifiez la clé ElevenLabs.`);
-          }
-        } catch(e) { console.error("Lingala STT error:", e); }
-        restartChunk();
-      };
-
-      const restartChunk = () => {
-        if (!isListeningRef.current || !mediaRecorderRef.current) return;
-        try {
-          if (mediaRecorderRef.current.state === "inactive") mediaRecorderRef.current.start();
-          chunkTimerRef.current = setTimeout(() => {
-            if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
-          }, 6000);
-        } catch(e) {}
-      };
-
-      const startLingalaSTT = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-            ? "audio/webm;codecs=opus"
-            : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
-            : "audio/mp4";
-          mimeTypeRef.current = mimeType;
-          const recorder = new MediaRecorder(stream, { mimeType });
-          // timeslice=250 ensures ondataavailable fires reliably every 250ms
-          recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
-          recorder.onstop = sendChunk;
-          mediaRecorderRef.current = recorder;
-          recorder.start(250);
-          setIsListening(true);
-          isListeningRef.current = true;
-          chunkTimerRef.current = setTimeout(() => {
-            if (recorder.state === "recording") recorder.stop();
-          }, 6000);
-        } catch(e) {
-          setError(e.name === "NotAllowedError"
-            ? "Accès au microphone refusé. Autorisez le microphone dans les paramètres."
-            : `Erreur microphone: ${e.message}`);
-        }
-      };
-
-      // ── RAG translation pipeline ──────────────────────────────────────────
-      const handleTranslate = async (sourceText, currentDirection) => {
-        if (!sourceText.trim()) return;
-        setTranslating(true);
-        const fromLingala = currentDirection === "lingala_to_fr";
-        const sysPrompt = fromLingala
-          ? "L'utilisateur parle en lingala dans une conversation en direct. Donne uniquement la traduction française, courte et naturelle. Pas d'explication."
-          : "L'utilisateur parle en français dans une conversation en direct. Donne uniquement la traduction en lingala, courte et naturelle. Pas d'explication.";
-
-        try {
-          const [ragRes, lessonRes] = await Promise.allSettled([
-            fetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
-            fetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
-          ]);
-          const ctx = [ragRes.value?.context, lessonRes.value?.context].filter(Boolean).join("\n\n");
-          const fullPrompt = sysPrompt + (ctx ? `\n\n=== CORPUS ===\n${ctx}\n=== FIN CORPUS ===` : "");
-
-          const chatRes = await fetch("/api/chat", {
-            method:"POST", headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ systemPrompt: fullPrompt, messages:[{ role:"user", content:sourceText }] }),
-          });
-          const data = await chatRes.json();
-          const translation = (data.content || "").trim();
-          if (translation) {
-            setSegments(prev => [...prev, { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala }]);
-          }
-        } catch(e) { console.error("Translation error:", e); }
-        setTranslating(false);
-      };
-
-      // ── Audio playback ────────────────────────────────────────────────────
-      const playAudio = async (seg) => {
-        setPlayingId(seg.id);
-        if (seg.fromLingala) {
-          // Target is French → Web Speech API
-          window.speechSynthesis.cancel(); // clear any stuck queue (common on mobile)
-          const u = new SpeechSynthesisUtterance(seg.translation);
-          u.lang = "fr-FR";
-          u.rate = 0.95;
-          u.onend = () => setPlayingId(null);
-          u.onerror = () => setPlayingId(null);
-          // Small delay needed on iOS for cancel() to take effect
-          setTimeout(() => window.speechSynthesis.speak(u), 50);
-          return;
-        }
-        // TODO: ElevenLabs Lingala TTS has English accent bias.
-        // Future plan: fine-tune VITS model on native Lingala recordings (Borgeas studio sessions)
-        // and host on our own HuggingFace Space. No pre-trained Lingala TTS model exists publicly.
-        if (audioCacheRef.current[seg.translation]) {
-          const audio = new Audio(audioCacheRef.current[seg.translation]);
-          audio.onended = () => setPlayingId(null);
-          audio.play();
-          return;
-        }
-        try {
-          const res = await fetch("/api/elevenlabs-tts", {
-            method:"POST", headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ text: seg.translation }),
-          });
-          if (!res.ok) {
-            const e = await res.json().catch(() => ({}));
-            throw new Error(e.error || `TTS ${res.status}`);
-          }
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          audioCacheRef.current[seg.translation] = url;
-          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioUrl:url, audioFailed:false } : s));
-          const audio = new Audio(url);
-          audio.onended = () => setPlayingId(null);
-          audio.play();
-        } catch(e) {
-          console.error("TTS error:", e);
-          // Text is always visible — mark audio as unavailable, don't block the UI
-          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioFailed:true } : s));
-          setPlayingId(null);
-        }
-      };
-
-      const swapDirection = () => {
-        if (isListening) { stopAll(); setIsListening(false); isListeningRef.current = false; setLiveText(""); }
-        setDirection(prev => prev === "fr_to_lingala" ? "lingala_to_fr" : "fr_to_lingala");
-        setSegments([]);
-        setError("");
-      };
-
-      const isFromLingala = direction === "lingala_to_fr";
-      const sourceLang = isFromLingala ? langName : "Français";
-      const targetLang = isFromLingala ? "Français" : langName;
-
-      return (
-        <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", paddingTop:16 }}>
-
-          {/* Header */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12, flexShrink:0 }}>
-            <button onClick={() => { stopAll(); onBack(); }} style={{
-              display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-              color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0",
-              fontFamily:"'DM Sans', sans-serif",
-            }}><ArrowLeft /> Accueil</button>
-
-            <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:13, fontWeight:700, color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}>Traduction en direct</div>
-            </div>
-
-            <button onClick={swapDirection} title="Inverser la direction" style={{
-              display:"flex", alignItems:"center", gap:6, background:"white",
-              border:"1px solid #E8E0D4", borderRadius:20, padding:"7px 12px",
-              fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
-              color:"#2D2118", boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
-            }}>
-              <span style={{ color: isFromLingala ? "#2C5F2D" : "#0EA5E9", fontSize:11 }}>{isFromLingala ? langName.slice(0,3) : "FR"}</span>
-              <span style={{ fontSize:14 }}>⇄</span>
-              <span style={{ color: isFromLingala ? "#0EA5E9" : "#2C5F2D", fontSize:11 }}>{isFromLingala ? "FR" : langName.slice(0,3)}</span>
-            </button>
-          </div>
-
-          {/* Error banner */}
-          {error && (
-            <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:8, fontSize:13, color:"#DC2626", flexShrink:0 }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          {/* Source transcript panel */}
-          <div style={{ flex:1, minHeight:0, background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"14px 16px", overflowY:"auto", marginBottom:10 }}>
-            <div style={{ fontSize:10, fontWeight:700, color:"#9B8A6E", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10, fontFamily:"'DM Mono', monospace" }}>
-              {sourceLang} — ce qui est dit
-            </div>
-            {segments.length === 0 && !liveText && (
-              <p style={{ color:"#C4B8A4", fontSize:14, textAlign:"center", marginTop:24, fontStyle:"italic" }}>
-                {isListening ? `Parlez en ${sourceLang}…` : `Appuyez sur le micro pour commencer`}
-              </p>
-            )}
-            {segments.map(s => (
-              <p key={s.id} style={{ fontSize:15, color:"#2D2118", lineHeight:1.7, margin:"0 0 10px", fontFamily:"'Source Serif 4', serif" }}>{s.source}</p>
-            ))}
-            {liveText && (
-              <p style={{ fontSize:15, color:"#9B8A6E", lineHeight:1.7, margin:0, fontStyle:"italic" }}>{liveText}</p>
-            )}
-            <div ref={sourceEndRef} />
-          </div>
-
-          {/* Mic button bar */}
-          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:6, padding:"10px 0" }}>
-            <button onClick={toggleListening} style={{
-              width:68, height:68, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:26,
-              background: isListening
-                ? "linear-gradient(135deg, #16A34A, #15803D)"
-                : "linear-gradient(135deg, #E8E0D4, #D4C8B4)",
-              color: isListening ? "white" : "#8B6D47",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              animation: isListening ? "pulse 1.5s ease-in-out infinite" : "none",
-              transition:"background 0.2s, box-shadow 0.2s",
-              boxShadow: isListening ? "none" : "0 4px 12px rgba(0,0,0,0.12)",
-            }}>
-              🎤
-            </button>
-            <div style={{ fontSize:12, fontWeight:600, fontFamily:"'DM Sans', sans-serif",
-              color: translating ? "#0EA5E9" : isListening ? "#16A34A" : "#9B8A6E" }}>
-              {translating ? "Traduction…" : isListening ? "En écoute…" : "Appuyer pour parler"}
-            </div>
-            {isListening && !translating && (
-              <div style={{ display:"flex", gap:4 }}>
-                {[0,1,2].map(i => (
-                  <span key={i} style={{
-                    display:"inline-block", width:6, height:6, borderRadius:"50%",
-                    background:"#16A34A", animation:`dots 1.2s ease-in-out ${i*0.2}s infinite`,
-                  }} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Translation panel */}
-          <div style={{ flex:1, minHeight:0, background:"linear-gradient(135deg, #F0F9FF, #E0F2FE)", border:"1px solid #BAE6FD", borderRadius:14, padding:"14px 16px", overflowY:"auto" }}>
-            <div style={{ fontSize:10, fontWeight:700, color:"#0369A1", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10, fontFamily:"'DM Mono', monospace" }}>
-              {targetLang} — traduction
-            </div>
-            {segments.length === 0 && !translating && (
-              <p style={{ color:"#7DD3FC", fontSize:14, textAlign:"center", marginTop:24, fontStyle:"italic" }}>
-                La traduction apparaîtra ici
-              </p>
-            )}
-            {translating && (
-              <p style={{ fontSize:15, color:"#0EA5E9", fontStyle:"italic", margin:"0 0 8px" }}>…</p>
-            )}
-            {segments.map(s => (
-              <div key={s.id} style={{ marginBottom:14 }}>
-                <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
-                  <p style={{ flex:1, fontSize:15, color:"#0C4A6E", lineHeight:1.7, margin:0, fontFamily:"'Source Serif 4', serif", fontWeight:600 }}>
-                    {s.translation}
-                  </p>
-                  {!s.audioFailed && (
-                    <button
-                      onClick={() => playAudio(s)}
-                      title="Écouter"
-                      style={{
-                        background: playingId === s.id ? "#0EA5E9" : "white",
-                        border:"1px solid #BAE6FD", borderRadius:8,
-                        padding:"5px 10px", fontSize:13, cursor:"pointer", flexShrink:0,
-                        color: playingId === s.id ? "white" : "#0EA5E9",
-                        transition:"all 0.15s",
-                      }}>
-                      {playingId === s.id ? "▶▶" : "▶"}
-                    </button>
-                  )}
-                </div>
-                {s.audioFailed && !s.fromLingala && (
-                  <p style={{ fontSize:11, color:"#9B8A6E", margin:"4px 0 0", fontStyle:"italic" }}>
-                    Audio en chargement…
-                  </p>
-                )}
-              </div>
-            ))}
-            <div ref={transEndRef} />
-          </div>
-
-        </div>
-      );
-    }
-
     function App() {
       // Language selection
       const [languages, setLanguages] = useState([]);
@@ -1010,87 +340,21 @@
       const [lessonItems, setLessonItems] = useState([]);
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
-      // Progress tracking
-      const [userProgress, setUserProgress] = useState(new Set()); // Set of completed lesson IDs
-      const [lastLesson, setLastLesson] = useState(null);          // { lessonId, lessonTitle, courseTitle, courseId, langId }
       // Chat state
       const [chatMessages, setChatMessages] = useState([]);
       const [chatInput, setChatInput] = useState("");
       const [chatLoading, setChatLoading] = useState(false);
+      const [apiKey, setApiKey] = useState("");
+      const [apiKeySet, setApiKeySet] = useState(false);
       const [correctionMsg, setCorrectionMsg] = useState(null);
       const [correctionText, setCorrectionText] = useState("");
       const [correctionFrench, setCorrectionFrench] = useState("");
       const [correctionExample, setCorrectionExample] = useState("");
       const [correctionType, setCorrectionType] = useState("incorrect");
       const [correctionSent, setCorrectionSent] = useState(false);
-      const [testerName, setTesterName] = useState("");
-      const [pendingTesterName, setPendingTesterName] = useState("");
-      const [testerSessionId, setTesterSessionId] = useState("");
-      // Auth
-      const [currentUser, setCurrentUser] = useState(null);
-      const [authLoading, setAuthLoading] = useState(true);
-      const [authMode, setAuthMode] = useState("login"); // "login" | "signup"
-      const [authEmail, setAuthEmail] = useState("");
-      const [authPassword, setAuthPassword] = useState("");
-      const [authDisplayName, setAuthDisplayName] = useState("");
-      const [authError, setAuthError] = useState("");
-      const [authSubmitting, setAuthSubmitting] = useState(false);
-      const [authReturnTo, setAuthReturnTo] = useState(null); // "chat" | "courses"
-      const [emailConfirmed, setEmailConfirmed] = useState(false);
       const chatEndRef = useRef(null);
       const inputRef = useRef(null);
       const LETTERS = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split(" ");
-
-      useEffect(() => {
-        const savedTesterName = localStorage.getItem(TESTER_NAME_KEY) || "";
-        let savedSessionId = localStorage.getItem(TESTER_SESSION_KEY);
-        if (!savedSessionId) {
-          savedSessionId = generateSessionId();
-          localStorage.setItem(TESTER_SESSION_KEY, savedSessionId);
-        }
-        setTesterName(savedTesterName);
-        setPendingTesterName(savedTesterName);
-        setTesterSessionId(savedSessionId);
-        const savedLesson = localStorage.getItem("monoko_last_lesson");
-        if (savedLesson) { try { setLastLesson(JSON.parse(savedLesson)); } catch(e) {} }
-      }, []);
-
-      useEffect(() => {
-        localStorage.setItem(TESTER_NAME_KEY, testerName);
-      }, [testerName]);
-
-      // Auth: check session on mount + listen to changes
-      useEffect(() => {
-        // Detect email confirmation callback (Supabase puts type=signup in hash)
-        const hash = window.location.hash;
-        const isEmailConfirmation = hash.includes("type=signup") || hash.includes("type=email_change");
-
-        supabaseClient.auth.getSession().then(({ data: { session } }) => {
-          const user = session?.user || null;
-          setCurrentUser(user);
-          if (user) {
-            const name = user.user_metadata?.display_name || user.email;
-            setTesterName(name);
-          }
-          if (isEmailConfirmation && user) {
-            setEmailConfirmed(true);
-            // Clean the hash from the URL without reloading
-            window.history.replaceState(null, "", window.location.pathname);
-            // Auto-redirect to home after 3 seconds
-            setTimeout(() => { setEmailConfirmed(false); }, 3000);
-          }
-          setAuthLoading(false);
-        });
-        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
-          const user = session?.user || null;
-          setCurrentUser(user);
-          if (user) {
-            const name = user.user_metadata?.display_name || user.email;
-            setTesterName(name);
-          }
-        });
-        return () => subscription.unsubscribe();
-      }, []);
 
       // Load languages on mount
       useEffect(() => {
@@ -1141,144 +405,12 @@
         setStats({ words: 0, senses: 0 });
       };
 
-      // ── Progress helpers ──────────────────────────────────────────────────────
-      const loadUserProgress = async (userId, languageId) => {
-        if (!userId || !languageId) return;
-        try {
-          const { data } = await supabaseClient
-            .from("user_progress")
-            .select("lesson_id")
-            .eq("user_id", userId)
-            .eq("language_id", languageId);
-          if (data) setUserProgress(new Set(data.map(r => r.lesson_id)));
-        } catch(e) { console.error("loadUserProgress:", e); }
-      };
-
-      const markLessonComplete = async () => {
-        if (!currentUser || !selectedLesson || userProgress.has(selectedLesson.id)) return;
-        try {
-          const { error } = await supabaseClient.from("user_progress").upsert(
-            { user_id: currentUser.id, lesson_id: selectedLesson.id, language_id: langId },
-            { onConflict: "user_id,lesson_id" }
-          );
-          if (!error) setUserProgress(prev => new Set([...prev, selectedLesson.id]));
-        } catch(e) { console.error("markLessonComplete:", e); }
-      };
-
-      const resumeLesson = async () => {
-        if (!lastLesson || !currentUser) return;
-        setLoading(true);
-        try {
-          const [courseArr, lessonsData] = await Promise.all([
-            supaFetch("courses", `id=eq.${lastLesson.courseId}&select=*`),
-            supaFetch("lessons", `course_id=eq.${lastLesson.courseId}&select=*,lesson_items(id)&order=lesson_order`),
-          ]);
-          const course = courseArr[0];
-          if (!course) { setLoading(false); return; }
-          setSelectedCourse({ ...course, lessons: lessonsData.map(l => ({ ...l, itemCount: l.lesson_items?.length || 0 })) });
-          const target = lessonsData.find(l => l.id === lastLesson.lessonId);
-          if (target) {
-            setSelectedLesson(target);
-            const items = await supaFetch("lesson_items", `lesson_id=eq.${target.id}&select=*&order=item_order`);
-            setLessonItems(items);
-            setCurrentCardIdx(0);
-            setCardFlipped(false);
-            setView("lesson");
-          } else {
-            setView("course_detail");
-          }
-        } catch(e) { console.error(e); }
-        setLoading(false);
-      };
-
-      const requireAuth = (returnTo) => {
-        setAuthReturnTo(returnTo);
-        setAuthMode("login");
-        setAuthEmail(""); setAuthPassword(""); setAuthDisplayName(""); setAuthError("");
-        setView("auth");
-      };
-
-      const openChat = () => {
-        if (!currentUser) { requireAuth("chat"); return; }
-        setView("chat");
-      };
-
-      const saveTesterNameAndOpenChat = () => {
-        const normalized = pendingTesterName.trim();
-        if (!normalized) return;
-        setTesterName(normalized);
-        setView("chat");
-      };
-
-      const handleAuthSubmit = async () => {
-        setAuthError(""); setAuthSubmitting(true);
-        try {
-          if (authMode === "signup") {
-            const { data, error } = await supabaseClient.auth.signUp({
-              email: authEmail.trim(),
-              password: authPassword,
-              options: {
-                data: { display_name: authDisplayName.trim() || authEmail.trim().split("@")[0] },
-                emailRedirectTo: "https://monoko-dictionary.vercel.app",
-              },
-            });
-            if (error) throw error;
-            if (data.user && !data.session) {
-              setAuthError("✓ Vérifiez votre email pour confirmer votre compte.");
-              setAuthSubmitting(false); return;
-            }
-          } else {
-            const { error } = await supabaseClient.auth.signInWithPassword({ email: authEmail.trim(), password: authPassword });
-            if (error) throw error;
-          }
-          // Success — navigate to intended destination
-          if (authReturnTo === "chat") { setView("chat"); }
-          else if (authReturnTo === "live") { setView("live"); }
-          else if (authReturnTo === "courses") {
-            setView("courses");
-            if (langId) {
-              setLoading(true);
-              try { const d = await supaFetch("courses", `language_id=eq.${langId}&select=*,lessons(id)&order=course_order`); setCourses(d); }
-              catch(e) { console.error(e); }
-              setLoading(false);
-            }
-          } else { setView("home"); }
-          setAuthReturnTo(null);
-        } catch(e) {
-          const msg = e.message || "";
-          if (msg.includes("Invalid login")) setAuthError("Email ou mot de passe incorrect.");
-          else if (msg.includes("already registered")) setAuthError("Cet email est déjà utilisé. Connectez-vous.");
-          else if (msg.includes("Password")) setAuthError("Mot de passe trop court (6 caractères minimum).");
-          else setAuthError(msg);
-        }
-        setAuthSubmitting(false);
-      };
-
-      const handleSignOut = async () => {
-        await supabaseClient.auth.signOut();
-        setTesterName("");
-        setView("home");
-      };
-
       useEffect(() => {
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
       }, [view]);
 
-      // Reload progress whenever the logged-in user or active language changes
-      useEffect(() => {
-        if (currentUser && selectedLang) loadUserProgress(currentUser.id, selectedLang.id);
-        else setUserProgress(new Set());
-      }, [currentUser?.id, selectedLang?.id]);
-
       const langId = selectedLang?.id;
       const langName = selectedLang?.name || "";
-
-      // Derived per-course completion counts (requires courses to have been loaded with lessons(id))
-      const courseProgress = (course) => {
-        if (!course.lessons) return { done: 0, total: 0 };
-        const done = course.lessons.filter(l => userProgress.has(l.id)).length;
-        return { done, total: course.lessons.length };
-      };
       const theme = LANG_THEMES[langName] || defaultTheme;
 
       const doSearch = useCallback(async () => {
@@ -1320,35 +452,115 @@
 
       const openWord = (id, fromView) => { setPrevView(fromView || view); setSelectedWordId(id); setView("detail"); };
 
+      // ── RAG API URL (update this when you deploy the backend) ──
+      // ⚠️  Replace with your Railway URL after deployment
+      // e.g. "https://monoko-rag-api-production.up.railway.app"
+      const RAG_API_URL = "https://monoko-rag-api-production.up.railway.app";
+
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
         if (!langId) return "";
 
-        // Fire rag-context (parallel_sentences pgvector) and lesson-context in parallel
-        const [ragResult, lessonResult] = await Promise.allSettled([
-          fetch("/api/rag-context", {
+        // ── Part 1: FAISS semantic search via RAG API ──────────────────────
+        // Handles vocabulary + 60K NLLB parallel sentences with dual-path
+        // language detection (French query → FR index, Lingala → LN index)
+        // and quality-ranked retrieval (verified/gold first, then NLLB auto).
+        let faissPart = "";
+        try {
+          const res = await fetch(`${RAG_API_URL}/api/context`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: userMsg, language_id: langId }),
-          }).then(r => r.ok ? r.json() : null).catch(() => null),
+            body: JSON.stringify({ query: userMsg, top_k: 20 }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            faissPart = data.context || "";
+          }
+        } catch (e) {
+          console.warn("RAG API unavailable, falling back to Supabase only:", e.message);
+        }
 
-          fetch("/api/lesson-context", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: userMsg, language_id: langId }),
-          }).then(r => r.ok ? r.json() : null).catch(() => null),
-        ]);
+        // ── Part 2: Supabase keyword search for grammar / course data ──────
+        // Lesson items (conjugations, pronouns, useful phrases) live only in
+        // Supabase and are not in the FAISS index — keep querying them here.
+        const stopWords = new Set(["comment","dit","on","en","le","la","les","un","une","des","du","de","dit-on","dire","traduis","traduire","traduisez","veut","signifie","ce","cette","ces","et","ou","mais","donc","car","ni","ne","pas","plus","pour","par","sur","dans","avec","sans","chez","vers","entre","que","qui","quoi","quel","quelle","comme","quand","où","pourquoi","parce","si","aussi","très","encore","déjà","toujours","jamais","rien","tout","tous","faire","fait","peut","peux","faut","y","a","au","aux","à","d","l","s","n","m","t","c","j","moi","toi","lui","eux"]);
+        const keywords = userMsg
+          .toLowerCase()
+          .replace(/[''?!.,;:«»"""()\-]/g, " ")
+          .split(/\s+/)
+          .filter(w => w.length >= 2 && !stopWords.has(w));
 
-        const ragContext    = ragResult.value?.context    || "";
-        const lessonContext = lessonResult.value?.context || "";
+        let lessonContext = [];
+        try {
+          // Search lesson_items (grammar, conjugations, useful phrases, pronouns, etc.)
+          for (const kw of keywords.slice(0, 6)) {
+            const q = encodeURIComponent(kw);
+            const itemsFr = await supaFetch("lesson_items", `french=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
+            for (const item of itemsFr) {
+              if (item.lessons?.courses?.language_id === langId) {
+                const courseTitle = item.lessons?.courses?.title || "";
+                const lessonTitle = item.lessons?.title || "";
+                if (item.french && item.dialect) {
+                  lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: `${courseTitle} > ${lessonTitle}` });
+                }
+                if (item.example_french && item.example_dialect) {
+                  lessonContext.push({ fr: item.example_french, ln: item.example_dialect, type: "lesson_ex" });
+                }
+              }
+            }
+            const itemsLn = await supaFetch("lesson_items", `dialect=ilike.*${q}*&select=french,dialect,example_french,example_dialect,lessons!inner(title,courses!inner(language_id,title))&limit=8`);
+            for (const item of itemsLn) {
+              if (item.lessons?.courses?.language_id === langId && item.french && item.dialect) {
+                const courseTitle = item.lessons?.courses?.title || "";
+                const lessonTitle = item.lessons?.title || "";
+                lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: `${courseTitle} > ${lessonTitle}` });
+              }
+            }
+          }
+          // Search lesson titles for grammar topics (e.g. "pronoms", "conjugaison")
+          for (const kw of keywords.slice(0, 4)) {
+            const q = encodeURIComponent(kw);
+            const lessons = await supaFetch("lessons", `title=ilike.*${q}*&select=id,title,courses!inner(language_id)&limit=3`);
+            for (const lesson of lessons) {
+              if (lesson.courses?.language_id === langId) {
+                const allItems = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=french,dialect&order=item_order&limit=20`);
+                for (const item of allItems) {
+                  if (item.french && item.dialect) {
+                    lessonContext.push({ fr: item.french, ln: item.dialect, type: "lesson", meta: lesson.title });
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) { console.error("Supabase lesson search error:", e); }
 
-        const parts = [ragContext, lessonContext].filter(Boolean);
-        return parts.length ? parts.join("\n\n") : "(Aucune donnée trouvée dans le corpus)";
+        // Deduplicate lesson results
+        const seen = new Set();
+        const uniqueLessons = [];
+        for (const c of lessonContext) {
+          const key = `${c.fr}|${c.ln}`;
+          if (!seen.has(key)) { seen.add(key); uniqueLessons.push(c); }
+        }
+
+        // Build lesson context string
+        let lessonStr = "";
+        if (uniqueLessons.length) {
+          lessonStr += "\n=== GRAMMAIRE & COURS VÉRIFIÉS ===\n";
+          let lastMeta = "";
+          uniqueLessons.forEach(l => {
+            if (l.meta && l.meta !== lastMeta) { lessonStr += `\n📖 ${l.meta}:\n`; lastMeta = l.meta; }
+            lessonStr += `• ${l.fr} → ${l.ln} [vérifié par professeur]\n`;
+          });
+        }
+
+        // ── Merge: FAISS context first (semantic), then grammar/courses ──────
+        const combined = [faissPart, lessonStr].filter(Boolean).join("\n");
+        return combined || "(Aucune donnée trouvée dans le corpus)";
       };
 
       const sendChat = async () => {
         const msg = chatInput.trim();
-        if (!msg || chatLoading) return;
+        if (!msg || !apiKey || chatLoading) return;
 
         const newMessages = [...chatMessages, { role: "user", content: msg }];
         setChatMessages(newMessages);
@@ -1357,76 +569,70 @@
 
         try {
           const context = await searchContext(msg);
-          const systemPrompt = `Tu es Monoko, un assistant IA dédié à la langue ${langName}.
+          const systemPrompt = `Tu es Monoko, un assistant IA conversationnel en ${langName}.
 
-RÈGLE SUJET: Tu ne réponds qu'aux questions liées à la langue ${langName} — traductions, grammaire, conjugaison, vocabulaire, prononciation, conversations. Ces sujets sont TOUJOURS valides. Pour un sujet sans aucun rapport avec la langue (météo, actualités, maths…), réponds poliment que tu ne traites que le ${langName}.
+RÈGLE SUJET: Tu ne parles QUE de la langue ${langName}. Pour tout autre sujet, réponds poliment que tu ne traites que le ${langName}.
 
 TON RÔLE:
 Tu aides les gens à apprendre et utiliser le ${langName}. Tu traduis, expliques la grammaire, enseignes du vocabulaire, et tiens des conversations en ${langName}.
 
 COMMENT RÉPONDRE:
-1. Le corpus ci-dessous est ta source prioritaire — ce sont des paires vérifiées par des experts. Appuie-toi dessus en priorité.
-2. Indique ✓ pour les mots/structures tirés directement du corpus.
-3. Pour les éléments que tu assembles ou déduis du corpus, indique ~.
-4. Si un mot est absent du corpus, utilise ta connaissance du ${langName} pour compléter — tu as le droit de faire une estimation raisonnée. Indique ~ pour ces éléments.
-   Mentionne "Corriger" uniquement si ta réponse est incertaine, pour inviter l'utilisateur à contribuer.
-5. Réponses courtes, naturelles et chaleureuses.
-6. Donne la traduction, puis décompose les mots clés avec leur source.
+1. Utilise le corpus ci-dessous comme source principale. Quand un mot ou une phrase en provient, indique ✓ (vérifié par professeur).
+2. Tu PEUX combiner des mots vérifiés du corpus pour construire des phrases. Indique ~ (suggestion) pour ces combinaisons.
+3. Tu PEUX utiliser tes connaissances générales du ${langName} pour compléter quand le corpus ne suffit pas. Indique ≈ (approximatif) et précise que la confirmation d'un professeur serait utile.
+4. Sois utile et généreux dans tes réponses. Donne la traduction, des exemples, et des explications grammaticales quand c'est pertinent.
+5. Réponses naturelles et chaleureuses. Pas de format rigide.
 
-EXEMPLES DE BONNES RÉPONSES:
-
+EXEMPLE DE BONNE RÉPONSE:
 Question: "Comment dit-on comment va ton père ?"
-Réponse: En ${langName}, tu peux dire : "Tata azali malamu?" ~
-- Tata = père ✓ (corpus : "Tata = père")
-- Azali malamu = il va bien ~ (assemblage de "azali" + "malamu" vérifiés)
-
-Question: "Les pronoms en Lingala" ou "explique-moi les pronoms"
-Réponse: Voici les pronoms personnels en ${langName} :
-- Je → Ngai ✓
-- Tu → Yo ✓
-- Il/Elle → Ye ✓
-- Nous → Biso ✓
-- Vous → Bino ✓
-- Ils/Elles → Bango ✓
-(liste les pronoms du corpus directement — ne redirige JAMAIS vers "pose une question spécifique")
+Réponse: "Tata azali malamu?" ~
+- Tata = père ✓ (vérifié)
+- Azali = il/elle est ≈
+- Malamu = bien ✓ (vérifié)
+Cette phrase combine du vocabulaire vérifié. Un professeur peut confirmer via le bouton Corriger.
 
 CE QU'IL FAUT ÉVITER:
-- N'invente JAMAIS un mot en ${langName} — si ce n'est pas dans le corpus ci-dessus, ne le propose pas
-- Ne marque JAMAIS ✓ sur un mot que tu n'as pas lu mot pour mot dans le corpus
-- Ne dis pas "je ne sais pas" si des éléments de réponse sont dans le corpus — utilise ce que tu as
-- Ne traite JAMAIS une question de grammaire, conjugaison ou pronoms comme hors-sujet
-- Ne dis JAMAIS "je ne traite que des traductions et des phrases" — tu expliques aussi la grammaire
-- Ne redirige JAMAIS l'utilisateur vers "pose une question plus spécifique" si le corpus contient des données pertinentes
+- Ne génère pas de longs monologues en ${langName} inventés de toutes pièces
+- Ne dis pas "je ne sais pas" si tu as des éléments de réponse dans le corpus — utilise ce que tu as
+- Ne sois pas trop prudent au point de ne rien proposer
 
-=== CORPUS DE RÉFÉRENCE (SOURCE PRIORITAIRE) ===
+=== CORPUS DE RÉFÉRENCE ===
 ${context || "(Aucune donnée trouvée pour cette requête)"}
 === FIN DU CORPUS ===`;
 
-          const res = await fetch("/api/chat", {
+          const res = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${apiKey}`,
+            },
             body: JSON.stringify({
-              systemPrompt,
-              messages: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
-              testerName: testerName.trim() || null,
-              sessionId: testerSessionId || null,
-              languageId: langId,
-              userQuery: msg,
-              turnNumber: Math.ceil(newMessages.length / 2),
+              model: "gpt-4o-mini",
+              temperature: 0.2,
+              max_tokens: 512,
+              messages: [
+                { role: "system", content: systemPrompt },
+                ...newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+              ],
             }),
           });
 
           const data = await res.json();
 
-          if (res.ok && data.content) {
+          if (data.choices && data.choices[0] && data.choices[0].message) {
             setChatMessages(prev => [
               ...prev,
-              { role: "assistant", content: data.content }
+              { role: "assistant", content: data.choices[0].message.content }
+            ]);
+          } else if (data.error) {
+            setChatMessages(prev => [
+              ...prev,
+              { role: "assistant", content: `⚠️ Erreur: ${data.error.message}` }
             ]);
           } else {
             setChatMessages(prev => [
               ...prev,
-              { role: "assistant", content: `⚠️ Erreur: ${data.error || "Réponse vide du modèle."}` }
+              { role: "assistant", content: "⚠️ Réponse vide du modèle." }
             ]);
           }
         } catch (e) {
@@ -1460,8 +666,6 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
               correct_lingala: correctionText.trim(),
               correct_french: correctionFrench.trim(),
               example_sentence: correctionExample.trim() || null,
-              tester_name: testerName.trim() || null,
-              session_id: testerSessionId || null,
               status: "pending",
             }),
           });
@@ -1786,31 +990,6 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                   }}>
                     <GlobeIcon /> Changer de langue
                   </button>
-
-                  {/* Auth status */}
-                  <div style={{ marginTop:12, display:"flex", justifyContent:"center" }}>
-                    {currentUser ? (
-                      <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontSize:12, color:"#5C4A2E", fontWeight:600 }}>
-                          👤 {currentUser.user_metadata?.display_name || currentUser.email}
-                        </span>
-                        <button onClick={handleSignOut} style={{
-                          background:"none", border:"1px solid #E8E0D4", borderRadius:12,
-                          padding:"3px 10px", fontSize:11, color:"#9B8A6E", cursor:"pointer",
-                          fontFamily:"'DM Sans', sans-serif", fontWeight:600,
-                        }}>Déconnexion</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => requireAuth(null)} style={{
-                        display:"inline-flex", alignItems:"center", gap:6,
-                        background:"#F0EBE3", border:"1px solid #E8E0D4", borderRadius:20,
-                        padding:"6px 14px", fontSize:12, fontWeight:600, color:"#8B6D47",
-                        cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
-                      }}>
-                        🔑 Se connecter
-                      </button>
-                    )}
-                  </div>
                 </div>
 
                 <div style={{
@@ -1829,47 +1008,19 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                   ))}
                 </div>
 
-                {/* Continuer — last visited lesson shortcut */}
-                {currentUser && lastLesson && lastLesson.langId === langId && (
-                  <button onClick={resumeLesson} style={{
-                    display:"flex", alignItems:"center", gap:14, width:"100%",
-                    background:"linear-gradient(135deg, #1A3A1A, #2C5F2D)",
-                    border:"none", borderRadius:18, padding:"18px 22px",
-                    cursor:"pointer", textAlign:"left", marginBottom:12,
-                    boxShadow:"0 4px 16px rgba(44,95,45,0.2)", transition:"all 0.2s",
-                  }}
-                  onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 8px 24px rgba(44,95,45,0.28)"; }}
-                  onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 16px rgba(44,95,45,0.2)"; }}>
-                    <div style={{
-                      width:44, height:44, borderRadius:12, background:"rgba(255,255,255,0.12)",
-                      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:20,
-                    }}>▶</div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontWeight:700, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>Continuer</div>
-                      <div style={{ fontSize:15, fontWeight:700, color:"white", fontFamily:"'Playfair Display', serif", marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{lastLesson.lessonTitle}</div>
-                      <div style={{ fontSize:12, color:"rgba(255,255,255,0.55)", marginTop:2 }}>{lastLesson.courseTitle}</div>
-                    </div>
-                    <div style={{ color:"rgba(255,255,255,0.4)", flexShrink:0 }}><ChevronRight /></div>
-                  </button>
-                )}
-
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   {[
                     { icon:<SearchIcon/>, title:"Rechercher un mot", sub:`Français → ${langName} ou ${langName} → Français`, grad:"linear-gradient(135deg, #D4A843, #C4912E)", v:"search" },
                     { icon:<BookIcon/>, title:"Parcourir A — Z", sub:"Explorer le dictionnaire par lettre", grad:theme.gradient, v:"browse" },
                     { icon:<GradIcon/>, title:"Apprendre", sub:"Cours de grammaire, phrases utiles, vocabulaire", grad:"linear-gradient(135deg, #6B21A8, #9333EA)", v:"courses" },
                     { icon:<ChatIcon/>, title:"Parler avec Monoko", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
-                    { icon:<HeadphonesIcon/>, title:"Traduction en direct", sub:"Traduction vocale en temps réel", grad:"linear-gradient(135deg, #0F766E, #14B8A6)", v:"live" },
                   ].map((c,i) => (
                     <button key={i} onClick={async () => {
-                      if (c.v === "chat") { openChat(); return; }
-                      if (c.v === "courses" && !currentUser) { requireAuth("courses"); return; }
-                      if (c.v === "live" && !currentUser) { requireAuth("live"); return; }
                       setView(c.v);
                       if (c.v === "courses" && langId) {
                         setLoading(true);
                         try {
-                          const coursesData = await supaFetch("courses", `language_id=eq.${langId}&select=*,lessons(id)&order=course_order`);
+                          const coursesData = await supaFetch("courses", `language_id=eq.${langId}&select=*&order=course_order`);
                           setCourses(coursesData);
                         } catch(e) { console.error(e); setCourses([]); }
                         setLoading(false);
@@ -2067,31 +1218,13 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                             {course.description}
                           </div>
                         </div>
-                        {(() => {
-                          const prog = courseProgress(course);
-                          const pct = prog.total > 0 ? Math.round((prog.done / prog.total) * 100) : 0;
-                          const done = prog.done === prog.total && prog.total > 0;
-                          return (
-                            <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5, flexShrink:0 }}>
-                              <div style={{
-                                background: done ? "#E8F5E9" : "#F3F0FF",
-                                color: done ? "#2C5F2D" : "#6B21A8",
-                                fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:12,
-                                fontFamily:"'DM Mono', monospace",
-                              }}>
-                                {done ? "✓ " : ""}{prog.done}/{prog.total}
-                              </div>
-                              {prog.total > 0 && (
-                                <div style={{ width:52, height:4, background:"#E8E0D4", borderRadius:4, overflow:"hidden" }}>
-                                  <div style={{ height:"100%", borderRadius:4, transition:"width 0.4s",
-                                    background: done ? "#2C5F2D" : "linear-gradient(90deg, #6B21A8, #9333EA)",
-                                    width:`${pct}%`,
-                                  }}/>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
+                        <div style={{
+                          background:"#F3F0FF", color:"#6B21A8", fontSize:11, fontWeight:700,
+                          padding:"4px 10px", borderRadius:12, flexShrink:0,
+                          fontFamily:"'DM Mono', monospace",
+                        }}>
+                          {i + 1}/{courses.length}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -2131,10 +1264,6 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                         setLoading(true);
                         setCurrentCardIdx(0);
                         setCardFlipped(false);
-                        // Persist for "Continuer" shortcut on home screen
-                        const ll = { lessonId: lesson.id, lessonTitle: lesson.title, courseTitle: selectedCourse.title, courseId: selectedCourse.id, langId };
-                        localStorage.setItem("monoko_last_lesson", JSON.stringify(ll));
-                        setLastLesson(ll);
                         try {
                           const items = await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=*&order=item_order`);
                           setLessonItems(items);
@@ -2151,12 +1280,11 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                       onMouseOver={e => { e.currentTarget.style.borderColor="#9333EA"; e.currentTarget.style.boxShadow="0 2px 8px rgba(107,33,168,0.1)"; }}
                       onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}>
                         <div style={{
-                          width:36, height:36, borderRadius:10, flexShrink:0,
-                          background: userProgress.has(lesson.id) ? "#E8F5E9" : "#F3F0FF",
-                          display:"flex", alignItems:"center", justifyContent:"center",
-                          fontSize:14, fontWeight:800, fontFamily:"'DM Mono', monospace",
-                          color: userProgress.has(lesson.id) ? "#2C5F2D" : "#6B21A8",
-                        }}>{userProgress.has(lesson.id) ? "✓" : i + 1}</div>
+                          width:36, height:36, borderRadius:10,
+                          background:"#F3F0FF", display:"flex", alignItems:"center", justifyContent:"center",
+                          fontSize:14, fontWeight:800, color:"#6B21A8", flexShrink:0,
+                          fontFamily:"'DM Mono', monospace",
+                        }}>{i + 1}</div>
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:15, fontWeight:600, color:"#2D2118" }}>{lesson.title}</div>
                           <div style={{ fontSize:12, color:"#9B8A6E", marginTop:2 }}>{lesson.itemCount} expressions</div>
@@ -2193,10 +1321,6 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                 </div>
 
                 {loading ? <Spinner /> : (() => {
-                  // Sons et alphabet — special tile view
-                  const isAlphabet = selectedLesson?.title === "Sons et alphabet";
-                  if (isAlphabet) return <AlphabetPanel lessonItems={lessonItems} />;
-
                   // Determine if this is a paired lesson (Cours 1 style)
                   // Paired lessons have items that alternate: phrase1/translation1, phrase2/translation2
                   const isCours1 = selectedCourse?.course_order === 1;
@@ -2235,8 +1359,9 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                               <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2D2118", lineHeight:1.5 }}>
                                 {item.french}
                               </div>
-                              <div style={{ flex:1, padding:"12px 14px", borderLeft:"1px solid #F0EBE3" }}>
-                                <LessonAudioText text={item.dialect} audioUrl={item.audio_url} title={`Ecouter ${item.dialect}`} />
+                              <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2C5F2D", fontWeight:500,
+                                lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
+                                {item.dialect}
                               </div>
                             </div>
                           ))}
@@ -2312,8 +1437,9 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                                   <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2D2118", lineHeight:1.5 }}>
                                     {item.french}
                                   </div>
-                                  <div style={{ flex:1, padding:"12px 14px", borderLeft:"1px solid #F0EBE3" }}>
-                                    <LessonAudioText text={item.dialect} audioUrl={item.audio_url} title={`Ecouter ${item.dialect}`} />
+                                  <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2C5F2D", fontWeight:500,
+                                    lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
+                                    {item.dialect}
                                   </div>
                                 </div>
                               ))}
@@ -2349,8 +1475,9 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                             <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2D2118", lineHeight:1.5 }}>
                               {item.french}
                             </div>
-                            <div style={{ flex:1, padding:"12px 14px", borderLeft:"1px solid #F0EBE3" }}>
-                              <LessonAudioText text={item.dialect} audioUrl={item.audio_url} title={`Ecouter ${item.dialect}`} />
+                            <div style={{ flex:1, padding:"12px 14px", fontSize:14, color:"#2C5F2D", fontWeight:500,
+                              lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
+                              {item.dialect}
                             </div>
                           </div>
                           {/* Example sentences if present */}
@@ -2362,15 +1489,9 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                                 </div>
                               )}
                               {item.example_dialect && (
-                                <div style={{ flex:1, padding:"8px 14px", borderLeft:"1px solid #F0EBE3" }}>
-                                  <LessonAudioText
-                                    text={`« ${item.example_dialect} »`}
-                                    audioUrl={item.example_audio_url}
-                                    title={`Ecouter ${item.example_dialect}`}
-                                    fontSize={12}
-                                    color="#2C5F2D"
-                                    italic={true}
-                                  />
+                                <div style={{ flex:1, padding:"8px 14px", fontSize:12, color:"#2C5F2D", fontStyle:"italic",
+                                  lineHeight:1.5, borderLeft:"1px solid #F0EBE3" }}>
+                                  « {item.example_dialect} »
                                 </div>
                               )}
                             </div>
@@ -2380,251 +1501,6 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                     </div>
                   );
                 })()}
-
-                {/* Complete module CTA */}
-                {currentUser && (
-                  <div style={{ marginTop:32, paddingBottom:28 }}>
-                    {userProgress.has(selectedLesson.id) ? (
-                      <div style={{
-                        display:"flex", alignItems:"center", justifyContent:"center", gap:10,
-                        padding:"15px 20px", borderRadius:14,
-                        background:"#E8F5E9", border:"2px solid #2C5F2D",
-                      }}>
-                        <span style={{ fontSize:18 }}>✓</span>
-                        <span style={{ fontSize:14, fontWeight:700, color:"#2C5F2D", fontFamily:"'DM Sans', sans-serif" }}>Module terminé</span>
-                      </div>
-                    ) : (
-                      <button onClick={markLessonComplete} style={{
-                        width:"100%", padding:"16px 20px", borderRadius:14, border:"none",
-                        background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
-                        color:"white", fontSize:15, fontWeight:700, cursor:"pointer",
-                        fontFamily:"'DM Sans', sans-serif",
-                        boxShadow:"0 4px 14px rgba(44,95,45,0.3)", transition:"all 0.2s",
-                      }}
-                      onMouseOver={e => e.currentTarget.style.transform="translateY(-1px)"}
-                      onMouseOut={e => e.currentTarget.style.transform="translateY(0)"}>
-                        ✓ J'ai terminé ce module
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* EMAIL CONFIRMED */}
-            {emailConfirmed && (
-              <div style={{
-                position:"fixed", inset:0, background:"#F7F3ED", zIndex:999,
-                display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                animation:"fadeIn 0.4s ease-out", padding:32,
-              }}>
-                {/* Logo mark */}
-                <div style={{
-                  width:80, height:80, borderRadius:24, marginBottom:28,
-                  background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
-                  display:"flex", alignItems:"center", justifyContent:"center", fontSize:40,
-                  boxShadow:"0 12px 32px rgba(44,95,45,0.25)",
-                }}>📖</div>
-
-                {/* Checkmark circle */}
-                <div style={{
-                  width:64, height:64, borderRadius:"50%", background:"#E8F5E9",
-                  border:"3px solid #2C5F2D", display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:30, marginBottom:24,
-                }}>✓</div>
-
-                <h1 style={{
-                  fontFamily:"'Playfair Display', serif", fontSize:28, fontWeight:800,
-                  color:"#2D2118", margin:"0 0 10px", textAlign:"center", lineHeight:1.2,
-                }}>Compte créé avec succès !</h1>
-
-                <p style={{
-                  fontSize:16, color:"#6B5744", textAlign:"center", margin:"0 0 8px",
-                  fontFamily:"'DM Sans', sans-serif", maxWidth:320, lineHeight:1.5,
-                }}>
-                  Bienvenue sur Monɔkɔ.
-                </p>
-
-                <p style={{
-                  fontSize:13, color:"#9B8A6E", textAlign:"center",
-                  fontFamily:"'DM Sans', sans-serif",
-                }}>
-                  Redirection en cours…
-                </p>
-
-                {/* Progress bar */}
-                <div style={{ width:200, height:3, background:"#E8E0D4", borderRadius:4, marginTop:20, overflow:"hidden" }}>
-                  <div style={{
-                    height:"100%", background:"linear-gradient(90deg, #2C5F2D, #4A8B4C)",
-                    borderRadius:4, animation:"confirmProgress 3s linear forwards",
-                  }} />
-                </div>
-
-                <style>{`
-                  @keyframes confirmProgress {
-                    from { width: 0% }
-                    to   { width: 100% }
-                  }
-                `}</style>
-
-                <button
-                  onClick={() => setEmailConfirmed(false)}
-                  style={{
-                    marginTop:28, padding:"12px 28px", borderRadius:14,
-                    background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
-                    border:"none", color:"white", fontSize:15, fontWeight:700,
-                    cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
-                    boxShadow:"0 4px 12px rgba(44,95,45,0.3)",
-                  }}
-                >Commencer</button>
-              </div>
-            )}
-
-            {/* LIVE TRANSLATION */}
-            {view === "live" && selectedLang && (
-              <LiveTranslationView
-                langName={langName}
-                langId={langId}
-                onBack={() => setView("home")}
-              />
-            )}
-
-            {/* AUTH */}
-            {view === "auth" && (
-              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
-                <button onClick={() => setView(authReturnTo ? "home" : "home")} style={{
-                  display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
-                  fontFamily:"'DM Sans', sans-serif",
-                }}><ArrowLeft /> Accueil</button>
-
-                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:20, padding:"28px 24px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
-                  {/* Icon + title */}
-                  <div style={{ textAlign:"center", marginBottom:24 }}>
-                    <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:26 }}>📖</div>
-                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>
-                      {authMode === "login" ? "Se connecter" : "Créer un compte"}
-                    </h2>
-                    {authReturnTo && (
-                      <p style={{ fontSize:13, color:"#9B8A6E", margin:0 }}>
-                        Un compte est requis pour accéder aux {authReturnTo === "chat" ? "conversations" : authReturnTo === "live" ? "traductions en direct" : "cours"}.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Toggle */}
-                  <div style={{ display:"flex", background:"#F0EBE3", borderRadius:12, padding:3, marginBottom:20 }}>
-                    {[["login","Se connecter"],["signup","Créer un compte"]].map(([m, label]) => (
-                      <button key={m} onClick={() => { setAuthMode(m); setAuthError(""); }} style={{
-                        flex:1, padding:"8px 0", border:"none", borderRadius:10, fontSize:13, fontWeight:600, cursor:"pointer",
-                        background: authMode === m ? "white" : "transparent",
-                        color: authMode === m ? "#2D2118" : "#9B8A6E",
-                        boxShadow: authMode === m ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
-                        fontFamily:"'DM Sans', sans-serif", transition:"all 0.2s",
-                      }}>{label}</button>
-                    ))}
-                  </div>
-
-                  {/* Display name (signup only) */}
-                  {authMode === "signup" && (
-                    <div style={{ marginBottom:12 }}>
-                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Prénom</label>
-                      <input value={authDisplayName} onChange={e => setAuthDisplayName(e.target.value)}
-                        placeholder="Comment vous appelez-vous ?"
-                        style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
-                        onFocus={e => e.target.style.borderColor="#2C5F2D"}
-                        onBlur={e => e.target.style.borderColor="#E8E0D4"}
-                      />
-                    </div>
-                  )}
-
-                  {/* Email */}
-                  <div style={{ marginBottom:12 }}>
-                    <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Email</label>
-                    <input value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                      type="email" placeholder="votre@email.com"
-                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
-                      onFocus={e => e.target.style.borderColor="#2C5F2D"}
-                      onBlur={e => e.target.style.borderColor="#E8E0D4"}
-                    />
-                  </div>
-
-                  {/* Password */}
-                  <div style={{ marginBottom:20 }}>
-                    <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Mot de passe</label>
-                    <input value={authPassword} onChange={e => setAuthPassword(e.target.value)}
-                      type="password" placeholder="••••••••"
-                      onKeyDown={e => { if (e.key === "Enter") handleAuthSubmit(); }}
-                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
-                      onFocus={e => e.target.style.borderColor="#2C5F2D"}
-                      onBlur={e => e.target.style.borderColor="#E8E0D4"}
-                    />
-                    {authMode === "signup" && <p style={{ fontSize:11, color:"#9B8A6E", margin:"4px 0 0" }}>6 caractères minimum</p>}
-                  </div>
-
-                  {/* Error */}
-                  {authError && (
-                    <div style={{ background: authError.startsWith("✓") ? "#E8F5EE" : "#FFF0F0", border:`1px solid ${authError.startsWith("✓") ? "#2C5F2D" : "#FFC0C0"}`, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, color: authError.startsWith("✓") ? "#2C5F2D" : "#C62828", fontWeight:600 }}>
-                      {authError}
-                    </div>
-                  )}
-
-                  {/* Submit */}
-                  <button onClick={handleAuthSubmit} disabled={authSubmitting || !authEmail.trim() || !authPassword}
-                    style={{
-                      width:"100%", border:"none", borderRadius:14, padding:"14px 18px",
-                      background: (authSubmitting || !authEmail.trim() || !authPassword) ? "#E8E0D4" : "linear-gradient(135deg, #2C5F2D, #4A8B4C)",
-                      color:"white", fontSize:15, fontWeight:700, cursor: (authSubmitting || !authEmail.trim() || !authPassword) ? "default" : "pointer",
-                      fontFamily:"'DM Sans', sans-serif", transition:"all 0.2s",
-                    }}>
-                    {authSubmitting ? "..." : authMode === "login" ? "Se connecter" : "Créer mon compte"}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {view === "tester_setup" && selectedLang && (
-              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
-                <button onClick={() => { setView("home"); }} style={{
-                  display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
-                  fontFamily:"'DM Sans', sans-serif",
-                }}><ArrowLeft /> Accueil</button>
-
-                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:20, padding:"24px 20px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-                    <div style={{ width:48, height:48, borderRadius:14, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🧪</div>
-                    <div>
-                      <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"#2D2118", margin:0, lineHeight:1.1 }}>Nom du testeur</h2>
-                      <p style={{ fontSize:13, color:"#9B8A6E", margin:"4px 0 0" }}>Cette information est requise avant d'ouvrir le chat.</p>
-                    </div>
-                  </div>
-
-                  <p style={{ fontSize:14, color:"#5C4A2E", lineHeight:1.6, marginBottom:12 }}>
-                    Le nom du testeur sera envoyé avec chaque message et chaque correction pour suivre correctement le travail effectué.
-                  </p>
-
-                  <input
-                    value={pendingTesterName}
-                    onChange={e => setPendingTesterName(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); saveTesterNameAndOpenChat(); } }}
-                    placeholder="Nom du professeur ou du testeur"
-                    style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:14, outline:"none", fontSize:15, padding:"13px 14px", color:"#2D2118", fontFamily:"'DM Sans', sans-serif", background:"#FCFBF8", marginBottom:14 }}
-                  />
-
-                  <button
-                    onClick={saveTesterNameAndOpenChat}
-                    disabled={!pendingTesterName.trim()}
-                    style={{
-                      width:"100%", border:"none", borderRadius:14, padding:"14px 18px",
-                      background: pendingTesterName.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
-                      color:"white", fontSize:14, fontWeight:700, cursor: pendingTesterName.trim() ? "pointer" : "default",
-                      fontFamily:"'DM Sans', sans-serif",
-                    }}
-                  >
-                    Continuer vers le chat
-                  </button>
-                </div>
               </div>
             )}
 
@@ -2645,24 +1521,36 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                   </div>
                 </div>
 
-                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"10px 14px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-                  <div>
-                    <p style={{ fontSize:11, fontWeight:600, color:"#8B6D47", margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>
-                      Connecté
+                {/* API Key setup */}
+                {!apiKeySet ? (
+                  <div style={{ background:"white", borderRadius:16, border:"1px solid #E8E0D4", padding:"24px", animation:"slideIn 0.25s ease-out" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                      <span style={{ fontSize:20 }}>🔑</span>
+                      <h3 style={{ fontSize:16, fontWeight:700, color:"#2D2118", margin:0, fontFamily:"'Playfair Display', serif" }}>Configuration</h3>
+                    </div>
+                    <p style={{ fontSize:13, color:"#8B6D47", lineHeight:1.5, margin:"0 0 16px" }}>
+                      Entrez votre clé API OpenAI pour activer Monoko. Cette clé reste dans votre navigateur et n'est jamais stockée sur nos serveurs.
                     </p>
-                    <p style={{ fontSize:14, color:"#2D2118", margin:0, fontWeight:600 }}>
-                      {currentUser ? (currentUser.user_metadata?.display_name || currentUser.email) : (testerName || "Non renseigné")}
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={e => setApiKey(e.target.value)}
+                      placeholder="sk-proj-..."
+                      style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Mono', monospace", background:"#FDFBF7", outline:"none", marginBottom:12 }}
+                      onFocus={e => e.target.style.borderColor = "#0EA5E9"}
+                      onBlur={e => e.target.style.borderColor = "#E8E0D4"}
+                      onKeyDown={e => { if (e.key === "Enter" && apiKey.startsWith("sk-")) setApiKeySet(true); }}
+                    />
+                    <button onClick={() => { if (apiKey.startsWith("sk-")) setApiKeySet(true); else alert("La clé doit commencer par sk-"); }}
+                      style={{ width:"100%", padding:"12px", background:"linear-gradient(135deg, #0EA5E9, #2563EB)", color:"white", border:"none", borderRadius:12, fontSize:15, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', sans-serif" }}>
+                      Activer Monoko
+                    </button>
+                    <p style={{ fontSize:11, color:"#B8A88C", marginTop:10, textAlign:"center" }}>
+                      Obtenez une clé sur <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" style={{ color:"#0EA5E9" }}>platform.openai.com/api-keys</a>
                     </p>
                   </div>
-                  <button
-                    onClick={handleSignOut}
-                    style={{ background:"none", border:"1px solid #E8E0D4", borderRadius:10, padding:"8px 12px", fontSize:12, color:"#8B6D47", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", fontWeight:600 }}
-                  >
-                    Déconnexion
-                  </button>
-                </div>
-
-                <React.Fragment>
+                ) : (
+                  <React.Fragment>
                     {/* Chat messages */}
                     <div style={{ flex:1, overflowY:"auto", marginBottom:12, display:"flex", flexDirection:"column", gap:8 }}>
                       {chatMessages.length === 0 && (
@@ -2756,7 +1644,8 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                         transition:"all 0.2s", flexShrink:0,
                       }}><SendIcon /></button>
                     </div>
-                </React.Fragment>
+                  </React.Fragment>
+                )}
 
                 {/* Correction modal */}
                 {correctionMsg !== null && (

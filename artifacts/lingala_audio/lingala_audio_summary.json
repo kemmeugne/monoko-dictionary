@@ -1,0 +1,11 @@
+{
+  "total_audio_files": 5265,
+  "by_target_table": {
+    "senses": 2631,
+    "examples": 2634
+  },
+  "by_match_status": {
+    "matched": 5209,
+    "missing": 56
+  }
+}

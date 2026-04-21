@@ -1,50 +1,27 @@
 #!/usr/bin/env python3
 """
-generate_course_templates.py
-─────────────────────────────
-Generates generic HTML course recording apps — one per module — for any
-new language added to the Monoko platform.
+generate_audio_collection_html.py
+──────────────────────────────────
+Queries Supabase for Lingala lesson_items missing audio and generates
+one HTML recording app per module, following the Monoko collection template.
 
-French content is sourced from the live Lingala DB (which follows the full
-6-level CEFR curriculum). All dialect translation fields are left empty for
-the professor to fill in. db_id is set to null (language-agnostic).
-
-Output: ../professor_tools/templates/general/
+Two types of files generated:
+  1. Missing audio  — Lingala pre-filled, professor just records
+  2. Stub modules   — Lingala empty, professor writes + records
 
 Usage:
-    SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py
-    SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py --language Yoruba
-    SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_course_templates.py --output /custom/path
+    SUPABASE_SERVICE_KEY=sb_secret_... python3 generate_audio_collection_html.py
 """
 
-import os, json, re, argparse, requests
+import os, json, re, requests
 from pathlib import Path
 
-SUPABASE_URL   = "https://haioiccujncsehadipzb.supabase.co"
-SUPABASE_KEY   = os.environ["SUPABASE_SERVICE_KEY"]
-HEADERS        = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+SUPABASE_URL  = "https://haioiccujncsehadipzb.supabase.co"
+SUPABASE_KEY  = os.environ["SUPABASE_SERVICE_KEY"]
+HEADERS       = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
 OLD_COURSE_IDS = {22, 23, 24, 25}
-# Default output: professor_tools/templates/general/ relative to the repo root
-OUTPUT_DIR     = Path(__file__).parent.parent / "professor_tools" / "templates" / "general"
-
-LEVEL_NAMES = {
-    1: "Niveau 1 — Fondations (A1)",
-    2: "Niveau 2 — Vie quotidienne (A2)",
-    3: "Niveau 3 — Communication (B1)",
-    4: "Niveau 4 — Approfondissement (B1+)",
-    5: "Niveau 5 — Maîtrise (B2)",
-    6: "Niveau 6 — Culture vivante (B2+)",
-}
-
-# ── CLI ───────────────────────────────────────────────────────────────────────
-
-def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("--language", default="[Langue]",
-                   help="Language name to embed in the HTML (default: [Langue])")
-    p.add_argument("--output", default=None,
-                   help="Output directory (default: ../professor_tools/templates/general/)")
-    return p.parse_args()
+LANGUAGE      = "Lingala"
+OUTPUT_DIR    = Path("audio_collection_html")
 
 # ── Supabase helpers ──────────────────────────────────────────────────────────
 
@@ -63,16 +40,17 @@ def paginate(table, params, page_size=1000):
         offset += page_size
     return results
 
-# ── Fetch ALL Lingala items (no audio filter) ─────────────────────────────────
+# ── Fetch ─────────────────────────────────────────────────────────────────────
 
-def fetch_all_items():
-    print("Fetching all Lingala lesson_items from Supabase...")
+def fetch_items():
+    print("Fetching lesson_items from Supabase...")
     raw = paginate(
         "lesson_items",
-        "select=id,french,dialect,example_french,example_dialect,item_order,"
+        "select=id,french,dialect,example_french,example_dialect,"
+        "audio_url,example_audio_url,"
         "lessons!inner(id,title,lesson_order,"
         "courses!inner(id,title,course_order,language_id))"
-        "&order=item_order.asc",
+        "&audio_url=is.null",
     )
     items = []
     for r in raw:
@@ -81,14 +59,13 @@ def fetch_all_items():
             continue
         if course["id"] in OLD_COURSE_IDS:
             continue
-        french = (r["french"] or "").strip()
-        if not french:
-            continue  # skip blank items
         items.append({
-            "db_id":          r["id"],          # kept for reference, nulled in template
-            "french":         french,
+            "db_id":          r["id"],
+            "french":         r["french"]         or "",
+            "dialect":        r["dialect"]         or "",
             "example_french": r["example_french"],
-            "item_order":     r["item_order"],
+            "example_dialect":r["example_dialect"],
+            "example_audio_url": r["example_audio_url"],
             "lesson_id":      r["lessons"]["id"],
             "lesson_title":   r["lessons"]["title"],
             "lesson_order":   r["lessons"]["lesson_order"],
@@ -96,7 +73,7 @@ def fetch_all_items():
             "course_order":   course["course_order"],
             "course_id":      course["id"],
         })
-    print(f"  → {len(items)} items fetched across all Lingala modules")
+    print(f"  → {len(items)} items missing main audio")
     return items
 
 # ── Group by module ───────────────────────────────────────────────────────────
@@ -104,37 +81,19 @@ def fetch_all_items():
 def group_by_module(items):
     modules = {}
     for item in items:
-        key = (item["course_order"], item["lesson_order"])
+        key = (item["course_order"], item["lesson_order"], item["lesson_title"])
         if key not in modules:
             modules[key] = {
-                "course_order": item["course_order"],
-                "course_title": item["course_title"],
-                "lesson_order": item["lesson_order"],
-                "lesson_title": item["lesson_title"],
-                "items": [],
+                "course_order":  item["course_order"],
+                "course_title":  item["course_title"],
+                "lesson_order":  item["lesson_order"],
+                "lesson_title":  item["lesson_title"],
+                "items":         [],
             }
         modules[key]["items"].append(item)
     return [modules[k] for k in sorted(modules)]
 
-# ── Build ENTRIES (dialect fields empty, db_id null) ──────────────────────────
-
-def build_entries(items):
-    entries = []
-    for idx, item in enumerate(items):
-        ex_fr = item["example_french"]
-        entries.append({
-            "id":          idx,
-            "db_id":       None,              # null — not language-specific
-            "breadcrumb":  item["lesson_title"],
-            "phrase_fr":   item["french"],
-            "phrase_lang": "",                # empty — professor fills in
-            "phrase_fr2":  ex_fr if ex_fr else None,
-            "phrase_lang2": "" if ex_fr else None,  # empty — professor fills in
-            "prefilled":   False,
-        })
-    return entries
-
-# ── HTML helpers ──────────────────────────────────────────────────────────────
+# ── HTML generation ───────────────────────────────────────────────────────────
 
 SLUG_RE = re.compile(r"[^a-z0-9]+")
 
@@ -147,28 +106,57 @@ def js_str(v):
     escaped = v.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "")
     return f'"{escaped}"'
 
-# ── HTML template ─────────────────────────────────────────────────────────────
+def build_entries(items):
+    entries = []
+    for idx, item in enumerate(items):
+        dialect  = item["dialect"]
+        prefilled = bool(dialect)
 
-def render_html(module, entries, language):
+        # Include example only if both french+dialect exist
+        ex_fr  = item["example_french"]
+        ex_dia = item["example_dialect"]
+        has_ex = bool(ex_fr and ex_dia)
+
+        entries.append({
+            "id":          idx,
+            "db_id":       item["db_id"],
+            "breadcrumb":  item["lesson_title"],
+            "label_fr":    None,
+            "label_lang":  "",
+            "phrase_fr":   item["french"],
+            "phrase_lang": dialect,
+            "phrase_fr2":  ex_fr  if has_ex else None,
+            "phrase_lang2":ex_dia if has_ex else None,
+            "prefilled":   prefilled,
+        })
+    return entries
+
+def render_html(module, entries):
     course_order = module["course_order"]
     lesson_order = module["lesson_order"]
     lesson_title = module["lesson_title"]
     course_title = module["course_title"]
-    level_name   = LEVEL_NAMES.get(course_order, f"Niveau {course_order}")
     n            = len(entries)
     module_code  = f"{course_order}.{lesson_order}"
-    lang_slug    = slugify(language)
-    store_key    = f"monoko_{lang_slug}_{slugify(module_code)}_{slugify(lesson_title)}"
-    db_name      = f"monoko_db_{lang_slug}_{slugify(lesson_title)}"
+    store_key    = f"monoko_audio_{slugify(LANGUAGE)}_{slugify(module_code)}_{slugify(lesson_title)}"
+    db_name      = f"monoko_audio_db_{slugify(LANGUAGE)}_{slugify(lesson_title)}"
 
     entries_json = json.dumps(entries, ensure_ascii=False, indent=2)
+
+    stub_note = ""
+    is_stub = n <= 5 and not any(e["prefilled"] for e in entries)
+    if is_stub:
+        stub_note = (
+            f"<br><br><strong>Module à compléter</strong> — saisissez la traduction Lingala "
+            f"pour chaque entrée, puis enregistrez."
+        )
 
     return f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Monoko — {module_code} {lesson_title}</title>
+<title>Monoko — Audio {LANGUAGE} — {module_code} {lesson_title}</title>
 <style>
 :root {{
   --bg:#FAFAF8;--card:#FFFFFF;
@@ -266,7 +254,7 @@ body{{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(-
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 <header class="app-header">
   <h1>Monoko</h1>
-  <div class="subtitle">{module_code} {lesson_title} — {language} — {n} entrées</div>
+  <div class="subtitle">Audio {LANGUAGE} — {module_code} {lesson_title} — {n} entrées</div>
 </header>
 <div class="progress-info" id="progressInfo">
   <span id="progressText">Entrée 0 / {n}</span>
@@ -283,11 +271,11 @@ body{{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(-
   <div style="font-size:52px;margin-bottom:16px;">🎙️</div>
   <h2>Module {module_code} — {lesson_title}</h2>
   <p>
-    Ce module contient <strong>{n} entrées</strong> à traduire et enregistrer en <strong>{language}</strong>.<br><br>
-    Pour chaque entrée : saisissez la traduction dans le champ de texte,
-    puis enregistrez l'audio correspondant.<br><br>
-    Si une phrase exemple est fournie, traduisez-la et enregistrez-la également.<br><br>
-    Exportez le tout en ZIP à la fin.
+    Enregistrez <strong>{n} entrées</strong> en <strong>{LANGUAGE}</strong>
+    pour le module <em>{lesson_title}</em> ({course_title}).<br><br>
+    Pour chaque entrée, vérifiez la traduction{' (saisissez-la si elle est vide)' if is_stub else ''},
+    puis enregistrez l'audio.{stub_note}<br><br>
+    À la fin, exportez le tout en fichier ZIP à nous envoyer.
   </p>
   <button class="start-btn" onclick="startWork()">Commencer →</button>
 </div>
@@ -311,34 +299,36 @@ body{{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(-
   <div class="done-screen">
     <div class="big-check">✅</div>
     <h2>Export terminé !</h2>
-    <p>Le fichier ZIP a été téléchargé. Envoyez-le à l'équipe Monoko.</p>
+    <p>Le fichier ZIP a été téléchargé. Envoyez-le par email à l'équipe Monoko.</p>
   </div>
 </div>
 
 <script>
 // ─── Data ───
 const ENTRIES = {entries_json};
-const LANGUAGE    = {js_str(language)};
+const LANGUAGE    = {js_str(LANGUAGE)};
 const COURSE_NUM  = {js_str(module_code)};
 const COURSE_NAME = {js_str(lesson_title)};
 
 const state = ENTRIES.map(e => ({{
   id:e.id, db_id:e.db_id, breadcrumb:e.breadcrumb,
+  label_fr:e.label_fr, label_lang:e.label_lang,
   phrase_fr:e.phrase_fr, phrase_lang:e.phrase_lang,
   phrase_fr2:e.phrase_fr2, phrase_lang2:e.phrase_lang2,
   prefilled:e.prefilled,
-  audio_phrase:null, audio_phrase2:null,
+  audio_label:null, audio_phrase:null, audio_phrase2:null,
 }}));
 
 let currentIdx=0,activeRecorder=null,activeRecField=null,recStartTime=null,recTimerInterval=null;
 
 function isComplete(idx){{
   const e=state[idx];
-  if(e.phrase_fr!==null&&(!e.phrase_lang||!e.audio_phrase))return false;
-  if(e.phrase_fr2!==null&&(!e.phrase_lang2||!e.audio_phrase2))return false;
+  if(e.label_fr!==null&&!e.audio_label)return false;
+  if(e.phrase_fr!==null&&!e.audio_phrase)return false;
+  if(e.phrase_fr2!==null&&!e.audio_phrase2)return false;
   return true;
 }}
-function audioCount(idx){{const e=state[idx];return(e.audio_phrase?1:0)+(e.audio_phrase2?1:0);}}
+function audioCount(idx){{const e=state[idx];return(e.audio_label?1:0)+(e.audio_phrase?1:0)+(e.audio_phrase2?1:0);}}
 function totalAudioCount(){{return state.reduce((s,_,i)=>s+audioCount(i),0);}}
 
 function initThemeStrip(){{
@@ -391,8 +381,18 @@ function renderEntry(){{
   const e=state[currentIdx];
   const area=document.getElementById('mainArea');
   let html=`<div class="entry-card"><div class="entry-breadcrumb">${{escHtml(e.breadcrumb)}}</div>`;
+  if(e.label_fr!==null){{
+    html+=`<div class="entry-section"><div class="section-title">Mot / Expression</div>
+      <div class="ref-label">Référence française</div>
+      <div class="ref-box">${{escHtml(e.label_fr)}}</div>
+      <div class="field-group"><label>En ${{LANGUAGE}}</label>
+      <textarea id="fl-label" placeholder="Traduction en ${{LANGUAGE}}…"
+        class="${{e.label_lang?'prefilled':''}}"
+        oninput="onField('label_lang',this.value)">${{escHtml(e.label_lang)}}</textarea></div>
+      ${{audioRow('label',e.audio_label)}}</div>`;
+  }}
   if(e.phrase_fr!==null){{
-    html+=`<div class="entry-section"><div class="section-title">Entrée principale</div>
+    html+=`<div class="entry-section"><div class="section-title">Phrase principale</div>
       <div class="ref-label">Référence française</div>
       <div class="ref-box">${{escHtml(e.phrase_fr)}}</div>
       <div class="field-group"><label>En ${{LANGUAGE}}</label>
@@ -413,7 +413,7 @@ function renderEntry(){{
   }}
   html+=`</div>`;
   area.innerHTML=html;
-  ['phrase','phrase2'].forEach(f=>{{const blob=e[`audio_${{f}}`];if(blob)showAudioPlayer(f,blob);}});
+  ['label','phrase','phrase2'].forEach(f=>{{const blob=e[`audio_${{f}}`];if(blob)showAudioPlayer(f,blob);}});
   document.getElementById('btnPrev').disabled=currentIdx===0;
   document.getElementById('btnNext').textContent=currentIdx===ENTRIES.length-1?'Terminé ✓':'Suivant →';
   updateNav();updateProgress();
@@ -483,7 +483,7 @@ function startWork(){{document.getElementById('splashScreen').classList.add('hid
 
 function exportZip(){{
   stopRecording();
-  const btn=document.getElementById('exportBtn');btn.disabled=true;btn.textContent='\u23f3 Pr\u00e9paration\u2026';
+  const btn=document.getElementById('exportBtn');btn.disabled=true;btn.textContent='⏳ Préparation…';
   setTimeout(async()=>{{
     try{{
       const files=[];
@@ -508,14 +508,14 @@ function exportZip(){{
       const zipBlob=buildZip(files);
       const url=URL.createObjectURL(zipBlob);
       const a=document.createElement('a');
-      a.href=url;a.download=`Monoko_${{LANGUAGE}}_${{COURSE_NUM}}_${{COURSE_NAME}}_${{new Date().toISOString().slice(0,10)}}.zip`;
+      a.href=url;a.download=`Monoko_Audio_Lingala_${{COURSE_NUM}}_${{COURSE_NAME}}_${{new Date().toISOString().slice(0,10)}}.zip`;
       document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-      btn.textContent='\u2705 T\u00e9l\u00e9charg\u00e9 !';
-      setTimeout(()=>{{btn.disabled=false;btn.textContent='\U0001F4E6 Exporter ZIP';}},3000);
-    }}catch(err){{console.error(err);alert("Erreur lors de l'export : "+err.message);btn.disabled=false;btn.textContent='\U0001F4E6 Exporter ZIP';}}
+      btn.textContent='✅ Téléchargé !';
+      setTimeout(()=>{{btn.disabled=false;btn.textContent='📦 Exporter ZIP';}},3000);
+    }}catch(err){{console.error(err);alert("Erreur lors de l'export : "+err.message);btn.disabled=false;btn.textContent='📦 Exporter ZIP';}}
   }},100);
 }}
-function confirmReset(){{if(confirm("\u26a0\ufe0f Supprimer toutes les donn\u00e9es et enregistrements ?\n\nCette action est irr\u00e9versible."))clearAllData();}}
+function confirmReset(){{if(confirm("⚠️ Supprimer toutes les données et enregistrements ?\\n\\nCette action est irréversible."))clearAllData();}}
 function buildZip(files){{
   const lhs=[],chs=[];let offset=0;
   for(const f of files){{
@@ -559,7 +559,7 @@ function dbDelete(k){{if(!db)return Promise.resolve();return new Promise(r=>{{tr
 function dbClear(){{if(!db)return Promise.resolve();return new Promise(r=>{{try{{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).clear();tx.oncomplete=()=>r();tx.onerror=()=>r();}}catch(e){{r();}}}});}}
 function audioKey(id,field){{return `e${{id}}_${{field}}`;}}
 function saveTextState(){{
-  const ts=state.map(e=>({{id:e.id,phrase_lang:e.phrase_lang,phrase_lang2:e.phrase_lang2,has_audio_phrase:!!e.audio_phrase,has_audio_phrase2:!!e.audio_phrase2}}));
+  const ts=state.map(e=>(({{id:e.id,phrase_lang:e.phrase_lang,phrase_lang2:e.phrase_lang2,has_audio_phrase:!!e.audio_phrase,has_audio_phrase2:!!e.audio_phrase2}})));
   try{{localStorage.setItem(STORE_KEY,JSON.stringify({{data:ts,savedAt:Date.now(),currentIdx}}));lastSaveTime=Date.now();storageAvailable=true;}}catch(e){{storageAvailable=false;}}
   updateSaveIndicator();
 }}
@@ -587,11 +587,11 @@ async function clearAllData(){{
 }}
 function updateSaveIndicator(){{
   const el=document.getElementById('saveStatus');if(!el)return;
-  if(!storageAvailable){{el.textContent='\u26a0 Sauvegarde non disponible';el.style.color='var(--accent)';return;}}
+  if(!storageAvailable){{el.textContent='⚠ Sauvegarde non disponible';el.style.color='var(--accent)';return;}}
   if(!lastSaveTime){{el.textContent='';return;}}
   el.style.color='';
   const ago=Math.floor((Date.now()-lastSaveTime)/1000);
-  if(ago<5)el.textContent='\u2713 Sauvegard\u00e9';else if(ago<60)el.textContent=`\u2713 ${{ago}}s`;else el.textContent=`\u2713 ${{Math.floor(ago/60)}}min`;
+  if(ago<5)el.textContent='✓ Sauvegardé';else if(ago<60)el.textContent=`✓ ${{ago}}s`;else el.textContent=`✓ ${{Math.floor(ago/60)}}min`;
 }}
 setInterval(saveTextState,3000);setInterval(updateSaveIndicator,10000);
 async function boot(){{
@@ -605,45 +605,48 @@ boot().catch(e=>{{console.error('Boot failed:',e);storageAvailable=false;initThe
 </body>
 </html>"""
 
-# ── File naming ───────────────────────────────────────────────────────────────
-
-def output_filename(module, language):
-    co = module["course_order"]
-    lo = module["lesson_order"]
-    title_slug = slugify(module["lesson_title"])
-    lang_slug  = slugify(language)
-    return f"Monoko_{lang_slug}_{co}.{lo}_{title_slug}.html"
-
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    args = parse_args()
-    language = args.language
+    OUTPUT_DIR.mkdir(exist_ok=True)
 
-    output_dir = Path(args.output) if args.output else OUTPUT_DIR
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    items   = fetch_all_items()
+    items   = fetch_items()
     modules = group_by_module(items)
 
-    print(f"\nGenerating {len(modules)} module files for language: {language}")
-    print(f"Output → {output_dir}\n")
+    if not modules:
+        print("No modules with missing audio found.")
+        return
 
-    for module in modules:
-        co = module["course_order"]
-        lo = module["lesson_order"]
-        title = module["lesson_title"]
-        level = LEVEL_NAMES.get(co, f"Niveau {co}")
+    print(f"\nGenerating HTML files for {len(modules)} modules...")
+    manifest = []
 
-        entries = build_entries(module["items"])
-        html    = render_html(module, entries, language)
-        fname   = output_filename(module, language)
-        fpath   = output_dir / fname
+    for mod in modules:
+        entries = build_entries(mod["items"])
+        html    = render_html(mod, entries)
+
+        course_o = mod["course_order"]
+        lesson_o = mod["lesson_order"]
+        title    = mod["lesson_title"]
+        fname    = f"Monoko_Audio_Lingala_{course_o}.{lesson_o}_{slugify(title)}.html"
+        fpath    = OUTPUT_DIR / fname
 
         fpath.write_text(html, encoding="utf-8")
-        print(f"  {co}.{lo}  {title:<45}  {len(entries):>3} entrées  →  {fname}")
+        n_missing = len([e for e in entries if not e["prefilled"]])
+        n_prefill  = len(entries) - n_missing
+        print(f"  ✓ {fname}  ({len(entries)} items: {n_prefill} à enregistrer, {n_missing} à compléter)")
+        manifest.append({"file": fname, "module": f"{course_o}.{lesson_o}", "title": title, "items": len(entries)})
 
-    print(f"\nDone. {len(modules)} files written to {output_dir}")
+    # Write manifest
+    manifest_path = OUTPUT_DIR / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    print(f"""
+=================================================
+  {len(modules)} fichiers HTML générés dans ./{OUTPUT_DIR}/
+  Ouvrez chaque fichier dans un navigateur pour enregistrer.
+  Exportez le ZIP et envoyez-le à l'équipe Monoko.
+=================================================
+""")
 
 if __name__ == "__main__":
     main()

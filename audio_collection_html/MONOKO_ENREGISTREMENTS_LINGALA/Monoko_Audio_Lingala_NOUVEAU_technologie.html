@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Monoko — Audio Lingala — Technologie et communication moderne (nouveau module)</title>
+<style>
+:root {
+  --bg:#FAFAF8;--card:#FFFFFF;
+  --primary:#1B6B4A;--primary-light:#E8F5EE;--primary-dark:#134D35;
+  --accent:#D4740E;--accent-light:#FFF3E0;
+  --danger:#C62828;--danger-light:#FFEBEE;
+  --ref:#F2F4F7;--ref-border:#D8DBE2;
+  --text:#1A1A1A;--text-secondary:#5F6368;
+  --border:#E0E0E0;--border-focus:#1B6B4A;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --radius:12px;--radius-sm:8px;--recording:#C62828;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;}
+.app-header{background:var(--primary);color:white;padding:14px 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.app-header h1{font-size:18px;font-weight:700;letter-spacing:0.5px;}
+.app-header .subtitle{font-size:12px;opacity:.85;margin-top:2px;}
+.progress-bar{background:var(--primary-dark);height:4px;position:sticky;top:0;z-index:101;}
+.progress-fill{height:100%;background:#4ADE80;transition:width 0.4s ease;}
+.progress-info{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:var(--primary-light);font-size:12px;color:var(--primary-dark);font-weight:600;border-bottom:1px solid var(--border);}
+.progress-info .stats{display:flex;gap:12px;}
+.stat-badge{background:var(--primary);color:white;padding:2px 9px;border-radius:20px;font-size:11px;}
+.save-status{font-size:11px;color:var(--primary);font-weight:600;}
+.theme-strip{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;background:white;border-bottom:1px solid var(--border);scrollbar-width:none;}
+.theme-strip::-webkit-scrollbar{display:none;}
+.theme-btn{padding:4px 10px;border:1.5px solid var(--border);border-radius:20px;background:white;font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.theme-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.theme-btn.active{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.theme-btn.done{border-color:var(--primary);background:var(--primary);color:white;}
+.nav-strip{display:flex;gap:4px;padding:10px 16px;overflow-x:auto;background:white;border-bottom:1px solid var(--border);scrollbar-width:none;}
+.nav-strip::-webkit-scrollbar{display:none;}
+.nav-dot{min-width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:white;font-size:10px;font-weight:600;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.nav-dot.current{border-color:var(--primary);background:var(--primary);color:white;transform:scale(1.15);}
+.nav-dot.complete{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.nav-dot.has-audio{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
+.nav-dot.complete.has-audio{background:var(--primary);color:white;border-color:var(--primary-dark);box-shadow:0 0 0 2px var(--accent);}
+.main-area{padding:14px;max-width:680px;margin:0 auto;}
+.entry-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;animation:slideUp 0.25s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.entry-breadcrumb{padding:10px 18px;background:var(--primary-light);font-size:11px;font-weight:700;color:var(--primary-dark);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid rgba(27,107,74,0.15);}
+.entry-section{padding:16px 18px;border-bottom:1px solid var(--border);}
+.entry-section:last-child{border-bottom:none;}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.section-title::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--primary);}
+.ref-box{padding:10px 13px;background:var(--ref);border:1px solid var(--ref-border);border-radius:var(--radius-sm);font-size:15px;font-style:italic;color:var(--text);margin-bottom:10px;line-height:1.5;}
+.ref-label{font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.field-group{margin-top:4px;}
+.field-group label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;}
+.field-group textarea{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;background:var(--bg);transition:border-color .2s,box-shadow .2s;color:var(--text);resize:vertical;min-height:48px;}
+.field-group textarea:focus{outline:none;border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(27,107,74,.12);background:white;}
+.field-group textarea.prefilled{border-color:var(--primary);background:var(--primary-light);}
+.audio-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;}
+.rec-btn{display:flex;align-items:center;gap:5px;padding:8px 13px;border:2px solid var(--border);border-radius:var(--radius-sm);background:white;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--text);white-space:nowrap;}
+.rec-btn:hover{border-color:var(--danger);color:var(--danger);}
+.rec-btn.recording{border-color:var(--recording);background:var(--danger-light);color:var(--recording);animation:pulse-rec 1.2s ease infinite;}
+@keyframes pulse-rec{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.3)}50%{box-shadow:0 0 0 8px rgba(198,40,40,0)}}
+.rec-btn .rec-dot{width:9px;height:9px;border-radius:50%;background:var(--danger);flex-shrink:0;}
+.rec-btn.recording .rec-dot{animation:blink .8s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.rec-timer{font-size:12px;color:var(--recording);font-weight:700;font-variant-numeric:tabular-nums;min-width:36px;}
+.audio-playback{flex:1;min-width:0;}
+.audio-playback audio{width:100%;height:34px;border-radius:5px;}
+.audio-status{font-size:11px;color:var(--primary);font-weight:600;}
+.audio-status.none{color:var(--text-secondary);}
+.delete-audio{background:none;border:none;color:var(--danger);cursor:pointer;font-size:17px;padding:3px;border-radius:4px;}
+.delete-audio:hover{background:var(--danger-light);}
+.bottom-nav{display:flex;gap:10px;padding:14px;max-width:680px;margin:0 auto;}
+.nav-btn{flex:1;padding:13px;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;}
+.nav-btn.prev{background:white;color:var(--text);border:2px solid var(--border);}
+.nav-btn.prev:hover{border-color:var(--primary);color:var(--primary);}
+.nav-btn.next{background:var(--primary);color:white;}
+.nav-btn.next:hover{background:var(--primary-dark);}
+.nav-btn:disabled{opacity:.4;cursor:not-allowed;}
+.export-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:2px solid var(--border);padding:10px 18px;display:flex;gap:10px;align-items:center;justify-content:center;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.08);}
+.export-btn{padding:10px 28px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s;}
+.export-btn:hover{background:#B8620C;transform:translateY(-1px);}
+.export-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.export-summary{font-size:12px;color:var(--text-secondary);text-align:center;}
+.reset-btn{padding:7px 13px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.reset-btn:hover{border-color:var(--danger);color:var(--danger);}
+.splash-screen,.done-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70dvh;text-align:center;padding:40px 24px;}
+.splash-screen h2{font-size:26px;color:var(--primary-dark);margin-bottom:8px;}
+.splash-screen p{color:var(--text-secondary);font-size:14px;max-width:420px;line-height:1.7;margin-bottom:24px;}
+.start-btn{padding:14px 44px;background:var(--primary);color:white;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;cursor:pointer;transition:all .2s;}
+.start-btn:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.done-screen h2{font-size:26px;color:var(--primary);margin-bottom:10px;}
+.done-screen p{color:var(--text-secondary);font-size:14px;max-width:400px;line-height:1.6;}
+.done-screen .big-check{font-size:60px;margin-bottom:14px;}
+.spacer-bottom{height:72px;}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<header class="app-header">
+  <h1>Monoko</h1>
+  <div class="subtitle">Audio Lingala — NOUVEAU — Technologie et communication moderne — 25 entrées</div>
+</header>
+<div class="progress-info" id="progressInfo">
+  <span id="progressText">Entrée 0 / 25</span>
+  <div class="stats">
+    <span class="save-status" id="saveStatus"></span>
+    <span class="stat-badge" id="statComplete">0 complétés</span>
+    <span class="stat-badge" id="statAudio" style="background:var(--accent)">0 audios</span>
+  </div>
+</div>
+<div class="theme-strip" id="themeStrip"></div>
+<div class="nav-strip" id="navStrip"></div>
+
+<div id="splashScreen" class="splash-screen">
+  <div style="font-size:52px;margin-bottom:16px;">🎙️</div>
+  <h2>Module NOUVEAU-techno — Technologie et communication moderne</h2>
+  <p>
+    Enregistrez <strong>25 entrées</strong> en <strong>Lingala</strong>
+    pour le module <em>Technologie et communication moderne</em>.<br><br>
+    Pour chaque entrée, écrivez la traduction en Lingala,
+    puis enregistrez l'audio.<br><br>
+    À la fin, exportez le tout en fichier ZIP à nous envoyer.
+  </p>
+  <button class="start-btn" onclick="startWork()">Commencer →</button>
+</div>
+
+<div id="workArea" class="hidden">
+  <div class="main-area" id="mainArea"></div>
+  <div class="bottom-nav">
+    <button class="nav-btn prev" id="btnPrev" onclick="goTo(currentIdx-1)">← Précédent</button>
+    <button class="nav-btn next" id="btnNext" onclick="goTo(currentIdx+1)">Suivant →</button>
+  </div>
+  <div class="spacer-bottom"></div>
+</div>
+
+<div class="export-bar">
+  <button class="reset-btn" onclick="confirmReset()">🗑 Réinitialiser</button>
+  <div class="export-summary" id="exportSummary">Prêt à exporter</div>
+  <button class="export-btn" id="exportBtn" onclick="exportZip()">📦 Exporter ZIP</button>
+</div>
+
+<div id="doneScreen" class="hidden">
+  <div class="done-screen">
+    <div class="big-check">✅</div>
+    <h2>Export terminé !</h2>
+    <p>Le fichier ZIP a été téléchargé. Envoyez-le par email à l'équipe Monoko.</p>
+  </div>
+</div>
+
+<script>
+
+// ─── Data ───
+const ENTRIES = [
+  {
+    "id": 0,
+    "db_id": null,
+    "breadcrumb": "Téléphone",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je vais t'appeler ce soir après le travail.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 1,
+    "db_id": null,
+    "breadcrumb": "Téléphone",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "N'oublie pas de me rappeler si je ne réponds pas.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 2,
+    "db_id": null,
+    "breadcrumb": "Téléphone",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Quel est ton numéro de téléphone ?",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 3,
+    "db_id": null,
+    "breadcrumb": "Téléphone",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Ma batterie est déchargée, je ne peux plus appeler.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 4,
+    "db_id": null,
+    "breadcrumb": "Téléphone",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je dois recharger mon téléphone urgentement.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 5,
+    "db_id": null,
+    "breadcrumb": "Téléphone",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Il n'y a pas de réseau dans cette zone.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 6,
+    "db_id": null,
+    "breadcrumb": "Internet et WhatsApp",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je t'ai envoyé un message sur WhatsApp.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 7,
+    "db_id": null,
+    "breadcrumb": "Internet et WhatsApp",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Elle a partagé une photo dans le groupe familial.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 8,
+    "db_id": null,
+    "breadcrumb": "Internet et WhatsApp",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je t'enverrai un audio vocal dans la soirée.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 9,
+    "db_id": null,
+    "breadcrumb": "Internet et WhatsApp",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Notre groupe WhatsApp de famille compte 45 membres.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 10,
+    "db_id": null,
+    "breadcrumb": "Internet et WhatsApp",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Le wifi de la maison est en panne depuis hier.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 11,
+    "db_id": null,
+    "breadcrumb": "Internet et WhatsApp",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je n'ai plus de données mobiles sur mon téléphone.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 12,
+    "db_id": null,
+    "breadcrumb": "Mobile money",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je t'envoie de l'argent par mobile money maintenant.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 13,
+    "db_id": null,
+    "breadcrumb": "Mobile money",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je dois aller retirer de l'argent au point M-Pesa.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 14,
+    "db_id": null,
+    "breadcrumb": "Mobile money",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Mon solde est insuffisant pour faire ce transfert.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 15,
+    "db_id": null,
+    "breadcrumb": "Mobile money",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je recharge mon crédit téléphonique chaque semaine.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 16,
+    "db_id": null,
+    "breadcrumb": "Problèmes techniques",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Mon téléphone est mort, il ne s'allume plus.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 17,
+    "db_id": null,
+    "breadcrumb": "Problèmes techniques",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Le message n'est pas passé, essaie encore.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 18,
+    "db_id": null,
+    "breadcrumb": "Problèmes techniques",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je n'arrive pas à me connecter à internet.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 19,
+    "db_id": null,
+    "breadcrumb": "Problèmes techniques",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "L'application a planté, je dois la redémarrer.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 20,
+    "db_id": null,
+    "breadcrumb": "Réseaux sociaux Congo",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Il a des milliers d'abonnés sur Facebook.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 21,
+    "db_id": null,
+    "breadcrumb": "Réseaux sociaux Congo",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Cette vidéo YouTube en lingala a beaucoup de vues.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 22,
+    "db_id": null,
+    "breadcrumb": "Réseaux sociaux Congo",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Son TikTok est très suivi par les jeunes congolais.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 23,
+    "db_id": null,
+    "breadcrumb": "Réseaux sociaux Congo",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Il partage des vidéos de cuisine congolaise en ligne.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 24,
+    "db_id": null,
+    "breadcrumb": "Réseaux sociaux Congo",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "La communauté lingala est très active sur les réseaux.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  }
+];
+const LANGUAGE    = "Lingala";
+const COURSE_NUM  = "NOUVEAU-techno";
+const COURSE_NAME = "Technologie_communication";
+
+
+const state = ENTRIES.map(e => ({
+  id:e.id, db_id:e.db_id, breadcrumb:e.breadcrumb,
+  label_fr:e.label_fr, label_lang:e.label_lang,
+  phrase_fr:e.phrase_fr, phrase_lang:e.phrase_lang,
+  phrase_fr2:e.phrase_fr2, phrase_lang2:e.phrase_lang2,
+  prefilled:e.prefilled,
+  audio_label:null, audio_phrase:null, audio_phrase2:null,
+}));
+
+let currentIdx=0,activeRecorder=null,activeRecField=null,recStartTime=null,recTimerInterval=null;
+
+function isComplete(idx){
+  const e=state[idx];
+  if(e.label_fr!==null&&!e.audio_label)return false;
+  if(e.phrase_fr!==null&&!e.audio_phrase)return false;
+  if(e.phrase_fr2!==null&&!e.audio_phrase2)return false;
+  return true;
+}
+function audioCount(idx){const e=state[idx];return(e.audio_label?1:0)+(e.audio_phrase?1:0)+(e.audio_phrase2?1:0);}
+function totalAudioCount(){return state.reduce((s,_,i)=>s+audioCount(i),0);}
+
+function initThemeStrip(){
+  const strip=document.getElementById('themeStrip');strip.innerHTML='';
+  const seen=new Set();ENTRIES.forEach(e=>seen.add(e.breadcrumb.split(' > ')[0]));
+  seen.forEach(theme=>{
+    const btn=document.createElement('button');btn.className='theme-btn';btn.textContent=theme;
+    btn.id='tbtn-'+CSS.escape(theme);
+    btn.onclick=()=>{const idx=state.findIndex(e=>e.breadcrumb.split(' > ')[0]===theme);if(idx>=0)goTo(idx);};
+    strip.appendChild(btn);
+  });
+}
+function updateThemeStrip(){
+  const cur=state[currentIdx].breadcrumb.split(' > ')[0];
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('active','done'));
+  const btn=document.getElementById('tbtn-'+CSS.escape(cur));
+  if(btn){btn.classList.add('active');btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
+}
+function initNav(){
+  const strip=document.getElementById('navStrip');strip.innerHTML='';
+  ENTRIES.forEach((_,i)=>{
+    const dot=document.createElement('button');dot.className='nav-dot';
+    dot.textContent=i+1;dot.id=`dot-${i}`;dot.onclick=()=>goTo(i);strip.appendChild(dot);
+  });
+}
+function updateNav(){
+  ENTRIES.forEach((_,i)=>{
+    const dot=document.getElementById(`dot-${i}`);if(!dot)return;
+    dot.className='nav-dot';
+    if(i===currentIdx)dot.classList.add('current');
+    if(isComplete(i))dot.classList.add('complete');
+    if(audioCount(i)>0)dot.classList.add('has-audio');
+  });
+  const cur=document.getElementById(`dot-${currentIdx}`);
+  if(cur)cur.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  updateThemeStrip();
+}
+function updateProgress(){
+  const done=state.filter((_,i)=>isComplete(i)).length;
+  const audio=totalAudioCount();
+  const pct=(done/ENTRIES.length*100).toFixed(0);
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressText').textContent=`Entrée ${currentIdx+1} / ${ENTRIES.length}`;
+  document.getElementById('statComplete').textContent=`${done} complétés`;
+  document.getElementById('statAudio').textContent=`${audio} audios`;
+  document.getElementById('exportSummary').textContent=`${done} complétés · ${audio} enregistrements`;
+}
+function renderEntry(){
+  stopRecording();
+  const e=state[currentIdx];
+  const area=document.getElementById('mainArea');
+  let html=`<div class="entry-card"><div class="entry-breadcrumb">${escHtml(e.breadcrumb)}</div>`;
+  if(e.label_fr!==null){
+    html+=`<div class="entry-section"><div class="section-title">Mot / Expression</div>
+      <div class="ref-label">Référence française</div>
+      <div class="ref-box">${escHtml(e.label_fr)}</div>
+      <div class="field-group"><label>En ${LANGUAGE}</label>
+      <textarea id="fl-label" placeholder="Traduction en ${LANGUAGE}…"
+        class="${e.label_lang?'prefilled':''}"
+        oninput="onField('label_lang',this.value)">${escHtml(e.label_lang)}</textarea></div>
+      ${audioRow('label',e.audio_label)}</div>`;
+  }
+  if(e.phrase_fr!==null){
+    html+=`<div class="entry-section"><div class="section-title">Phrase principale</div>
+      <div class="ref-label">Référence française</div>
+      <div class="ref-box">${escHtml(e.phrase_fr)}</div>
+      <div class="field-group"><label>En ${LANGUAGE}</label>
+      <textarea id="fl-phrase" placeholder="Traduction en ${LANGUAGE}…"
+        class="${e.phrase_lang?'prefilled':''}"
+        oninput="onField('phrase_lang',this.value)">${escHtml(e.phrase_lang)}</textarea></div>
+      ${audioRow('phrase',e.audio_phrase)}</div>`;
+  }
+  if(e.phrase_fr2!==null){
+    html+=`<div class="entry-section"><div class="section-title">Phrase exemple</div>
+      <div class="ref-label">Référence française</div>
+      <div class="ref-box">${escHtml(e.phrase_fr2)}</div>
+      <div class="field-group"><label>En ${LANGUAGE}</label>
+      <textarea id="fl-phrase2" placeholder="Traduction en ${LANGUAGE}…"
+        class="${e.phrase_lang2?'prefilled':''}"
+        oninput="onField('phrase_lang2',this.value)">${escHtml(e.phrase_lang2||'')}</textarea></div>
+      ${audioRow('phrase2',e.audio_phrase2)}</div>`;
+  }
+  html+=`</div>`;
+  area.innerHTML=html;
+  ['label','phrase','phrase2'].forEach(f=>{const blob=e[`audio_${f}`];if(blob)showAudioPlayer(f,blob);});
+  document.getElementById('btnPrev').disabled=currentIdx===0;
+  document.getElementById('btnNext').textContent=currentIdx===ENTRIES.length-1?'Terminé ✓':'Suivant →';
+  updateNav();updateProgress();
+}
+function audioRow(field,blob){
+  const has=!!blob;
+  return `<div class="audio-row" id="arow-${field}">
+    <button class="rec-btn" id="rbtn-${field}" onclick="toggleRecording('${field}')">
+      <span class="rec-dot"></span>
+      <span class="rec-label">${has?'Ré-enregistrer':'Enregistrer'}</span>
+    </button>
+    <span class="rec-timer hidden" id="timer-${field}">0:00</span>
+    <div class="audio-playback ${has?'':'hidden'}" id="playback-${field}">
+      <audio controls id="audio-el-${field}"></audio>
+    </div>
+    ${has?`<button class="delete-audio" onclick="deleteAudio('${field}')" title="Supprimer">✕</button>`:''}
+    <span class="audio-status ${has?'':'none'}" id="astatus-${field}">${has?'✓ Enregistré':''}</span>
+  </div>`;
+}
+function showAudioPlayer(field,blob){
+  const pb=document.getElementById(`playback-${field}`),el=document.getElementById(`audio-el-${field}`);
+  if(pb&&el&&blob){pb.classList.remove('hidden');el.src=URL.createObjectURL(blob);}
+}
+function onField(field,value){state[currentIdx][field]=value;scheduleSave();updateProgress();}
+
+async function toggleRecording(field){
+  const btn=document.getElementById(`rbtn-${field}`);if(!btn)return;
+  if(activeRecorder&&activeRecField===field){stopRecording();return;}
+  if(activeRecorder)stopRecording();
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const chunks=[];
+    const recorder=new MediaRecorder(stream,{mimeType:getSupportedMime()});
+    recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+    recorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(chunks,{type:recorder.mimeType});
+      state[currentIdx][`audio_${field}`]=blob;
+      saveAudioClip(state[currentIdx].id,field,blob);renderEntry();
+    };
+    recorder.start();activeRecorder=recorder;activeRecField=field;
+    btn.classList.add('recording');btn.querySelector('.rec-label').textContent='Arrêter ■';
+    recStartTime=Date.now();
+    const timerEl=document.getElementById(`timer-${field}`);
+    if(timerEl){timerEl.classList.remove('hidden');recTimerInterval=setInterval(()=>{
+      const sec=Math.floor((Date.now()-recStartTime)/1000);
+      timerEl.textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+    },200);}
+  }catch(err){alert("Impossible d’accéder au microphone. Vérifiez les permissions de votre navigateur.");}
+}
+function stopRecording(){
+  if(activeRecorder&&activeRecorder.state!=='inactive')activeRecorder.stop();
+  activeRecorder=null;activeRecField=null;
+  if(recTimerInterval){clearInterval(recTimerInterval);recTimerInterval=null;}
+}
+function deleteAudio(field){state[currentIdx][`audio_${field}`]=null;saveAudioClip(state[currentIdx].id,field,null);renderEntry();}
+function getSupportedMime(){
+  const types=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
+  for(const t of types)if(MediaRecorder.isTypeSupported(t))return t;return '';
+}
+function getAudioExt(){
+  const m=getSupportedMime();
+  if(m.includes('webm'))return 'webm';if(m.includes('ogg'))return 'ogg';if(m.includes('mp4'))return 'm4a';return 'webm';
+}
+function goTo(idx){if(idx<0||idx>=ENTRIES.length)return;stopRecording();saveTextState();currentIdx=idx;renderEntry();window.scrollTo({top:0,behavior:'smooth'});}
+function startWork(){document.getElementById('splashScreen').classList.add('hidden');document.getElementById('workArea').classList.remove('hidden');currentIdx=0;renderEntry();}
+
+function exportZip(){
+  stopRecording();
+  const btn=document.getElementById('exportBtn');btn.disabled=true;btn.textContent='⏳ Préparation…';
+  setTimeout(async()=>{
+    try{
+      const files=[];
+      const exportData={
+        language:LANGUAGE,module:COURSE_NUM,module_name:COURSE_NAME,
+        exported_at:new Date().toISOString(),
+        entries:state.map(e=>({
+          id:e.id,db_id:e.db_id,breadcrumb:e.breadcrumb,
+          phrase_fr:e.phrase_fr,phrase_lang:e.phrase_lang,
+          phrase_fr2:e.phrase_fr2,phrase_lang2:e.phrase_lang2,
+          audio_phrase: e.audio_phrase  ?`audio/e${e.id}_phrase.${getAudioExt()}` :null,
+          audio_phrase2:e.audio_phrase2 ?`audio/e${e.id}_phrase2.${getAudioExt()}`:null,
+        }))
+      };
+      files.push({name:'data.json',data:new TextEncoder().encode(JSON.stringify(exportData,null,2))});
+      for(const e of state){
+        for(const f of ['phrase','phrase2']){
+          const blob=e[`audio_${f}`];
+          if(blob)files.push({name:`audio/e${e.id}_${f}.${getAudioExt()}`,data:new Uint8Array(await blob.arrayBuffer())});
+        }
+      }
+      const zipBlob=buildZip(files);
+      const url=URL.createObjectURL(zipBlob);
+      const a=document.createElement('a');
+      a.href=url;a.download=`Monoko_Audio_Lingala_${COURSE_NUM}_${COURSE_NAME}_${new Date().toISOString().slice(0,10)}.zip`;
+      document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+      btn.textContent='✅ Téléchargé !';
+      setTimeout(()=>{btn.disabled=false;btn.textContent='📦 Exporter ZIP';},3000);
+    }catch(err){console.error(err);alert("Erreur lors de l'export : "+err.message);btn.disabled=false;btn.textContent='📦 Exporter ZIP';}
+  },100);
+}
+function confirmReset(){if(confirm("⚠️ Supprimer toutes les données et enregistrements ?\n\nCette action est irréversible."))clearAllData();}
+function buildZip(files){
+  const lhs=[],chs=[];let offset=0;
+  for(const f of files){
+    const nb=new TextEncoder().encode(f.name),d=f.data;
+    const lh=new Uint8Array(30+nb.length),lv=new DataView(lh.buffer);
+    lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0,true);lv.setUint16(8,0,true);
+    lv.setUint16(10,0,true);lv.setUint16(12,0,true);lv.setUint32(14,crc32(d),true);
+    lv.setUint32(18,d.length,true);lv.setUint32(22,d.length,true);lv.setUint16(26,nb.length,true);lv.setUint16(28,0,true);
+    lh.set(nb,30);lhs.push(lh);
+    const ch=new Uint8Array(46+nb.length),cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0,true);
+    cv.setUint16(10,0,true);cv.setUint16(12,0,true);cv.setUint16(14,0,true);cv.setUint32(16,crc32(d),true);
+    cv.setUint32(20,d.length,true);cv.setUint32(24,d.length,true);cv.setUint16(28,nb.length,true);
+    cv.setUint16(30,0,true);cv.setUint16(32,0,true);cv.setUint16(34,0,true);cv.setUint16(36,0,true);
+    cv.setUint32(38,0,true);cv.setUint32(42,offset,true);ch.set(nb,46);chs.push(ch);
+    offset+=lh.length+d.length;
+  }
+  const co=offset;let cs=0;chs.forEach(h=>cs+=h.length);
+  const eocd=new Uint8Array(22),ev=new DataView(eocd.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(4,0,true);ev.setUint16(6,0,true);
+  ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,cs,true);ev.setUint32(16,co,true);ev.setUint16(20,0,true);
+  const parts=[];files.forEach((_,i)=>{parts.push(lhs[i]);parts.push(files[i].data);});chs.forEach(h=>parts.push(h));parts.push(eocd);
+  const total=parts.reduce((s,p)=>s+p.length,0),result=new Uint8Array(total);let pos=0;
+  for(const p of parts){result.set(p,pos);pos+=p.length;}
+  return new Blob([result],{type:'application/zip'});
+}
+function crc32(data){
+  if(!crc32.t){const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}crc32.t=t;}
+  let crc=0xFFFFFFFF;for(let i=0;i<data.length;i++)crc=crc32.t[(crc^data[i])&0xFF]^(crc>>>8);return(crc^0xFFFFFFFF)>>>0;
+}
+function escHtml(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+const STORE_KEY="monoko_audio_lingala_nouveau_technologie";
+const DB_NAME="monoko_audio_db_lingala_technologie";
+const DB_STORE='clips';
+let db=null,saveTimeout=null,lastSaveTime=null,storageAvailable=true;
+function openDB(){return new Promise(resolve=>{try{if(!window.indexedDB){resolve(null);return;}const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=e=>{try{e.target.result.createObjectStore(DB_STORE);}catch(er){}};req.onsuccess=e=>{db=e.target.result;resolve(db);};req.onerror=()=>resolve(null);req.onblocked=()=>resolve(null);}catch(e){resolve(null);}});}
+function dbPut(k,v){if(!db)return Promise.resolve();return new Promise(r=>{try{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(v,k);tx.oncomplete=()=>r();tx.onerror=()=>r();}catch(e){r();}});}
+function dbGet(k){if(!db)return Promise.resolve(null);return new Promise(r=>{try{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(k);req.onsuccess=()=>r(req.result||null);req.onerror=()=>r(null);}catch(e){r(null);}});}
+function dbDelete(k){if(!db)return Promise.resolve();return new Promise(r=>{try{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(k);tx.oncomplete=()=>r();tx.onerror=()=>r();}catch(e){r();}});}
+function dbClear(){if(!db)return Promise.resolve();return new Promise(r=>{try{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).clear();tx.oncomplete=()=>r();tx.onerror=()=>r();}catch(e){r();}});}
+function audioKey(id,field){return `e${id}_${field}`;}
+function saveTextState(){
+  const ts=state.map(e=>(({id:e.id,phrase_lang:e.phrase_lang,phrase_lang2:e.phrase_lang2,has_audio_phrase:!!e.audio_phrase,has_audio_phrase2:!!e.audio_phrase2})));
+  try{localStorage.setItem(STORE_KEY,JSON.stringify({data:ts,savedAt:Date.now(),currentIdx}));lastSaveTime=Date.now();storageAvailable=true;}catch(e){storageAvailable=false;}
+  updateSaveIndicator();
+}
+async function saveAudioClip(id,field,blob){const k=audioKey(id,field);if(blob)await dbPut(k,blob);else await dbDelete(k);scheduleSave();}
+function scheduleSave(){if(saveTimeout)clearTimeout(saveTimeout);saveTimeout=setTimeout(saveTextState,1000);}
+async function loadState(){
+  await openDB();
+  try{
+    const raw=localStorage.getItem(STORE_KEY);if(!raw)return;
+    const{data:parsed,currentIdx:savedIdx}=JSON.parse(raw);if(!parsed)return;
+    for(let i=0;i<parsed.length&&i<state.length;i++){
+      state[i].phrase_lang =parsed[i].phrase_lang ||state[i].phrase_lang;
+      state[i].phrase_lang2=parsed[i].phrase_lang2!==undefined?parsed[i].phrase_lang2:state[i].phrase_lang2;
+      for(const f of ['phrase','phrase2']){const blob=await dbGet(audioKey(state[i].id,f));if(blob)state[i][`audio_${f}`]=blob;}
+    }
+    if(typeof savedIdx==='number'&&savedIdx>=0&&savedIdx<ENTRIES.length)currentIdx=savedIdx;
+    lastSaveTime=Date.now();
+  }catch(e){console.warn('Load error:',e);}
+}
+async function clearAllData(){
+  try{localStorage.removeItem(STORE_KEY);}catch(e){}
+  await dbClear();
+  state.forEach((e,i)=>{e.phrase_lang=ENTRIES[i].phrase_lang;e.phrase_lang2=ENTRIES[i].phrase_lang2;e.audio_phrase=null;e.audio_phrase2=null;});
+  currentIdx=0;renderEntry();updateSaveIndicator();
+}
+function updateSaveIndicator(){
+  const el=document.getElementById('saveStatus');if(!el)return;
+  if(!storageAvailable){el.textContent='⚠ Sauvegarde non disponible';el.style.color='var(--accent)';return;}
+  if(!lastSaveTime){el.textContent='';return;}
+  el.style.color='';
+  const ago=Math.floor((Date.now()-lastSaveTime)/1000);
+  if(ago<5)el.textContent='✓ Sauvegardé';else if(ago<60)el.textContent=`✓ ${ago}s`;else el.textContent=`✓ ${Math.floor(ago/60)}min`;
+}
+setInterval(saveTextState,3000);setInterval(updateSaveIndicator,10000);
+async function boot(){
+  try{await loadState();}catch(e){console.warn('Boot error:',e);storageAvailable=false;}
+  initThemeStrip();initNav();updateProgress();updateSaveIndicator();
+  const hasSaved=state.some(e=>e.audio_phrase||e.audio_phrase2);
+  if(hasSaved){document.getElementById('splashScreen').classList.add('hidden');document.getElementById('workArea').classList.remove('hidden');renderEntry();}
+}
+boot().catch(e=>{console.error('Boot failed:',e);storageAvailable=false;initThemeStrip();initNav();updateProgress();updateSaveIndicator();});
+
+</script>
+</body>
+</html>

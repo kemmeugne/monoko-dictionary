@@ -1,0 +1,1545 @@
+[
+  {
+    "correction_id": 1449,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1450,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1452,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1453,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1454,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1455,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1456,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1457,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1458,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1459,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1460,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1461,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1462,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1,
+    "example_sentence": "Toliaki fufu na madesu na mosuni ya ngombe. Ezalaki belia kitoko.",
+    "lingala_extracted": "Toliaki fufu na madesu na mosuni ya ngombe. Ezalaki belia kitoko.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Nous avons mangé du fufu avec des haricots et une sauce de bœuf. C'était un très bon repas",
+    "inserted": true
+  },
+  {
+    "correction_id": 2,
+    "example_sentence": "- Yaka awa ! \n_ Liboso okende. Yo, kombo na yo nani ?",
+    "lingala_extracted": "- Yaka awa ! \n_ Liboso okende. Yo, kombo na yo nani ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Viens ici !\nD'abord pars. Toi, comment tu t'appelles ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 4,
+    "example_sentence": "Mbote, baninga na ngai !",
+    "lingala_extracted": "Mbote, baninga na ngai !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Bonjour mes amis",
+    "inserted": true
+  },
+  {
+    "correction_id": 5,
+    "example_sentence": "Bonjour, Liwata ! Comment vas-tu ce matin, mon frère ?\n(Mboté, Liwata ! Boni yo na tongo oyo, ndéko na ngai ?)",
+    "lingala_extracted": "Mboté, Liwata ! Boni yo na tongo oyo, ndéko na ngai ?",
+    "french_source": "professor",
+    "status": "inserted",
+    "french_translation": "Bonjour, Liwata ! Comment vas-tu ce matin, mon frère ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 6,
+    "example_sentence": "Bonjour, Liwata ! Comment vas-tu ce matin, mon frère ?\n(Mboté, Liwata ! Boni yo na tongo oyo, ndéko na ngai ?)",
+    "lingala_extracted": "Mboté, Liwata ! Boni yo na tongo oyo, ndéko na ngai ?",
+    "french_source": "professor",
+    "status": "inserted",
+    "french_translation": "Bonjour, Liwata ! Comment vas-tu ce matin, mon frère ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 7,
+    "example_sentence": "À nous revoir demain, les gars !\n(Tomonani lobi, baninga !)",
+    "lingala_extracted": "Tomonani lobi, baninga !",
+    "french_source": "professor",
+    "status": "inserted",
+    "french_translation": "À nous revoir demain, les gars !",
+    "inserted": true
+  },
+  {
+    "correction_id": 8,
+    "example_sentence": "À plus Michelle !\n(tomonana mbala sima, Michelle !)",
+    "lingala_extracted": "tomonana mbala sima, Michelle !",
+    "french_source": "professor",
+    "status": "inserted",
+    "french_translation": "À plus Michelle !",
+    "inserted": true
+  },
+  {
+    "correction_id": 9,
+    "example_sentence": "À bientôt, Anthony !\n(Mbala sima !/ Tomonani !)",
+    "lingala_extracted": "Mbala sima !/ Tomonani !",
+    "french_source": "professor",
+    "status": "inserted",
+    "french_translation": "À bientôt, Anthony !",
+    "inserted": true
+  },
+  {
+    "correction_id": 10,
+    "example_sentence": "Dans ma famille, ce sont les femmes qui dirigent et prennent des décisions importantes, mais les hommes ne font qu'exécuter.\n(Na libota na ngai, ezali basi ndé bakambaka mpe badzwaka mikanu ya mituya, kasi mibali batosaka kaka)",
+    "lingala_extracted": "Na libota na ngai, ezali basi ndé bakambaka mpe badzwaka mikanu ya mituya, kasi mibali batosaka kaka",
+    "french_source": "professor",
+    "status": "inserted",
+    "french_translation": "Dans ma famille, ce sont les femmes qui dirigent et prennent des décisions importantes, mais les hommes ne font qu'exécuter.",
+    "inserted": true
+  },
+  {
+    "correction_id": 11,
+    "example_sentence": "Je te présenterai mes parents.\n(Nakolakisa yo baboti na ngai.)",
+    "lingala_extracted": "Nakolakisa yo baboti na ngai.",
+    "french_source": "professor",
+    "status": "inserted",
+    "french_translation": "Je te présenterai mes parents.",
+    "inserted": true
+  },
+  {
+    "correction_id": 582,
+    "example_sentence": "Botala bapaya ! Boyei bolamu na mboka na biso !",
+    "lingala_extracted": "Botala bapaya ! Boyei bolamu na mboka na biso !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Regardez les étrangers ! Ramenez la paix dans notre pays !",
+    "inserted": true
+  },
+  {
+    "correction_id": 587,
+    "example_sentence": "- Oyo bato wana basalisi ngai mingi na kati ya mboka oyo.\n- Ah botondi mingi na wana bosungi muana na biso mingi !",
+    "lingala_extracted": "- Oyo bato wana basalisi ngai mingi na kati ya mboka oyo.\n- Ah botondi mingi na wana bosungi muana na biso mingi !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ces gens m'ont beaucoup aidé dans ce quartier.\nMerci beaucoup pour toute l'aide que vous avez apportée à notre enfant !",
+    "inserted": true
+  },
+  {
+    "correction_id": 588,
+    "example_sentence": "Eh mama na ngai esimbi, nabongi na bomoi na ngai. Ah nasepeli mpenza na lisungi na bino.",
+    "lingala_extracted": "Eh mama na ngai esimbi, nabongi na bomoi na ngai. Ah nasepeli mpenza na lisungi na bino.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ma mère est partie, je remets ma vie en ordre. Ah, je suis vraiment reconnaissant de votre aide.",
+    "inserted": true
+  },
+  {
+    "correction_id": 590,
+    "example_sentence": "Okoki kosunga ngai na konangona biloko oyo, nabondeli yo ?",
+    "lingala_extracted": "Okoki kosunga ngai na konangona biloko oyo, nabondeli yo ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Peux-tu m'aider à ramasser ces affaires, s'il te plaît ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 591,
+    "example_sentence": "Nzambé, osaleli ngai ya minene na bomoi na ngai. Nakokoka te kopesa yo matondo ebele koleka.",
+    "lingala_extracted": "Nzambé, osaleli ngai ya minene na bomoi na ngai. Nakokoka te kopesa yo matondo ebele koleka.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Dieu, tu m'as tellement béni dans ma vie. Je ne pourrai jamais te remercier suffisamment",
+    "inserted": true
+  },
+  {
+    "correction_id": 592,
+    "example_sentence": "Lokuta mabe, bosungaki biso na nionso. Bozalaki mpenza malamu koleka.",
+    "lingala_extracted": "Lokuta mabe, bosungaki biso na nionso. Bozalaki mpenza malamu koleka.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "De sales mensonges, vous nous avez aidés pour tout. Vous étiez vraiment bien meilleurs",
+    "inserted": true
+  },
+  {
+    "correction_id": 593,
+    "example_sentence": "Botondi mingi mpo na mosala na bino !",
+    "lingala_extracted": "Botondi mingi mpo na mosala na bino !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Merci beaucoup pour votre travail",
+    "inserted": true
+  },
+  {
+    "correction_id": 594,
+    "example_sentence": "Soki okabeli ngai, nakotonda yo lisusu lobi.",
+    "lingala_extracted": "Soki okabeli ngai, nakotonda yo lisusu lobi.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Si tu me donnes quelque chose, je te rendrai la pareille demain",
+    "inserted": true
+  },
+  {
+    "correction_id": 1375,
+    "example_sentence": "Nalingi te koyoka buzoba na bino wana. Sikoyo ye adzwi nini ? Ah nayebi te mpo na nini azali na kánda.",
+    "lingala_extracted": "Nalingi te koyoka buzoba na bino wana. Sikoyo ye adzwi nini ? Ah nayebi te mpo na nini azali na kánda.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je n'aime pas entendre vos mensonges. Qu'est-ce qu'il a maintenant ? Ah je ne sais pas pourquoi il est en colère",
+    "inserted": true
+  },
+  {
+    "correction_id": 1398,
+    "example_sentence": "\"Na nani okobima na mpokwa lelo ?\"",
+    "lingala_extracted": "\"Na nani okobima na mpokwa lelo ?\"",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Avec qui vas-tu sortir ce soir ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1451,
+    "example_sentence": "Mbote ! Wana nani na alo-alo ?",
+    "lingala_extracted": "Mbote ! Wana nani na alo-alo ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Bonjour ! Qui est à l'autre bout du fil ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1463,
+    "example_sentence": "Nabimaka na tongo mpe nazongaka kaka na mpokwa. Nazali na tango te mpo na kosolola.",
+    "lingala_extracted": "Nabimaka na tongo mpe nazongaka kaka na mpokwa. Nazali na tango te mpo na kosolola.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je sors le matin et je ne rentre que le soir. Je n’ai pas le temps pour parler.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1464,
+    "example_sentence": "Tozali kolandela nanu makambo ya libota. Yo na ngai, tokoki kosolola sikoyo te.",
+    "lingala_extracted": "Tozali kolandela nanu makambo ya libota. Yo na ngai, tokoki kosolola sikoyo te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Nous nous occupons encore de questions familiales. Toi et moi, nous ne pouvons pas parler pour l'instant.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1465,
+    "example_sentence": "Nazali kosala. Benga ngai lisusu lobi, nabondeli yo!",
+    "lingala_extracted": "Nazali kosala. Benga ngai lisusu lobi, nabondeli yo!",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je travaille. Rappelle-moi demain, s'il te plaît.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1466,
+    "example_sentence": "Alo alo na ngai ekufaki. Obengaki ngai lisusu lobi?",
+    "lingala_extracted": "Alo alo na ngai ekufaki. Obengaki ngai lisusu lobi?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Allô, mon téléphone est mort. Tu m'as encore appelé hier ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1467,
+    "example_sentence": "\"Zala na ngai lobi.\"",
+    "lingala_extracted": "\"Zala na ngai lobi.\"",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Sois avec moi demain.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1468,
+    "example_sentence": "Okoki kobenga ngai lisusu sima ? Tozali kosambela...",
+    "lingala_extracted": "Okoki kobenga ngai lisusu sima ? Tozali kosambela...",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Peux-tu me rappeler plus tard ? Nous sommes en train de prier...",
+    "inserted": true
+  },
+  {
+    "correction_id": 1469,
+    "example_sentence": "Kobosana te na kopesa ngai nzela. Ekosenga obenga lisusu ngai.",
+    "lingala_extracted": "Kobosana te na kopesa ngai nzela. Ekosenga obenga lisusu ngai.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ne refuse pas de me donner une chance. On te demandera de m'appeler à nouveau.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1470,
+    "example_sentence": "Alobi ete akobenga lisusu sima.",
+    "lingala_extracted": "Alobi ete akobenga lisusu sima.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Il a dit qu'il rappellerait plus tard",
+    "inserted": true
+  },
+  {
+    "correction_id": 1471,
+    "example_sentence": "Akomelaki ngai maloba na mokanda wana atindelaki biso.",
+    "lingala_extracted": "Akomelaki ngai maloba na mokanda wana atindelaki biso.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Il m'a raconté ce qui était écrit dans la lettre qu'il nous a envoyée",
+    "inserted": true
+  },
+  {
+    "correction_id": 1472,
+    "example_sentence": "Atindelaki ngai maloba mposo eleki.",
+    "lingala_extracted": "Atindelaki ngai maloba mposo eleki.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Il m'a dit ces mots l'autre jour",
+    "inserted": true
+  },
+  {
+    "correction_id": 1473,
+    "example_sentence": "Tindela ngai mokanda nsima.",
+    "lingala_extracted": "Tindela ngai mokanda nsima.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Envoie-moi la lettre ensuite.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1474,
+    "example_sentence": "Okoki kotindela ye maloba te ?",
+    "lingala_extracted": "Okoki kotindela ye maloba te ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Tu ne peux pas lui envoyer un message ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1475,
+    "example_sentence": "Nalingi napema, mpo na yango, nazali te na posa ya ba nsango sikoyo.",
+    "lingala_extracted": "Nalingi napema, mpo na yango, nazali te na posa ya ba nsango sikoyo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je veux respirer et pour cela je n'ai pas besoin de nouvelles pour l'instant",
+    "inserted": true
+  },
+  {
+    "correction_id": 1476,
+    "example_sentence": "Nazali kondzela ye. Akotinda ngai mokanda  mikolo oyo.",
+    "lingala_extracted": "Nazali kondzela ye. Akotinda ngai mokanda  mikolo oyo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je l'attends. Il va m'envoyer une lettre ces jours-ci.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1477,
+    "example_sentence": "Nayambi maloba na yo.",
+    "lingala_extracted": "Nayambi maloba na yo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je comprends ce que tu dis.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1478,
+    "example_sentence": "Natangi mokanda otindelaki ngai, mpe nayambi maloba na yo.",
+    "lingala_extracted": "Natangi mokanda otindelaki ngai, mpe nayambi maloba na yo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "J'ai lu la lettre que tu m'as envoyée et j'approuve ce que tu dis",
+    "inserted": true
+  },
+  {
+    "correction_id": 1479,
+    "example_sentence": "Nakoyamba maloba na yo.",
+    "lingala_extracted": "Nakoyamba maloba na yo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je répéterai ce que tu dis",
+    "inserted": true
+  },
+  {
+    "correction_id": 1480,
+    "example_sentence": "Oyambi maloba na ngai ? Nanu te, alo alo na ngai ezali ya kokufa",
+    "lingala_extracted": "Oyambi maloba na ngai ? Nanu te, alo alo na ngai ezali ya kokufa",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Tu juges mes paroles ? Pas encore, mes mots sont en train de mourir",
+    "inserted": true
+  },
+  {
+    "correction_id": 1481,
+    "example_sentence": "Namoni mokando otindelaki ngai te. Na bosolo nionso, nayambi maloba na yo.",
+    "lingala_extracted": "Namoni mokando otindelaki ngai te. Na bosolo nionso, nayambi maloba na yo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je n'ai pas vu la lettre que tu m'as envoyée. Pour être tout à fait honnête, j'ai oublié ce que tu as dit.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1482,
+    "example_sentence": "Toyambi maloba na yo. Esepelisi biso kotanga mokanda otindeli biso, mwana.",
+    "lingala_extracted": "Toyambi maloba na yo. Esepelisi biso kotanga mokanda otindeli biso, mwana.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Nous avons entendu tes paroles. Nous sommes heureux d'avoir lu la lettre que tu nous as envoyée, enfant.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1483,
+    "example_sentence": "Nazali kopesa yo eyano sikoyo.",
+    "lingala_extracted": "Nazali kopesa yo eyano sikoyo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je te donne la réponse maintenant.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1484,
+    "example_sentence": "Esi nayebisaki yo nionso etaleli libala na biso. Nayanolaki yo lobi, te ?",
+    "lingala_extracted": "Esi nayebisaki yo nionso etaleli libala na biso. Nayanolaki yo lobi, te ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je t'ai tout expliqué sur les préparatifs de notre mariage. Je t'ai dit que c'était pour demain, non ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1485,
+    "example_sentence": "Nakoyanola yo na ntango mukie. Tozali kobima sikoyo.",
+    "lingala_extracted": "Nakoyanola yo na ntango mukie. Tozali kobima sikoyo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je vais te rejoindre dans un instant. On sort maintenant.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1486,
+    "example_sentence": "Nasepeli na ngai na lisolo ya ata mukie te. Sikoyo, olingi napesa yo eyano nini ?",
+    "lingala_extracted": "Nasepeli na ngai na lisolo ya ata mukie te. Sikoyo, olingi napesa yo eyano nini ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je ne suis pas du tout content de cette histoire. Maintenant, que veux-tu que je te réponde ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1487,
+    "example_sentence": "Nazali kosala sikoyo. Mpo na yango, nakoyanola yo te sikoyo.",
+    "lingala_extracted": "Nazali kosala sikoyo. Mpo na yango, nakoyanola yo te sikoyo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je travaille en ce moment. C'est pour cela que je ne vais pas te déranger maintenant.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1488,
+    "example_sentence": "Akosolola na yo mpe akoyanola mituna na yo nionso na ntango mukie",
+    "lingala_extracted": "Akosolola na yo mpe akoyanola mituna na yo nionso na ntango mukie",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Il te parlera et répondra à toutes tes questions quand le moment sera venu",
+    "inserted": true
+  },
+  {
+    "correction_id": 1489,
+    "example_sentence": "Tokoki kobenga na alo alo ata mukie te. Rézo ezali mpenza mabe lelo.",
+    "lingala_extracted": "Tokoki kobenga na alo alo ata mukie te. Rézo ezali mpenza mabe lelo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "On peut appeler mais ça ne sonne même pas  \nLe réseau est vraiment mauvais aujourd'hui",
+    "inserted": true
+  },
+  {
+    "correction_id": 1490,
+    "example_sentence": "Réseau ezalaki bolembu lobi na butu.",
+    "lingala_extracted": "Réseau ezalaki bolembu lobi na butu.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Le réseau était en panne la nuit dernière.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1491,
+    "example_sentence": "Rézo ekosala lisusu mabe lobi, kaka lolenge ezali mbutu-mbutu lelo.",
+    "lingala_extracted": "Rézo ekosala lisusu mabe lobi, kaka lolenge ezali mbutu-mbutu lelo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Le réseau va encore mal fonctionner demain, c'est juste qu'aujourd'hui il est intermittent",
+    "inserted": true
+  },
+  {
+    "correction_id": 1492,
+    "example_sentence": "Rezo wifi ezali kosala te mpo ete lotiliki ezali te.",
+    "lingala_extracted": "Rezo wifi ezali kosala te mpo ete lotiliki ezali te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Le réseau wifi ne fonctionne pas parce qu'il n'y a pas d'électricité",
+    "inserted": true
+  },
+  {
+    "correction_id": 1493,
+    "example_sentence": "Kobengana na tchiombo ezali pasi na ba mboka, mpo ete balobaka ete rezo ezali mabe kuna !",
+    "lingala_extracted": "Kobengana na tchiombo ezali pasi na ba mboka, mpo ete balobaka ete rezo ezali mabe kuna !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Lutter contre le chômage est difficile dans les villages parce qu'on dit que le réseau y est mauvais.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1494,
+    "example_sentence": "Bazali kobenga yo, ya Jean. Ya solo ! Kasi nazoyoka te.",
+    "lingala_extracted": "Bazali kobenga yo, ya Jean. Ya solo ! Kasi nazoyoka te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "On t'appelle, Jean. Vraiment ! Mais je n'entends pas",
+    "inserted": true
+  },
+  {
+    "correction_id": 1495,
+    "example_sentence": "Matoyi ezali koswa ngai. Nabanzi ete nakoyoka malamu koleka te.",
+    "lingala_extracted": "Matoyi ezali koswa ngai. Nabanzi ete nakoyoka malamu koleka te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ces vêtements me serrent. Je pensais que je me sentirais mieux.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1496,
+    "example_sentence": "Nini ? Nasosoli ata mukie te. Okoki kobandela lisusu, nabondeli yo ?",
+    "lingala_extracted": "Nini ? Nasosoli ata mukie te. Okoki kobandela lisusu, nabondeli yo ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Quoi ? Je n'ai même pas versé une larme. Peux-tu recommencer, je te le demande ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1497,
+    "example_sentence": "Awa makelele eleki ebele mpenza, mpo na yango nazososola ebele mpenza te.",
+    "lingala_extracted": "Awa makelele eleki ebele mpenza, mpo na yango nazososola ebele mpenza te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Il y a vraiment beaucoup trop de bruit ici donc je ne parlerai pas beaucoup",
+    "inserted": true
+  },
+  {
+    "correction_id": 1498,
+    "example_sentence": "Ye, mpo ayoka yo, esengeli ongana makasi. Tala kaka oyokaka malamu te.",
+    "lingala_extracted": "Ye, mpo ayoka yo, esengeli ongana makasi. Tala kaka oyokaka malamu te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Eh, parce qu'il/elle t'entendra, tu dois parler fort. Ne fais pas semblant de ne pas bien entendre",
+    "inserted": true
+  },
+  {
+    "correction_id": 1499,
+    "example_sentence": "Singa ekotaki.",
+    "lingala_extracted": "Singa ekotaki.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Si jamais ça arrive",
+    "inserted": true
+  },
+  {
+    "correction_id": 1500,
+    "example_sentence": "Na butu, minda ekufaki tango bato nionso bazalaki kolala. Nzokande, singa ya lotiliki ekatanaki.",
+    "lingala_extracted": "Na butu, minda ekufaki tango bato nionso bazalaki kolala. Nzokande, singa ya lotiliki ekatanaki.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "La nuit, les champs ont pris feu pendant que tout le monde dormait. Cependant, le câble électrique s’est rompu.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1501,
+    "example_sentence": "Namoni ete singa oyo ekokatana.",
+    "lingala_extracted": "Namoni ete singa oyo ekokatana.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je vois que si cela arrive",
+    "inserted": true
+  },
+  {
+    "correction_id": 1502,
+    "example_sentence": "Singa ekotaki, te ? Ee, biloko nionso ezosala ndenge esengeli.",
+    "lingala_extracted": "Singa ekotaki, te ? Ee, biloko nionso ezosala ndenge esengeli.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ça arrivera, non ? Oui, tout se passera comme il faut.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1503,
+    "example_sentence": "Singa ekatani te, tokoba kosala mosala na biso.",
+    "lingala_extracted": "Singa ekatani te, tokoba kosala mosala na biso.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "S'il n'y a pas de problème, nous continuerons notre travail.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1504,
+    "example_sentence": "Balobaki ete singa ekataki.",
+    "lingala_extracted": "Balobaki ete singa ekataki.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ils ont dit que le singe s'était enfui",
+    "inserted": true
+  },
+  {
+    "correction_id": 1505,
+    "example_sentence": "Tika na yo, kokende lisusu zando te. Yaka na ndako !",
+    "lingala_extracted": "Tika na yo, kokende lisusu zando te. Yaka na ndako !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Laisse tomber, ne retourne plus au marché. Viens à la maison !",
+    "inserted": true
+  },
+  {
+    "correction_id": 1506,
+    "example_sentence": "Moninga na ngai akomaki lobi ta tongo.",
+    "lingala_extracted": "Moninga na ngai akomaki lobi ta tongo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Mon ami est arrivé hier matin",
+    "inserted": true
+  },
+  {
+    "correction_id": 1507,
+    "example_sentence": "\"Ozo koma wikendi oyo?\"",
+    "lingala_extracted": "\"Ozo koma wikendi oyo?\"",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Tu viens ce week-end ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1508,
+    "example_sentence": "\"Olingi kokzala elongo na biso?\"",
+    "lingala_extracted": "\"Olingi kokzala elongo na biso?\"",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Veux-tu être avec nous ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1509,
+    "example_sentence": "Ah naboyi na ngai. Nakobyanga yo te ya mbala oyo mpo oyokisaki ngai soni koleka mbala sima.",
+    "lingala_extracted": "Ah naboyi na ngai. Nakobyanga yo te ya mbala oyo mpo oyokisaki ngai soni koleka mbala sima.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ah je refuse. Je ne te pardonnerai pas cette fois parce que tu m'as fait plus honte que la dernière fois",
+    "inserted": true
+  },
+  {
+    "correction_id": 1510,
+    "example_sentence": "Bato bazali kokende na feti. Bango nionso babyangami kuna.",
+    "lingala_extracted": "Bato bazali kokende na feti. Bango nionso babyangami kuna.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Les gens vont à la fête. Ils sont tous invités ici.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1511,
+    "example_sentence": "Te, botondi tata kasi mafuta na yo esepelisi ngai te..",
+    "lingala_extracted": "Te, botondi tata kasi mafuta na yo esepelisi ngai te..",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Non, merci papa, mais ton huile ne me plaît pas.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1512,
+    "example_sentence": "Nakanaki te koboya kosunga. Kasi nakokaki te kodzwa mbela mpo na makambo tozali na yango sikoyo..",
+    "lingala_extracted": "Nakanaki te koboya kosunga. Kasi nakokaki te kodzwa mbela mpo na makambo tozali na yango sikoyo..",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je n'avais pas l'intention de refuser d'aider. Mais je n'ai pas pu me justifier à propos des choses que nous avons en ce moment.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1513,
+    "example_sentence": "Bakabi ye likabo kasi aponi na ye kobwakisa yango.",
+    "lingala_extracted": "Bakabi ye likabo kasi aponi na ye kobwakisa yango.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ils lui ont offert un cadeau mais il a refusé de le rendre.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1514,
+    "example_sentence": "Nakozala te, nazali na misala ebele lelo...\nNakoki te, bolimbisi.",
+    "lingala_extracted": "Nakozala te, nazali na misala ebele lelo...\nNakoki te, bolimbisi.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je ne pourrai pas, j'ai beaucoup de travail aujourd'hui... Je ne peux pas, désolé",
+    "inserted": true
+  },
+  {
+    "correction_id": 1515,
+    "example_sentence": "Ayebisi ete alingi kozala na biso te na feti ya Liza.",
+    "lingala_extracted": "Ayebisi ete alingi kozala na biso te na feti ya Liza.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Il a dit qu'il ne voulait pas être avec nous à la fête de Liza.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1516,
+    "example_sentence": "Ee, nazali na esengo kotika yango ! Botondi mingi mpo na mbela",
+    "lingala_extracted": "Ee, nazali na esengo kotika yango ! Botondi mingi mpo na mbela",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Oui, je suis content de laisser tomber ça. Merci beaucoup pour l'aide",
+    "inserted": true
+  },
+  {
+    "correction_id": 1517,
+    "example_sentence": "Lokola esi nadzwaki mbela ya feti na bango, esengeli nakende kaka atako mosala emonani na ntango.",
+    "lingala_extracted": "Lokola esi nadzwaki mbela ya feti na bango, esengeli nakende kaka atako mosala emonani na ntango.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Comme j'ai reçu l'invitation à leur fête, je dois y aller même si le travail paraît urgent.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1518,
+    "example_sentence": "Nakopesa eyano na mbela ya libala na bino lobi mpo nazokanisa makambo ebele sikoyo.",
+    "lingala_extracted": "Nakopesa eyano na mbela ya libala na bino lobi mpo nazokanisa makambo ebele sikoyo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je vous donnerai une réponse à votre demande en mariage demain parce que je réfléchis à beaucoup de choses en ce moment",
+    "inserted": true
+  },
+  {
+    "correction_id": 1519,
+    "example_sentence": "- Libala ya Francine ekozala mposo ekoya.\n- Bapesi yo mbela ? Mpe óndimi mbela yango ?",
+    "lingala_extracted": "- Libala ya Francine ekozala mposo ekoya.\n- Bapesi yo mbela ? Mpe óndimi mbela yango ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Le mariage de Francine aura bientôt lieu\nEst-ce qu'on t'a donné la dot ? Et l'as-tu acceptée ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1520,
+    "example_sentence": "- Okei wapi ? Feti, elingi ebanda.\n- Te, nakokoka koya te. Esengeli nakende kodzwa bana na kelasi.",
+    "lingala_extracted": "- Okei wapi ? Feti, elingi ebanda.\n- Te, nakokoka koya te. Esengeli nakende kodzwa bana na kelasi.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Okei, où est-il ? La fête va commencer.\nNon, je ne peux pas venir. Il faut que j’aille chercher les enfants à l’école.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1521,
+    "example_sentence": "- Ekozala mokolo nini feti yango ?\n- Lobi na mpokwa.\n- Tokozala wana na mpokwa.",
+    "lingala_extracted": "- Ekozala mokolo nini feti yango ?\n- Lobi na mpokwa.\n- Tokozala wana na mpokwa.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "La fête, c'est quel jour ?\nDemain soir\nNous serons là demain soir",
+    "inserted": true
+  },
+  {
+    "correction_id": 1522,
+    "example_sentence": "- Boyei bolamu na  eklézya na biso. Boya, bisika ya kofanda ezali liboso boyé.\n- Botondi mingi mpo na boyambi na bino !",
+    "lingala_extracted": "- Boyei bolamu na  eklézya na biso. Boya, bisika ya kofanda ezali liboso boyé.\n- Botondi mingi mpo na boyambi na bino !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Bienvenue dans notre église. Entrez, les places pour s’asseoir sont devant.\nMerci beaucoup pour votre aide !",
+    "inserted": true
+  },
+  {
+    "correction_id": 1523,
+    "example_sentence": "Nasepelaka kolia na malewa na bango awa mpo balaka malamu mpe bamemiaka basombi na bango.\nLokuta mabe, nasepeli na sikisiki na boyambi na bino.",
+    "lingala_extracted": "Nasepelaka kolia na malewa na bango awa mpo balaka malamu mpe bamemiaka basombi na bango.\nLokuta mabe, nasepeli na sikisiki na boyambi na bino.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "J'aime manger leurs plats ici parce qu'ils cuisinent bien et que les clients les achètent. Ce n'est pas un mensonge, je suis très reconnaissant de votre aide.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1524,
+    "example_sentence": "Nasepeli penza na lisalisi na bino oyo bopesi ngai mokolo ya lelo. Kasi nazali na eloko sikoyo, na ntina wana nakotonda bino lisusu na bozongi na ngai ekoya.",
+    "lingala_extracted": "Nasepeli penza na lisalisi na bino oyo bopesi ngai mokolo ya lelo. Kasi nazali na eloko sikoyo, na ntina wana nakotonda bino lisusu na bozongi na ngai ekoya.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je suis vraiment reconnaissant de l'aide que vous m'avez apportée aujourd'hui. Mais j'ai déjà quelque chose maintenant, donc je vous remercierai de nouveau à mon retour.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1525,
+    "example_sentence": "Ezalaki kitoko. Bobongisi nionso oyo mpo na biso ?",
+    "lingala_extracted": "Ezalaki kitoko. Bobongisi nionso oyo mpo na biso ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "C'était beau. Tu as arrangé tout ça pour nous ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1526,
+    "example_sentence": "Esengo etonda motema ngai komona lolenge kitoko bayambaki ngai sima lobi epai na bango.",
+    "lingala_extracted": "Esengo etonda motema ngai komona lolenge kitoko bayambaki ngai sima lobi epai na bango.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "La joie remplit mon cœur de voir la belle façon dont ils m'ont aidé chez eux le lendemain.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1527,
+    "example_sentence": "Bazalaki na boyambi bato kitoko na lolenge éndimama te na mboka mobimba kasi sikoyo makambo ebongwana na yango..",
+    "lingala_extracted": "Bazalaki na boyambi bato kitoko na lolenge éndimama te na mboka mobimba kasi sikoyo makambo ebongwana na yango..",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "On aidait les bonnes personnes d'une façon qui n'était pas acceptée dans tout le pays, mais maintenant les choses ont changé",
+    "inserted": true
+  },
+  {
+    "correction_id": 1528,
+    "example_sentence": "Boyei bólamu na ebombelo múku na biso ! Fanda, nabondeli yo !",
+    "lingala_extracted": "Boyei bólamu na ebombelo múku na biso ! Fanda, nabondeli yo !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Revenez sains et saufs chez nous ! Assieds-toi, je t'en supplie !",
+    "inserted": true
+  },
+  {
+    "correction_id": 1529,
+    "example_sentence": "Tozali na matanga na tata ya moninga na biso ya kelasi. Eeh, azali na ngai awa. Afandi kutu pembeni na ngai.",
+    "lingala_extracted": "Tozali na matanga na tata ya moninga na biso ya kelasi. Eeh, azali na ngai awa. Afandi kutu pembeni na ngai.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Nous sommes aux funérailles du père de notre camarade de classe. Oui, il est ici avec moi. Il est même assis à côté de moi.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1530,
+    "example_sentence": "Kitoko ! Esi tobongisi bisika nionso mpe bakiti etandami malamu na lopango mobimba.\nYo, lokola okodzwa bilili. Okofanda na esika oyo lobi ?",
+    "lingala_extracted": "Kitoko ! Esi tobongisi bisika nionso mpe bakiti etandami malamu na lopango mobimba.\nYo, lokola okodzwa bilili. Okofanda na esika oyo lobi ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Super ! Voilà, nous avons arrangé tous les endroits et les chaises sont bien disposées dans toute la salle. Toi, comme tu auras beaucoup d'affaires, tu vas t'asseoir à cet endroit demain ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1531,
+    "example_sentence": "Nazali koyamba bapaya na biso. Na yango, nalingi kozwa esika ya kofanda sikoyo te.",
+    "lingala_extracted": "Nazali koyamba bapaya na biso. Na yango, nalingi kozwa esika ya kofanda sikoyo te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je suis en train de recevoir nos invités. Donc je ne veux pas m'asseoir pour l'instant.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1532,
+    "example_sentence": "Bopangusa ndako mpe bakiti. Bapaya bakomi kofanda na mesa mpo na kolia.",
+    "lingala_extracted": "Bopangusa ndako mpe bakiti. Bapaya bakomi kofanda na mesa mpo na kolia.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ils ont arrangé la maison et les chaises. Les invités ont commencé à s'asseoir à la table pour manger",
+    "inserted": true
+  },
+  {
+    "correction_id": 1533,
+    "example_sentence": "Má ! Kamata kiti. Fanda awa !",
+    "lingala_extracted": "Má ! Kamata kiti. Fanda awa !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Hé ! Prends une chaise. Assieds-toi ici !",
+    "inserted": true
+  },
+  {
+    "correction_id": 1534,
+    "example_sentence": "- Wapi semeki na ngai ? \n-Azali kofanda na kanapé.",
+    "lingala_extracted": "- Wapi semeki na ngai ? \n-Azali kofanda na kanapé.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Où est mon verre ?\nIl est sur le canapé.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1535,
+    "example_sentence": "Tozokende lingomba na biso kasi y mwana oyo mobulu eleki. Okofanda pembeni na ngai, oyoki ?",
+    "lingala_extracted": "Tozokende lingomba na biso kasi y mwana oyo mobulu eleki. Okofanda pembeni na ngai, oyoki ?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Nous allons chez nous, mais ce gamin est beaucoup trop méchant. Tu vas t'asseoir à côté de moi, tu m'entends ?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1536,
+    "example_sentence": "Olembi, olingi kofanda ? Loba soki olingi kopemisa makolo na yo, ndeko.",
+    "lingala_extracted": "Olembi, olingi kofanda ? Loba soki olingi kopemisa makolo na yo, ndeko.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Olembi, tu veux rester ? Dis si tu veux présenter tes parents, frère",
+    "inserted": true
+  },
+  {
+    "correction_id": 1537,
+    "example_sentence": "Elenge mwasi, kozala ya kotelema te ! Má ! Kiti yango oyo, ya Kofanda.",
+    "lingala_extracted": "Elenge mwasi, kozala ya kotelema te ! Má ! Kiti yango oyo, ya Kofanda.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Eh, femme, ne te laisse pas abattre ! Allez, prends cette chaise pour t'asseoir.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1538,
+    "example_sentence": "Bilia ebeli. Ya kolia na biso na mesa !",
+    "lingala_extracted": "Bilia ebeli. Ya kolia na biso na mesa !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Bilia est prêt. C’est pour manger avec nous à table",
+    "inserted": true
+  },
+  {
+    "correction_id": 1539,
+    "example_sentence": "- Kasi ye wana kuna adzwi nini ? Azokendaka zongo bale ebele mpo na ntina nini ?\n- Nakanisi ete adzwi pulu-pulu mpo aliaki madesu na biso lobi.",
+    "lingala_extracted": "- Kasi ye wana kuna adzwi nini ? Azokendaka zongo bale ebele mpo na ntina nini ?\n- Nakanisi ete adzwi pulu-pulu mpo aliaki madesu na biso lobi.",
+    "status": "translation_error",
+    "french_translation": null,
+    "inserted": false,
+    "error": "GPT returned empty translation"
+  },
+  {
+    "correction_id": 1540,
+    "example_sentence": "Nakolala na mosala na ngai mpo misala ekomi mingi koleka na ebandeli. Ekomi kosenga batangu ebele. Na yango, nakozonga kaka lobi mpe tokolia elongo lokola libota moko kaka lobi.",
+    "lingala_extracted": "Nakolala na mosala na ngai mpo misala ekomi mingi koleka na ebandeli. Ekomi kosenga batangu ebele. Na yango, nakozonga kaka lobi mpe tokolia elongo lokola libota moko kaka lobi.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je vais dormir au travail parce que la charge de travail est devenue bien plus importante qu'au début. Ça va demander beaucoup de temps. Donc je ne reviendrai que demain et nous dînerons ensemble comme une seule famille demain seulement",
+    "inserted": true
+  },
+  {
+    "correction_id": 1541,
+    "example_sentence": "Lelo, nakozala na mosala monene. Nanbanzi ete nakolia na bino te mpo na kozonga na butu.",
+    "lingala_extracted": "Lelo, nakozala na mosala monene. Nanbanzi ete nakolia na bino te mpo na kozonga na butu.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Aujourd'hui, je serai très occupé. Je vous préviens que je ne dînerai pas avec vous car je rentrerai tard ce soir",
+    "inserted": true
+  },
+  {
+    "correction_id": 1542,
+    "example_sentence": "Baninga ya mama ya mosala bazoyaka kotala ye. Esengeli tolamba pondu ebele mpo bakolia na biso na mpokwa ya lelo.",
+    "lingala_extracted": "Baninga ya mama ya mosala bazoyaka kotala ye. Esengeli tolamba pondu ebele mpo bakolia na biso na mpokwa ya lelo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Les collègues de maman viendront lui rendre visite. Il faut qu'on prépare beaucoup de pondu parce qu'ils vont manger chez nous pour la fête d'aujourd'hui",
+    "inserted": true
+  },
+  {
+    "correction_id": 1543,
+    "example_sentence": "Mbeto wana ya monene, tokokotisa yango na kati ya motuka mpo ezokoka malamu na kati.",
+    "lingala_extracted": "Mbeto wana ya monene, tokokotisa yango na kati ya motuka mpo ezokoka malamu na kati.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ce grand matelas, nous allons le mettre dans la voiture pour qu'il rentre bien à l'intérieur.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1544,
+    "example_sentence": "Ekotaki malamu na ndzela mino lobi.",
+    "lingala_extracted": "Ekotaki malamu na ndzela mino lobi.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Tout ira bien en chemin demain",
+    "inserted": true
+  },
+  {
+    "correction_id": 1545,
+    "example_sentence": "Lokola ezali nanu móto, nakanisi ete tosengeli kodzela epema liboso to kotisa yango.\nNabanzi ete ekokota kozanga mikakatano lobi.",
+    "lingala_extracted": "Lokola ezali nanu móto, nakanisi ete tosengeli kodzela epema liboso to kotisa yango.\nNabanzi ete ekokota kozanga mikakatano lobi.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Parce que c'est encore chaud, je pense que nous devrions le laisser reposer d'abord avant de le ranger. J'ai peur que cela cause des problèmes demain",
+    "inserted": true
+  },
+  {
+    "correction_id": 1546,
+    "example_sentence": "- Boni kuna bandeko, ekoti malamu ?\n- Te, esimbi te. Esengeli bodzwa eloko mususu.",
+    "lingala_extracted": "- Boni kuna bandeko, ekoti malamu ?\n- Te, esimbi te. Esengeli bodzwa eloko mususu.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Alors les amis, ça s'est bien passé ?\nNon, ça n'a pas marché. Il faut demander autre chose.",
+    "inserted": true
+  },
+  {
+    "correction_id": 1547,
+    "example_sentence": "- Bomeka nzete wana kuna...\n- Botika kaka, esi tomeki. Ezali kokota te.",
+    "lingala_extracted": "- Bomeka nzete wana kuna...\n- Botika kaka, esi tomeki. Ezali kokota te.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Plantez cet arbre là...\nLaissez-le simplement, il est tombé. Il n'entre pas",
+    "inserted": true
+  },
+  {
+    "correction_id": 1548,
+    "example_sentence": "- Bamoni mbwa ekwei na kati ya libulu monene.\n- Ya solo ?\n- Iyo, nakosa mpo nadwza nini. Bamoni ndenge ekoti malamu na kati ya libulu yango.",
+    "lingala_extracted": "- Bamoni mbwa ekwei na kati ya libulu monene.\n- Ya solo ?\n- Iyo, nakosa mpo nadwza nini. Bamoni ndenge ekoti malamu na kati ya libulu yango.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Vous voyez le chien qui est entré dans le grand enclos\nVraiment\nOui je sais pourquoi Tu vois comment il est bien entré dans cet enclos",
+    "inserted": true
+  },
+  {
+    "correction_id": 1549,
+    "example_sentence": "- Akei mosika te na kati ebale, soki te aligaki azinda.\nBongo ! Asalaki keba",
+    "lingala_extracted": "- Akei mosika te na kati ebale, soki te aligaki azinda.\nBongo ! Asalaki keba",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Il n'y avait pas de place au milieu de la rivière, sinon il se serait noyé. Alors il a fait attention",
+    "inserted": true
+  },
+  {
+    "correction_id": 1550,
+    "example_sentence": "- Junior, nakei wenze. Kokende kosakana mosika te.\nOkosala bozoba te, bongo te ? Lobela nagai.",
+    "lingala_extracted": "- Junior, nakei wenze. Kokende kosakana mosika te.\nOkosala bozoba te, bongo te ? Lobela nagai.",
+    "status": "translation_error",
+    "french_translation": null,
+    "inserted": false,
+    "error": "GPT returned empty translation"
+  },
+  {
+    "correction_id": 1551,
+    "example_sentence": "Kosala bózoba te !",
+    "lingala_extracted": "Kosala bózoba te !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Ne vous trompez pas !",
+    "inserted": true
+  },
+  {
+    "correction_id": 1552,
+    "example_sentence": "kébá ! mbwá ebé ezalí\náwá",
+    "lingala_extracted": "kébá ! mbwá ebé ezalí\náwá",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Attention il y a un chien ici",
+    "inserted": true
+  },
+  {
+    "correction_id": 1553,
+    "example_sentence": "- Oh bana oyo bazali limemia mingi epai ya bakuluntu na bango.\n- Botika ete Nzambé apambola bino !",
+    "lingala_extracted": "- Oh bana oyo bazali limemia mingi epai ya bakuluntu na bango.\n- Botika ete Nzambé apambola bino !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Oh ces enfants respectent beaucoup leurs aînés\nQue Dieu vous bénisse",
+    "inserted": true
+  },
+  {
+    "correction_id": 1554,
+    "example_sentence": "Yeba ete opambolami na Nzambé. Soki bapasi ekomeli yo, bondela mpe akoyoka yo.",
+    "lingala_extracted": "Yeba ete opambolami na Nzambé. Soki bapasi ekomeli yo, bondela mpe akoyoka yo.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Sache que tu es béni par Dieu. Si des épreuves t'atteignent, prie et il les entendra",
+    "inserted": true
+  },
+  {
+    "correction_id": 1555,
+    "example_sentence": "Napesi na liyangani mobimba awa na lingomba na biso. Esepelisaka ngai mingi komona lolenge bolingaka ngai lokola moteyi na bino. Botika ete Nzambé apambola bino !",
+    "lingala_extracted": "Napesi na liyangani mobimba awa na lingomba na biso. Esepelisaka ngai mingi komona lolenge bolingaka ngai lokola moteyi na bino. Botika ete Nzambé apambola bino !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je prends la parole devant toute l'assemblée de notre groupe ici. Cela me fait très plaisir de voir combien vous m'aimez en tant que votre pasteur. Que Dieu vous bénisse !",
+    "inserted": true
+  },
+  {
+    "correction_id": 1556,
+    "example_sentence": "- Misala na biso ekomi kobonga. Bomoni ete Nzambe akomi kosala kati na biso. \n- Nzambe azopambola, bongo te?",
+    "lingala_extracted": "- Misala na biso ekomi kobonga. Bomoni ete Nzambe akomi kosala kati na biso. \n- Nzambe azopambola, bongo te?",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Notre travail commence à s'améliorer. Vous voyez que Dieu a commencé à agir parmi nous.\nDieu va nous bénir, n'est-ce pas?",
+    "inserted": true
+  },
+  {
+    "correction_id": 1557,
+    "example_sentence": "Nzambé azopambola yo té? Ah okosi, ndéko !",
+    "lingala_extracted": "Nzambé azopambola yo té? Ah okosi, ndéko !",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Dieu ne t'abandonnera pas ? Ah tu verras, frère",
+    "inserted": true
+  },
+  {
+    "correction_id": 1558,
+    "example_sentence": "Nabondeli ete Nzambe apampola bino nionso awa.",
+    "lingala_extracted": "Nabondeli ete Nzambe apampola bino nionso awa.",
+    "french_source": "gpt",
+    "status": "inserted",
+    "french_translation": "Je prie que Dieu vous bénisse tous ici",
+    "inserted": true
+  },
+  {
+    "correction_id": 1391,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1392,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1393,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1394,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1395,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1396,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1397,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1399,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1400,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1401,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1402,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1403,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1404,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1405,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1406,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1407,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1408,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1409,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1410,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1411,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1412,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1413,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1414,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1415,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1416,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1417,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1418,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1419,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1420,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1421,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1422,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1423,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1424,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1425,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1426,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1427,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1428,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1429,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1430,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1431,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1432,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1433,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1434,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1435,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1436,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1437,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1438,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1439,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1440,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1441,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1442,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1443,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1444,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1445,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1446,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1447,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  },
+  {
+    "correction_id": 1448,
+    "example_sentence": "",
+    "status": "skipped_bad",
+    "french_translation": null,
+    "inserted": false
+  }
+]
