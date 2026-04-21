@@ -1,47 +1,44 @@
 /**
  * /api/mms-tts.js
- * Calls the facebook/mms HuggingFace Space via Gradio 4.x API for Lingala TTS.
+ * Calls the facebook/mms HuggingFace Space for Lingala TTS.
  *
- * GET  /api/mms-tts           → warm-up ping (fire when live translation view opens)
- * POST /api/mms-tts { text }  → audio binary (wav/flac/mp3 depending on Space output)
+ * GET  /api/mms-tts           → warm-up + returns Space /info (useful for debugging)
+ * POST /api/mms-tts { text }  → audio binary
  *
- * Flow:
- *   1. POST /call/synthesise → { event_id }
- *   2. GET  /call/synthesise/{event_id} → SSE stream → audio path/URL
- *   3. GET  audio file → forward bytes to client
+ * Tries Gradio 4.x named API first (/call/{fn}), then falls back to
+ * Gradio 3.x (/run/predict with fn_index:1) if the named endpoint 404s.
  *
- * On timeout or Space sleeping: returns { error: "space_unavailable" } (HTTP 503)
- * so the client can show "Audio en chargement, réessayez dans quelques secondes".
+ * On timeout or unavailable: { error: "space_unavailable" } (HTTP 503)
+ * ElevenLabs fallback: api/elevenlabs-tts.js (English accent, but reliable)
  *
- * ElevenLabs fallback: see api/elevenlabs-tts.js (English accent, but reliable).
- *
- * Future: replace with a fine-tuned VITS model on professor recordings.
+ * ── Previous approach (HuggingFace Inference API) — NOT supported for MMS ──
+ * const HF_URL = `https://router.huggingface.co/hf-inference/models/facebook/mms-tts-lin`;
+ * → {"error":"Model not supported by provider hf-inference"}
  */
-
-// ── Previous approach (HuggingFace Inference API) — NOT supported for MMS models ──
-// const HF_MODEL = "facebook/mms-tts-lin";
-// const HF_URL   = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
-// → Returns: {"error":"Model not supported by provider hf-inference"}
 
 const SPACE = "https://facebook-mms.hf.space";
 const LANG  = "lin-script_latin"; // Lingala, Latin script
 
-// Vercel Pro: extend timeout to 60s so Space cold-starts don't abort the function.
-// On Hobby plan this is ignored but the warm-up ping reduces cold-start risk.
+// Vercel Pro: extend to 60s for Space cold-starts
 export const maxDuration = 60;
 
 export default async function handler(req, res) {
 
-  // ── Warm-up ping ────────────────────────────────────────────────────────────
-  // Client fires GET /api/mms-tts when live translation view mounts so the
-  // Gradio Space wakes up before the user actually needs audio.
+  // ── Warm-up / debug ping ───────────────────────────────────────────────────
+  // Returns the Space's /info so we can see available functions & parameters.
   if (req.method === "GET") {
     try {
-      const r = await fetch(`${SPACE}/`, {
-        signal: AbortSignal.timeout(8000),
-        headers: { Accept: "text/html" },
+      const [pingRes, infoRes] = await Promise.allSettled([
+        fetch(`${SPACE}/`, { signal: AbortSignal.timeout(8000) }),
+        fetch(`${SPACE}/info`, { signal: AbortSignal.timeout(8000) }),
+      ]);
+      const info = infoRes.status === "fulfilled" && infoRes.value.ok
+        ? await infoRes.value.json().catch(() => null)
+        : null;
+      return res.status(200).json({
+        status: pingRes.status === "fulfilled" && pingRes.value.ok ? "ok" : "loading",
+        space_info: info,
       });
-      return res.status(200).json({ status: r.ok ? "ok" : "loading", code: r.status });
     } catch {
       return res.status(200).json({ status: "warming" });
     }
@@ -53,55 +50,99 @@ export default async function handler(req, res) {
   if (!text?.trim()) return res.status(400).json({ error: "No text provided" });
 
   try {
-    // ── Step 1: Start Gradio prediction ─────────────────────────────────────
-    const startRes = await fetch(`${SPACE}/call/synthesise`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: [text.trim(), LANG] }),
-      signal: AbortSignal.timeout(15000),
-    });
+    // ── Strategy 1: Gradio 4.x named API ──────────────────────────────────────
+    // Tries common TTS function names used in the facebook/mms Space.
+    const fnNames = ["synthesise", "synthesize", "predict", "tts"];
+    let audioBuffer = null;
+    let contentType = "audio/wav";
 
-    if (!startRes.ok) {
-      const err = await startRes.text();
-      console.error("MMS Space start error:", startRes.status, err.slice(0, 300));
+    for (const fn of fnNames) {
+      const startRes = await fetch(`${SPACE}/call/${fn}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: [text.trim(), LANG] }),
+        signal: AbortSignal.timeout(10000),
+      });
+
+      if (startRes.status === 404) continue; // wrong name, try next
+
+      if (!startRes.ok) {
+        const err = await startRes.text();
+        console.error(`MMS /call/${fn} error:`, startRes.status, err.slice(0, 200));
+        break;
+      }
+
+      const { event_id } = await startRes.json().catch(() => ({}));
+      if (!event_id) { console.error(`MMS /call/${fn}: no event_id`); break; }
+
+      console.log(`MMS: using Gradio 4.x fn="${fn}" event_id=${event_id}`);
+
+      const sseRes = await fetch(`${SPACE}/call/${fn}/${event_id}`, {
+        signal: AbortSignal.timeout(45000),
+      });
+      const sseText = await sseRes.text();
+      const audioSrc = parseSSEAudio(sseText);
+
+      if (!audioSrc) {
+        console.error(`MMS: no audio in SSE for fn="${fn}":`, sseText.slice(0, 400));
+        break;
+      }
+
+      if (audioSrc.startsWith("data:")) {
+        // Data URI — decode inline
+        contentType = audioSrc.split(";")[0].slice(5) || "audio/wav";
+        audioBuffer = Buffer.from(audioSrc.split(",")[1], "base64");
+      } else {
+        const audioUrl = audioSrc.startsWith("http") ? audioSrc : `${SPACE}/file=${audioSrc}`;
+        const audioRes = await fetch(audioUrl, { signal: AbortSignal.timeout(10000) });
+        contentType = audioRes.headers.get("content-type") || "audio/wav";
+        audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+      }
+      break; // success
+    }
+
+    // ── Strategy 2: Gradio 3.x /run/predict fallback ──────────────────────────
+    if (!audioBuffer) {
+      console.log("MMS: falling back to Gradio 3.x /run/predict fn_index=1");
+      const predictRes = await fetch(`${SPACE}/run/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fn_index: 1, data: [text.trim(), LANG] }),
+        signal: AbortSignal.timeout(50000),
+      });
+
+      if (predictRes.ok) {
+        const json = await predictRes.json();
+        // Gradio 3.x: data[0] is typically { name, data (base64), is_file }
+        const d = json?.data?.[0];
+        if (d) {
+          if (typeof d === "string" && d.startsWith("data:")) {
+            contentType = d.split(";")[0].slice(5) || "audio/wav";
+            audioBuffer = Buffer.from(d.split(",")[1], "base64");
+          } else if (d?.data) {
+            // base64 in .data field
+            contentType = d.name?.endsWith(".mp3") ? "audio/mpeg" : "audio/wav";
+            audioBuffer = Buffer.from(d.data.split(",").pop(), "base64");
+          } else if (d?.name) {
+            const audioRes = await fetch(`${SPACE}/file=${d.name}`, { signal: AbortSignal.timeout(10000) });
+            contentType = audioRes.headers.get("content-type") || "audio/wav";
+            audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+          }
+        }
+        if (!audioBuffer) {
+          console.error("MMS /run/predict: unexpected response:", JSON.stringify(json).slice(0, 400));
+        }
+      } else {
+        const err = await predictRes.text();
+        console.error("MMS /run/predict error:", predictRes.status, err.slice(0, 200));
+      }
+    }
+
+    if (!audioBuffer) {
       return res.status(503).json({ error: "space_unavailable" });
     }
 
-    const { event_id } = await startRes.json();
-    if (!event_id) {
-      console.error("MMS Space: no event_id in response");
-      return res.status(503).json({ error: "space_unavailable" });
-    }
-
-    // ── Step 2: Poll SSE stream until process_completed ──────────────────────
-    const sseRes = await fetch(`${SPACE}/call/synthesise/${event_id}`, {
-      signal: AbortSignal.timeout(45000),
-    });
-
-    const sseText = await sseRes.text();
-    const audioSrc = parseSSEAudio(sseText);
-
-    if (!audioSrc) {
-      console.error("MMS Space: no audio extracted. SSE snippet:", sseText.slice(0, 500));
-      return res.status(503).json({ error: "space_unavailable" });
-    }
-
-    // ── Step 3: Fetch the audio file and forward to client ───────────────────
-    // Gradio returns either an absolute URL or a relative /file= path.
-    const audioUrl = audioSrc.startsWith("http")
-      ? audioSrc
-      : `${SPACE}/file=${audioSrc}`;
-
-    const audioRes = await fetch(audioUrl, { signal: AbortSignal.timeout(10000) });
-    if (!audioRes.ok) {
-      console.error("MMS Space: audio fetch failed", audioRes.status);
-      return res.status(503).json({ error: "space_unavailable" });
-    }
-
-    const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
-    const ct = audioRes.headers.get("content-type") || "audio/wav";
-
-    res.setHeader("Content-Type", ct);
+    res.setHeader("Content-Type", contentType);
     res.setHeader("Cache-Control", "public, max-age=86400");
     return res.send(audioBuffer);
 
@@ -115,11 +156,7 @@ export default async function handler(req, res) {
   }
 }
 
-/**
- * Parse a Gradio 4.x SSE stream text for the audio output.
- * Looks for the `process_completed` event and extracts data[0] (the audio).
- * Returns a string (URL, data URI, or relative path) or null if not found.
- */
+/** Extract audio src from Gradio 4.x SSE stream. */
 function parseSSEAudio(sseText) {
   const lines = sseText.split("\n");
   for (let i = 0; i < lines.length; i++) {
@@ -129,14 +166,13 @@ function parseSSEAudio(sseText) {
       if (!line.startsWith("data: ")) continue;
       try {
         const payload = JSON.parse(line.slice(6));
-        // Gradio 4.x: output.data[] or data[] (older shape)
         const d = payload.output?.data ?? payload.data;
         if (!Array.isArray(d) || !d[0]) return null;
         const a = d[0];
-        if (typeof a === "string") return a;  // data URI or path
+        if (typeof a === "string") return a;
         if (a?.url)  return a.url;
         if (a?.path) return a.path;
-        if (a?.name) return a.name;           // prefixed with /file= below
+        if (a?.name) return a.name;
       } catch { /* keep scanning */ }
     }
   }
