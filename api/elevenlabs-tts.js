@@ -13,7 +13,7 @@
  */
 
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM"; // Rachel
-const MODEL_ID = "eleven_v3";
+const MODEL_ID = "eleven_multilingual_v2"; // eleven_v3 not yet GA; v2 supports all languages
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const err = await response.text();
       console.error("ElevenLabs TTS error:", response.status, err);
-      return res.status(response.status).json({ error: `ElevenLabs TTS: ${response.status}` });
+      return res.status(500).json({ error: `ElevenLabs TTS ${response.status}: ${err.slice(0, 200)}` });
     }
 
     const audioBuffer = await response.arrayBuffer();
