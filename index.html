@@ -797,14 +797,30 @@
         setPlayingId(seg.id);
         if (seg.fromLingala) {
           // Target is French → Web Speech API
-          window.speechSynthesis.cancel(); // clear any stuck queue (common on mobile)
-          const u = new SpeechSynthesisUtterance(seg.translation);
-          u.lang = "fr-FR";
-          u.rate = 0.95;
-          u.onend = () => setPlayingId(null);
-          u.onerror = () => setPlayingId(null);
-          // Small delay needed on iOS for cancel() to take effect
-          setTimeout(() => window.speechSynthesis.speak(u), 50);
+          const synth = window.speechSynthesis;
+          if (!synth) { setPlayingId(null); return; }
+
+          const doSpeak = () => {
+            const u = new SpeechSynthesisUtterance(seg.translation);
+            u.lang = "fr-FR";
+            u.rate = 0.95;
+            // Pick a French voice if available (avoids "canceled" on first load in Chrome)
+            const voices = synth.getVoices();
+            const frVoice = voices.find(v => v.lang.startsWith("fr"));
+            if (frVoice) u.voice = frVoice;
+            u.onend = () => setPlayingId(null);
+            // Ignore "canceled" — fired when cancel() clears a stuck queue, not a real error
+            u.onerror = (e) => { if (e.error !== "canceled") setPlayingId(null); };
+            synth.speak(u);
+          };
+
+          synth.cancel(); // clear any stuck queue
+          // Voices may not be loaded yet (Chrome loads them async)
+          if (synth.getVoices().length === 0) {
+            synth.onvoiceschanged = () => { synth.onvoiceschanged = null; doSpeak(); };
+          } else {
+            setTimeout(doSpeak, 50); // small gap for cancel() to settle
+          }
           return;
         }
         // TODO: ElevenLabs Lingala TTS has English accent bias.
