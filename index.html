@@ -20,6 +20,8 @@
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
     @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.5),0 4px 20px rgba(22,163,74,0.4)}50%{box-shadow:0 0 0 18px rgba(22,163,74,0),0 4px 20px rgba(22,163,74,0.4)}}
+    @keyframes dots{0%,100%{opacity:0.2}50%{opacity:1}}
   </style>
 </head>
 <body>
@@ -95,6 +97,7 @@
     };
 
     const MapIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>);
+    const HeadphonesIcon = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>);
 
     // Leaflet Map Component
     const LeafletMap = ({ selectedMapLang, onSelectLang }) => {
@@ -575,6 +578,378 @@
       </button>
     );
 
+    // ── Live Translation View ─────────────────────────────────────────────────
+    function LiveTranslationView({ langName, langId, onBack }) {
+      const [direction, setDirection] = useState("fr_to_lingala");
+      const [isListening, setIsListening] = useState(false);
+      const [segments, setSegments] = useState([]);
+      const [liveText, setLiveText] = useState("");
+      const [translating, setTranslating] = useState(false);
+      const [error, setError] = useState("");
+      const [playingId, setPlayingId] = useState(null);
+
+      const isListeningRef = useRef(false);
+      const directionRef = useRef("fr_to_lingala");
+      const recognitionRef = useRef(null);
+      const mediaRecorderRef = useRef(null);
+      const audioChunksRef = useRef([]);
+      const chunkTimerRef = useRef(null);
+      const audioCacheRef = useRef({});
+      const sourceEndRef = useRef(null);
+      const transEndRef = useRef(null);
+
+      // Keep refs in sync with state (needed inside async callbacks)
+      useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
+      useEffect(() => { directionRef.current = direction; }, [direction]);
+
+      // Auto-scroll both panels when new content arrives
+      useEffect(() => { sourceEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText]);
+      useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, translating]);
+
+      // Cleanup on unmount
+      useEffect(() => () => stopAll(), []);
+
+      const stopAll = () => {
+        clearTimeout(chunkTimerRef.current);
+        if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch(e) {} recognitionRef.current = null; }
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+          try { mediaRecorderRef.current.stop(); } catch(e) {}
+        }
+      };
+
+      const toggleListening = async () => {
+        if (isListening) {
+          stopAll();
+          setIsListening(false);
+          setLiveText("");
+        } else {
+          setError("");
+          if (direction === "lingala_to_fr") await startLingalaSTT();
+          else startFrenchSTT();
+        }
+      };
+
+      // ── French STT via Web Speech API ─────────────────────────────────────
+      const startFrenchSTT = () => {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) {
+          setError("La reconnaissance vocale n'est pas supportée dans ce navigateur. Utilisez Chrome ou Safari.");
+          return;
+        }
+        const recognition = new SR();
+        recognition.lang = "fr-FR";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        let finalBuffer = "";
+
+        recognition.onresult = (e) => {
+          let interim = "";
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            const r = e.results[i];
+            if (r.isFinal) finalBuffer += r[0].transcript + " ";
+            else interim += r[0].transcript;
+          }
+          setLiveText(finalBuffer + interim);
+          // Translate on sentence boundary
+          if (finalBuffer.trim().match(/[.!?](\s*)$/)) {
+            const toTranslate = finalBuffer.trim();
+            finalBuffer = "";
+            setLiveText("");
+            handleTranslate(toTranslate, directionRef.current);
+          }
+        };
+
+        recognition.onerror = (e) => {
+          if (e.error === "not-allowed") {
+            setError("Accès au microphone refusé. Autorisez le microphone dans les paramètres de votre navigateur.");
+            setIsListening(false); isListeningRef.current = false;
+          }
+          // "no-speech" is normal — ignore
+        };
+
+        recognition.onend = () => {
+          // Flush remaining text as a sentence
+          if (finalBuffer.trim()) { handleTranslate(finalBuffer.trim(), directionRef.current); finalBuffer = ""; }
+          // Chrome sometimes stops mid-session — restart if still active
+          if (isListeningRef.current) { try { recognition.start(); } catch(e) {} }
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+        setIsListening(true);
+        isListeningRef.current = true;
+      };
+
+      // ── Lingala STT via ElevenLabs Scribe (chunked) ───────────────────────
+      const blobToBase64 = (blob) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const sendChunk = async () => {
+        if (!audioChunksRef.current.length) return;
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        audioChunksRef.current = [];
+        if (blob.size < 2000) { restartChunk(); return; } // skip silence
+
+        try {
+          const base64 = await blobToBase64(blob);
+          const res = await fetch("/api/elevenlabs-stt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ audio: base64, mimeType: "audio/webm" }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const transcript = (data.text || "").trim();
+            if (transcript) {
+              setLiveText(transcript);
+              await handleTranslate(transcript, directionRef.current);
+              setLiveText("");
+            }
+          }
+        } catch(e) { console.error("Lingala STT error:", e); }
+        restartChunk();
+      };
+
+      const restartChunk = () => {
+        if (!isListeningRef.current || !mediaRecorderRef.current) return;
+        try {
+          if (mediaRecorderRef.current.state === "inactive") mediaRecorderRef.current.start();
+          chunkTimerRef.current = setTimeout(() => {
+            if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+          }, 6000);
+        } catch(e) {}
+      };
+
+      const startLingalaSTT = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+          const recorder = new MediaRecorder(stream, { mimeType });
+          recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+          recorder.onstop = sendChunk;
+          mediaRecorderRef.current = recorder;
+          recorder.start();
+          setIsListening(true);
+          isListeningRef.current = true;
+          chunkTimerRef.current = setTimeout(() => {
+            if (recorder.state === "recording") recorder.stop();
+          }, 6000);
+        } catch(e) {
+          setError(e.name === "NotAllowedError"
+            ? "Accès au microphone refusé. Autorisez le microphone dans les paramètres."
+            : `Erreur microphone: ${e.message}`);
+        }
+      };
+
+      // ── RAG translation pipeline ──────────────────────────────────────────
+      const handleTranslate = async (sourceText, currentDirection) => {
+        if (!sourceText.trim()) return;
+        setTranslating(true);
+        const fromLingala = currentDirection === "lingala_to_fr";
+        const sysPrompt = fromLingala
+          ? "L'utilisateur parle en lingala dans une conversation en direct. Donne uniquement la traduction française, courte et naturelle. Pas d'explication."
+          : "L'utilisateur parle en français dans une conversation en direct. Donne uniquement la traduction en lingala, courte et naturelle. Pas d'explication.";
+
+        try {
+          const [ragRes, lessonRes] = await Promise.allSettled([
+            fetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
+            fetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
+          ]);
+          const ctx = [ragRes.value?.context, lessonRes.value?.context].filter(Boolean).join("\n\n");
+          const fullPrompt = sysPrompt + (ctx ? `\n\n=== CORPUS ===\n${ctx}\n=== FIN CORPUS ===` : "");
+
+          const chatRes = await fetch("/api/chat", {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ systemPrompt: fullPrompt, messages:[{ role:"user", content:sourceText }] }),
+          });
+          const data = await chatRes.json();
+          const translation = (data.content || "").trim();
+          if (translation) {
+            setSegments(prev => [...prev, { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala }]);
+          }
+        } catch(e) { console.error("Translation error:", e); }
+        setTranslating(false);
+      };
+
+      // ── Audio playback ────────────────────────────────────────────────────
+      const playAudio = async (seg) => {
+        setPlayingId(seg.id);
+        if (seg.fromLingala) {
+          // Target is French → Web Speech API
+          const u = new SpeechSynthesisUtterance(seg.translation);
+          u.lang = "fr-FR";
+          u.onend = () => setPlayingId(null);
+          window.speechSynthesis.speak(u);
+          return;
+        }
+        // Target is Lingala → ElevenLabs TTS
+        if (audioCacheRef.current[seg.translation]) {
+          const audio = new Audio(audioCacheRef.current[seg.translation]);
+          audio.onended = () => setPlayingId(null);
+          audio.play();
+          return;
+        }
+        try {
+          const res = await fetch("/api/elevenlabs-tts", {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ text: seg.translation }),
+          });
+          if (!res.ok) throw new Error(`TTS ${res.status}`);
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          audioCacheRef.current[seg.translation] = url;
+          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioUrl:url } : s));
+          const audio = new Audio(url);
+          audio.onended = () => setPlayingId(null);
+          audio.play();
+        } catch(e) {
+          console.error("TTS error:", e);
+          setPlayingId(null);
+        }
+      };
+
+      const swapDirection = () => {
+        if (isListening) { stopAll(); setIsListening(false); isListeningRef.current = false; setLiveText(""); }
+        setDirection(prev => prev === "fr_to_lingala" ? "lingala_to_fr" : "fr_to_lingala");
+        setSegments([]);
+        setError("");
+      };
+
+      const isFromLingala = direction === "lingala_to_fr";
+      const sourceLang = isFromLingala ? langName : "Français";
+      const targetLang = isFromLingala ? "Français" : langName;
+
+      return (
+        <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", paddingTop:16 }}>
+
+          {/* Header */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12, flexShrink:0 }}>
+            <button onClick={() => { stopAll(); onBack(); }} style={{
+              display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
+              color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0",
+              fontFamily:"'DM Sans', sans-serif",
+            }}><ArrowLeft /> Accueil</button>
+
+            <div style={{ textAlign:"center" }}>
+              <div style={{ fontSize:13, fontWeight:700, color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}>Traduction en direct</div>
+            </div>
+
+            <button onClick={swapDirection} title="Inverser la direction" style={{
+              display:"flex", alignItems:"center", gap:6, background:"white",
+              border:"1px solid #E8E0D4", borderRadius:20, padding:"7px 12px",
+              fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
+              color:"#2D2118", boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
+            }}>
+              <span style={{ color: isFromLingala ? "#2C5F2D" : "#0EA5E9", fontSize:11 }}>{isFromLingala ? langName.slice(0,3) : "FR"}</span>
+              <span style={{ fontSize:14 }}>⇄</span>
+              <span style={{ color: isFromLingala ? "#0EA5E9" : "#2C5F2D", fontSize:11 }}>{isFromLingala ? "FR" : langName.slice(0,3)}</span>
+            </button>
+          </div>
+
+          {/* Error banner */}
+          {error && (
+            <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:8, fontSize:13, color:"#DC2626", flexShrink:0 }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* Source transcript panel */}
+          <div style={{ flex:1, minHeight:0, background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"14px 16px", overflowY:"auto", marginBottom:10 }}>
+            <div style={{ fontSize:10, fontWeight:700, color:"#9B8A6E", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10, fontFamily:"'DM Mono', monospace" }}>
+              {sourceLang} — ce qui est dit
+            </div>
+            {segments.length === 0 && !liveText && (
+              <p style={{ color:"#C4B8A4", fontSize:14, textAlign:"center", marginTop:24, fontStyle:"italic" }}>
+                {isListening ? `Parlez en ${sourceLang}…` : `Appuyez sur le micro pour commencer`}
+              </p>
+            )}
+            {segments.map(s => (
+              <p key={s.id} style={{ fontSize:15, color:"#2D2118", lineHeight:1.7, margin:"0 0 10px", fontFamily:"'Source Serif 4', serif" }}>{s.source}</p>
+            ))}
+            {liveText && (
+              <p style={{ fontSize:15, color:"#9B8A6E", lineHeight:1.7, margin:0, fontStyle:"italic" }}>{liveText}</p>
+            )}
+            <div ref={sourceEndRef} />
+          </div>
+
+          {/* Mic button bar */}
+          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:6, padding:"10px 0" }}>
+            <button onClick={toggleListening} style={{
+              width:68, height:68, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:26,
+              background: isListening
+                ? "linear-gradient(135deg, #16A34A, #15803D)"
+                : "linear-gradient(135deg, #E8E0D4, #D4C8B4)",
+              color: isListening ? "white" : "#8B6D47",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              animation: isListening ? "pulse 1.5s ease-in-out infinite" : "none",
+              transition:"background 0.2s, box-shadow 0.2s",
+              boxShadow: isListening ? "none" : "0 4px 12px rgba(0,0,0,0.12)",
+            }}>
+              🎤
+            </button>
+            <div style={{ fontSize:12, fontWeight:600, fontFamily:"'DM Sans', sans-serif",
+              color: translating ? "#0EA5E9" : isListening ? "#16A34A" : "#9B8A6E" }}>
+              {translating ? "Traduction…" : isListening ? "En écoute…" : "Appuyer pour parler"}
+            </div>
+            {isListening && !translating && (
+              <div style={{ display:"flex", gap:4 }}>
+                {[0,1,2].map(i => (
+                  <span key={i} style={{
+                    display:"inline-block", width:6, height:6, borderRadius:"50%",
+                    background:"#16A34A", animation:`dots 1.2s ease-in-out ${i*0.2}s infinite`,
+                  }} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Translation panel */}
+          <div style={{ flex:1, minHeight:0, background:"linear-gradient(135deg, #F0F9FF, #E0F2FE)", border:"1px solid #BAE6FD", borderRadius:14, padding:"14px 16px", overflowY:"auto" }}>
+            <div style={{ fontSize:10, fontWeight:700, color:"#0369A1", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10, fontFamily:"'DM Mono', monospace" }}>
+              {targetLang} — traduction
+            </div>
+            {segments.length === 0 && !translating && (
+              <p style={{ color:"#7DD3FC", fontSize:14, textAlign:"center", marginTop:24, fontStyle:"italic" }}>
+                La traduction apparaîtra ici
+              </p>
+            )}
+            {translating && (
+              <p style={{ fontSize:15, color:"#0EA5E9", fontStyle:"italic", margin:"0 0 8px" }}>…</p>
+            )}
+            {segments.map(s => (
+              <div key={s.id} style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:14 }}>
+                <p style={{ flex:1, fontSize:15, color:"#0C4A6E", lineHeight:1.7, margin:0, fontFamily:"'Source Serif 4', serif", fontWeight:600 }}>
+                  {s.translation}
+                </p>
+                <button
+                  onClick={() => playAudio(s)}
+                  title="Écouter"
+                  style={{
+                    background: playingId === s.id ? "#0EA5E9" : "white",
+                    border:"1px solid #BAE6FD", borderRadius:8,
+                    padding:"5px 10px", fontSize:13, cursor:"pointer", flexShrink:0,
+                    color: playingId === s.id ? "white" : "#0EA5E9",
+                    transition:"all 0.15s",
+                  }}>
+                  {playingId === s.id ? "▶▶" : "▶"}
+                </button>
+              </div>
+            ))}
+            <div ref={transEndRef} />
+          </div>
+
+          {/* Accuracy note */}
+          <p style={{ fontSize:10, color:"#C4B8A4", textAlign:"center", margin:"6px 0 0", fontFamily:"'DM Mono', monospace", flexShrink:0 }}>
+            {isFromLingala ? `STT Lingala par ElevenLabs Scribe · précision modérée` : `STT Français natif · TTS Lingala par ElevenLabs`}
+          </p>
+        </div>
+      );
+    }
+
     function App() {
       // Language selection
       const [languages, setLanguages] = useState([]);
@@ -825,6 +1200,7 @@
           }
           // Success — navigate to intended destination
           if (authReturnTo === "chat") { setView("chat"); }
+          else if (authReturnTo === "live") { setView("live"); }
           else if (authReturnTo === "courses") {
             setView("courses");
             if (langId) {
@@ -1450,10 +1826,12 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                     { icon:<BookIcon/>, title:"Parcourir A — Z", sub:"Explorer le dictionnaire par lettre", grad:theme.gradient, v:"browse" },
                     { icon:<GradIcon/>, title:"Apprendre", sub:"Cours de grammaire, phrases utiles, vocabulaire", grad:"linear-gradient(135deg, #6B21A8, #9333EA)", v:"courses" },
                     { icon:<ChatIcon/>, title:"Parler avec Monoko", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
+                    { icon:<HeadphonesIcon/>, title:"Traduction en direct", sub:"Traduction vocale en temps réel", grad:"linear-gradient(135deg, #0F766E, #14B8A6)", v:"live" },
                   ].map((c,i) => (
                     <button key={i} onClick={async () => {
                       if (c.v === "chat") { openChat(); return; }
                       if (c.v === "courses" && !currentUser) { requireAuth("courses"); return; }
+                      if (c.v === "live" && !currentUser) { requireAuth("live"); return; }
                       setView(c.v);
                       if (c.v === "courses" && langId) {
                         setLoading(true);
@@ -2069,6 +2447,15 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
               </div>
             )}
 
+            {/* LIVE TRANSLATION */}
+            {view === "live" && selectedLang && (
+              <LiveTranslationView
+                langName={langName}
+                langId={langId}
+                onBack={() => setView("home")}
+              />
+            )}
+
             {/* AUTH */}
             {view === "auth" && (
               <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
@@ -2087,7 +2474,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                     </h2>
                     {authReturnTo && (
                       <p style={{ fontSize:13, color:"#9B8A6E", margin:0 }}>
-                        Un compte est requis pour accéder aux {authReturnTo === "chat" ? "conversations" : "cours"}.
+                        Un compte est requis pour accéder aux {authReturnTo === "chat" ? "conversations" : authReturnTo === "live" ? "traductions en direct" : "cours"}.
                       </p>
                     )}
                   </div>
