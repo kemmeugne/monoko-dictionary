@@ -13,7 +13,7 @@
  */
 
 const HF_MODEL = "facebook/mms-tts-lin";
-const HF_URL   = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+const HF_URL   = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
 const MAX_WAIT  = 30; // seconds to wait for model warm-up
 
 export default async function handler(req, res) {
