@@ -1,5 +1,4 @@
-espnet
+git+https://github.com/espnet/espnet.git
 huggingface_hub
 numpy
-gradio>=4.0.0
 soundfile
