@@ -797,10 +797,14 @@
         setPlayingId(seg.id);
         if (seg.fromLingala) {
           // Target is French → Web Speech API
+          window.speechSynthesis.cancel(); // clear any stuck queue (common on mobile)
           const u = new SpeechSynthesisUtterance(seg.translation);
           u.lang = "fr-FR";
+          u.rate = 0.95;
           u.onend = () => setPlayingId(null);
-          window.speechSynthesis.speak(u);
+          u.onerror = () => setPlayingId(null);
+          // Small delay needed on iOS for cancel() to take effect
+          setTimeout(() => window.speechSynthesis.speak(u), 50);
           return;
         }
         // Target is Lingala → ElevenLabs TTS
