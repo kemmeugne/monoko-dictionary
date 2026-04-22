@@ -741,19 +741,26 @@
           }
         };
 
+        let fatalError = false;
         recognition.onerror = (e) => {
-          if (e.error === "not-allowed") {
+          if (e.error === "not-allowed" || e.error === "audio-capture") {
+            fatalError = true;
             setError("Accès au microphone refusé. Autorisez le microphone dans les paramètres de votre navigateur.");
             setIsListening(false); isListeningRef.current = false;
           }
-          // "no-speech" is normal — ignore
+          // "no-speech" and "network" are transient — onend will handle restart
         };
 
         recognition.onend = () => {
           // Flush remaining text as a sentence
           if (finalBuffer.trim()) { handleTranslate(finalBuffer.trim(), directionRef.current); finalBuffer = ""; }
-          // Chrome sometimes stops mid-session — restart if still active
-          if (isListeningRef.current) { try { recognition.start(); } catch(e) {} }
+          // Chrome stops mid-session on silence — restart after a short delay so the
+          // browser has time to fully close the previous session (avoids InvalidStateError)
+          if (isListeningRef.current && !fatalError) {
+            setTimeout(() => {
+              if (isListeningRef.current) { try { recognition.start(); } catch(e) {} }
+            }, 250);
+          }
         };
 
         recognitionRef.current = recognition;
