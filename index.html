@@ -585,7 +585,8 @@
 
     async function lingalaTTS(text) {
       // Step 1: start Gradio prediction
-      const startRes = await fetch(`${LINGALA_TTS_SPACE}/call/synthesise`, {
+      // Gradio 6.x uses /gradio_api/ prefix (was /call/ in 4.x)
+      const startRes = await fetch(`${LINGALA_TTS_SPACE}/gradio_api/call/synthesise`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data: [text] }),
@@ -600,7 +601,7 @@
 
       // Step 2: stream SSE — do NOT use .text() (connection stays open in Gradio 6.x)
       // Read chunks until process_completed arrives, then cancel the stream.
-      const sseRes = await fetch(`${LINGALA_TTS_SPACE}/call/synthesise/${event_id}`);
+      const sseRes = await fetch(`${LINGALA_TTS_SPACE}/gradio_api/call/synthesise/${event_id}`);
       if (!sseRes.ok) throw new Error(`SSE ${sseRes.status}`);
 
       const reader = sseRes.body.getReader();
