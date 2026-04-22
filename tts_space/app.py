@@ -8,8 +8,10 @@ API endpoint (Gradio 4.x):
 """
 
 import os
+import tempfile
 import numpy as np
 import torch
+import soundfile as sf
 import gradio as gr
 from huggingface_hub import hf_hub_download
 
@@ -45,14 +47,17 @@ print(f"Model ready — sample rate {SAMPLE_RATE} Hz")
 
 
 def synthesise(text: str):
-    """Generate Lingala speech. Returns (sample_rate, waveform) for gr.Audio."""
+    """Generate Lingala speech. Returns a WAV filepath (Gradio 6.x compatible)."""
     if not text or not text.strip():
         return None
     with torch.no_grad():
         output = text2speech(text.strip())
-    wav = output["wav"]                          # torch.Tensor, shape (samples,)
-    audio = wav.numpy().astype(np.float32)
-    return (SAMPLE_RATE, audio)
+    wav = output["wav"].numpy().astype(np.float32)
+
+    # Write to a temp file — returning filepath is more reliable than numpy in Gradio 6.x
+    tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+    sf.write(tmp.name, wav, SAMPLE_RATE)
+    return tmp.name
 
 
 demo = gr.Interface(
@@ -62,14 +67,13 @@ demo = gr.Interface(
         placeholder="Mbote na yo …",
         lines=2,
     ),
-    outputs=gr.Audio(label="Audio Lingala", type="numpy"),
+    outputs=gr.Audio(label="Audio Lingala"),  # no type= needed for filepath output
     title="Monoko — Lingala TTS",
     description=(
         "Synthèse vocale Lingala · DigitalUmuganda/lingala_vits_tts\n"
         "Modèle VITS entraîné sur 71.6h de parole Lingala authentique."
     ),
-    api_name="synthesise",  # → /call/synthesise in Gradio API
-    # allow_flagging removed — not supported in Gradio 6.x
+    api_name="synthesise",
 )
 
 if __name__ == "__main__":
