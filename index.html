@@ -871,8 +871,6 @@
           if (translation) {
             const newSeg = { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala };
             setSegments(prev => [...prev, newSeg]);
-            // Auto-play translation immediately
-            playAudio(newSeg);
           }
         } catch(e) { console.error("Translation error:", e); }
         setTranslating(false);
