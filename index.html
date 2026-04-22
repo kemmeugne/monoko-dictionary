@@ -578,6 +578,46 @@
       </button>
     );
 
+    // ── Lingala TTS — calls Space directly from browser (no Vercel proxy) ───────
+    // Proxy times out on free Vercel plan (10s); ESPnet2 CPU inference takes 20-40s.
+    // Space is public — no API key to protect.
+    const LINGALA_TTS_SPACE = "https://kemz42-monoko-lingala-tts.hf.space";
+
+    async function lingalaTTS(text) {
+      // Step 1: start Gradio prediction
+      const startRes = await fetch(`${LINGALA_TTS_SPACE}/call/synthesise`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: [text] }),
+      });
+      if (!startRes.ok) throw new Error("space_unavailable");
+      const { event_id } = await startRes.json();
+      if (!event_id) throw new Error("space_unavailable");
+
+      // Step 2: read SSE stream until process_completed
+      const sseRes = await fetch(`${LINGALA_TTS_SPACE}/call/synthesise/${event_id}`);
+      const sseText = await sseRes.text();
+
+      // Step 3: extract audio URL from SSE payload
+      const lines = sseText.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes("process_completed")) continue;
+        for (let j = i + 1; j < lines.length; j++) {
+          if (!lines[j].startsWith("data: ")) continue;
+          try {
+            const payload = JSON.parse(lines[j].slice(6));
+            const d = payload.output?.data ?? payload.data;
+            if (!Array.isArray(d) || !d[0]) break;
+            const a = d[0];
+            const src = (typeof a === "string") ? a : (a?.url || a?.path || a?.name);
+            if (!src) break;
+            return src.startsWith("http") ? src : `${LINGALA_TTS_SPACE}/file=${src}`;
+          } catch { break; }
+        }
+      }
+      throw new Error("space_unavailable");
+    }
+
     // ── Live Translation View ─────────────────────────────────────────────────
     function LiveTranslationView({ langName, langId, onBack }) {
       const [direction, setDirection] = useState("fr_to_lingala");
@@ -827,8 +867,9 @@
           return;
         }
         // TODO: Fine-tune VITS on native Lingala recordings (Borgeas studio sessions)
-        // Current: DigitalUmuganda/lingala_vits_tts (71.6h Lingala, ESPnet2 VITS)
-        // Fallback: ElevenLabs eleven_multilingual_v2 (English accent bias)
+        // Current: DigitalUmuganda/lingala_vits_tts via Kemz42/monoko-lingala-tts Space
+        // Called directly from browser (bypasses Vercel 10s timeout — inference takes 20-40s)
+        // Fallback: /api/elevenlabs-tts (English accent bias, but reliable)
         if (audioCacheRef.current[seg.translation]) {
           const audio = new Audio(audioCacheRef.current[seg.translation]);
           audio.onended = () => setPlayingId(null);
@@ -836,30 +877,29 @@
           return;
         }
         try {
-          // ── ElevenLabs fallback (English accent, but reliable) ────────────
-          // const res = await fetch("/api/elevenlabs-tts", {
-          //   method:"POST", headers:{"Content-Type":"application/json"},
-          //   body: JSON.stringify({ text: seg.translation }),
-          // });
-          // ─────────────────────────────────────────────────────────────────
-          const res = await fetch("/api/mms-tts", {
-            method:"POST", headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ text: seg.translation }),
-          });
-          if (!res.ok) {
-            const e = await res.json().catch(() => ({}));
-            throw new Error(e.error || `TTS ${res.status}`);
-          }
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          audioCacheRef.current[seg.translation] = url;
-          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioUrl:url, audioFailed:false } : s));
-          const audio = new Audio(url);
+          const audioUrl = await lingalaTTS(seg.translation);
+          audioCacheRef.current[seg.translation] = audioUrl;
+          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioFailed:false } : s));
+          const audio = new Audio(audioUrl);
           audio.onended = () => setPlayingId(null);
           audio.play();
         } catch(e) {
           console.error("TTS error:", e);
-          // Text is always visible — mark audio as unavailable, don't block the UI
+          // ── ElevenLabs fallback (English accent, but reliable) ────────────
+          // try {
+          //   const res = await fetch("/api/elevenlabs-tts", {
+          //     method:"POST", headers:{"Content-Type":"application/json"},
+          //     body: JSON.stringify({ text: seg.translation }),
+          //   });
+          //   if (!res.ok) throw new Error(`ElevenLabs ${res.status}`);
+          //   const blob = await res.blob();
+          //   const url = URL.createObjectURL(blob);
+          //   audioCacheRef.current[seg.translation] = url;
+          //   const audio = new Audio(url);
+          //   audio.onended = () => setPlayingId(null);
+          //   audio.play(); return;
+          // } catch(e2) { console.error("ElevenLabs fallback failed:", e2); }
+          // ─────────────────────────────────────────────────────────────────
           setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioFailed:true } : s));
           setPlayingId(null);
         }
