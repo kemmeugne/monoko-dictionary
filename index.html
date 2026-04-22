@@ -590,32 +590,56 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data: [text] }),
       });
-      if (!startRes.ok) throw new Error("space_unavailable");
-      const { event_id } = await startRes.json();
-      if (!event_id) throw new Error("space_unavailable");
-
-      // Step 2: read SSE stream until process_completed
-      const sseRes = await fetch(`${LINGALA_TTS_SPACE}/call/synthesise/${event_id}`);
-      const sseText = await sseRes.text();
-
-      // Step 3: extract audio URL from SSE payload
-      const lines = sseText.split("\n");
-      for (let i = 0; i < lines.length; i++) {
-        if (!lines[i].includes("process_completed")) continue;
-        for (let j = i + 1; j < lines.length; j++) {
-          if (!lines[j].startsWith("data: ")) continue;
-          try {
-            const payload = JSON.parse(lines[j].slice(6));
-            const d = payload.output?.data ?? payload.data;
-            if (!Array.isArray(d) || !d[0]) break;
-            const a = d[0];
-            const src = (typeof a === "string") ? a : (a?.url || a?.path || a?.name);
-            if (!src) break;
-            return src.startsWith("http") ? src : `${LINGALA_TTS_SPACE}/file=${src}`;
-          } catch { break; }
-        }
+      if (!startRes.ok) {
+        const errText = await startRes.text().catch(() => "");
+        throw new Error(`Space ${startRes.status}: ${errText.slice(0,100)}`);
       }
-      throw new Error("space_unavailable");
+      const startJson = await startRes.json();
+      const event_id = startJson.event_id;
+      if (!event_id) throw new Error(`No event_id. Got: ${JSON.stringify(startJson).slice(0,100)}`);
+
+      // Step 2: stream SSE — do NOT use .text() (connection stays open in Gradio 6.x)
+      // Read chunks until process_completed arrives, then cancel the stream.
+      const sseRes = await fetch(`${LINGALA_TTS_SPACE}/call/synthesise/${event_id}`);
+      if (!sseRes.ok) throw new Error(`SSE ${sseRes.status}`);
+
+      const reader = sseRes.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let audioUrl = null;
+
+      try {
+        outer: while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          if (!buffer.includes("process_completed")) continue;
+
+          const lines = buffer.split("\n");
+          for (let i = 0; i < lines.length; i++) {
+            if (!lines[i].includes("process_completed")) continue;
+            for (let j = i + 1; j < lines.length; j++) {
+              if (!lines[j].startsWith("data: ")) continue;
+              try {
+                const payload = JSON.parse(lines[j].slice(6));
+                const d = payload.output?.data ?? payload.data;
+                if (!Array.isArray(d) || !d[0]) break;
+                const a = d[0];
+                const src = (typeof a === "string") ? a : (a?.url || a?.path || a?.name);
+                if (src) audioUrl = src.startsWith("http") ? src : `${LINGALA_TTS_SPACE}/file=${src}`;
+              } catch {}
+              break outer;
+            }
+            break outer;
+          }
+        }
+      } finally {
+        reader.cancel();
+      }
+
+      if (!audioUrl) throw new Error(`No audio in SSE. Buffer: ${buffer.slice(0,200)}`);
+      return audioUrl;
     }
 
     // ── Live Translation View ─────────────────────────────────────────────────
@@ -900,7 +924,7 @@
           //   audio.play(); return;
           // } catch(e2) { console.error("ElevenLabs fallback failed:", e2); }
           // ─────────────────────────────────────────────────────────────────
-          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioFailed:true } : s));
+          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioFailed:true, audioError:e.message } : s));
           setPlayingId(null);
         }
       };
@@ -1035,8 +1059,8 @@
                   )}
                 </div>
                 {s.audioFailed && !s.fromLingala && (
-                  <p style={{ fontSize:11, color:"#9B8A6E", margin:"4px 0 0", fontStyle:"italic" }}>
-                    Audio en chargement…
+                  <p style={{ fontSize:11, color:"#EA580C", margin:"4px 0 0", fontStyle:"italic" }}>
+                    ⚠️ {s.audioError || "Audio indisponible"}
                   </p>
                 )}
               </div>
