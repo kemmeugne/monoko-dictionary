@@ -600,7 +600,7 @@
       if (!event_id) throw new Error(`No event_id. Got: ${JSON.stringify(startJson).slice(0,100)}`);
 
       // Step 2: stream SSE — do NOT use .text() (connection stays open in Gradio 6.x)
-      // Read chunks until process_completed arrives, then cancel the stream.
+      // Gradio 6.x sends "event: complete"; older versions send "process_completed".
       const sseRes = await fetch(`${LINGALA_TTS_SPACE}/gradio_api/call/synthesise/${event_id}`);
       if (!sseRes.ok) throw new Error(`SSE ${sseRes.status}`);
 
@@ -615,20 +615,26 @@
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
 
-          if (!buffer.includes("process_completed")) continue;
+          // Gradio 6.x sends "event: complete", older sends "process_completed"
+          const DONE_MARKER = buffer.includes("event: complete") ? "event: complete"
+                            : buffer.includes("process_completed") ? "process_completed"
+                            : null;
+          if (!DONE_MARKER) continue;
 
           const lines = buffer.split("\n");
           for (let i = 0; i < lines.length; i++) {
-            if (!lines[i].includes("process_completed")) continue;
+            if (!lines[i].includes(DONE_MARKER)) continue;
             for (let j = i + 1; j < lines.length; j++) {
               if (!lines[j].startsWith("data: ")) continue;
               try {
-                const payload = JSON.parse(lines[j].slice(6));
-                const d = payload.output?.data ?? payload.data;
+                const raw = lines[j].slice(6).trim();
+                // Gradio 6.x "event: complete" data is a JSON array directly: [{"path":...,"url":...}]
+                const parsed = JSON.parse(raw);
+                const d = Array.isArray(parsed) ? parsed : (parsed.output?.data ?? parsed.data);
                 if (!Array.isArray(d) || !d[0]) break;
                 const a = d[0];
                 const src = (typeof a === "string") ? a : (a?.url || a?.path || a?.name);
-                if (src) audioUrl = src.startsWith("http") ? src : `${LINGALA_TTS_SPACE}/file=${src}`;
+                if (src) audioUrl = src.startsWith("http") ? src : `${LINGALA_TTS_SPACE}/gradio_api/file=${src}`;
               } catch {}
               break outer;
             }

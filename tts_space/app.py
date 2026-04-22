@@ -11,6 +11,12 @@ import torch
 import soundfile as sf
 import gradio as gr
 from huggingface_hub import hf_hub_download
+import nltk
+
+# g2p_en (used by ESPnet2 VITS tokenizer) requires these NLTK resources
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)  # new name (NLTK >= 3.8)
+nltk.download('averaged_perceptron_tagger', quiet=True)       # old name fallback
+nltk.download('cmudict', quiet=True)
 
 REPO_ID  = "DigitalUmuganda/lingala_vits_tts"
 HF_TOKEN = os.environ.get("HF_TOKEN")
