@@ -1303,7 +1303,8 @@ Completed on **2026-03-15**.
 | **Cold start** | Railway downloads ~217 MB from R2 on first startup (~30–60s delay) |
 | **LLM vendor lock-in** | Chat now uses OpenAI gpt-4o-mini via `/api/chat.js`; switching models requires updating that serverless function |
 | **Context window** | Only last 6 chat messages sent to Claude (cost/token constraint) |
-| **Audio** | Voice pipeline (step4) not yet integrated into the web app |
+| **Audio** | Voice pipeline (step4) not yet integrated into the web app — Live Translation uses a separate HuggingFace Space instead |
+| **Lingala TTS cold start** | HuggingFace Space goes to sleep after inactivity; first synthesis request after sleep takes 60-120s while the Space wakes and loads the 373MB ESPnet2 model. A warm-up GET ping fires when the Live Translation view opens to mitigate this. |
 
 ### Recommended next steps
 
@@ -1314,14 +1315,14 @@ Completed on **2026-03-15**.
 - [ ] Upload NLLB-filtered Yoruba data to parallel_sentences
 
 **Medium term**
-- [ ] Integrate voice input/output (step4) into index.html using ElevenLabs
+- [x] Integrate voice input/output into index.html — done 2026-04-22 (Live Translation view with Web Speech API STT + HuggingFace VITS TTS)
 - [ ] Add approved corrections back into the FAISS index (currently only in Supabase)
 - [ ] Build a pipeline to retrain FAISS weekly as corrections accumulate
-- [ ] Add Supabase Auth for proper user accounts and correction attribution
+- [x] Add Supabase Auth for proper user accounts and correction attribution — done 2026-04-10
 
 **Long term**
 - [ ] Fine-tune Whisper on WAXAL Lingala data for better STT
-- [ ] Train a custom Lingala TTS voice using BibleTTS recordings
+- [ ] Fine-tune or replace DigitalUmuganda VITS with a custom voice trained on native Lingala recordings (Borgeas studio sessions)
 - [ ] Fine-tune an open-source LLM (LLaMA/Mistral) on the parallel corpus
 - [ ] Add more languages: Wolof, Kikongo, Bamileke, Hausa
 - [ ] Publish the cleaned parallel corpus under CC-BY-4.0
@@ -1425,5 +1426,110 @@ The `correct_french`, `correct_lingala`, and `example_sentence` fields in the co
 
 ---
 
-*Documentation last updated: 2026-03-21 (session 2)*
-*Stack: React · Supabase · pgvector · FastAPI · FAISS · sentence-transformers · OpenAI gpt-4o-mini · Vercel · Railway · Cloudflare R2*
+---
+
+## 16. Live Translation + Lingala TTS (2026-04-22)
+
+### Overview
+
+The "Traduction en direct" view provides real-time speech translation: the user speaks in French, segments are transcribed and translated to Lingala by the AI, and both French and Lingala audio are played back automatically.
+
+### Pipeline
+
+```
+Microphone
+  └─ Web Speech API (SpeechRecognition, browser built-in)
+       └─ interimResults + onresult events → segment detection (pause-based)
+            ├─ French TTS: SpeechSynthesisUtterance (Web Speech API, browser built-in)
+            └─ Translation: POST /api/chat.js → gpt-4o-mini (Lingala output)
+                 └─ Lingala TTS: lingalaTTS() → HuggingFace Space (ESPnet2 VITS)
+```
+
+### Lingala TTS: HuggingFace Space
+
+| Property | Value |
+|---|---|
+| Space | `Kemz42/monoko-lingala-tts` |
+| URL | `https://kemz42-monoko-lingala-tts.hf.space` |
+| Model | `DigitalUmuganda/lingala_vits_tts` |
+| Architecture | ESPnet2 VITS |
+| Training data | 71.6h real Lingala speech |
+| SDK | Gradio 6.13.0 |
+| Python | 3.10 |
+| Device | CPU (HuggingFace free tier) |
+| Sample rate | 44,100 Hz |
+| Model size | ~373 MB |
+| Inference time | 20–40s (CPU) |
+
+**Why the client calls the Space directly** (not via Vercel):  
+Vercel free plan enforces a 10s function timeout. ESPnet2 CPU inference takes 20–40s. Routing through Vercel would always timeout. The Space is called directly from the browser via Gradio's public API.
+
+### Gradio 6.x API (important differences from 4.x)
+
+| Aspect | Gradio 4.x | Gradio 6.x |
+|---|---|---|
+| Prediction endpoint | `/call/{fn}` | `/gradio_api/call/{fn}` |
+| SSE endpoint | `/call/{fn}/{event_id}` | `/gradio_api/call/{fn}/{event_id}` |
+| Done event name | `process_completed` | `event: complete` |
+| Data format | `{output: {data: [...]}}` | Raw JSON array `[{...}]` |
+| `queue()` | Optional | **Required** for event API |
+| SSE connection | Closes after result | Stays open — must use `getReader()` and break manually |
+
+### `lingalaTTS()` function (index.html)
+
+```javascript
+const LINGALA_TTS_SPACE = "https://kemz42-monoko-lingala-tts.hf.space";
+
+async function lingalaTTS(text) {
+  // Step 1: POST to start prediction
+  const { event_id } = await fetch(`${LINGALA_TTS_SPACE}/gradio_api/call/synthesise`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data: [text] }),
+  }).then(r => r.json());
+
+  // Step 2: stream SSE with getReader() — .text() hangs in Gradio 6.x
+  const sseRes = await fetch(`${LINGALA_TTS_SPACE}/gradio_api/call/synthesise/${event_id}`);
+  const reader = sseRes.body.getReader();
+  // ... read chunks, detect "event: complete", parse audio URL from data array
+}
+```
+
+### `tts_space/app.py` — Space source
+
+Key points:
+- Downloads model files from `DigitalUmuganda/lingala_vits_tts` via `hf_hub_download` at startup
+- Downloads NLTK resources at startup: `averaged_perceptron_tagger_eng`, `averaged_perceptron_tagger`, `cmudict` — all required by `g2p_en` (the text tokenizer used by ESPnet2 VITS)
+- `demo.queue()` is required — Gradio 6.x event API fails without it
+- `api_name="synthesise"` matches the endpoint name
+
+### `api/mms-tts.js` — Vercel warm-up proxy
+
+- **GET `/api/mms-tts`**: fires a ping to the Space root when the Live Translation view opens, to wake the Space from sleep before the user speaks
+- **POST**: proxied audio endpoint — implemented but unused (client calls Space directly)
+- Requires env var: `MMS_SPACE_URL=https://kemz42-monoko-lingala-tts.hf.space`
+
+### French TTS (Web Speech API)
+
+```javascript
+const utterance = new SpeechSynthesisUtterance(text);
+utterance.lang = "fr-FR";
+utterance.onerror = (e) => {
+  if (e.error !== "canceled") console.warn("TTS error:", e.error);
+  // "canceled" fires when cancel() interrupts the previous utterance — not a real error
+};
+speechSynthesis.speak(utterance);
+```
+
+**Chrome quirk**: voices load asynchronously. Must wait for `speechSynthesis.onvoiceschanged` before the first call, otherwise no voice is selected and nothing plays.
+
+### Known issues / future work
+
+- Space sleeps after ~15 min of inactivity. Warm-up ping helps but the first synthesis after a long idle still takes 60-120s.
+- No GPU — inference on CPU only (HuggingFace free tier). A paid Space or self-hosted GPU would cut inference to <2s.
+- Future: fine-tune or replace with a custom VITS voice trained on Borgeas studio recordings for higher quality and lower latency.
+
+---
+
+*Documentation last updated: 2026-04-22*
+*Stack: React · Supabase · pgvector · FastAPI · FAISS · sentence-transformers · OpenAI gpt-4o-mini · Vercel · Railway · Cloudflare R2 · HuggingFace Spaces · ESPnet2 VITS*

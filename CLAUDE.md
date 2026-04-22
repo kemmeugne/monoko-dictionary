@@ -22,6 +22,8 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 | Lesson context | Vercel serverless function | `api/lesson-context.js` |
 | Vector search (corpus) | Supabase pgvector (`parallel_sentences.embedding`) | `match_parallel_sentences` RPC |
 | Vector search (courses) | Supabase pgvector (`lesson_items.embedding`) | `match_lesson_items` RPC |
+| Lingala TTS | HuggingFace Space `Kemz42/monoko-lingala-tts` (ESPnet2 VITS, DigitalUmuganda model, 71.6h Lingala) | called directly from browser |
+| French TTS | Web Speech API (browser built-in, `SpeechSynthesisUtterance`) | `index.html` |
 
 ---
 
@@ -34,6 +36,10 @@ api/admin-action.js               — Vercel serverless function (secure Supabas
 api/chat.js                       — Vercel serverless function (proxies chat to OpenAI gpt-4o-mini)
 api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences)
 api/lesson-context.js             — Vercel serverless function (pgvector semantic search over lesson_items)
+api/mms-tts.js                    — Vercel serverless function (warm-up GET ping for HF Space; POST proxies audio but unused — client calls Space directly)
+tts_space/app.py                  — HuggingFace Space: ESPnet2 VITS Lingala TTS (Gradio 6.x, served at kemz42-monoko-lingala-tts.hf.space)
+tts_space/requirements.txt        — Space deps: git+espnet, huggingface_hub, numpy, soundfile, nltk
+tts_space/README.md               — Space metadata: sdk=gradio 6.13.0, python=3.10, app_file=app.py
 sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match_parallel_sentences RPC
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
@@ -127,6 +133,7 @@ GROUP BY day ORDER BY day DESC;
 - `SUPABASE_SERVICE_KEY` — service role key for admin writes, `/api/rag-context.js`, and `/api/lesson-context.js` RPC calls
 - `ADMIN_PASSWORD` — password for admin.html
 - `OPENAI_API_KEY` — OpenAI API key for `/api/chat.js`, `/api/rag-context.js`, and `/api/lesson-context.js`
+- `MMS_SPACE_URL` — base URL of the HuggingFace Space, e.g. `https://kemz42-monoko-lingala-tts.hf.space` (used only by warm-up ping in `api/mms-tts.js`; client calls Space directly)
 
 **Cloudflare R2 audio details**:
 - Bucket: `audios`
@@ -338,6 +345,60 @@ Phase 2 of the product roadmap. Users can now track their advancement through th
 - **Module list**: Completed lesson rows show a green `✓` instead of the step number
 - **Lesson bottom**: "✓ J'ai terminé ce module" button for logged-in users; turns into green "Module terminé" confirmation once pressed
 - No level locking yet — deferred to Phase 3 with the exam system
+
+---
+
+## Live Translation + Lingala TTS (added 2026-04-22)
+
+The "Traduction en direct" view streams microphone input through speech recognition, translates segments via the AI chat pipeline, and plays back Lingala audio using a custom HuggingFace Space.
+
+### Architecture
+
+```
+Microphone → Web Speech API (STT, browser built-in)
+          → segment translation via /api/chat.js (OpenAI gpt-4o-mini)
+          → Lingala audio: lingalaTTS() → HuggingFace Space (ESPnet2 VITS)
+          → French audio: Web Speech API SpeechSynthesisUtterance (browser built-in)
+```
+
+### HuggingFace Space
+
+- **Space**: `Kemz42/monoko-lingala-tts` → `https://kemz42-monoko-lingala-tts.hf.space`
+- **Model**: `DigitalUmuganda/lingala_vits_tts` (ESPnet2 VITS, trained on 71.6h real Lingala speech)
+- **Source**: `tts_space/app.py` in this repo — edit there, then copy to Space UI (Files tab → Edit → Commit)
+- **SDK**: Gradio 6.13.0, Python 3.10
+
+### How `lingalaTTS()` works (index.html)
+
+The client calls the Space **directly** (not via Vercel) because ESPnet2 CPU inference takes 20-40s, far beyond Vercel's 10s free-plan timeout.
+
+1. `POST https://kemz42-monoko-lingala-tts.hf.space/gradio_api/call/synthesise` → returns `{ event_id }`
+2. `GET .../gradio_api/call/synthesise/{event_id}` → SSE stream, read with `getReader()` (never `.text()` — Gradio 6.x keeps the connection open)
+3. Wait for `event: complete` in the stream (Gradio 6.x; older versions send `process_completed`)
+4. Parse the `data:` line that follows — it's a JSON array `[{"path": "...", "url": "https://..."}]`
+5. Use the `url` field directly (already absolute) or prepend `/gradio_api/file=` if only a path
+
+### Key gotchas (hard-won)
+
+| Issue | Root cause | Fix |
+|---|---|---|
+| `facebook/mms-tts-lin` 404 | Lingala is in MMS ASR only, not TTS | Use DigitalUmuganda VITS instead |
+| ESPnet2 not on PyPI | `espnet` on PyPI is a stub; `espnet2` doesn't exist as a package | `git+https://github.com/espnet/espnet.git` in requirements.txt |
+| `allow_flagging="never"` error | Parameter removed in Gradio 6.x | Remove from `gr.Interface()` |
+| Space 404 on `/call/synthesise` | Gradio 6.x moved to `/gradio_api/call/` prefix | Use `/gradio_api/call/synthesise` |
+| `{"error": null}` from Space | `demo.queue()` missing — required by Gradio 6.x event API | Add `demo.queue()` before launch |
+| SSE `.text()` hangs forever | Gradio 6.x keeps SSE connection open indefinitely | Stream with `getReader()`, break on `event: complete` |
+| `averaged_perceptron_tagger_eng` LookupError | Newer NLTK renamed the resource; `g2p_en` (used by ESPnet2 VITS) needs it | Add `nltk.download('averaged_perceptron_tagger_eng')` in `app.py` startup |
+| SSE parser misses audio | Was checking for `process_completed` but Gradio 6.x sends `event: complete`; data is a raw JSON array, not `{output:{data:[]}}` | Check for both markers; parse array directly |
+| French TTS silent | Chrome loads voices async | Listen to `voiceschanged` event before calling `speechSynthesis.speak()` |
+| French TTS `cancel()` fires error | `cancel()` on new utterance triggers `onerror` on the previous one | Filter `e.error !== "canceled"` in the error handler |
+
+### Updating the Space
+
+The Space is a separate git repo on HuggingFace. Fastest update path:
+1. Edit `tts_space/app.py` locally
+2. Go to `https://huggingface.co/spaces/Kemz42/monoko-lingala-tts` → Files → `app.py` → Edit
+3. Paste the updated content → Commit changes → Space rebuilds automatically (~2-3 min)
 
 ---
 
