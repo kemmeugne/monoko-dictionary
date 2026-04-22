@@ -1322,7 +1322,7 @@ Completed on **2026-03-15**.
 
 **Long term**
 - [ ] Fine-tune Whisper on WAXAL Lingala data for better STT
-- [ ] Fine-tune or replace DigitalUmuganda VITS with a custom voice trained on native Lingala recordings (Borgeas studio sessions)
+- [ ] Fine-tune DigitalUmuganda VITS on professor's voice — **ready to start once professor finishes remaining audio collection**. Data already in DB: 2,593 example clips + 815 lesson_items clips (~4.5h, single speaker, studio quality, transcriptions paired). Pipeline: download R2 audio → 22kHz WAV conversion → ESPnet2 fine-tune on Colab A100 → deploy new weights to Space.
 - [ ] Fine-tune an open-source LLM (LLaMA/Mistral) on the parallel corpus
 - [ ] Add more languages: Wolof, Kikongo, Bamileke, Hausa
 - [ ] Publish the cleaned parallel corpus under CC-BY-4.0
@@ -1527,7 +1527,7 @@ speechSynthesis.speak(utterance);
 
 - Space sleeps after ~15 min of inactivity. Warm-up ping helps but the first synthesis after a long idle still takes 60-120s.
 - No GPU — inference on CPU only (HuggingFace free tier). A paid Space or self-hosted GPU would cut inference to <2s.
-- Future: fine-tune or replace with a custom VITS voice trained on Borgeas studio recordings for higher quality and lower latency.
+- **Next**: fine-tune DigitalUmuganda on professor's voice once remaining audio collection is complete. See "Next: Fine-tune TTS on professor's voice" in CLAUDE.md for full pipeline.
 
 ---
 

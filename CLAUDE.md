@@ -402,6 +402,40 @@ The Space is a separate git repo on HuggingFace. Fastest update path:
 
 ---
 
+## Next: Fine-tune TTS on professor's voice
+
+**Status**: waiting for professor to finish the remaining audio collection modules.
+
+**Goal**: replace the current DigitalUmuganda speaker voice with the professor's voice, keeping the same Lingala phonetics. The Space, API, and frontend stay exactly as-is — only the model weights change.
+
+**Why it will work:**
+- Single speaker throughout (one professor, Borgeas studio)
+- Already have ~3,400 sentence-level clips with transcriptions in DB:
+  - `examples` with `audio_url`: 2,593 clips (~3.6h estimated)
+  - `lesson_items` with `audio_url`: 815 clips (~0.9h estimated)
+  - Total: ~4.5h — sufficient for fine-tuning an existing VITS checkpoint
+- Transcriptions already paired in Supabase (`dialect` column) — no labelling needed
+- Audio on Cloudflare R2 at `https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev`
+
+**Fine-tuning pipeline (to build once professor finishes):**
+
+1. **Data prep script** (`prepare_tts_finetune.py` — to write):
+   - Query Supabase for all `(audio_url, dialect)` pairs from `examples` + `lesson_items`
+   - Download MP3s from R2
+   - Convert to 22kHz mono WAV (ESPnet2 format)
+   - Write `wav.scp` and `text` files in Kaldi/ESPnet2 format
+
+2. **Fine-tune** on Google Colab A100 (free tier sufficient):
+   - Start from `DigitalUmuganda/lingala_vits_tts` checkpoint
+   - Run ESPnet2 VITS fine-tuning recipe
+   - ~few hours on A100
+
+3. **Deploy**: upload new `.pth` weights to `Kemz42/monoko-lingala-tts` Space, update `model_path` in `app.py`
+
+**Trigger**: start this once the professor has finished all remaining audio collection modules (stub modules + missing items from `audio_collection_html/`).
+
+---
+
 ## Deploy
 
 ```bash
