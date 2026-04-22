@@ -22,6 +22,10 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.5),0 4px 20px rgba(22,163,74,0.4)}50%{box-shadow:0 0 0 18px rgba(22,163,74,0),0 4px 20px rgba(22,163,74,0.4)}}
     @keyframes dots{0%,100%{opacity:0.2}50%{opacity:1}}
+    @keyframes waveA{0%{height:4px}100%{height:26px}}
+    @keyframes waveB{0%{height:8px}100%{height:20px}}
+    @keyframes waveC{0%{height:14px}100%{height:32px}}
+    @keyframes micRing{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4),0 6px 24px rgba(0,0,0,0.2)}50%{box-shadow:0 0 0 16px rgba(22,163,74,0),0 6px 24px rgba(22,163,74,0.35)}}
   </style>
 </head>
 <body>
@@ -668,7 +672,6 @@
       const translateTimerRef = useRef(null);
       const mimeTypeRef = useRef("audio/webm");
       const audioCacheRef = useRef({});
-      const sourceEndRef = useRef(null);
       const transEndRef = useRef(null);
 
       // Warm-up the TTS Space when the view mounts so it wakes before audio is needed
@@ -678,9 +681,8 @@
       useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
       useEffect(() => { directionRef.current = direction; }, [direction]);
 
-      // Auto-scroll both panels when new content arrives
-      useEffect(() => { sourceEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText]);
-      useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, translating]);
+      // Auto-scroll to bottom when new content arrives
+      useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText, translating]);
 
       // Cleanup on unmount
       useEffect(() => () => stopAll(), []);
@@ -867,7 +869,10 @@
           const data = await chatRes.json();
           const translation = (data.content || "").trim();
           if (translation) {
-            setSegments(prev => [...prev, { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala }]);
+            const newSeg = { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala };
+            setSegments(prev => [...prev, newSeg]);
+            // Auto-play translation immediately
+            playAudio(newSeg);
           }
         } catch(e) { console.error("Translation error:", e); }
         setTranslating(false);
@@ -954,134 +959,175 @@
       const sourceLang = isFromLingala ? langName : "Français";
       const targetLang = isFromLingala ? "Français" : langName;
 
+      // Waveform bar configs — alternating animations for organic feel
+      const waveBars = [
+        { anim:"waveB", dur:"0.5s", delay:"0s" },
+        { anim:"waveC", dur:"0.7s", delay:"0.1s" },
+        { anim:"waveA", dur:"0.4s", delay:"0.05s" },
+        { anim:"waveC", dur:"0.6s", delay:"0.2s" },
+        { anim:"waveA", dur:"0.5s", delay:"0.15s" },
+        { anim:"waveB", dur:"0.8s", delay:"0.0s" },
+        { anim:"waveC", dur:"0.45s", delay:"0.1s" },
+        { anim:"waveA", dur:"0.6s", delay:"0.25s" },
+        { anim:"waveB", dur:"0.5s", delay:"0.05s" },
+      ];
+
       return (
-        <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", paddingTop:16 }}>
+        <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", paddingTop:12 }}>
 
-          {/* Header */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12, flexShrink:0 }}>
+          {/* ── Top bar ── */}
+          <div style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <button onClick={() => { stopAll(); onBack(); }} style={{
-              display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-              color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0",
+              display:"flex", alignItems:"center", gap:5, background:"none", border:"none",
+              color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"6px 0",
               fontFamily:"'DM Sans', sans-serif",
-            }}><ArrowLeft /> Accueil</button>
+            }}><ArrowLeft size={16} /> Accueil</button>
 
-            <div style={{ textAlign:"center" }}>
-              <div style={{ fontSize:13, fontWeight:700, color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}>Traduction en direct</div>
-            </div>
-
-            <button onClick={swapDirection} title="Inverser la direction" style={{
-              display:"flex", alignItems:"center", gap:6, background:"white",
-              border:"1px solid #E8E0D4", borderRadius:20, padding:"7px 12px",
-              fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
-              color:"#2D2118", boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
-            }}>
-              <span style={{ color: isFromLingala ? "#2C5F2D" : "#0EA5E9", fontSize:11 }}>{isFromLingala ? langName.slice(0,3) : "FR"}</span>
-              <span style={{ fontSize:14 }}>⇄</span>
-              <span style={{ color: isFromLingala ? "#0EA5E9" : "#2C5F2D", fontSize:11 }}>{isFromLingala ? "FR" : langName.slice(0,3)}</span>
-            </button>
+            {segments.length > 0 && (
+              <button onClick={() => { setSegments([]); setLiveText(""); }} style={{
+                background:"none", border:"none", color:"#C4B8A4", fontSize:12,
+                cursor:"pointer", fontFamily:"'DM Sans', sans-serif", padding:"6px 0",
+              }}>Effacer</button>
+            )}
           </div>
 
-          {/* Error banner */}
+          {/* ── Language switcher ── */}
+          <div style={{
+            flexShrink:0, display:"flex", alignItems:"center",
+            background:"white", borderRadius:18, border:"1px solid #E8E0D4",
+            boxShadow:"0 2px 8px rgba(0,0,0,0.06)", marginBottom:12, overflow:"hidden",
+          }}>
+            <div style={{ flex:1, textAlign:"center", padding:"14px 10px" }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#9B8A6E", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Je parle</div>
+              <div style={{ fontSize:17, fontWeight:800, color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}>{sourceLang}</div>
+            </div>
+            <button onClick={swapDirection} title="Inverser" style={{
+              flexShrink:0, width:44, height:44, borderRadius:"50%",
+              background:"linear-gradient(135deg, #2D2118, #4A3728)",
+              border:"none", color:"white", fontSize:18, cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              boxShadow:"0 2px 8px rgba(0,0,0,0.18)", transition:"transform 0.2s",
+            }}>⇄</button>
+            <div style={{ flex:1, textAlign:"center", padding:"14px 10px" }}>
+              <div style={{ fontSize:10, fontWeight:700, color:"#9B8A6E", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Traduction</div>
+              <div style={{ fontSize:17, fontWeight:800, color:"#16A34A", fontFamily:"'DM Sans', sans-serif" }}>{targetLang}</div>
+            </div>
+          </div>
+
+          {/* ── Error banner ── */}
           {error && (
-            <div style={{ background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:10, padding:"10px 14px", marginBottom:8, fontSize:13, color:"#DC2626", flexShrink:0 }}>
+            <div style={{ flexShrink:0, background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:12, padding:"10px 14px", marginBottom:10, fontSize:13, color:"#DC2626" }}>
               ⚠️ {error}
             </div>
           )}
 
-          {/* Source transcript panel */}
-          <div style={{ flex:1, minHeight:0, background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"14px 16px", overflowY:"auto", marginBottom:10 }}>
-            <div style={{ fontSize:10, fontWeight:700, color:"#9B8A6E", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10, fontFamily:"'DM Mono', monospace" }}>
-              {sourceLang} — ce qui est dit
-            </div>
-            {segments.length === 0 && !liveText && (
-              <p style={{ color:"#C4B8A4", fontSize:14, textAlign:"center", marginTop:24, fontStyle:"italic" }}>
-                {isListening ? `Parlez en ${sourceLang}…` : `Appuyez sur le micro pour commencer`}
-              </p>
-            )}
-            {segments.map(s => (
-              <p key={s.id} style={{ fontSize:15, color:"#2D2118", lineHeight:1.7, margin:"0 0 10px", fontFamily:"'Source Serif 4', serif" }}>{s.source}</p>
-            ))}
-            {liveText && (
-              <p style={{ fontSize:15, color:"#9B8A6E", lineHeight:1.7, margin:0, fontStyle:"italic" }}>{liveText}</p>
-            )}
-            <div ref={sourceEndRef} />
-          </div>
+          {/* ── Conversation scroll ── */}
+          <div style={{ flex:1, minHeight:0, overflowY:"auto", paddingBottom:4 }}>
 
-          {/* Mic button bar */}
-          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:6, padding:"10px 0" }}>
-            <button onClick={toggleListening} style={{
-              width:68, height:68, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:26,
-              background: isListening
-                ? "linear-gradient(135deg, #16A34A, #15803D)"
-                : "linear-gradient(135deg, #E8E0D4, #D4C8B4)",
-              color: isListening ? "white" : "#8B6D47",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              animation: isListening ? "pulse 1.5s ease-in-out infinite" : "none",
-              transition:"background 0.2s, box-shadow 0.2s",
-              boxShadow: isListening ? "none" : "0 4px 12px rgba(0,0,0,0.12)",
-            }}>
-              🎤
-            </button>
-            <div style={{ fontSize:12, fontWeight:600, fontFamily:"'DM Sans', sans-serif",
-              color: translating ? "#0EA5E9" : isListening ? "#16A34A" : "#9B8A6E" }}>
-              {translating ? "Traduction…" : isListening ? "En écoute…" : "Appuyer pour parler"}
-            </div>
-            {isListening && !translating && (
-              <div style={{ display:"flex", gap:4 }}>
-                {[0,1,2].map(i => (
-                  <span key={i} style={{
-                    display:"inline-block", width:6, height:6, borderRadius:"50%",
-                    background:"#16A34A", animation:`dots 1.2s ease-in-out ${i*0.2}s infinite`,
-                  }} />
-                ))}
+            {/* Empty state */}
+            {segments.length === 0 && !liveText && !translating && (
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:12, color:"#C4B8A4" }}>
+                <div style={{ fontSize:40 }}>🎙️</div>
+                <p style={{ fontSize:14, fontStyle:"italic", textAlign:"center", lineHeight:1.6, maxWidth:220 }}>
+                  {isListening ? `Parlez en ${sourceLang}…` : "Appuyez sur le micro et parlez — la traduction s'affiche en temps réel"}
+                </p>
               </div>
             )}
-          </div>
 
-          {/* Translation panel */}
-          <div style={{ flex:1, minHeight:0, background:"linear-gradient(135deg, #F0F9FF, #E0F2FE)", border:"1px solid #BAE6FD", borderRadius:14, padding:"14px 16px", overflowY:"auto" }}>
-            <div style={{ fontSize:10, fontWeight:700, color:"#0369A1", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:10, fontFamily:"'DM Mono', monospace" }}>
-              {targetLang} — traduction
-            </div>
-            {segments.length === 0 && !translating && (
-              <p style={{ color:"#7DD3FC", fontSize:14, textAlign:"center", marginTop:24, fontStyle:"italic" }}>
-                La traduction apparaîtra ici
-              </p>
-            )}
-            {translating && (
-              <p style={{ fontSize:15, color:"#0EA5E9", fontStyle:"italic", margin:"0 0 8px" }}>…</p>
-            )}
-            {segments.map(s => (
-              <div key={s.id} style={{ marginBottom:14 }}>
-                <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
-                  <p style={{ flex:1, fontSize:15, color:"#0C4A6E", lineHeight:1.7, margin:0, fontFamily:"'Source Serif 4', serif", fontWeight:600 }}>
+            {/* Segments — each is a card: source (small) + translation (bold) */}
+            {segments.map((s, idx) => (
+              <div key={s.id} style={{
+                marginBottom:10, background:"white", borderRadius:16,
+                border:"1px solid #E8E0D4", boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
+                overflow:"hidden", animation:"slideIn 0.25s ease-out",
+              }}>
+                {/* Source text */}
+                <div style={{ padding:"10px 14px 6px", borderBottom:"1px solid #F2EDE6" }}>
+                  <span style={{ fontSize:11, fontWeight:700, color:"#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sourceLang}</span>
+                  <span style={{ fontSize:13, color:"#9B8A6E", fontFamily:"'Source Serif 4', serif" }}>{s.source}</span>
+                </div>
+                {/* Translation */}
+                <div style={{ padding:"10px 14px 12px", display:"flex", alignItems:"center", gap:10 }}>
+                  <div style={{ flex:1, fontSize:17, fontWeight:700, color:"#2D2118", lineHeight:1.5, fontFamily:"'DM Sans', sans-serif" }}>
                     {s.translation}
-                  </p>
-                  {!s.audioFailed && (
-                    <button
-                      onClick={() => playAudio(s)}
-                      title="Écouter"
-                      style={{
-                        background: playingId === s.id ? "#0EA5E9" : "white",
-                        border:"1px solid #BAE6FD", borderRadius:8,
-                        padding:"5px 10px", fontSize:13, cursor:"pointer", flexShrink:0,
-                        color: playingId === s.id ? "white" : "#0EA5E9",
-                        transition:"all 0.15s",
-                      }}>
-                      {playingId === s.id ? "▶▶" : "▶"}
+                  </div>
+                  {!s.audioFailed ? (
+                    <button onClick={() => playAudio(s)} style={{
+                      flexShrink:0, width:38, height:38, borderRadius:"50%", border:"none",
+                      cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center",
+                      background: playingId === s.id ? "#16A34A" : "#F0F9F0",
+                      color: playingId === s.id ? "white" : "#16A34A",
+                      transition:"all 0.15s",
+                    }}>
+                      {playingId === s.id ? "■" : "▶"}
                     </button>
+                  ) : (
+                    <span style={{ fontSize:11, color:"#C4B8A4" }}>—</span>
                   )}
                 </div>
-                {s.audioFailed && !s.fromLingala && (
-                  <p style={{ fontSize:11, color:"#EA580C", margin:"4px 0 0", fontStyle:"italic" }}>
-                    ⚠️ {s.audioError || "Audio indisponible"}
-                  </p>
-                )}
               </div>
             ))}
+
+            {/* Live interim text while speaking */}
+            {liveText && (
+              <div style={{ padding:"8px 14px", borderRadius:12, background:"#FAFAF8", border:"1px dashed #E8E0D4", marginBottom:8 }}>
+                <span style={{ fontSize:11, fontWeight:700, color:"#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sourceLang}</span>
+                <span style={{ fontSize:14, color:"#9B8A6E", fontStyle:"italic" }}>{liveText}</span>
+              </div>
+            )}
+
+            {/* Translating spinner */}
+            {translating && (
+              <div style={{ padding:"10px 14px", borderRadius:12, background:"#F0FDF4", border:"1px solid #BBF7D0", marginBottom:8, display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:13, color:"#16A34A", animation:"spin 1s linear infinite", display:"inline-block" }}>⟳</span>
+                <span style={{ fontSize:13, color:"#16A34A", fontStyle:"italic" }}>Traduction en cours…</span>
+              </div>
+            )}
+
             <div ref={transEndRef} />
           </div>
 
+          {/* ── Bottom mic section ── */}
+          <div style={{ flexShrink:0, paddingTop:10 }}>
+
+            {/* Waveform */}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:3, height:36, marginBottom:12 }}>
+              {waveBars.map((b, i) => (
+                <div key={i} style={{
+                  width:4, borderRadius:3,
+                  background: isListening ? "#16A34A" : "#E8E0D4",
+                  height: isListening ? undefined : 4,
+                  minHeight: isListening ? 4 : undefined,
+                  animation: isListening ? `${b.anim} ${b.dur} ${b.delay} ease-in-out infinite alternate` : "none",
+                  transition:"background 0.3s",
+                }} />
+              ))}
+            </div>
+
+            {/* Mic button */}
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:10 }}>
+              <button onClick={toggleListening} style={{
+                width:80, height:80, borderRadius:"50%", border:"none", cursor:"pointer",
+                background: isListening
+                  ? "linear-gradient(135deg, #16A34A, #15803D)"
+                  : "linear-gradient(135deg, #2D2118, #4A3728)",
+                color:"white", fontSize:30,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                animation: isListening ? "micRing 1.8s ease-in-out infinite" : "none",
+                transition:"background 0.25s, transform 0.15s",
+                transform: isListening ? "scale(1.05)" : "scale(1)",
+              }}>
+                {isListening ? "■" : "🎤"}
+              </button>
+            </div>
+
+            {/* Status label */}
+            <div style={{ textAlign:"center", fontSize:12, fontWeight:600, fontFamily:"'DM Sans', sans-serif", paddingBottom:4,
+              color: translating ? "#16A34A" : isListening ? "#16A34A" : "#9B8A6E" }}>
+              {translating ? "Traduction…" : isListening ? `En écoute — ${sourceLang}` : "Appuyer pour parler"}
+            </div>
+
+          </div>
         </div>
       );
     }
