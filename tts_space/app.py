@@ -68,8 +68,8 @@ demo = gr.Interface(
         "Synthèse vocale Lingala · DigitalUmuganda/lingala_vits_tts\n"
         "Modèle VITS entraîné sur 71.6h de parole Lingala authentique."
     ),
-    api_name="synthesise",   # → /call/synthesise in Gradio 4.x API
-    allow_flagging="never",
+    api_name="synthesise",  # → /call/synthesise in Gradio API
+    # allow_flagging removed — not supported in Gradio 6.x
 )
 
 if __name__ == "__main__":

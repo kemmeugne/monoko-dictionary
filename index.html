@@ -600,6 +600,9 @@
       const sourceEndRef = useRef(null);
       const transEndRef = useRef(null);
 
+      // Warm-up the TTS Space when the view mounts so it wakes before audio is needed
+      useEffect(() => { fetch("/api/mms-tts").catch(() => {}); }, []);
+
       // Keep refs in sync with state (needed inside async callbacks)
       useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
       useEffect(() => { directionRef.current = direction; }, [direction]);
@@ -823,9 +826,9 @@
           }
           return;
         }
-        // TODO: ElevenLabs Lingala TTS has English accent bias.
-        // Future plan: fine-tune VITS model on native Lingala recordings (Borgeas studio sessions)
-        // and host on our own HuggingFace Space. No pre-trained Lingala TTS model exists publicly.
+        // TODO: Fine-tune VITS on native Lingala recordings (Borgeas studio sessions)
+        // Current: DigitalUmuganda/lingala_vits_tts (71.6h Lingala, ESPnet2 VITS)
+        // Fallback: ElevenLabs eleven_multilingual_v2 (English accent bias)
         if (audioCacheRef.current[seg.translation]) {
           const audio = new Audio(audioCacheRef.current[seg.translation]);
           audio.onended = () => setPlayingId(null);
@@ -833,7 +836,13 @@
           return;
         }
         try {
-          const res = await fetch("/api/elevenlabs-tts", {
+          // ── ElevenLabs fallback (English accent, but reliable) ────────────
+          // const res = await fetch("/api/elevenlabs-tts", {
+          //   method:"POST", headers:{"Content-Type":"application/json"},
+          //   body: JSON.stringify({ text: seg.translation }),
+          // });
+          // ─────────────────────────────────────────────────────────────────
+          const res = await fetch("/api/mms-tts", {
             method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ text: seg.translation }),
           });
