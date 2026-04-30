@@ -672,6 +672,7 @@
       const audioChunksRef = useRef([]);
       const chunkTimerRef = useRef(null);
       const translateTimerRef = useRef(null);
+      const liveStreamRef = useRef(null); // persistent mic stream — reused across start/stop cycles
       const mimeTypeRef = useRef("audio/webm");
       const audioCacheRef = useRef({});
       const transEndRef = useRef(null);
@@ -699,13 +700,18 @@
       // Auto-scroll to bottom when new content arrives
       useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText, translating]);
 
-      // Cleanup on unmount
-      useEffect(() => () => stopAll(), []);
+      // Cleanup on unmount — stop everything including the persistent stream
+      useEffect(() => () => {
+        stopAll();
+        if (liveStreamRef.current) {
+          liveStreamRef.current.getTracks().forEach(t => t.stop());
+          liveStreamRef.current = null;
+        }
+      }, []);
 
       const stopAmplitudeLoop = () => {
         if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
         if (analyserRef.current) {
-          if (analyserRef.current.stream) analyserRef.current.stream.getTracks().forEach(t => t.stop());
           try { analyserRef.current.ctx.close(); } catch(e) {}
           analyserRef.current = null;
         }
@@ -878,10 +884,15 @@
         recognition.start();
         setIsListening(true);
         isListeningRef.current = true;
-        // Web Speech API doesn't expose raw audio — open a separate stream just for the waveform
-        navigator.mediaDevices.getUserMedia({ audio: true })
-          .then(stream => startAmplitudeLoop(stream, true))
-          .catch(() => {}); // waveform is cosmetic — fail silently
+        // Web Speech API doesn't expose raw audio — use/reuse liveStreamRef for the waveform
+        const existingStream = liveStreamRef.current;
+        if (existingStream && existingStream.getTracks().every(t => t.readyState === "live")) {
+          startAmplitudeLoop(existingStream);
+        } else {
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => { liveStreamRef.current = stream; startAmplitudeLoop(stream); })
+            .catch(() => {}); // waveform is cosmetic — fail silently
+        }
       };
 
       // ── Lingala STT via ElevenLabs Scribe (chunked) ───────────────────────
@@ -932,7 +943,12 @@
 
       const startLingalaSTT = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          // Reuse the existing stream if tracks are still live — avoids re-prompting on mobile
+          let stream = liveStreamRef.current;
+          if (!stream || stream.getTracks().some(t => t.readyState === "ended")) {
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            liveStreamRef.current = stream;
+          }
           const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
             ? "audio/webm;codecs=opus"
             : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
