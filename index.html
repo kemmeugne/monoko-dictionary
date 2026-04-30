@@ -1151,39 +1151,48 @@
               </div>
             )}
 
-            {/* Segments — each is a card: source (small) + translation (bold) */}
-            {segments.map((s, idx) => (
-              <div key={s.id} style={{
-                marginBottom:10, background:"white", borderRadius:16,
-                border:"1px solid #E8E0D4", boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
-                overflow:"hidden", animation:"slideIn 0.25s ease-out",
-              }}>
-                {/* Source text */}
-                <div style={{ padding:"10px 14px 6px", borderBottom:"1px solid #F2EDE6" }}>
-                  <span style={{ fontSize:11, fontWeight:700, color:"#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sourceLang}</span>
-                  <span style={{ fontSize:13, color:"#9B8A6E", fontFamily:"'Source Serif 4', serif" }}>{s.source}</span>
-                </div>
-                {/* Translation */}
-                <div style={{ padding:"10px 14px 12px", display:"flex", alignItems:"center", gap:10 }}>
-                  <div style={{ flex:1, fontSize:17, fontWeight:700, color:"#2D2118", lineHeight:1.5, fontFamily:"'DM Sans', sans-serif" }}>
-                    {s.translation}
+            {/* Segments — side-aligned by speaker: FR left, Lingala right */}
+            {segments.map((s, idx) => {
+              const sFromLang = s.fromLingala ? langName : "Français";
+              const isRight = s.fromLingala;
+              return (
+                <div key={s.id} style={{
+                  marginBottom:10, width:"85%",
+                  marginLeft: isRight ? "auto" : 0,
+                  marginRight: isRight ? 0 : "auto",
+                  background: isRight ? "#F0FDF4" : "white",
+                  borderRadius:16,
+                  border: `1px solid ${isRight ? "#BBF7D0" : "#E8E0D4"}`,
+                  boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
+                  overflow:"hidden", animation:"slideIn 0.25s ease-out",
+                }}>
+                  {/* Source text */}
+                  <div style={{ padding:"10px 14px 6px", borderBottom:`1px solid ${isRight ? "#DCFCE7" : "#F2EDE6"}` }}>
+                    <span style={{ fontSize:11, fontWeight:700, color: isRight ? "#16A34A" : "#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sFromLang}</span>
+                    <span style={{ fontSize:13, color:"#9B8A6E", fontFamily:"'Source Serif 4', serif" }}>{s.source}</span>
                   </div>
-                  {!s.audioFailed ? (
-                    <button onClick={() => playAudio(s)} style={{
-                      flexShrink:0, width:38, height:38, borderRadius:"50%", border:"none",
-                      cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center",
-                      background: playingId === s.id ? "#16A34A" : "#F0F9F0",
-                      color: playingId === s.id ? "white" : "#16A34A",
-                      transition:"all 0.15s",
-                    }}>
-                      {playingId === s.id ? "■" : "▶"}
-                    </button>
-                  ) : (
-                    <span style={{ fontSize:11, color:"#C4B8A4" }}>—</span>
-                  )}
+                  {/* Translation */}
+                  <div style={{ padding:"10px 14px 12px", display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ flex:1, fontSize:17, fontWeight:700, color:"#2D2118", lineHeight:1.5, fontFamily:"'DM Sans', sans-serif" }}>
+                      {s.translation}
+                    </div>
+                    {!s.audioFailed ? (
+                      <button onClick={() => playAudio(s)} style={{
+                        flexShrink:0, width:38, height:38, borderRadius:"50%", border:"none",
+                        cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center",
+                        background: playingId === s.id ? "#16A34A" : "#F0F9F0",
+                        color: playingId === s.id ? "white" : "#16A34A",
+                        transition:"all 0.15s",
+                      }}>
+                        {playingId === s.id ? "■" : "▶"}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize:11, color:"#C4B8A4" }}>—</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Live interim text while speaking */}
             {liveText && (
@@ -1527,6 +1536,7 @@
 
       useEffect(() => {
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
+        if (view === "chat") fetch("/api/mms-tts").catch(() => {});
       }, [view]);
 
       // Reload progress whenever the logged-in user or active language changes
@@ -1687,7 +1697,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               systemPrompt,
-              messages: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+              messages: newMessages.slice(-12).map(m => ({ role: m.role, content: m.content })),
               testerName: testerName.trim() || null,
               sessionId: testerSessionId || null,
               languageId: langId,

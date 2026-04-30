@@ -51,9 +51,8 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 - Loading dots now only show while the placeholder is still empty (`chatMessages[last].content === ""`); they disappear on first token.
 - `Corriger` button only appears after streaming is complete (`!chatLoading` guard).
 
-### ✅ 2.2 Auto-play the latest Live Translation segment — SHIPPED 2026-04-29
-- `handleTranslate` calls `playAudio(newSeg)` after adding the segment, gated on `autoPlay && !isListeningRef.current`.
-- Auto-play is user-togglable via a 🔊/🔇 button in the top bar; preference persisted to `localStorage("monoko_live_autoplay")`. Defaults to on.
+### ~~2.2 Auto-play the latest Live Translation segment~~ — REMOVED
+- Shipped 2026-04-29, then removed 2026-04-30. Button and auto-play logic stripped entirely — didn't work reliably and confused users. Audio plays on manual ▶ tap only.
 
 ### ✅ 2.3 Pre-warm RAG endpoints on mount — SHIPPED 2026-04-29
 - `LiveTranslationView` useEffect fires fire-and-forget POSTs to `/api/rag-context` and `/api/lesson-context` with `{query:"warm", language_id:langId}` alongside the existing TTS Space ping.
@@ -201,7 +200,7 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 
 | # | Status | Effort | Impact | Notes |
 |---|---|---|---|---|
-| ✅ 2.2 Auto-play latest segment | Shipped 2026-04-29 | XS | High | Toggle 🔊/🔇, localStorage persisted |
+| ~~2.2 Auto-play latest segment~~ | Removed 2026-04-30 | — | — | Removed — audio plays on manual ▶ tap only |
 | ✅ 2.3 Pre-warm RAG endpoints | Shipped 2026-04-29 | XS | High | On LiveTranslationView mount |
 | ✅ 3.2 Real waveform | Shipped 2026-04-29 | S | Medium | AnalyserNode RAF loop, both STT modes |
 | ✅ 5.6 Cron TTS warm-up | Shipped 2026-04-29 | XS | High | Needs Vercel Pro for */9 schedule |
@@ -210,15 +209,15 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 | ✅ 5.4 Per-mode RAG similarity | Shipped 2026-04-30 | XS | Medium | LT sends 0.5, chat keeps 0.3 |
 | ✅ 2.1 Stream chat reply | Shipped 2026-04-30 | M | Very high | SSE stream, loading dots hide on first token |
 | ✅ 3.4 Preserve segments on swap | Shipped 2026-04-30 | XS | High | Removed `setSegments([])` from `swapDirection` |
-| 3.5 Speaker-labelled bubbles | **Next** | S | High | Side-aligned cards by `s.fromLingala` |
+| ✅ 3.5 Speaker-labelled bubbles | Shipped 2026-04-30 | S | High | FR left (white), LN right (green), per-segment label |
 | 2.4 Auto-focus chat input | Pending | XS | Low | |
 | 2.5 Persistent chat chips | Pending | XS | Low | |
 | ✅ 2.6 Show corpus in loader | Shipped 2026-04-30 | S | Medium | Pairs parsed from RAG, fade in above dots |
-| 4.1 Mic button in chat | Pending | M | Very high | Lift STT helpers to module scope |
+| 4.1 Mic button in chat | Skipped | M | High | Token cost concern — revisit when monetised |
 | 4.2 ▶ on assistant Lingala | Pending | M | High | Regex parse LN fragments |
-| 4.3 Warm Space on chat mount | Pending | XS | Medium | Duplicate warm-up useEffect |
+| ✅ 4.3 Warm Space on chat mount | Shipped 2026-04-30 | XS | Medium | Fires on view === "chat" change |
 | 5.1 Prompt cache restructure | Pending | S | Medium (cost) | Fixed prefix ≥1024 tokens |
-| 5.2 12-turn chat history | Pending | XS | Medium | slice(-12) |
+| ✅ 5.2 12-turn chat history | Shipped 2026-04-30 | XS | Medium | slice(-12) |
 | 5.7 Latency telemetry | Pending | S | Medium | chat_events columns + perf.now() |
 | 3.3 Live translation preview | Pending | M | Medium | AbortController, debounced preview |
 | 3.6 Slow-down playback | Pending | XS | Low-Medium | 0.75x playbackRate button |
