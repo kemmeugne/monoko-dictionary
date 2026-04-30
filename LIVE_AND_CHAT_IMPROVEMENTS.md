@@ -216,7 +216,7 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 | 4.1 Mic button in chat | Skipped | M | High | Token cost concern — revisit when monetised |
 | 4.2 ▶ on assistant Lingala | Pending | M | High | Regex parse LN fragments |
 | ✅ 4.3 Warm Space on chat mount | Shipped 2026-04-30 | XS | Medium | Fires on view === "chat" change |
-| 5.1 Prompt cache restructure | Pending | S | Medium (cost) | Fixed prefix ≥1024 tokens |
+| ✅ 5.1 Prompt cache restructure | Shipped 2026-04-30 | S | Medium (cost) | Fixed prefix expanded to ≥1024 tokens, corpus appended after |
 | ✅ 5.2 12-turn chat history | Shipped 2026-04-30 | XS | Medium | slice(-12) |
 | 5.7 Latency telemetry | Pending | S | Medium | chat_events columns + perf.now() |
 | 3.3 Live translation preview | Pending | M | Medium | AbortController, debounced preview |
