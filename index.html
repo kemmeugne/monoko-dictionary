@@ -662,7 +662,6 @@
       const [translating, setTranslating] = useState(false);
       const [error, setError] = useState("");
       const [playingId, setPlayingId] = useState(null);
-      const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem("monoko_live_autoplay") === "on");
 
       const isListeningRef = useRef(false);
       const directionRef = useRef("fr_to_lingala");
@@ -694,7 +693,6 @@
       // Keep refs in sync with state (needed inside async callbacks)
       useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
       useEffect(() => { directionRef.current = direction; }, [direction]);
-      useEffect(() => { localStorage.setItem("monoko_live_autoplay", autoPlay ? "on" : "off"); }, [autoPlay]);
 
       // Auto-scroll to bottom when new content arrives
       useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText, translating]);
@@ -1002,8 +1000,6 @@
             liveHistoryRef.current = [...liveHistoryRef.current, { role:"user", content:sourceText }, { role:"assistant", content:translation }].slice(-8);
             const newSeg = { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala };
             setSegments(prev => [...prev, newSeg]);
-            // Auto-play the translation when enabled — never while the user is speaking (would feed the mic)
-            if (autoPlay && !isListeningRef.current) playAudio(newSeg);
           }
         } catch(e) { console.error("Translation error:", e); }
         setTranslating(false);
@@ -1103,18 +1099,7 @@
             }}><ArrowLeft size={16} /> Accueil</button>
 
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <button
-                onClick={() => setAutoPlay(p => !p)}
-                title={autoPlay ? "Lecture auto activée — cliquer pour désactiver" : "Lecture auto désactivée — cliquer pour activer"}
-                style={{
-                  background: autoPlay ? "#F0FDF4" : "white",
-                  border: `1px solid ${autoPlay ? "#16A34A" : "#E8E0D4"}`,
-                  borderRadius:8, padding:"5px 9px", cursor:"pointer",
-                  fontSize:14, lineHeight:1, transition:"all 0.15s",
-                }}
-              >{autoPlay ? "🔊" : "🔇"}</button>
-
-              {segments.length > 0 && (
+{segments.length > 0 && (
                 <button onClick={() => { setSegments([]); setLiveText(""); }} style={{
                   background:"none", border:"none", color:"#C4B8A4", fontSize:12,
                   cursor:"pointer", fontFamily:"'DM Sans', sans-serif", padding:"6px 0",
