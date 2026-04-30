@@ -587,6 +587,8 @@
     // Space is public — no API key to protect.
     const LINGALA_TTS_SPACE = "https://kemz42-monoko-lingala-tts.hf.space";
 
+    const chatAudioCache = {}; // module-level — survives re-renders, shared across chat messages
+
     async function lingalaTTS(text) {
       // Step 1: start Gradio prediction
       // Gradio 6.x uses /gradio_api/ prefix (was /call/ in 4.x)
@@ -1291,6 +1293,7 @@
       const [chatInput, setChatInput] = useState("");
       const [chatLoading, setChatLoading] = useState(false);
       const [chatCorpusPairs, setChatCorpusPairs] = useState([]);
+      const [chatPlayingIdx, setChatPlayingIdx] = useState(null);
       const [correctionMsg, setCorrectionMsg] = useState(null);
       const [correctionText, setCorrectionText] = useState("");
       const [correctionFrench, setCorrectionFrench] = useState("");
@@ -1595,6 +1598,40 @@
 
       const openWord = (id, fromView) => { setPrevView(fromView || view); setSelectedWordId(id); setView("detail"); };
 
+      // ── Chat TTS helpers ──
+      const extractLingalaFragments = (text) => {
+        const frags = new Set();
+        // Primary: text after → (these are always Lingala translations in our prompt format)
+        for (const m of text.matchAll(/→\s*([^✓~\n()[\]{}"]{2,60})/g)) {
+          const f = m[1].trim().replace(/[✓~,;:.]+$/, "").trim();
+          if (f.length >= 2) frags.add(f);
+        }
+        // Fallback: quoted strings when no arrow fragments found
+        if (frags.size === 0) {
+          for (const m of text.matchAll(/"([^"]{3,60})"/g)) frags.add(m[1].trim());
+        }
+        return [...frags];
+      };
+
+      const playChatLingala = async (idx, text) => {
+        const fragments = extractLingalaFragments(text);
+        if (!fragments.length) return;
+        setChatPlayingIdx(idx);
+        for (const frag of fragments) {
+          try {
+            let url = chatAudioCache[frag];
+            if (!url) { url = await lingalaTTS(frag); chatAudioCache[frag] = url; }
+            await new Promise(resolve => {
+              const audio = new Audio(url);
+              audio.onended = resolve;
+              audio.onerror = resolve;
+              audio.play().catch(resolve);
+            });
+          } catch(e) { console.error("Chat TTS:", e); }
+        }
+        setChatPlayingIdx(null);
+      };
+
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
         if (!langId) return { context: "", pairs: [] };
@@ -1645,7 +1682,9 @@
         setChatCorpusPairs([]);
 
         try {
+          const t0 = performance.now();
           const { context, pairs } = await searchContext(msg);
+          const tRagMs = Math.round(performance.now() - t0);
           if (pairs.length) setChatCorpusPairs(pairs);
 
           // Fixed prefix — must be ≥1024 tokens and identical across all calls for OpenAI prompt caching.
@@ -1738,6 +1777,7 @@ CE QU'IL FAUT ÉVITER:
               languageId: langId,
               userQuery: msg,
               turnNumber: Math.ceil(newMessages.length / 2),
+              tRagMs,
             }),
           });
 
@@ -3056,7 +3096,7 @@ CE QU'IL FAUT ÉVITER:
                           }}>
                             {msg.content}
                           </div>
-                          {/* Corriger button for AI messages — only when streaming is complete (chatLoading false) */}
+                          {/* Action buttons for AI messages — only when streaming is complete */}
                           {msg.role === "assistant" && !msg.content.startsWith("⚠️") && !chatLoading && (
                             <div style={{ display:"flex", gap:6, marginTop:4, marginLeft:4 }}>
                               <button onClick={() => { setCorrectionMsg(idx); setCorrectionSent(false); setCorrectionText(""); setCorrectionExample(""); }}
@@ -3065,6 +3105,17 @@ CE QU'IL FAUT ÉVITER:
                                 onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.color="#9B8A6E"; }}>
                                 <FlagIcon /> Corriger
                               </button>
+                              {extractLingalaFragments(msg.content).length > 0 && (
+                                <button
+                                  onClick={() => playChatLingala(idx, msg.content)}
+                                  disabled={chatPlayingIdx !== null && chatPlayingIdx !== idx}
+                                  title="Écouter les traductions en Lingala"
+                                  style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid #E8E0D4", borderRadius:8, padding:"4px 10px", fontSize:11, color: chatPlayingIdx === idx ? "#16A34A" : "#9B8A6E", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
+                                  onMouseOver={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="#16A34A"; }}
+                                  onMouseOut={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="#E8E0D4"; }}>
+                                  {chatPlayingIdx === idx ? "⏳" : "🔊"}
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>

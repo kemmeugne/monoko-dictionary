@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { systemPrompt, messages, testerName, sessionId, languageId, userQuery, turnNumber } = req.body;
+  const { systemPrompt, messages, testerName, sessionId, languageId, userQuery, turnNumber, tRagMs } = req.body;
 
   if (!systemPrompt || !Array.isArray(messages)) {
     return res.status(400).json({ error: "Missing systemPrompt or messages" });
@@ -76,6 +76,7 @@ export default async function handler(req, res) {
   const decoder = new TextDecoder();
   let fullContent = "";
   let lineBuffer = "";
+  const streamStart = Date.now();
 
   try {
     while (true) {
@@ -113,6 +114,8 @@ export default async function handler(req, res) {
         user_query: userQuery || messages[messages.length - 1]?.content || null,
         assistant_response: fullContent || null,
         message_count: turnNumber || null,
+        t_rag_ms: typeof tRagMs === "number" ? tRagMs : null,
+        t_llm_ms: Date.now() - streamStart,
       });
     } catch (logError) {
       console.error("Chat tracking failed:", logError.message);
