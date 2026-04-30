@@ -977,8 +977,26 @@
             method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ systemPrompt: fullPrompt, messages:[...liveHistoryRef.current.slice(-8), { role:"user", content:sourceText }] }),
           });
-          const data = await chatRes.json();
-          const translation = (data.content || "").trim();
+          if (!chatRes.ok) { setTranslating(false); return; }
+          // api/chat streams SSE — accumulate full translation before rendering the segment
+          const reader = chatRes.body.getReader();
+          const decoder = new TextDecoder();
+          let accumulated = "";
+          let lineBuffer = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            lineBuffer += decoder.decode(value, { stream: true });
+            const lines = lineBuffer.split("\n");
+            lineBuffer = lines.pop();
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const payload = line.slice(6).trim();
+              if (payload === "[DONE]") continue;
+              try { const p = JSON.parse(payload); if (p.delta) accumulated += p.delta; } catch {}
+            }
+          }
+          const translation = accumulated.trim();
           if (translation) {
             // Update rolling history before rendering (keep last 4 turns = 8 messages)
             liveHistoryRef.current = [...liveHistoryRef.current, { role:"user", content:sourceText }, { role:"assistant", content:translation }].slice(-8);
