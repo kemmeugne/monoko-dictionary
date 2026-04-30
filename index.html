@@ -662,7 +662,7 @@
       const [translating, setTranslating] = useState(false);
       const [error, setError] = useState("");
       const [playingId, setPlayingId] = useState(null);
-      const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem("monoko_live_autoplay") !== "off");
+      const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem("monoko_live_autoplay") === "on");
 
       const isListeningRef = useRef(false);
       const directionRef = useRef("fr_to_lingala");
