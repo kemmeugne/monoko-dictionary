@@ -662,6 +662,7 @@
       const [translating, setTranslating] = useState(false);
       const [error, setError] = useState("");
       const [playingId, setPlayingId] = useState(null);
+      const [autoPlay, setAutoPlay] = useState(() => localStorage.getItem("monoko_live_autoplay") !== "off");
 
       const isListeningRef = useRef(false);
       const directionRef = useRef("fr_to_lingala");
@@ -673,13 +674,27 @@
       const mimeTypeRef = useRef("audio/webm");
       const audioCacheRef = useRef({});
       const transEndRef = useRef(null);
+      const analyserRef = useRef(null);   // { ctx, analyser, stream } — stream only set when we own it
+      const rafRef = useRef(null);
+      const barRefs = useRef([]);
+      const vadTimerRef = useRef(null);
+      const silenceStartRef = useRef(null);
+      const utteranceStartRef = useRef(null);
+      const liveHistoryRef = useRef([]);  // rolling last-4-turns for conversation memory
 
-      // Warm-up the TTS Space when the view mounts so it wakes before audio is needed
-      useEffect(() => { fetch("/api/mms-tts").catch(() => {}); }, []);
+      // Warm-up TTS Space + RAG endpoints on mount so the first segment is fast
+      useEffect(() => {
+        fetch("/api/mms-tts").catch(() => {});
+        if (langId) {
+          fetch("/api/rag-context",    { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
+          fetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
+        }
+      }, []);
 
       // Keep refs in sync with state (needed inside async callbacks)
       useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
       useEffect(() => { directionRef.current = direction; }, [direction]);
+      useEffect(() => { localStorage.setItem("monoko_live_autoplay", autoPlay ? "on" : "off"); }, [autoPlay]);
 
       // Auto-scroll to bottom when new content arrives
       useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText, translating]);
@@ -687,13 +702,107 @@
       // Cleanup on unmount
       useEffect(() => () => stopAll(), []);
 
+      const stopAmplitudeLoop = () => {
+        if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+        if (analyserRef.current) {
+          if (analyserRef.current.stream) analyserRef.current.stream.getTracks().forEach(t => t.stop());
+          try { analyserRef.current.ctx.close(); } catch(e) {}
+          analyserRef.current = null;
+        }
+        barRefs.current.forEach(el => { if (el) el.style.height = "4px"; });
+      };
+
+      const stopVAD = () => {
+        if (vadTimerRef.current) { clearInterval(vadTimerRef.current); vadTimerRef.current = null; }
+        silenceStartRef.current = null;
+        utteranceStartRef.current = null;
+      };
+
+      // Replaces the fixed 6-second timer. Uses the AnalyserNode from startAmplitudeLoop
+      // to detect real silence (RMS < threshold for 700ms) and trigger mediaRecorder.stop().
+      // Falls back to a 6s timeout if AudioContext isn't available.
+      const VAD_POLL_MS = 50;
+      const VAD_SILENCE_MS = 700;
+      const VAD_SILENCE_THRESH = 0.01;
+      const VAD_MAX_MS = 15000;
+
+      const startVAD = () => {
+        stopVAD();
+        if (!analyserRef.current) {
+          // AudioContext unavailable — fall back to original fixed-window behaviour
+          chunkTimerRef.current = setTimeout(() => {
+            if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+          }, 6000);
+          return;
+        }
+        silenceStartRef.current = null;
+        utteranceStartRef.current = Date.now();
+        vadTimerRef.current = setInterval(() => {
+          if (!analyserRef.current || !isListeningRef.current || mediaRecorderRef.current?.state !== "recording") return;
+          const { analyser } = analyserRef.current;
+          const data = new Uint8Array(analyser.frequencyBinCount);
+          analyser.getByteTimeDomainData(data);
+          let rms = 0;
+          for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; rms += v * v; }
+          rms = Math.sqrt(rms / data.length);
+          const now = Date.now();
+          // Hard ceiling — split after VAD_MAX_MS regardless of speech
+          if (utteranceStartRef.current && now - utteranceStartRef.current >= VAD_MAX_MS) {
+            if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+            stopVAD();
+            return;
+          }
+          if (rms < VAD_SILENCE_THRESH) {
+            if (!silenceStartRef.current) silenceStartRef.current = now;
+            else if (now - silenceStartRef.current >= VAD_SILENCE_MS) {
+              if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
+              stopVAD();
+            }
+          } else {
+            silenceStartRef.current = null; // reset on speech
+          }
+        }, VAD_POLL_MS);
+      };
+
+      // ownStream=true: we opened the stream just for the waveform and must close it.
+      // ownStream=false: MediaRecorder owns the stream; we must not stop its tracks.
+      const startAmplitudeLoop = (stream, ownStream = false) => {
+        stopAmplitudeLoop();
+        try {
+          const ctx = new AudioContext();
+          const source = ctx.createMediaStreamSource(stream);
+          const analyser = ctx.createAnalyser();
+          analyser.fftSize = 128;
+          source.connect(analyser);
+          const data = new Uint8Array(analyser.frequencyBinCount);
+          analyserRef.current = { ctx, analyser, stream: ownStream ? stream : null };
+          const tick = () => {
+            analyser.getByteTimeDomainData(data);
+            let rms = 0;
+            for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; rms += v * v; }
+            rms = Math.sqrt(rms / data.length);
+            const scale = Math.min(rms * 8, 1);
+            const now = Date.now();
+            barRefs.current.forEach((el, i) => {
+              if (!el) return;
+              const wobble = 0.65 + 0.35 * Math.sin(now / 180 + i * 0.75);
+              el.style.height = Math.round(4 + 28 * scale * wobble) + "px";
+            });
+            rafRef.current = requestAnimationFrame(tick);
+          };
+          tick();
+        } catch(e) { /* AudioContext unsupported — waveform stays flat */ }
+      };
+
       const stopAll = () => {
         clearTimeout(chunkTimerRef.current);
         clearTimeout(translateTimerRef.current);
+        stopVAD();
         if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch(e) {} recognitionRef.current = null; }
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
           try { mediaRecorderRef.current.stop(); } catch(e) {}
         }
+        stopAmplitudeLoop();
       };
 
       const toggleListening = async () => {
@@ -769,6 +878,10 @@
         recognition.start();
         setIsListening(true);
         isListeningRef.current = true;
+        // Web Speech API doesn't expose raw audio — open a separate stream just for the waveform
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => startAmplitudeLoop(stream, true))
+          .catch(() => {}); // waveform is cosmetic — fail silently
       };
 
       // ── Lingala STT via ElevenLabs Scribe (chunked) ───────────────────────
@@ -813,9 +926,7 @@
         if (!isListeningRef.current || !mediaRecorderRef.current) return;
         try {
           if (mediaRecorderRef.current.state === "inactive") mediaRecorderRef.current.start();
-          chunkTimerRef.current = setTimeout(() => {
-            if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
-          }, 6000);
+          startVAD();
         } catch(e) {}
       };
 
@@ -835,9 +946,8 @@
           recorder.start(250);
           setIsListening(true);
           isListeningRef.current = true;
-          chunkTimerRef.current = setTimeout(() => {
-            if (recorder.state === "recording") recorder.stop();
-          }, 6000);
+          startAmplitudeLoop(stream); // MediaRecorder owns this stream; don't stop its tracks
+          startVAD();
         } catch(e) {
           setError(e.name === "NotAllowedError"
             ? "Accès au microphone refusé. Autorisez le microphone dans les paramètres."
@@ -856,21 +966,26 @@
 
         try {
           const [ragRes, lessonRes] = await Promise.allSettled([
-            fetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
+            fetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId, min_similarity:0.5 }) }).then(r => r.ok ? r.json() : null),
             fetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
           ]);
           const ctx = [ragRes.value?.context, lessonRes.value?.context].filter(Boolean).join("\n\n");
           const fullPrompt = sysPrompt + (ctx ? `\n\n=== CORPUS ===\n${ctx}\n=== FIN CORPUS ===` : "");
 
+          // Include last 4 turns so pronouns and continuations resolve correctly across segments
           const chatRes = await fetch("/api/chat", {
             method:"POST", headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ systemPrompt: fullPrompt, messages:[{ role:"user", content:sourceText }] }),
+            body: JSON.stringify({ systemPrompt: fullPrompt, messages:[...liveHistoryRef.current.slice(-8), { role:"user", content:sourceText }] }),
           });
           const data = await chatRes.json();
           const translation = (data.content || "").trim();
           if (translation) {
+            // Update rolling history before rendering (keep last 4 turns = 8 messages)
+            liveHistoryRef.current = [...liveHistoryRef.current, { role:"user", content:sourceText }, { role:"assistant", content:translation }].slice(-8);
             const newSeg = { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala };
             setSegments(prev => [...prev, newSeg]);
+            // Auto-play the translation when enabled — never while the user is speaking (would feed the mic)
+            if (autoPlay && !isListeningRef.current) playAudio(newSeg);
           }
         } catch(e) { console.error("Translation error:", e); }
         setTranslating(false);
@@ -949,26 +1064,14 @@
       const swapDirection = () => {
         if (isListening) { stopAll(); setIsListening(false); isListeningRef.current = false; setLiveText(""); }
         setDirection(prev => prev === "fr_to_lingala" ? "lingala_to_fr" : "fr_to_lingala");
-        setSegments([]);
         setError("");
+        liveHistoryRef.current = []; // conversation context is language-specific — reset on swap
       };
 
       const isFromLingala = direction === "lingala_to_fr";
       const sourceLang = isFromLingala ? langName : "Français";
       const targetLang = isFromLingala ? "Français" : langName;
 
-      // Waveform bar configs — alternating animations for organic feel
-      const waveBars = [
-        { anim:"waveB", dur:"0.5s", delay:"0s" },
-        { anim:"waveC", dur:"0.7s", delay:"0.1s" },
-        { anim:"waveA", dur:"0.4s", delay:"0.05s" },
-        { anim:"waveC", dur:"0.6s", delay:"0.2s" },
-        { anim:"waveA", dur:"0.5s", delay:"0.15s" },
-        { anim:"waveB", dur:"0.8s", delay:"0.0s" },
-        { anim:"waveC", dur:"0.45s", delay:"0.1s" },
-        { anim:"waveA", dur:"0.6s", delay:"0.25s" },
-        { anim:"waveB", dur:"0.5s", delay:"0.05s" },
-      ];
 
       return (
         <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", paddingTop:12 }}>
@@ -981,12 +1084,25 @@
               fontFamily:"'DM Sans', sans-serif",
             }}><ArrowLeft size={16} /> Accueil</button>
 
-            {segments.length > 0 && (
-              <button onClick={() => { setSegments([]); setLiveText(""); }} style={{
-                background:"none", border:"none", color:"#C4B8A4", fontSize:12,
-                cursor:"pointer", fontFamily:"'DM Sans', sans-serif", padding:"6px 0",
-              }}>Effacer</button>
-            )}
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <button
+                onClick={() => setAutoPlay(p => !p)}
+                title={autoPlay ? "Lecture auto activée — cliquer pour désactiver" : "Lecture auto désactivée — cliquer pour activer"}
+                style={{
+                  background: autoPlay ? "#F0FDF4" : "white",
+                  border: `1px solid ${autoPlay ? "#16A34A" : "#E8E0D4"}`,
+                  borderRadius:8, padding:"5px 9px", cursor:"pointer",
+                  fontSize:14, lineHeight:1, transition:"all 0.15s",
+                }}
+              >{autoPlay ? "🔊" : "🔇"}</button>
+
+              {segments.length > 0 && (
+                <button onClick={() => { setSegments([]); setLiveText(""); }} style={{
+                  background:"none", border:"none", color:"#C4B8A4", fontSize:12,
+                  cursor:"pointer", fontFamily:"'DM Sans', sans-serif", padding:"6px 0",
+                }}>Effacer</button>
+              )}
+            </div>
           </div>
 
           {/* ── Language switcher ── */}
@@ -1088,15 +1204,13 @@
           {/* ── Bottom mic section ── */}
           <div style={{ flexShrink:0, paddingTop:10 }}>
 
-            {/* Waveform */}
+            {/* Waveform — heights driven by real mic amplitude via AnalyserNode */}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:3, height:36, marginBottom:12 }}>
-              {waveBars.map((b, i) => (
-                <div key={i} style={{
+              {Array.from({length:9}).map((_, i) => (
+                <div key={i} ref={el => barRefs.current[i] = el} style={{
                   width:4, borderRadius:3,
                   background: isListening ? "#16A34A" : "#E8E0D4",
-                  height: isListening ? undefined : 4,
-                  minHeight: isListening ? 4 : undefined,
-                  animation: isListening ? `${b.anim} ${b.dur} ${b.delay} ease-in-out infinite alternate` : "none",
+                  height:"4px",
                   transition:"background 0.3s",
                 }} />
               ))}
@@ -1164,6 +1278,7 @@
       const [chatMessages, setChatMessages] = useState([]);
       const [chatInput, setChatInput] = useState("");
       const [chatLoading, setChatLoading] = useState(false);
+      const [chatCorpusPairs, setChatCorpusPairs] = useState([]);
       const [correctionMsg, setCorrectionMsg] = useState(null);
       const [correctionText, setCorrectionText] = useState("");
       const [correctionFrench, setCorrectionFrench] = useState("");
@@ -1469,7 +1584,7 @@
 
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
-        if (!langId) return "";
+        if (!langId) return { context: "", pairs: [] };
 
         // Fire rag-context (parallel_sentences pgvector) and lesson-context in parallel
         const [ragResult, lessonResult] = await Promise.allSettled([
@@ -1489,8 +1604,20 @@
         const ragContext    = ragResult.value?.context    || "";
         const lessonContext = lessonResult.value?.context || "";
 
+        // Parse top 3 verified pairs from the formatted context string for the loading preview
+        const pairs = [];
+        const pairRe = /^• (.+?) → (.+?) \[(vérifié|auto)\]$/;
+        for (const line of ragContext.split("\n")) {
+          const m = pairRe.exec(line.trim());
+          if (m) pairs.push({ fr: m[1], ln: m[2], quality: m[3] });
+          if (pairs.length >= 3) break;
+        }
+
         const parts = [ragContext, lessonContext].filter(Boolean);
-        return parts.length ? parts.join("\n\n") : "(Aucune donnée trouvée dans le corpus)";
+        return {
+          context: parts.length ? parts.join("\n\n") : "(Aucune donnée trouvée dans le corpus)",
+          pairs,
+        };
       };
 
       const sendChat = async () => {
@@ -1498,12 +1625,15 @@
         if (!msg || chatLoading) return;
 
         const newMessages = [...chatMessages, { role: "user", content: msg }];
-        setChatMessages(newMessages);
+        // Add empty assistant placeholder immediately — loading dots show until first token arrives
+        setChatMessages([...newMessages, { role: "assistant", content: "" }]);
         setChatInput("");
         setChatLoading(true);
+        setChatCorpusPairs([]);
 
         try {
-          const context = await searchContext(msg);
+          const { context, pairs } = await searchContext(msg);
+          if (pairs.length) setChatCorpusPairs(pairs);
           const systemPrompt = `Tu es Monoko, un assistant IA dédié à la langue ${langName}.
 
 RÈGLE SUJET: Tu ne réponds qu'aux questions liées à la langue ${langName} — traductions, grammaire, conjugaison, vocabulaire, prononciation, conversations. Ces sujets sont TOUJOURS valides. Pour un sujet sans aucun rapport avec la langue (météo, actualités, maths…), réponds poliment que tu ne traites que le ${langName}.
@@ -1563,24 +1693,47 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
             }),
           });
 
-          const data = await res.json();
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            setChatMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: `⚠️ Erreur: ${data.error || "Réponse vide du modèle."}` }]);
+            setChatLoading(false);
+            return;
+          }
 
-          if (res.ok && data.content) {
-            setChatMessages(prev => [
-              ...prev,
-              { role: "assistant", content: data.content }
-            ]);
-          } else {
-            setChatMessages(prev => [
-              ...prev,
-              { role: "assistant", content: `⚠️ Erreur: ${data.error || "Réponse vide du modèle."}` }
-            ]);
+          // Consume the SSE stream — each chunk carries { delta: "..." }
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let accumulated = "";
+          let lineBuffer = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            lineBuffer += decoder.decode(value, { stream: true });
+            const lines = lineBuffer.split("\n");
+            lineBuffer = lines.pop(); // keep any incomplete trailing line
+
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const payload = line.slice(6).trim();
+              if (payload === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(payload);
+                if (parsed.delta) {
+                  if (!accumulated) setChatCorpusPairs([]); // hide corpus preview on first token
+                  accumulated += parsed.delta;
+                  const snap = accumulated;
+                  setChatMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: snap }]);
+                }
+              } catch {}
+            }
+          }
+
+          if (!accumulated) {
+            setChatMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: "⚠️ Réponse vide du modèle." }]);
           }
         } catch (e) {
-          setChatMessages(prev => [
-            ...prev,
-            { role: "assistant", content: `⚠️ Erreur de connexion: ${e.message}` }
-          ]);
+          setChatMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: `⚠️ Erreur de connexion: ${e.message}` }]);
         }
 
         setChatLoading(false);
@@ -2835,7 +2988,7 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                         </div>
                       )}
 
-                      {chatMessages.map((msg, idx) => (
+                      {chatMessages.map((msg, idx) => !msg.content ? null : (
                         <div key={idx} style={{
                           alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
                           maxWidth: "85%",
@@ -2855,8 +3008,8 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                           }}>
                             {msg.content}
                           </div>
-                          {/* Corriger button for AI messages */}
-                          {msg.role === "assistant" && !msg.content.startsWith("⚠️") && (
+                          {/* Corriger button for AI messages — only when streaming is complete (chatLoading false) */}
+                          {msg.role === "assistant" && !msg.content.startsWith("⚠️") && !chatLoading && (
                             <div style={{ display:"flex", gap:6, marginTop:4, marginLeft:4 }}>
                               <button onClick={() => { setCorrectionMsg(idx); setCorrectionSent(false); setCorrectionText(""); setCorrectionExample(""); }}
                                 style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid #E8E0D4", borderRadius:8, padding:"4px 10px", fontSize:11, color:"#9B8A6E", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
@@ -2869,7 +3022,25 @@ ${context || "(Aucune donnée trouvée pour cette requête)"}
                         </div>
                       ))}
 
-                      {chatLoading && (
+                      {chatLoading && chatMessages[chatMessages.length - 1]?.content === "" && chatCorpusPairs.length > 0 && (
+                        <div style={{ alignSelf:"flex-start", maxWidth:"90%", animation:"fadeIn 0.3s ease-out" }}>
+                          <div style={{ background:"#FAFAF8", border:"1px solid #E8E0D4", borderRadius:12, padding:"10px 14px", marginBottom:6 }}>
+                            <p style={{ fontSize:10, fontWeight:700, color:"#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", margin:"0 0 8px", fontFamily:"'DM Mono', monospace" }}>
+                              Trouvé dans le corpus
+                            </p>
+                            {chatCorpusPairs.map((p, i) => (
+                              <div key={i} style={{ fontSize:12, color:"#9B8A6E", lineHeight:1.8, fontFamily:"'DM Sans', sans-serif" }}>
+                                <span style={{ color:"#5C4A2E" }}>{p.fr}</span>
+                                <span style={{ color:"#C4B8A4", margin:"0 5px" }}>→</span>
+                                <span style={{ color:"#5C4A2E" }}>{p.ln}</span>
+                                {p.quality === "vérifié" && <span style={{ color:"#16A34A", marginLeft:4, fontSize:10 }}>✓</span>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {chatLoading && chatMessages[chatMessages.length - 1]?.content === "" && (
                         <div style={{ alignSelf:"flex-start", maxWidth:"85%" }}>
                           <div style={{ background:"white", border:"1px solid #E8E0D4", padding:"12px 20px", borderRadius:"16px 16px 16px 4px" }}>
                             <div style={{ display:"flex", gap:4 }}>

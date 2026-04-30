@@ -2,10 +2,11 @@
  * Vercel Serverless Function — Monoko Chat
  *
  * Proxies OpenAI calls so the API key never touches the browser.
- * Optionally logs tester activity to Supabase when tracking fields are sent.
+ * Streams the response as SSE so the first token appears in <500ms.
+ * Logs tester activity to Supabase after the stream completes.
  *
- * Environment variable to set in Vercel dashboard:
- *   OPENAI_API_KEY  — your OpenAI API key (sk-proj-...)
+ * Environment variables:
+ *   OPENAI_API_KEY       — OpenAI key (sk-proj-...)
  *   SUPABASE_SERVICE_KEY — optional, used for tester activity logging
  */
 
@@ -42,50 +43,82 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing systemPrompt or messages" });
   }
 
+  const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: 512,
+      stream: true,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...messages,
+      ],
+    }),
+  });
+
+  if (!openaiRes.ok) {
+    const data = await openaiRes.json().catch(() => ({}));
+    return res.status(openaiRes.status).json({ error: data.error?.message || "OpenAI error" });
+  }
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.status(200);
+
+  const reader = openaiRes.body.getReader();
+  const decoder = new TextDecoder();
+  let fullContent = "";
+  let lineBuffer = "";
+
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.2,
-        max_tokens: 512,
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
-      }),
-    });
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      lineBuffer += decoder.decode(value, { stream: true });
+      const lines = lineBuffer.split("\n");
+      lineBuffer = lines.pop(); // hold back incomplete trailing line
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || "OpenAI error" });
-    }
-
-    const assistantContent = data.choices[0].message.content;
-
-    if (testerName || sessionId) {
-      try {
-        await supaWrite("chat_events", {
-          tester_name: testerName || null,
-          session_id: sessionId || null,
-          language_id: languageId || null,
-          user_query: userQuery || messages[messages.length - 1]?.content || null,
-          assistant_response: assistantContent || null,
-          message_count: turnNumber || null,
-        });
-      } catch (logError) {
-        console.error("Chat tracking failed:", logError.message);
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6).trim();
+        if (data === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed.choices?.[0]?.delta?.content || "";
+          if (delta) {
+            fullContent += delta;
+            res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+          }
+        } catch {}
       }
     }
-
-    return res.status(200).json({ content: assistantContent });
-
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    console.error("Stream pump error:", e.message);
   }
+
+  // Log to chat_events after the full response is assembled
+  if (testerName || sessionId) {
+    try {
+      await supaWrite("chat_events", {
+        tester_name: testerName || null,
+        session_id: sessionId || null,
+        language_id: languageId || null,
+        user_query: userQuery || messages[messages.length - 1]?.content || null,
+        assistant_response: fullContent || null,
+        message_count: turnNumber || null,
+      });
+    } catch (logError) {
+      console.error("Chat tracking failed:", logError.message);
+    }
+  }
+
+  res.write("data: [DONE]\n\n");
+  res.end();
 }

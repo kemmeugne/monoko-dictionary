@@ -91,7 +91,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { query, language_id, match_count } = req.body;
+  const { query, language_id, match_count, min_similarity } = req.body;
 
   if (!query || !language_id) {
     return res.status(400).json({ error: "Missing query or language_id" });
@@ -113,7 +113,8 @@ export default async function handler(req, res) {
       match_count || DEFAULT_MATCH
     );
 
-    const relevant = rows.filter(r => r.similarity >= SIMILARITY_THRESHOLD);
+    const threshold = (typeof min_similarity === "number") ? min_similarity : SIMILARITY_THRESHOLD;
+    const relevant = rows.filter(r => r.similarity >= threshold);
     const context  = formatContext(relevant.length > 0 ? relevant : rows);
 
     return res.status(200).json({ context, result_count: rows.length });
