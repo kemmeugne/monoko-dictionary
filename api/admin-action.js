@@ -9,7 +9,13 @@
  *   ADMIN_PASSWORD        — the admin panel password
  */
 
+import { checkRateLimit, getClientIp } from "./_rate-limit.js";
+
 const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
+
+// Rate limit: 15 requests per 15 minutes per IP (brute-force password protection)
+const ADMIN_LIMIT  = 15;
+const ADMIN_WINDOW = 15 * 60 * 1000;
 
 async function supaWrite(method, table, body, filter = "") {
   const url = `${SUPABASE_URL}/rest/v1/${table}${filter ? "?" + filter : ""}`;
@@ -30,14 +36,15 @@ async function supaWrite(method, table, body, filter = "") {
 }
 
 export default async function handler(req, res) {
-  // Only accept POST
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const ip = getClientIp(req);
+  if (!checkRateLimit(ip, { limit: ADMIN_LIMIT, windowMs: ADMIN_WINDOW })) {
+    return res.status(429).json({ error: "Too many requests" });
   }
 
   const { action, password, ...params } = req.body;
 
-  // Verify admin password
   if (password !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ error: "Unauthorized" });
   }

@@ -17,11 +17,26 @@
  * ElevenLabs Scribe's current "moderate" rating (20-50% WER on Lingala).
  */
 
+import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+
 const MODEL_ID = "scribe_v2";
 
+// Rate limit: 20 requests per 5 minutes per IP (STT is more expensive)
+const STT_LIMIT  = 20;
+const STT_WINDOW = 5 * 60 * 1000;
+
+// ~5MB base64 cap (≈3.75MB real audio — well above a typical spoken segment)
+const MAX_AUDIO_B64_CHARS = 7_000_000;
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  setCorsHeaders(res, req);
+
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const ip = getClientIp(req);
+  if (!checkRateLimit(ip, { limit: STT_LIMIT, windowMs: STT_WINDOW })) {
+    return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -32,6 +47,9 @@ export default async function handler(req, res) {
   const { audio, mimeType = "audio/webm" } = req.body || {};
   if (!audio) {
     return res.status(400).json({ error: "No audio data provided" });
+  }
+  if (audio.length > MAX_AUDIO_B64_CHARS) {
+    return res.status(400).json({ error: "Audio file too large (max ~5MB)" });
   }
 
   try {

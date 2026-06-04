@@ -15,11 +15,17 @@
  *   SUPABASE_SERVICE_KEY — Supabase service role key (for RPC access)
  */
 
+import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+
 const SUPABASE_URL  = "https://haioiccujncsehadipzb.supabase.co";
 const EMBED_MODEL   = "text-embedding-3-small";
 const EMBED_DIMS    = 384;
 const DEFAULT_MATCH = 8;
-const SIMILARITY_THRESHOLD = 0.4; // only expand lessons that are clearly relevant
+const SIMILARITY_THRESHOLD = 0.4;
+
+// Rate limit: 40 requests per 10 minutes per IP
+const LESSON_LIMIT  = 40;
+const LESSON_WINDOW = 10 * 60 * 1000;
 
 async function embedQuery(query) {
   const res = await fetch("https://api.openai.com/v1/embeddings", {
@@ -105,14 +111,23 @@ function formatContext(rows) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  setCorsHeaders(res, req);
+
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const ip = getClientIp(req);
+  if (!checkRateLimit(ip, { limit: LESSON_LIMIT, windowMs: LESSON_WINDOW })) {
+    return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
 
   const { query, language_id, match_count } = req.body;
 
   if (!query || !language_id) {
     return res.status(400).json({ error: "Missing query or language_id" });
+  }
+  if (typeof query === "string" && query.length > 1000) {
+    return res.status(400).json({ error: "Query too long (max 1000 chars)" });
   }
 
   if (!process.env.OPENAI_API_KEY) {

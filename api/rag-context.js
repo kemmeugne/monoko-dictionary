@@ -15,11 +15,17 @@
  *   SUPABASE_SERVICE_KEY — Supabase service role key
  */
 
+import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+
 const SUPABASE_URL         = "https://haioiccujncsehadipzb.supabase.co";
 const EMBED_MODEL          = "text-embedding-3-small";
 const EMBED_DIMS           = 384;
 const DEFAULT_MATCH        = 30;
 const SIMILARITY_THRESHOLD = 0.3;
+
+// Rate limit: 40 requests per 10 minutes per IP (called automatically alongside chat)
+const RAG_LIMIT  = 40;
+const RAG_WINDOW = 10 * 60 * 1000;
 
 async function embedQuery(query) {
   const res = await fetch("https://api.openai.com/v1/embeddings", {
@@ -87,14 +93,23 @@ function formatContext(rows) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  setCorsHeaders(res, req);
+
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const ip = getClientIp(req);
+  if (!checkRateLimit(ip, { limit: RAG_LIMIT, windowMs: RAG_WINDOW })) {
+    return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
 
   const { query, language_id, match_count, min_similarity } = req.body;
 
   if (!query || !language_id) {
     return res.status(400).json({ error: "Missing query or language_id" });
+  }
+  if (typeof query === "string" && query.length > 1000) {
+    return res.status(400).json({ error: "Query too long (max 1000 chars)" });
   }
 
   if (!process.env.OPENAI_API_KEY) {

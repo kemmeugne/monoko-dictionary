@@ -15,12 +15,24 @@
  * and host on our own HuggingFace Space. No pre-trained Lingala TTS model exists publicly.
  */
 
+import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM"; // Rachel
 const MODEL_ID = "eleven_multilingual_v2";
 
+// Rate limit: 30 requests per 5 minutes per IP
+const TTS_LIMIT  = 30;
+const TTS_WINDOW = 5 * 60 * 1000;
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  setCorsHeaders(res, req);
+
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  const ip = getClientIp(req);
+  if (!checkRateLimit(ip, { limit: TTS_LIMIT, windowMs: TTS_WINDOW })) {
+    return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -31,6 +43,9 @@ export default async function handler(req, res) {
   const { text } = req.body || {};
   if (!text || !text.trim()) {
     return res.status(400).json({ error: "No text provided" });
+  }
+  if (text.length > 500) {
+    return res.status(400).json({ error: "Text too long (max 500 chars)" });
   }
 
   try {
