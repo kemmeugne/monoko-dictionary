@@ -26,7 +26,7 @@ const CHAT_WINDOW   = 10 * 60 * 1000;
 // Input caps
 const MAX_MESSAGES       = 20;
 const MAX_MESSAGE_CHARS  = 2000;
-const MAX_CONTEXT_CHARS  = 12000; // RAG + lesson context combined
+const MAX_CONTEXT_CHARS  = 50000; // RAG + lesson context combined (30 pairs + 8 lesson items ≈ 6–15k chars)
 
 function buildSystemPrompt(langName, ragContext, lessonContext, mode, direction) {
   if (mode === "live-translation") {
