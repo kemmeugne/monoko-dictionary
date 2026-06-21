@@ -1110,7 +1110,7 @@
 
 
       return (
-        <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100vh - 80px)", paddingTop:12 }}>
+        <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100dvh - 80px)", paddingTop:12 }}>
 
           {/* ── Top bar ── */}
           <div style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
@@ -1812,7 +1812,7 @@
       }, [chatMessages, chatLoading]);
 
       return (
-        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#F7F3ED", fontFamily:"'DM Sans', sans-serif" }}>
+        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100dvh", background:"#F7F3ED", fontFamily:"'DM Sans', sans-serif", paddingTop:"env(safe-area-inset-top)", paddingBottom:"env(safe-area-inset-bottom)" }}>
           <div style={{ padding:"0 20px 100px" }}>
 
             {/* LANGUAGE SELECT */}
@@ -2870,7 +2870,7 @@
                     <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Email</label>
                     <input value={authEmail} onChange={e => setAuthEmail(e.target.value)}
                       type="email" placeholder="votre@email.com"
-                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
+                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:16, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
                       onFocus={e => e.target.style.borderColor="#2C5F2D"}
                       onBlur={e => e.target.style.borderColor="#E8E0D4"}
                     />
@@ -2882,7 +2882,7 @@
                     <input value={authPassword} onChange={e => setAuthPassword(e.target.value)}
                       type="password" placeholder="••••••••"
                       onKeyDown={e => { if (e.key === "Enter") handleAuthSubmit(); }}
-                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
+                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:16, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
                       onFocus={e => e.target.style.borderColor="#2C5F2D"}
                       onBlur={e => e.target.style.borderColor="#E8E0D4"}
                     />
@@ -2936,7 +2936,7 @@
                     onChange={e => setPendingTesterName(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); saveTesterNameAndOpenChat(); } }}
                     placeholder="Nom du professeur ou du testeur"
-                    style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:14, outline:"none", fontSize:15, padding:"13px 14px", color:"#2D2118", fontFamily:"'DM Sans', sans-serif", background:"#FCFBF8", marginBottom:14 }}
+                    style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:14, outline:"none", fontSize:16, padding:"13px 14px", color:"#2D2118", fontFamily:"'DM Sans', sans-serif", background:"#FCFBF8", marginBottom:14 }}
                   />
 
                   <button
@@ -2957,7 +2957,7 @@
 
             {/* CHAT WITH MONOKO */}
             {view === "chat" && selectedLang && (
-              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, display:"flex", flexDirection:"column", minHeight:"calc(100vh - 120px)" }}>
+              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, display:"flex", flexDirection:"column", minHeight:"calc(100dvh - 120px)" }}>
                 <button onClick={() => { setView("home"); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
                   color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
@@ -3099,7 +3099,7 @@
                           onChange={e => setChatInput(e.target.value)}
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
                           placeholder={`Écrivez en français ou ${langName.toLowerCase()}...`}
-                          style={{ flex:1, border:"none", outline:"none", fontSize:15, padding:"13px 0", background:"transparent", color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}
+                          style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"13px 0", background:"transparent", color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}
                           onFocus={e => e.target.parentElement.style.borderColor="#0EA5E9"}
                           onBlur={e => e.target.parentElement.style.borderColor="#E8E0D4"}
                           disabled={chatLoading}
@@ -3152,7 +3152,7 @@
                           <textarea value={correctionText} onChange={e => setCorrectionText(e.target.value)}
                             placeholder={`Écrivez la traduction correcte en ${langName}...`}
                             rows={2}
-                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
                             onFocus={e => e.target.style.borderColor="#0EA5E9"}
                             onBlur={e => e.target.style.borderColor="#E8E0D4"}
                           />
@@ -3161,7 +3161,7 @@
                           <textarea value={correctionFrench} onChange={e => setCorrectionFrench(e.target.value)}
                             placeholder="Écrivez la phrase en français correspondante..."
                             rows={2}
-                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
                             onFocus={e => e.target.style.borderColor="#0EA5E9"}
                             onBlur={e => e.target.style.borderColor="#E8E0D4"}
                           />
