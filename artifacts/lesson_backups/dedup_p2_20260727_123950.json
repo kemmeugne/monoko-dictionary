@@ -1,0 +1,403 @@
+{
+  "ts": "20260727_123950",
+  "deletes": [
+    {
+      "lesson_id": 372,
+      "id": 7992,
+      "item_order": 56,
+      "french": "Assiette",
+      "dialect": "Sani",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D208.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 7993,
+      "item_order": 57,
+      "french": "Bouteille",
+      "dialect": "Molangi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D209.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 7994,
+      "item_order": 58,
+      "french": "Conserver",
+      "dialect": "Ko bombama",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D210.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 7995,
+      "item_order": 59,
+      "french": "Couteau",
+      "dialect": "Mbeli",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D211.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 7996,
+      "item_order": 60,
+      "french": "Couvrir",
+      "dialect": "Ko kanga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D212.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 7997,
+      "item_order": 61,
+      "french": "Cuillère",
+      "dialect": "Lutu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D213.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 7998,
+      "item_order": 62,
+      "french": "Emballer",
+      "dialect": "Ko linga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D214.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 7999,
+      "item_order": 63,
+      "french": "Marmite / Casserole",
+      "dialect": "Nzungu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D215.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 8000,
+      "item_order": 64,
+      "french": "Mortier",
+      "dialect": "Eboka",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D216.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 8001,
+      "item_order": 65,
+      "french": "Plat",
+      "dialect": "Sani",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D146.mp3"
+    },
+    {
+      "lesson_id": 372,
+      "id": 8002,
+      "item_order": 66,
+      "french": "Verre",
+      "dialect": "Kopo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_4/4.D218.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7523,
+      "item_order": 9,
+      "french": "Je sais",
+      "dialect": "Na yebi.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F259.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7524,
+      "item_order": 10,
+      "french": "Je ne sais pas",
+      "dialect": "Na yebi te.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F260.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7525,
+      "item_order": 11,
+      "french": "D'accord / Je suis d'accord",
+      "dialect": "Malamu / Na ndimi",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7526,
+      "item_order": 12,
+      "french": "Je ne suis pas d'accord",
+      "dialect": "Na ndimi te.",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7527,
+      "item_order": 13,
+      "french": "Tu as raison",
+      "dialect": "Oza na motindo.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F263.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7528,
+      "item_order": 14,
+      "french": "Tu as tort",
+      "dialect": "Oza na foti.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F264.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7529,
+      "item_order": 15,
+      "french": "Je ne suis pas sûr",
+      "dialect": "Na ndimi te.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F265.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7530,
+      "item_order": 16,
+      "french": "C'est vrai",
+      "dialect": "Eza solo.",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7531,
+      "item_order": 17,
+      "french": "C'est faux",
+      "dialect": "Eza lokuta.",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7532,
+      "item_order": 18,
+      "french": "J'aime courir",
+      "dialect": "Na lingaka ko kima.",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7533,
+      "item_order": 19,
+      "french": "Je déteste ce plat",
+      "dialect": "Na lingaka bilia oyo te.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F269.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7534,
+      "item_order": 20,
+      "french": "Quelle est ta musique préférée ?",
+      "dialect": "Olingaka ndule nini ?",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F270.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7535,
+      "item_order": 21,
+      "french": "J'aime la viande mais je préfère le poisson",
+      "dialect": "Na lingaka ngombe kasi na poni mbisi.",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7536,
+      "item_order": 22,
+      "french": "Bonne idée / mauvaise idée",
+      "dialect": "Likanisi malamu / Likanisi mabe",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F272.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7537,
+      "item_order": 23,
+      "french": "Qu'est-ce que tu en penses ? Qu'est-ce que tu penses de lui ?",
+      "dialect": "Ozo mona ndenge nini ? Ozo mona ndenge nini pona ye ?",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7538,
+      "item_order": 24,
+      "french": "D'accord ? (= C'est bon ? = C'est ok ?)",
+      "dialect": "Malamu ? (= Eza malamu ? = Na ndimi ?)",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7539,
+      "item_order": 25,
+      "french": "Voilà",
+      "dialect": "Na yango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F275.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7540,
+      "item_order": 26,
+      "french": "Moi aussi",
+      "dialect": "Ngai pe",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F276.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7541,
+      "item_order": 27,
+      "french": "Moi non plus",
+      "dialect": "Ngai pe te",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F277.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7542,
+      "item_order": 28,
+      "french": "Bien sûr",
+      "dialect": "Ya solo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F278.mp3"
+    },
+    {
+      "lesson_id": 360,
+      "id": 7543,
+      "item_order": 29,
+      "french": "J'aime cette musique",
+      "dialect": "Na lingaka ndule oyo.",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 360,
+      "id": 7544,
+      "item_order": 30,
+      "french": "Je ne veux pas aller à l'école aujourd'hui",
+      "dialect": "Na ko kende kelasi te lelo.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F280.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7117,
+      "item_order": 10,
+      "french": "Père",
+      "dialect": "Tata",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F12.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7118,
+      "item_order": 11,
+      "french": "Mère",
+      "dialect": "Mama",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F13.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7120,
+      "item_order": 13,
+      "french": "Frère",
+      "dialect": "Ndeko ya mobali",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F15.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7122,
+      "item_order": 15,
+      "french": "Fils",
+      "dialect": "Mwana mwasi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F17.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7123,
+      "item_order": 16,
+      "french": "Fille",
+      "dialect": "Mwana mobali",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F18.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7129,
+      "item_order": 22,
+      "french": "Mari",
+      "dialect": "Mobali",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F24.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7138,
+      "item_order": 31,
+      "french": "J'apprends la langue",
+      "dialect": "Na zo yekola lokota.",
+      "audio_url": null
+    },
+    {
+      "lesson_id": 348,
+      "id": 7139,
+      "item_order": 32,
+      "french": "Je ne parle pas bien la langue. Je parle un peu le swahili.",
+      "dialect": "Na lobaka lokota malamu te. Na lobaka swahili mokie.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F211.mp3"
+    },
+    {
+      "lesson_id": 348,
+      "id": 7140,
+      "item_order": 33,
+      "french": "Je parle bien le patois",
+      "dialect": "Na lobaka ndinga na ngai.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F212.mp3"
+    }
+  ],
+  "moves": [
+    {
+      "src_lesson": 348,
+      "dst_lesson": 351,
+      "new_order": 15,
+      "id": 7119,
+      "item_order": 12,
+      "french": "Sœur",
+      "dialect": "Ndeko ya mwasi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F14.mp3"
+    },
+    {
+      "src_lesson": 348,
+      "dst_lesson": 351,
+      "new_order": 16,
+      "id": 7121,
+      "item_order": 14,
+      "french": "Enfants : J'ai 2 enfants",
+      "dialect": "Mwana : naza na bana mibale",
+      "audio_url": null
+    },
+    {
+      "src_lesson": 348,
+      "dst_lesson": 351,
+      "new_order": 17,
+      "id": 7125,
+      "item_order": 18,
+      "french": "Grand-père",
+      "dialect": "Koko ya mobali",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F20.mp3"
+    },
+    {
+      "src_lesson": 348,
+      "dst_lesson": 351,
+      "new_order": 18,
+      "id": 7126,
+      "item_order": 19,
+      "french": "Grand-mère",
+      "dialect": "Koko ya mwasi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F21.mp3"
+    },
+    {
+      "src_lesson": 348,
+      "dst_lesson": 351,
+      "new_order": 19,
+      "id": 7127,
+      "item_order": 20,
+      "french": "Jumeaux",
+      "dialect": "Mapasa",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F22.mp3"
+    },
+    {
+      "src_lesson": 348,
+      "dst_lesson": 351,
+      "new_order": 20,
+      "id": 7133,
+      "item_order": 26,
+      "french": "Ancêtre",
+      "dialect": "Nkoko",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_3/3.F28.mp3"
+    }
+  ]
+}

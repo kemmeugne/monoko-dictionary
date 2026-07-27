@@ -7,7 +7,33 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 **Live app**: https://monoko-dictionary.vercel.app
 **Admin panel**: https://monoko-dictionary.vercel.app/admin.html (password in Vercel env vars)
 
+The frontend is a mobile-first responsive web app that will be wrapped with Capacitor and shipped to the App Store and Play Store. All UI work must follow the mobile-first rules below.
+
 ---
+## Mobile-first design (Capacitor-bound)
+
+This app will be wrapped with Capacitor and shipped to the App Store and Play Store. Every new feature must be designed mobile-first.
+
+**Hard rules**
+- Design at 375px width first, scale up with `@media (min-width: ...)`
+- Interactive elements ≥44×44px (tap targets)
+- No hover-only interactions
+- `<input>` and `<textarea>` use `font-size: 16px` minimum (prevents iOS focus zoom)
+- Use `100dvh` not `100vh` for full-height layouts
+- Use `padding: env(safe-area-inset-top) ... env(safe-area-inset-bottom)` on full-screen views
+- No `position: fixed` for primary UI (mobile Safari + virtual keyboard bugs)
+- Bottom navigation, not top
+- No horizontal scroll
+
+**Test before merging**
+- Chrome DevTools mobile emulation (iPhone SE, iPhone 14 Pro, Pixel 5)
+- Actual iPhone via Vercel URL → Safari → Share → Add to Home Screen
+- All audio playback (Lingala TTS, dictionary audio) confirmed working in iOS Safari WebView
+
+**Avoid**
+- Browser-only APIs without Capacitor equivalents (use feature detection)
+- Heavy initial bundle — Capacitor WebView startup is slower than browser
+- `localStorage` for anything critical — Capacitor has it but it can be cleared by the OS; use Supabase for persistence
 
 ## Stack
 
@@ -30,13 +56,20 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 ## Key files in this repo
 
 ```
-index.html                        — entire frontend (React, ~1850 lines)
+index.html                        — entire frontend (React, ~3200 lines)
 admin.html                        — admin panel: per-card approve/reject, pagination top+bottom, page X/Y counter, professor_modified tracking
 api/admin-action.js               — Vercel serverless function (secure Supabase writes)
-api/chat.js                       — Vercel serverless function (proxies chat to OpenAI gpt-4o-mini)
-api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences)
+api/chat.js                       — Vercel serverless function (SSE-streaming gpt-4o-mini proxy; logs t_rag_ms + t_llm_ms to chat_events)
+api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences; accepts optional min_similarity)
 api/lesson-context.js             — Vercel serverless function (pgvector semantic search over lesson_items)
 api/mms-tts.js                    — Vercel serverless function (warm-up GET ping for HF Space; POST proxies audio but unused — client calls Space directly)
+api/cron/keep-tts-warm.js         — Vercel cron handler (GET ping to MMS_SPACE_URL; requires Vercel Pro for sub-hourly schedule)
+api/_rate-limit.js                — shared per-IP rate limiter + CORS helper, used by every api/*.js endpoint (in-memory sliding window)
+tests/                            — Vitest unit tests for every api/*.js file (see tests/README.md); test Supabase harness docs live here
+sql/test_schema.sql               — idempotent schema for the test Supabase project (harness sprint; see HARNESS_SPRINT.md)
+scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test project via psql (refuses to run against any non-test project ref)
+scripts/seed_test_data.js         — wipes + reseeds the test project with representative data + test user (refuses to run against any non-test project ref)
+HARNESS_SPRINT.md                 — spec + status for the verification harness (unit tests, test Supabase, Playwright, lints, CI) — Sessions 1–2 done, 3–5 pending
 tts_space/app.py                  — HuggingFace Space: ESPnet2 VITS Lingala TTS (Gradio 6.x, served at kemz42-monoko-lingala-tts.hf.space)
 tts_space/requirements.txt        — Space deps: git+espnet, huggingface_hub, numpy, soundfile, nltk
 tts_space/README.md               — Space metadata: sdk=gradio 6.13.0, python=3.10, app_file=app.py
@@ -55,6 +88,7 @@ audio_collection_html/            — generated HTML recording apps (one per mod
 generate_course_templates.py      — generates generic HTML recording apps for all 29 modules for any new language
 translate_examples_to_parallel_sentences.py — translates professor example sentences (Lingala) to French via GPT and inserts into parallel_sentences; supports --dry-run and --from-log to insert directly from existing JSON log
 sql/corrections_reviewed_at.sql   — migration: adds reviewed_at to corrections + pace monitoring queries
+sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms integer columns to chat_events (applied 2026-04-30)
 ```
 
 ---
@@ -67,7 +101,7 @@ sql/corrections_reviewed_at.sql   — migration: adds reviewed_at to corrections
 - `examples.audio_url/audio_key/audio_source_cell` — Lingala example audio links (added 2026-03-15)
 - `parallel_sentences` — FR↔dialect sentence pairs for RAG (FLORES + approved corrections); `embedding vector(384)` added 2026-03-31
 - `corrections` — user-submitted AI corrections (pending → approved); `professor_modified boolean` tracks whether the professor edited the correction before approving; `reviewed_at timestamptz` set on approve/reject for session pace tracking (added 2026-04-18)
-- `chat_events` — tester-tracked chat activity (`tester_name`, `session_id`, query/response, timestamps)
+- `chat_events` — tester-tracked chat activity (`tester_name`, `session_id`, query/response, timestamps, `t_rag_ms`, `t_llm_ms` added 2026-04-30)
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
 - `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell` — Lingala course example audio links (added 2026-03-16)
@@ -83,9 +117,9 @@ sql/corrections_reviewed_at.sql   — migration: adds reviewed_at to corrections
 2. User message → two parallel context fetches:
    - `POST /api/rag-context` on Vercel → OpenAI embedding → pgvector `match_parallel_sentences` RPC → top-30 verified corpus pairs
    - `POST /api/lesson-context` on Vercel → OpenAI embedding → pgvector `match_lesson_items` RPC → top-8 course rows
-3. Both contexts merged → `POST /api/chat` (Vercel serverless) → OpenAI `gpt-4o-mini` with strict corpus-first system prompt
+3. Both contexts merged → `POST /api/chat` (Vercel serverless) → OpenAI `gpt-4o-mini` streaming SSE. Client consumes `data: {"delta":"..."}` chunks with `getReader()`, updating the message placeholder on each token.
 4. Response shown with quality indicators: ✓ verified / ~ suggestion (assembled from verified elements)
-5. If `SUPABASE_SERVICE_KEY` is configured on Vercel, `/api/chat` logs tester activity into `chat_events`
+5. If `SUPABASE_SERVICE_KEY` is configured on Vercel, `/api/chat` logs tester activity into `chat_events` (including `t_rag_ms` passed from client and `t_llm_ms` measured server-side)
 
 **pgvector corpus index**: `parallel_sentences.embedding` — ~7k rows (5,227 verified Monoko + 2,008 gold FLORES) embedded with `text-embedding-3-small` (384 dim), queried via `match_parallel_sentences` RPC
 
@@ -141,6 +175,25 @@ GROUP BY day ORDER BY day DESC;
 - Object layout:
   - `Lingala/senses/<letter>/<file>.mp3`
   - `Lingala/examples/<letter>/<file>.mp3`
+
+---
+
+## Test harness (added 2026-07-09)
+
+A second Supabase project, `monoko-test` (ref `bdejouumyzovfirqxmdr`), exists
+solely for automated testing. **No script in this repo ever touches
+production** — `scripts/sync_test_schema.js` and `scripts/seed_test_data.js`
+both hard-refuse to run unless pointed at that exact test project ref.
+
+- Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
+  and fill in real values, or ask for them.
+- `npm test` — Vitest unit tests for every `api/*.js` file (110 tests, no
+  network calls, fully mocked). See `tests/README.md`.
+- `npm run db:sync-test-schema` / `npm run db:seed-test` — set up or reset
+  the test project's schema and data. Both are safe to re-run any time.
+- Full spec and session-by-session status: `HARNESS_SPRINT.md`. This runs
+  before Phase 3 feature work and is a hard prerequisite for Phase 3.5
+  (Stripe, quotas, rate limiting) per `PHASE3_LAUNCH_PLAN.md`.
 
 ---
 
@@ -377,6 +430,14 @@ The client calls the Space **directly** (not via Vercel) because ESPnet2 CPU inf
 3. Wait for `event: complete` in the stream (Gradio 6.x; older versions send `process_completed`)
 4. Parse the `data:` line that follows — it's a JSON array `[{"path": "...", "url": "https://..."}]`
 5. Use the `url` field directly (already absolute) or prepend `/gradio_api/file=` if only a path
+
+### Mobile mic persistence (`liveStreamRef` pattern)
+
+`liveStreamRef = useRef(null)` holds the `MediaStream` for the entire `LiveTranslationView` lifetime. Both `startLingalaSTT` and `startFrenchSTT` reuse it — `getUserMedia` is only called when `liveStreamRef.current` is null or has ended tracks. Tracks are only stopped in the component's unmount `useEffect`. `stopAmplitudeLoop()` does **not** stop any tracks. This prevents iOS/Android from re-prompting on every stop/restart cycle.
+
+### Chat Lingala TTS (`chatAudioCache` pattern)
+
+`const chatAudioCache = {}` at module level caches synthesised Lingala audio URLs keyed by fragment text. `extractLingalaFragments(text)` regex-parses Lingala from assistant responses (after `→`, in backticks, in quotes). `playChatLingala(msgIdx)` calls `lingalaTTS` sequentially on all fragments, using the cache to skip already-synthesised text. The 🔊 button on assistant messages triggers this; only visible when fragments are found and `!chatLoading`.
 
 ### Key gotchas (hard-won)
 

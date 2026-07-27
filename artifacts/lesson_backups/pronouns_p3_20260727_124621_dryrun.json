@@ -1,0 +1,520 @@
+{
+  "ts": "20260727_124621",
+  "L349": [
+    {
+      "id": 7141,
+      "item_order": 1,
+      "french": "Ton",
+      "dialect": "Na yo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E42.mp3"
+    },
+    {
+      "id": 7142,
+      "item_order": 2,
+      "french": "Ta",
+      "dialect": "Na yo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E43.mp3"
+    },
+    {
+      "id": 7143,
+      "item_order": 3,
+      "french": "Tes",
+      "dialect": "Na yo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E44.mp3"
+    },
+    {
+      "id": 7144,
+      "item_order": 4,
+      "french": "Son",
+      "dialect": "Na ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E45.mp3"
+    },
+    {
+      "id": 7145,
+      "item_order": 5,
+      "french": "Sa",
+      "dialect": "Na ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E46.mp3"
+    },
+    {
+      "id": 7146,
+      "item_order": 6,
+      "french": "Ses",
+      "dialect": "Na ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E47.mp3"
+    },
+    {
+      "id": 7147,
+      "item_order": 7,
+      "french": "Notre",
+      "dialect": "Na biso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E48.mp3"
+    },
+    {
+      "id": 7148,
+      "item_order": 8,
+      "french": "Nos",
+      "dialect": "Na biso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E49.mp3"
+    },
+    {
+      "id": 7149,
+      "item_order": 9,
+      "french": "Votre",
+      "dialect": "Na bino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E50.mp3"
+    },
+    {
+      "id": 7150,
+      "item_order": 10,
+      "french": "Vos",
+      "dialect": "Na bino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E51.mp3"
+    },
+    {
+      "id": 7151,
+      "item_order": 11,
+      "french": "Leur",
+      "dialect": "Na bango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E52.mp3"
+    },
+    {
+      "id": 7152,
+      "item_order": 12,
+      "french": "Leurs",
+      "dialect": "Na bango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E53.mp3"
+    }
+  ],
+  "L386": [
+    {
+      "id": 7721,
+      "item_order": 1,
+      "french": "Je",
+      "dialect": "Na",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E3.mp3"
+    },
+    {
+      "id": 7722,
+      "item_order": 2,
+      "french": "Tu",
+      "dialect": "O",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E4.mp3"
+    },
+    {
+      "id": 7723,
+      "item_order": 3,
+      "french": "Il/Elle",
+      "dialect": "A",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E5.mp3"
+    },
+    {
+      "id": 7724,
+      "item_order": 4,
+      "french": "Nous",
+      "dialect": "To",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E6.mp3"
+    },
+    {
+      "id": 7725,
+      "item_order": 5,
+      "french": "Vous",
+      "dialect": "Bo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E7.mp3"
+    },
+    {
+      "id": 7726,
+      "item_order": 6,
+      "french": "Ils/Elles",
+      "dialect": "Ba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E8.mp3"
+    },
+    {
+      "id": 7727,
+      "item_order": 7,
+      "french": "Moi",
+      "dialect": "Nga / Ngai",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E9.mp3"
+    },
+    {
+      "id": 7728,
+      "item_order": 8,
+      "french": "Toi",
+      "dialect": "Yo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E10.mp3"
+    },
+    {
+      "id": 7729,
+      "item_order": 9,
+      "french": "Lui",
+      "dialect": "Ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E11.mp3"
+    },
+    {
+      "id": 7730,
+      "item_order": 10,
+      "french": "Elle",
+      "dialect": "Ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E12.mp3"
+    },
+    {
+      "id": 7731,
+      "item_order": 11,
+      "french": "Nous",
+      "dialect": "Biso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E13.mp3"
+    },
+    {
+      "id": 7732,
+      "item_order": 12,
+      "french": "Vous",
+      "dialect": "Bino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E14.mp3"
+    },
+    {
+      "id": 7733,
+      "item_order": 13,
+      "french": "Ils",
+      "dialect": "Bango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E15.mp3"
+    },
+    {
+      "id": 7734,
+      "item_order": 14,
+      "french": "J'achète ça pour elles",
+      "dialect": "Na zo somba yango pona bango.",
+      "audio_url": null
+    },
+    {
+      "id": 7735,
+      "item_order": 15,
+      "french": "Me",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E17.mp3"
+    },
+    {
+      "id": 7736,
+      "item_order": 16,
+      "french": "Te",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E18.mp3"
+    },
+    {
+      "id": 7737,
+      "item_order": 17,
+      "french": "Se (masculin singulier)",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E19.mp3"
+    },
+    {
+      "id": 7738,
+      "item_order": 18,
+      "french": "Se (féminin singulier)",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E20.mp3"
+    },
+    {
+      "id": 7739,
+      "item_order": 19,
+      "french": "Nous",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E21.mp3"
+    },
+    {
+      "id": 7740,
+      "item_order": 20,
+      "french": "Vous",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E22.mp3"
+    },
+    {
+      "id": 7741,
+      "item_order": 21,
+      "french": "Se (masculin pluriel)",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E23.mp3"
+    },
+    {
+      "id": 7742,
+      "item_order": 22,
+      "french": "Se (féminin pluriel)",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E24.mp3"
+    },
+    {
+      "id": 7743,
+      "item_order": 23,
+      "french": "Me (m')",
+      "dialect": "Nga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E25.mp3"
+    },
+    {
+      "id": 7744,
+      "item_order": 24,
+      "french": "Te (t')",
+      "dialect": "Yo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E26.mp3"
+    },
+    {
+      "id": 7745,
+      "item_order": 25,
+      "french": "Le/La/L'",
+      "dialect": "Ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E27.mp3"
+    },
+    {
+      "id": 7746,
+      "item_order": 26,
+      "french": "Nous",
+      "dialect": "Biso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E13.mp3"
+    },
+    {
+      "id": 7747,
+      "item_order": 27,
+      "french": "Vous",
+      "dialect": "Bino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E14.mp3"
+    },
+    {
+      "id": 7748,
+      "item_order": 28,
+      "french": "Les",
+      "dialect": "Bango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E30.mp3"
+    },
+    {
+      "id": 7749,
+      "item_order": 29,
+      "french": "Moi",
+      "dialect": "Ngai",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E31.mp3"
+    },
+    {
+      "id": 7750,
+      "item_order": 30,
+      "french": "Toi",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E32.mp3"
+    },
+    {
+      "id": 7751,
+      "item_order": 31,
+      "french": "Lui",
+      "dialect": "Ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E11.mp3"
+    },
+    {
+      "id": 7752,
+      "item_order": 32,
+      "french": "En",
+      "dialect": "Yango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E34.mp3"
+    },
+    {
+      "id": 7753,
+      "item_order": 33,
+      "french": "Y",
+      "dialect": "Kuna",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E35.mp3"
+    },
+    {
+      "id": 7754,
+      "item_order": 34,
+      "french": "Nous",
+      "dialect": "Biso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E13.mp3"
+    },
+    {
+      "id": 7755,
+      "item_order": 35,
+      "french": "Vous",
+      "dialect": "Mi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E22.mp3"
+    },
+    {
+      "id": 7756,
+      "item_order": 36,
+      "french": "Leur",
+      "dialect": "Bango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E38.mp3"
+    }
+  ],
+  "L387": [
+    {
+      "id": 7757,
+      "item_order": 1,
+      "french": "Mon",
+      "dialect": "Na ngai",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E39.mp3"
+    },
+    {
+      "id": 7758,
+      "item_order": 2,
+      "french": "Ma",
+      "dialect": "Na ngai",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E40.mp3"
+    },
+    {
+      "id": 7759,
+      "item_order": 3,
+      "french": "Mes",
+      "dialect": "Na ngai",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E41.mp3"
+    },
+    {
+      "id": 7760,
+      "item_order": 4,
+      "french": "Mienne",
+      "dialect": "Ya ngai",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E54.mp3"
+    },
+    {
+      "id": 7761,
+      "item_order": 5,
+      "french": "Miens",
+      "dialect": "Ya ngai",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E55.mp3"
+    },
+    {
+      "id": 7762,
+      "item_order": 6,
+      "french": "Tienne",
+      "dialect": "Ya yo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E56.mp3"
+    },
+    {
+      "id": 7763,
+      "item_order": 7,
+      "french": "Tiens",
+      "dialect": "Ya yo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E57.mp3"
+    },
+    {
+      "id": 7764,
+      "item_order": 8,
+      "french": "Sienne",
+      "dialect": "Ya ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E58.mp3"
+    },
+    {
+      "id": 7765,
+      "item_order": 9,
+      "french": "Siens",
+      "dialect": "Ya ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E59.mp3"
+    },
+    {
+      "id": 7766,
+      "item_order": 10,
+      "french": "Nôtre",
+      "dialect": "Ya biso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E60.mp3"
+    },
+    {
+      "id": 7767,
+      "item_order": 11,
+      "french": "Nôtres",
+      "dialect": "Ya biso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E61.mp3"
+    },
+    {
+      "id": 7768,
+      "item_order": 12,
+      "french": "Vôtre",
+      "dialect": "Ya bino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E62.mp3"
+    },
+    {
+      "id": 7769,
+      "item_order": 13,
+      "french": "Vôtres",
+      "dialect": "Ya bino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E63.mp3"
+    },
+    {
+      "id": 7770,
+      "item_order": 14,
+      "french": "Sienne",
+      "dialect": "Ya ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E58.mp3"
+    },
+    {
+      "id": 7771,
+      "item_order": 15,
+      "french": "Leurs",
+      "dialect": "Ya bango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E65.mp3"
+    },
+    {
+      "id": 7772,
+      "item_order": 16,
+      "french": "Cet",
+      "dialect": "Oyo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E66.mp3"
+    },
+    {
+      "id": 7773,
+      "item_order": 17,
+      "french": "Cette",
+      "dialect": "Oyo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E67.mp3"
+    },
+    {
+      "id": 7774,
+      "item_order": 18,
+      "french": "Ces",
+      "dialect": "Oyo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E68.mp3"
+    },
+    {
+      "id": 7775,
+      "item_order": 19,
+      "french": "Ce",
+      "dialect": "(Oyo)",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E69.mp3"
+    },
+    {
+      "id": 7776,
+      "item_order": 20,
+      "french": "C'",
+      "dialect": "/",
+      "audio_url": null
+    },
+    {
+      "id": 7777,
+      "item_order": 21,
+      "french": "Celui/Celle",
+      "dialect": "Oyo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E71.mp3"
+    },
+    {
+      "id": 7778,
+      "item_order": 22,
+      "french": "Celui/Celle-là",
+      "dialect": "Oyo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E72.mp3"
+    },
+    {
+      "id": 7779,
+      "item_order": 23,
+      "french": "Ceux",
+      "dialect": "Ba oyo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E73.mp3"
+    },
+    {
+      "id": 7780,
+      "item_order": 24,
+      "french": "Ceux-là/ci",
+      "dialect": "Bango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E74.mp3"
+    },
+    {
+      "id": 7781,
+      "item_order": 25,
+      "french": "Ça",
+      "dialect": "Yango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/course_2/2.E75.mp3"
+    }
+  ]
+}

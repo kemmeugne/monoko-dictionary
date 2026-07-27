@@ -1,0 +1,463 @@
+{
+  "ts": "20260727_122700",
+  "lesson": {
+    "id": 363,
+    "course_id": 39,
+    "title": "La nature et les animaux",
+    "parent_theme": "Niveau 4",
+    "lesson_order": 2,
+    "created_at": "2026-04-07T01:05:38.569299+00:00"
+  },
+  "items": [
+    {
+      "id": 7793,
+      "item_order": 1,
+      "french": "Abeille",
+      "dialect": "Nzoyi"
+    },
+    {
+      "id": 7794,
+      "item_order": 2,
+      "french": "Animal",
+      "dialect": "Niama"
+    },
+    {
+      "id": 7795,
+      "item_order": 3,
+      "french": "Araignée",
+      "dialect": "Alulu"
+    },
+    {
+      "id": 7796,
+      "item_order": 4,
+      "french": "Bœuf / Vache",
+      "dialect": "Ngombe"
+    },
+    {
+      "id": 7797,
+      "item_order": 5,
+      "french": "Chat",
+      "dialect": "Niawu"
+    },
+    {
+      "id": 7798,
+      "item_order": 6,
+      "french": "Chenille / Vers",
+      "dialect": "Mbinzo"
+    },
+    {
+      "id": 7799,
+      "item_order": 7,
+      "french": "Cheval",
+      "dialect": "Punda"
+    },
+    {
+      "id": 7800,
+      "item_order": 8,
+      "french": "Chèvre",
+      "dialect": "Ntaba"
+    },
+    {
+      "id": 7801,
+      "item_order": 9,
+      "french": "Chien",
+      "dialect": "Mbwa"
+    },
+    {
+      "id": 7802,
+      "item_order": 10,
+      "french": "Coq",
+      "dialect": "Soso"
+    },
+    {
+      "id": 7803,
+      "item_order": 11,
+      "french": "Crocodile",
+      "dialect": "Ngando"
+    },
+    {
+      "id": 7804,
+      "item_order": 12,
+      "french": "Éléphant",
+      "dialect": "Nzoko"
+    },
+    {
+      "id": 7805,
+      "item_order": 13,
+      "french": "Fourmi",
+      "dialect": "Nselele"
+    },
+    {
+      "id": 7806,
+      "item_order": 14,
+      "french": "Girafe",
+      "dialect": "Dikala"
+    },
+    {
+      "id": 7807,
+      "item_order": 15,
+      "french": "Grenouille",
+      "dialect": "Ligorodo"
+    },
+    {
+      "id": 7808,
+      "item_order": 16,
+      "french": "Hérisson",
+      "dialect": "Hérisson"
+    },
+    {
+      "id": 7809,
+      "item_order": 17,
+      "french": "Insectes",
+      "dialect": "Niama mikiemikie"
+    },
+    {
+      "id": 7810,
+      "item_order": 18,
+      "french": "Lézard",
+      "dialect": "Moselekete (miselekete)"
+    },
+    {
+      "id": 7811,
+      "item_order": 19,
+      "french": "Lion",
+      "dialect": "Nkosi"
+    },
+    {
+      "id": 7812,
+      "item_order": 20,
+      "french": "Mouche",
+      "dialect": "Nzinzi"
+    },
+    {
+      "id": 7813,
+      "item_order": 21,
+      "french": "Moustique",
+      "dialect": "Ngungi"
+    },
+    {
+      "id": 7814,
+      "item_order": 22,
+      "french": "Mouton",
+      "dialect": "Ntaba"
+    },
+    {
+      "id": 7815,
+      "item_order": 23,
+      "french": "Oiseau",
+      "dialect": "Ndeke"
+    },
+    {
+      "id": 7816,
+      "item_order": 24,
+      "french": "Panthère",
+      "dialect": "Nkoi"
+    },
+    {
+      "id": 7817,
+      "item_order": 25,
+      "french": "Papillon",
+      "dialect": "Lipekapeka"
+    },
+    {
+      "id": 7818,
+      "item_order": 26,
+      "french": "Poisson",
+      "dialect": "Mbisi"
+    },
+    {
+      "id": 7819,
+      "item_order": 27,
+      "french": "Porc-épic",
+      "dialect": "Kunda"
+    },
+    {
+      "id": 7820,
+      "item_order": 28,
+      "french": "Porc/Cochon",
+      "dialect": "Ngulu"
+    },
+    {
+      "id": 7821,
+      "item_order": 29,
+      "french": "Poule / Poulet",
+      "dialect": "Soso"
+    },
+    {
+      "id": 7822,
+      "item_order": 30,
+      "french": "Rat",
+      "dialect": "Mpoko"
+    },
+    {
+      "id": 7823,
+      "item_order": 31,
+      "french": "Serpent",
+      "dialect": "Nioka"
+    },
+    {
+      "id": 7824,
+      "item_order": 32,
+      "french": "Singe",
+      "dialect": "Makaku (likaku)"
+    },
+    {
+      "id": 7825,
+      "item_order": 33,
+      "french": "Souris",
+      "dialect": "Mpoko"
+    },
+    {
+      "id": 7826,
+      "item_order": 34,
+      "french": "Tortue",
+      "dialect": "Koba"
+    },
+    {
+      "id": 7827,
+      "item_order": 35,
+      "french": "Air",
+      "dialect": "Mopepe"
+    },
+    {
+      "id": 7828,
+      "item_order": 36,
+      "french": "Après-midi",
+      "dialect": "Sima ya nzanga"
+    },
+    {
+      "id": 7829,
+      "item_order": 37,
+      "french": "Argile",
+      "dialect": "Mabele"
+    },
+    {
+      "id": 7830,
+      "item_order": 38,
+      "french": "Bois",
+      "dialect": "Nkoni"
+    },
+    {
+      "id": 7831,
+      "item_order": 39,
+      "french": "Brouillard",
+      "dialect": "Londende"
+    },
+    {
+      "id": 7832,
+      "item_order": 40,
+      "french": "Caillou",
+      "dialect": "Libanga"
+    },
+    {
+      "id": 7833,
+      "item_order": 41,
+      "french": "Chaleur",
+      "dialect": "Molunge"
+    },
+    {
+      "id": 7834,
+      "item_order": 42,
+      "french": "Ciel",
+      "dialect": "Likolo"
+    },
+    {
+      "id": 7835,
+      "item_order": 43,
+      "french": "Eau",
+      "dialect": "Mayi"
+    },
+    {
+      "id": 7836,
+      "item_order": 44,
+      "french": "Éclair",
+      "dialect": "Nkake"
+    },
+    {
+      "id": 7837,
+      "item_order": 45,
+      "french": "Étoile",
+      "dialect": "Monzoto (minzoto)"
+    },
+    {
+      "id": 7838,
+      "item_order": 46,
+      "french": "Fer",
+      "dialect": "Libende"
+    },
+    {
+      "id": 7839,
+      "item_order": 47,
+      "french": "Feu",
+      "dialect": "Moto"
+    },
+    {
+      "id": 7840,
+      "item_order": 48,
+      "french": "Froid",
+      "dialect": "Malili"
+    },
+    {
+      "id": 7841,
+      "item_order": 49,
+      "french": "Jour",
+      "dialect": "Mokolo"
+    },
+    {
+      "id": 7842,
+      "item_order": 50,
+      "french": "Lune",
+      "dialect": "Sanza"
+    },
+    {
+      "id": 7843,
+      "item_order": 51,
+      "french": "Matin",
+      "dialect": "Tongo"
+    },
+    {
+      "id": 7844,
+      "item_order": 52,
+      "french": "Midi",
+      "dialect": "Ngonga zomi na mibale"
+    },
+    {
+      "id": 7845,
+      "item_order": 53,
+      "french": "Minuit",
+      "dialect": "Kati kati ya butu"
+    },
+    {
+      "id": 7846,
+      "item_order": 54,
+      "french": "Nuage",
+      "dialect": "Lipata (mapata)"
+    },
+    {
+      "id": 7847,
+      "item_order": 55,
+      "french": "Nuit",
+      "dialect": "Butu"
+    },
+    {
+      "id": 7848,
+      "item_order": 56,
+      "french": "Or",
+      "dialect": "Wolo"
+    },
+    {
+      "id": 7849,
+      "item_order": 57,
+      "french": "Pluie",
+      "dialect": "Mvula"
+    },
+    {
+      "id": 7850,
+      "item_order": 58,
+      "french": "Rocher",
+      "dialect": "Libanga"
+    },
+    {
+      "id": 7851,
+      "item_order": 59,
+      "french": "Sable",
+      "dialect": "Zelo"
+    },
+    {
+      "id": 7852,
+      "item_order": 60,
+      "french": "Saison des pluies",
+      "dialect": "Tango ya mvula"
+    },
+    {
+      "id": 7853,
+      "item_order": 61,
+      "french": "Saison sèche",
+      "dialect": "Elanga"
+    },
+    {
+      "id": 7854,
+      "item_order": 62,
+      "french": "Soir",
+      "dialect": "Pokwa"
+    },
+    {
+      "id": 7855,
+      "item_order": 63,
+      "french": "Soleil",
+      "dialect": "Moyi"
+    },
+    {
+      "id": 7856,
+      "item_order": 64,
+      "french": "Tempête",
+      "dialect": "Mopepe"
+    },
+    {
+      "id": 7857,
+      "item_order": 65,
+      "french": "Temps",
+      "dialect": "Likolo"
+    },
+    {
+      "id": 7858,
+      "item_order": 66,
+      "french": "Terre",
+      "dialect": "Mabele"
+    },
+    {
+      "id": 7859,
+      "item_order": 67,
+      "french": "Tonnerre",
+      "dialect": "Nkake"
+    },
+    {
+      "id": 7860,
+      "item_order": 68,
+      "french": "Vent",
+      "dialect": "Mopepe"
+    },
+    {
+      "id": 7861,
+      "item_order": 69,
+      "french": "Verre",
+      "dialect": "Kopo"
+    },
+    {
+      "id": 7862,
+      "item_order": 70,
+      "french": "Il fait beau aujourd'hui",
+      "dialect": "Lelo mokolo kitoko."
+    },
+    {
+      "id": 7863,
+      "item_order": 71,
+      "french": "Quel temps fera-t-il demain ?",
+      "dialect": "Lobi tango eko sala ndenge nini ?"
+    },
+    {
+      "id": 7864,
+      "item_order": 72,
+      "french": "Il pleut",
+      "dialect": "Mvula ezo noka."
+    },
+    {
+      "id": 7865,
+      "item_order": 73,
+      "french": "Il fait beau",
+      "dialect": "Tango eza kitoko."
+    },
+    {
+      "id": 7866,
+      "item_order": 74,
+      "french": "Il fait chaud",
+      "dialect": "Mulunge eza."
+    },
+    {
+      "id": 7867,
+      "item_order": 75,
+      "french": "Il fait froid",
+      "dialect": "Malili eza."
+    }
+  ]
+}

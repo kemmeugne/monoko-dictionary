@@ -94,7 +94,7 @@ async function fetchFullLessons(lessonIds) {
   return res.json();
 }
 
-function formatContext(rows) {
+export function formatContext(rows) {
   if (!rows || rows.length === 0) return "";
 
   const lines = ["=== COURS (DONNÉES VÉRIFIÉES) ==="];

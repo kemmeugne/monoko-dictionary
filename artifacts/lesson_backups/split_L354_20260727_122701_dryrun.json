@@ -1,0 +1,313 @@
+{
+  "ts": "20260727_122701",
+  "lesson": {
+    "id": 354,
+    "course_id": 37,
+    "title": "Le corps et la sante",
+    "parent_theme": "Niveau 2",
+    "lesson_order": 4,
+    "created_at": "2026-04-07T01:05:38.569299+00:00"
+  },
+  "items": [
+    {
+      "id": 7319,
+      "item_order": 1,
+      "french": "Diarrhée",
+      "dialect": "Pulupulu"
+    },
+    {
+      "id": 7320,
+      "item_order": 2,
+      "french": "Douleur",
+      "dialect": "Pasi"
+    },
+    {
+      "id": 7321,
+      "item_order": 3,
+      "french": "S'évanouir",
+      "dialect": "Ko kueya"
+    },
+    {
+      "id": 7322,
+      "item_order": 4,
+      "french": "Fièvre",
+      "dialect": "Fidèle"
+    },
+    {
+      "id": 7323,
+      "item_order": 5,
+      "french": "Guérir / Guérison",
+      "dialect": "Ko bika"
+    },
+    {
+      "id": 7324,
+      "item_order": 6,
+      "french": "Hôpital",
+      "dialect": "Opitalo"
+    },
+    {
+      "id": 7325,
+      "item_order": 7,
+      "french": "Malade / Maladie",
+      "dialect": "Bokono"
+    },
+    {
+      "id": 7326,
+      "item_order": 8,
+      "french": "Médecin",
+      "dialect": "Munganga"
+    },
+    {
+      "id": 7327,
+      "item_order": 9,
+      "french": "Médicaments",
+      "dialect": "Kisi"
+    },
+    {
+      "id": 7328,
+      "item_order": 10,
+      "french": "Santé",
+      "dialect": "Kolongono"
+    },
+    {
+      "id": 7329,
+      "item_order": 11,
+      "french": "Tousser",
+      "dialect": "Ko kosola"
+    },
+    {
+      "id": 7330,
+      "item_order": 12,
+      "french": "Vomir",
+      "dialect": "Ko sanza"
+    },
+    {
+      "id": 7331,
+      "item_order": 13,
+      "french": "Tu es malade ?",
+      "dialect": "Ozo bela ?"
+    },
+    {
+      "id": 7332,
+      "item_order": 14,
+      "french": "Je me sens mal",
+      "dialect": "Nzoto eza malamu te."
+    },
+    {
+      "id": 7333,
+      "item_order": 15,
+      "french": "Il est mort",
+      "dialect": "Akufi"
+    },
+    {
+      "id": 7334,
+      "item_order": 16,
+      "french": "Qu'est-ce qu'il y a ? Qu'est-ce qu'il se passe ?",
+      "dialect": "Nini kaka ? Nini ezo leka ?"
+    },
+    {
+      "id": 7335,
+      "item_order": 17,
+      "french": "C'est pas grave",
+      "dialect": "Eza motuya te."
+    },
+    {
+      "id": 7336,
+      "item_order": 18,
+      "french": "J'arrive",
+      "dialect": "Na zo yaka."
+    },
+    {
+      "id": 7337,
+      "item_order": 19,
+      "french": "J'ai faim",
+      "dialect": "Naza na nzala."
+    },
+    {
+      "id": 7338,
+      "item_order": 20,
+      "french": "J'ai soif",
+      "dialect": "Na za na posa ya ko mela."
+    },
+    {
+      "id": 7339,
+      "item_order": 21,
+      "french": "Tu veux manger quoi ? Boire quoi ?",
+      "dialect": "Olingi kolia nini ? Ko mela nini ?"
+    },
+    {
+      "id": 7340,
+      "item_order": 22,
+      "french": "J'ai bien mangé",
+      "dialect": "Na lie malamu."
+    },
+    {
+      "id": 7341,
+      "item_order": 23,
+      "french": "J'ai besoin d'aide / Est-ce que tu peux m'aider stp ?",
+      "dialect": "Na za na mposa lisungi / Okoki ko sunga ngai limbisa ?"
+    },
+    {
+      "id": 7342,
+      "item_order": 24,
+      "french": "Merci de m'avoir aidé",
+      "dialect": "Matondo po osungi ngai."
+    },
+    {
+      "id": 7343,
+      "item_order": 25,
+      "french": "Vous parlez français ?",
+      "dialect": "Olobaka falanse ?"
+    },
+    {
+      "id": 7344,
+      "item_order": 26,
+      "french": "Je n'ai pas compris",
+      "dialect": "Na sosoli te."
+    },
+    {
+      "id": 7345,
+      "item_order": 27,
+      "french": "Tu peux parler plus lentement stp ? Tu parles trop vite",
+      "dialect": "Limbisa, okoki ko loba malembe koleka ? Ozo loba mbangu mingi."
+    },
+    {
+      "id": 7346,
+      "item_order": 28,
+      "french": "Comment on dit « merci (ou autre mot français) » en lingala ?",
+      "dialect": "Ndenge nini ba lobaka « Merci » na lingala ?"
+    },
+    {
+      "id": 7347,
+      "item_order": 29,
+      "french": "Qu'est-ce que ça veut dire ?",
+      "dialect": "Elingi ko loba nini ?"
+    },
+    {
+      "id": 7348,
+      "item_order": 30,
+      "french": "Tu comprends ? / Tu as compris ?",
+      "dialect": "Ozo sosola ?/ Ososoli ?"
+    },
+    {
+      "id": 7349,
+      "item_order": 31,
+      "french": "Qu'est-ce que ça veut dire ?",
+      "dialect": "Elakisi nini ?"
+    },
+    {
+      "id": 7350,
+      "item_order": 32,
+      "french": "Quelque chose ne va pas ? Il y a un souci ? Quel est le problème",
+      "dialect": "Likambo eza awa ? Eza na likambo ? Likambo eza nini ?"
+    },
+    {
+      "id": 7351,
+      "item_order": 33,
+      "french": "Je me suis fait mal",
+      "dialect": "Na mi monisi pasi."
+    },
+    {
+      "id": 7352,
+      "item_order": 34,
+      "french": "Tête",
+      "dialect": "Mutu"
+    },
+    {
+      "id": 7353,
+      "item_order": 35,
+      "french": "Nez",
+      "dialect": "Zolo"
+    },
+    {
+      "id": 7354,
+      "item_order": 36,
+      "french": "Épaule",
+      "dialect": "Lipeka (Mapeka)"
+    },
+    {
+      "id": 7355,
+      "item_order": 37,
+      "french": "Bras / avant-bras",
+      "dialect": "Loboko (maboko)"
+    },
+    {
+      "id": 7356,
+      "item_order": 38,
+      "french": "Doigt",
+      "dialect": "Mosapi (misapi)"
+    },
+    {
+      "id": 7357,
+      "item_order": 39,
+      "french": "Poitrine",
+      "dialect": "Tolo"
+    },
+    {
+      "id": 7358,
+      "item_order": 40,
+      "french": "Dos",
+      "dialect": "Mokongo (mikongo)"
+    },
+    {
+      "id": 7359,
+      "item_order": 41,
+      "french": "Jambe",
+      "dialect": "Likolo (makolo)"
+    },
+    {
+      "id": 7360,
+      "item_order": 42,
+      "french": "Genou",
+      "dialect": "Libolongo (mabolongo)"
+    },
+    {
+      "id": 7361,
+      "item_order": 43,
+      "french": "Pied",
+      "dialect": "Likolo (makolo)"
+    },
+    {
+      "id": 7362,
+      "item_order": 44,
+      "french": "Cœur",
+      "dialect": "Motema"
+    },
+    {
+      "id": 7363,
+      "item_order": 45,
+      "french": "Sang",
+      "dialect": "Makila"
+    },
+    {
+      "id": 7364,
+      "item_order": 46,
+      "french": "Gorge",
+      "dialect": "Mongongo"
+    },
+    {
+      "id": 7365,
+      "item_order": 47,
+      "french": "Lèvres",
+      "dialect": "Mbebo"
+    },
+    {
+      "id": 7366,
+      "item_order": 48,
+      "french": "Joue",
+      "dialect": "Litama (matama)"
+    },
+    {
+      "id": 7367,
+      "item_order": 49,
+      "french": "Menton",
+      "dialect": "Mbanga"
+    },
+    {
+      "id": 7368,
+      "item_order": 50,
+      "french": "Front",
+      "dialect": "Mbunzu"
+    }
+  ]
+}

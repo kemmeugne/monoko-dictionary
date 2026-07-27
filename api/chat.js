@@ -28,7 +28,7 @@ const MAX_MESSAGES       = 20;
 const MAX_MESSAGE_CHARS  = 2000;
 const MAX_CONTEXT_CHARS  = 50000; // RAG + lesson context combined (30 pairs + 8 lesson items ≈ 6–15k chars)
 
-function buildSystemPrompt(langName, ragContext, lessonContext, mode, direction) {
+export function buildSystemPrompt(langName, ragContext, lessonContext, mode, direction) {
   if (mode === "live-translation") {
     const fromLingala = direction === "lingala_to_fr";
     const base = fromLingala

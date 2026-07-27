@@ -16,12 +16,13 @@ Scope: chat (`view === "chat"`) and live translation (`view === "live"`) only. D
 - The live-translation component `LiveTranslationView` lives at `index.html:657-1131`. It is mounted at `index.html:2631-2637`.
 - Lingala TTS helper `lingalaTTS()` is at `index.html:590-654`. It calls the HF Space directly, bypassing Vercel's 10s timeout. **Do not move this back behind Vercel.**
 - Serverless endpoints in `api/`:
-  - `api/chat.js` — gpt-4o-mini proxy, 512 max_tokens, no streaming.
-  - `api/rag-context.js` — embedding + `match_parallel_sentences` RPC, threshold 0.3, top-30.
+  - `api/chat.js` — gpt-4o-mini SSE proxy, 512 max_tokens. Streams deltas as `data: {"delta":"..."}` events; logs full content + `t_rag_ms` + `t_llm_ms` to `chat_events` after stream ends.
+  - `api/rag-context.js` — embedding + `match_parallel_sentences` RPC, threshold 0.3 (configurable via `min_similarity`), top-30.
   - `api/lesson-context.js` — embedding + `match_lesson_items` RPC, threshold 0.4, top-8.
   - `api/elevenlabs-stt.js` — Lingala STT (paid).
   - `api/elevenlabs-tts.js` — Lingala TTS fallback (English-accented, currently unused).
   - `api/mms-tts.js` — proxy + warm-up ping for the HF Space.
+  - `api/cron/keep-tts-warm.js` — cron ping to keep HF Space warm (deploys fine; requires Vercel Pro for sub-hourly scheduling).
 - TTS Space: `tts_space/app.py`. Source of truth lives in this repo; the HF Space (`Kemz42/monoko-lingala-tts`) is updated by copy-pasting `app.py` into the HF UI and committing. Gradio 6.x — keep `demo.queue()` and the `/gradio_api/call/` prefix.
 - All "gotchas" we've already paid for are documented in `CLAUDE.md` — read the "Live Translation + Lingala TTS" section before changing anything in the SSE / Gradio flow.
 
@@ -83,10 +84,9 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 - Both `restartChunk` and `startLingalaSTT` now call `startVAD()` instead of a fixed timer.
 - `stopAll` calls `stopVAD()`.
 
-### ✅ 3.2 Real waveform amplitude — SHIPPED 2026-04-29
-- `startAmplitudeLoop(stream, ownStream)` sets up `AudioContext` + `AnalyserNode`, runs a 60fps RAF loop driving bar heights from real RMS.
-- French STT: opens a separate `getUserMedia` stream just for the waveform (ownStream=true → tracks stopped on cleanup).
-- Lingala STT: reuses the MediaRecorder stream (ownStream=false → tracks not stopped).
+### ✅ 3.2 Real waveform amplitude — SHIPPED 2026-04-29, updated 2026-04-30
+- `startAmplitudeLoop(stream)` sets up `AudioContext` + `AnalyserNode`, runs a 60fps RAF loop driving bar heights from real RMS.
+- Both French STT and Lingala STT now reuse `liveStreamRef.current` (the persistent mic stream — see Mobile mic stability below). `stopAmplitudeLoop()` no longer stops any tracks; track lifetime is managed by the stream ref.
 - `stopAmplitudeLoop()` cancels RAF, closes AudioContext, resets bar heights to 4px.
 - Old CSS keyframe animations (`waveA/B/C`) and the `waveBars` config array removed from the component.
 
@@ -101,10 +101,11 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 - `liveHistoryRef` still resets on swap (translation context is language-specific).
 - Note: segment cards still show `sourceLang` from the current direction rather than per-segment direction — will be fixed properly by 3.5.
 
-### 3.5 Speaker labels and side-aligned bubbles
-- File: `index.html:1036-1067` (segment card).
-- Today: every card is full-width with the same shape regardless of direction.
-- Change: when `s.fromLingala` is true, align the card right (or left, pick a side per language and stick to it). Add a small avatar / colored dot per side. Now the screen reads like a chat between FR and LN speakers — which is exactly what bidirectional live translation is.
+### ✅ 3.5 Speaker labels and side-aligned bubbles — SHIPPED 2026-04-30
+- Segment cards side-align based on `s.fromLingala` (set at translation time, survives direction swaps).
+- French-origin segments: left-aligned, white card. Lingala-origin segments: right-aligned, green card.
+- Per-segment source label renders `s.fromLingala ? langName : "Français"` — always correct regardless of current direction.
+- Screen now reads like a bilingual chat thread between FR and LN speakers.
 
 ### 3.6 Slow-down playback
 - File: `index.html:914-926` (`playAudio` Lingala branch).
@@ -125,11 +126,12 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 - Change: add a 🎤 inside the input pill. On tap, start `startFrenchSTT` (or detect: if `chatInput` already has Lingala chars, run Lingala STT). On final, set `chatInput` to the transcript — do **not** auto-send. The user can correct then send.
 - Reuse the `startFrenchSTT`/`startLingalaSTT` logic from `LiveTranslationView`. Best path: lift them out of the component into module-scope helpers that take a `setText` callback.
 
-### 4.2 ▶ play button on assistant Lingala phrases
-- File: `index.html:2838-2870` (assistant message rendering).
-- Today: assistant text is just rendered as plain text.
-- Change: parse out Lingala fragments from the response. The model marks them — they're typically the part after `→` or inside backticks/quotes following French. A regex covers the common cases (`/→\s*([^\n.✓~]+)/g` and quoted strings). Render each match as inline text with a tiny `▶` button. On tap → `lingalaTTS(fragment)` → cache → play. Reuse `audioCacheRef` pattern from `LiveTranslationView`.
-- Edge case: parser misses → keep a fallback "🔊 Lire la réponse" button at the end of every assistant message that synthesises the whole reply (with a prompt-engineered preamble that strips French commentary first — or just play the full thing, French Web Speech for FR parts, Lingala TTS for LN parts).
+### ✅ 4.2 ▶ play button on assistant Lingala phrases — SHIPPED 2026-04-30
+- `extractLingalaFragments(text)` parses Lingala from assistant responses: matches after `→`, inside backticks, and inside quotes. Returns an array of fragment strings.
+- `playChatLingala(msgIdx)` calls `lingalaTTS` on all fragments from that message, plays them sequentially. `chatPlayingIdx` state tracks which message is currently playing.
+- `const chatAudioCache = {}` at module level (keyed by fragment text) — avoids re-synthesising the same phrase across messages.
+- 🔊 button shown next to "Corriger" on any assistant message that has fragments and is not currently streaming (`!chatLoading`). Shows a spinner while audio is generating.
+- No auto-play — user taps to hear.
 
 ### 4.3 Warm the TTS Space on chat mount too
 - File: `index.html:678` is currently inside `LiveTranslationView`. Move (or duplicate) that warm-up so it also fires on `view === "chat"`. Once 4.2 ships, chat needs the Space warm.
@@ -174,10 +176,15 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 - `vercel.json` created with `"crons": [{"path": "/api/cron/keep-tts-warm", "schedule": "*/9 * * * *"}]`.
 - **Requires Vercel Pro** for sub-hourly cron frequency. On Hobby the file deploys without error but the schedule won't run — upgrade plan or accept the cold-start risk on low-traffic periods.
 
-### 5.7 Add latency telemetry to `chat_events`
-- File: `api/chat.js:71-84` (chat_events insert) and `index.html` `sendChat`.
-- Change: instrument client-side `performance.now()` around the three RAG calls and the chat call; pass them in the `/api/chat` body; store as `t_rag_ms`, `t_lesson_ms`, `t_llm_ms` on `chat_events`. ALTER TABLE add three INT columns.
-- Effect: real percentile data on where the 3–6s goes per user. Without this we are guessing about the next round of optimisations.
+### ✅ 5.7 Add latency telemetry to `chat_events` — SHIPPED 2026-04-30
+- `sendChat` measures RAG duration client-side with `performance.now()` and passes `tRagMs` in the `/api/chat` request body.
+- `api/chat.js` measures LLM stream duration server-side (`Date.now() - streamStart`) and writes both as `t_rag_ms` + `t_llm_ms` to `chat_events`.
+- SQL migration applied: `sql/chat_events_latency.sql` — adds `t_rag_ms integer` and `t_llm_ms integer` columns to `chat_events` (`IF NOT EXISTS`). File also contains ready-to-run p50/p95 queries.
+
+### ✅ Mobile mic stability fix — SHIPPED 2026-04-30
+- **Problem**: on iOS/Android, every `getUserMedia` call triggers a permission re-prompt or AudioContext glitch after the first stop/restart cycle, causing the mic to silently stop delivering audio.
+- **Fix**: `liveStreamRef = useRef(null)` holds the `MediaStream` for the lifetime of the `LiveTranslationView` component. `startLingalaSTT` and `startFrenchSTT` both check `liveStreamRef.current` first; only call `getUserMedia` if no live stream exists. Track teardown only happens on component unmount (cleanup `useEffect`).
+- `stopAmplitudeLoop` no longer stops any tracks — it only cancels the RAF loop and closes the AudioContext. This removes the main source of accidental track termination between chunks.
 
 ---
 
@@ -214,11 +221,12 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 | 2.5 Persistent chat chips | Pending | XS | Low | |
 | ✅ 2.6 Show corpus in loader | Shipped 2026-04-30 | S | Medium | Pairs parsed from RAG, fade in above dots |
 | 4.1 Mic button in chat | Skipped | M | High | Token cost concern — revisit when monetised |
-| 4.2 ▶ on assistant Lingala | Pending | M | High | Regex parse LN fragments |
+| ✅ 4.2 ▶ on assistant Lingala | Shipped 2026-04-30 | M | High | extractLingalaFragments + chatAudioCache, 🔊 button |
 | ✅ 4.3 Warm Space on chat mount | Shipped 2026-04-30 | XS | Medium | Fires on view === "chat" change |
 | ✅ 5.1 Prompt cache restructure | Shipped 2026-04-30 | S | Medium (cost) | Fixed prefix expanded to ≥1024 tokens, corpus appended after |
 | ✅ 5.2 12-turn chat history | Shipped 2026-04-30 | XS | Medium | slice(-12) |
-| 5.7 Latency telemetry | Pending | S | Medium | chat_events columns + perf.now() |
+| ✅ 5.7 Latency telemetry | Shipped 2026-04-30 | S | Medium | t_rag_ms + t_llm_ms; SQL migration applied |
+| ✅ Mobile mic stability | Shipped 2026-04-30 | S | High | liveStreamRef — persistent stream, no re-prompt on restart |
 | 3.3 Live translation preview | Pending | M | Medium | AbortController, debounced preview |
 | 3.6 Slow-down playback | Pending | XS | Low-Medium | 0.75x playbackRate button |
 | 3.7 Replay source button | Pending | XS | Low-Medium | Re-utter or re-fetch source audio |

@@ -95,7 +95,7 @@ export default async function handler(req, res) {
   }
 }
 
-function parseSSEAudio(sseText) {
+export function parseSSEAudio(sseText) {
   const lines = sseText.split("\n");
   for (let i = 0; i < lines.length; i++) {
     if (!lines[i].includes("process_completed")) continue;

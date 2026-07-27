@@ -73,7 +73,7 @@ async function matchParallelSentences(embedding, languageId, matchCount) {
   return res.json();
 }
 
-function formatContext(rows) {
+export function formatContext(rows) {
   if (!rows || rows.length === 0) return "";
 
   // Put verified/gold pairs first

@@ -1,0 +1,1435 @@
+{
+  "ts": "20260727_121549",
+  "lesson": {
+    "id": 361,
+    "course_id": 38,
+    "title": "Construction de phrases 2",
+    "parent_theme": "Niveau 3",
+    "lesson_order": 6,
+    "created_at": "2026-04-07T01:05:38.569299+00:00"
+  },
+  "items": [
+    {
+      "id": 7545,
+      "item_order": 1,
+      "french": "Mais",
+      "dialect": "Kasi"
+    },
+    {
+      "id": 7546,
+      "item_order": 2,
+      "french": "Ou",
+      "dialect": "To"
+    },
+    {
+      "id": 7547,
+      "item_order": 3,
+      "french": "Et",
+      "dialect": "Na"
+    },
+    {
+      "id": 7548,
+      "item_order": 4,
+      "french": "Donc",
+      "dialect": "Na yango"
+    },
+    {
+      "id": 7549,
+      "item_order": 5,
+      "french": "Or",
+      "dialect": "Kasi"
+    },
+    {
+      "id": 7550,
+      "item_order": 6,
+      "french": "Ni",
+      "dialect": "Pe"
+    },
+    {
+      "id": 7551,
+      "item_order": 7,
+      "french": "Car",
+      "dialect": "Po"
+    },
+    {
+      "id": 7552,
+      "item_order": 8,
+      "french": "Que",
+      "dialect": "Ete"
+    },
+    {
+      "id": 7553,
+      "item_order": 9,
+      "french": "Puisque",
+      "dialect": "Po"
+    },
+    {
+      "id": 7554,
+      "item_order": 10,
+      "french": "Parce que",
+      "dialect": "Po"
+    },
+    {
+      "id": 7555,
+      "item_order": 11,
+      "french": "Alors que",
+      "dialect": "Kasi"
+    },
+    {
+      "id": 7556,
+      "item_order": 12,
+      "french": "Comme si",
+      "dialect": "Lokola"
+    },
+    {
+      "id": 7557,
+      "item_order": 13,
+      "french": "Qui",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7558,
+      "item_order": 14,
+      "french": "Je le reconnais, c'est lui l'homme qui a volé mon sac hier",
+      "dialect": "Na zo yeba ye, eza ye nde ayibi sakochi na ngai lobi."
+    },
+    {
+      "id": 7559,
+      "item_order": 15,
+      "french": "Que",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7560,
+      "item_order": 16,
+      "french": "C'est la personne que je respecte le plus",
+      "dialect": "Eza mutu oyo na tosaka ko leka."
+    },
+    {
+      "id": 7561,
+      "item_order": 17,
+      "french": "Ils nous ont dit que  nous n'étions pas les bienvenus ici.",
+      "dialect": "Ba lobi ete to yeyi malamu awa te."
+    },
+    {
+      "id": 7562,
+      "item_order": 18,
+      "french": "Il tient le couteau que je lui ai offert.",
+      "dialect": "Asimbi mbeli oyo na pesi ye."
+    },
+    {
+      "id": 7563,
+      "item_order": 19,
+      "french": "Quoi",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7564,
+      "item_order": 20,
+      "french": "Je ne sais pas quoi faire",
+      "dialect": "Na yebi oyo na sala te."
+    },
+    {
+      "id": 7565,
+      "item_order": 21,
+      "french": "Où",
+      "dialect": "Esika"
+    },
+    {
+      "id": 7566,
+      "item_order": 22,
+      "french": "Lequel",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7567,
+      "item_order": 23,
+      "french": "Laquelle",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7568,
+      "item_order": 24,
+      "french": "Duquel",
+      "dialect": "Yango"
+    },
+    {
+      "id": 7569,
+      "item_order": 25,
+      "french": "Plus",
+      "dialect": "Ko leka"
+    },
+    {
+      "id": 7570,
+      "item_order": 26,
+      "french": "Tu es plus intelligent que moi",
+      "dialect": "Oza mayele ko leka ngai."
+    },
+    {
+      "id": 7571,
+      "item_order": 27,
+      "french": "Moins",
+      "dialect": "Ko leka"
+    },
+    {
+      "id": 7572,
+      "item_order": 28,
+      "french": "Vous êtes moins forts que nous",
+      "dialect": "To za makasi ko leka bino."
+    },
+    {
+      "id": 7573,
+      "item_order": 29,
+      "french": "Le plus / La plus / Les plus",
+      "dialect": "Ko leka"
+    },
+    {
+      "id": 7574,
+      "item_order": 30,
+      "french": "C'est le meilleur des élèves ici",
+      "dialect": "Aza mayele ko leka ba yekoli nionso awa."
+    },
+    {
+      "id": 7575,
+      "item_order": 31,
+      "french": "Toujours",
+      "dialect": "Kaka"
+    },
+    {
+      "id": 7576,
+      "item_order": 32,
+      "french": "En général",
+      "dialect": "Tango nionso"
+    },
+    {
+      "id": 7577,
+      "item_order": 33,
+      "french": "La plupart du temps",
+      "dialect": "Tango nionso"
+    },
+    {
+      "id": 7578,
+      "item_order": 34,
+      "french": "Souvent",
+      "dialect": "Mingi"
+    },
+    {
+      "id": 7579,
+      "item_order": 35,
+      "french": "Parfois",
+      "dialect": "Mikolo misusu"
+    },
+    {
+      "id": 7580,
+      "item_order": 36,
+      "french": "Rarement",
+      "dialect": "Na pasi"
+    },
+    {
+      "id": 7581,
+      "item_order": 37,
+      "french": "Jamais",
+      "dialect": "Ata mokie"
+    },
+    {
+      "id": 7582,
+      "item_order": 38,
+      "french": "Je ne suis jamais montée en haut de cette montagne",
+      "dialect": "Na tikala ko mata te likolo ya ngomba oyo."
+    },
+    {
+      "id": 7583,
+      "item_order": 39,
+      "french": "Devoir (dans le sens fortement possible)",
+      "dialect": "Ko mona"
+    },
+    {
+      "id": 7584,
+      "item_order": 40,
+      "french": "Peut-être",
+      "dialect": "Tango mosusu"
+    },
+    {
+      "id": 7585,
+      "item_order": 41,
+      "french": "À",
+      "dialect": "Na"
+    },
+    {
+      "id": 7586,
+      "item_order": 42,
+      "french": "je suis à *nom d'une ville/village*",
+      "dialect": "Na za na *…*"
+    },
+    {
+      "id": 7587,
+      "item_order": 43,
+      "french": "Je dis à mon frère de m'aider à porter mon sac",
+      "dialect": "Na lobi na ndeko na nga asunga nga ko mema sakochi."
+    },
+    {
+      "id": 7588,
+      "item_order": 44,
+      "french": "Donne ce paquet à ta mère",
+      "dialect": "Pesa liboke oyo na mama na yo."
+    },
+    {
+      "id": 7589,
+      "item_order": 45,
+      "french": "Dans",
+      "dialect": "Na kati ya"
+    },
+    {
+      "id": 7590,
+      "item_order": 46,
+      "french": "Je rentrerai chez moi dans 10jours",
+      "dialect": "Na ko zonga epai na ngai na mikolo zomi."
+    },
+    {
+      "id": 7591,
+      "item_order": 47,
+      "french": "On entend son nom dans toutes les sales histoires",
+      "dialect": "To zo yoka kombo na ye na masolo nionso ya mabe ezo lobama."
+    },
+    {
+      "id": 7592,
+      "item_order": 48,
+      "french": "La souris se cache dans son trou",
+      "dialect": "Mpoko azo bombana na libulu na ye."
+    },
+    {
+      "id": 7593,
+      "item_order": 49,
+      "french": "Dedans",
+      "dialect": "Na kati"
+    },
+    {
+      "id": 7594,
+      "item_order": 50,
+      "french": "Dehors",
+      "dialect": "Na libanda"
+    },
+    {
+      "id": 7595,
+      "item_order": 51,
+      "french": "En Haut",
+      "dialect": "Na likolo"
+    },
+    {
+      "id": 7596,
+      "item_order": 52,
+      "french": "En bas",
+      "dialect": "Na se"
+    },
+    {
+      "id": 7597,
+      "item_order": 53,
+      "french": "Par",
+      "dialect": "/"
+    },
+    {
+      "id": 7598,
+      "item_order": 54,
+      "french": "Il était par ici tout à l'heure.",
+      "dialect": "Azalaki awa sikoyo."
+    },
+    {
+      "id": 7599,
+      "item_order": 55,
+      "french": "Ce plat a été cuisiné par ma femme",
+      "dialect": "Bilia oyo elambami na mwasi na ngai."
+    },
+    {
+      "id": 7600,
+      "item_order": 56,
+      "french": "Elle décortique les arachides un par un",
+      "dialect": "Azo pasola ba nguba moko na moko."
+    },
+    {
+      "id": 7601,
+      "item_order": 57,
+      "french": "Elle a fait tomber le pot par inadvertance",
+      "dialect": "Akweyisi kopo kasi asali na nko te."
+    },
+    {
+      "id": 7602,
+      "item_order": 58,
+      "french": "En",
+      "dialect": "Tango"
+    },
+    {
+      "id": 7603,
+      "item_order": 59,
+      "french": "Nous croyons en Dieu",
+      "dialect": "To ndimelaka Nzambe."
+    },
+    {
+      "id": 7604,
+      "item_order": 60,
+      "french": "Sur",
+      "dialect": "Likolo ya"
+    },
+    {
+      "id": 7605,
+      "item_order": 61,
+      "french": "Elle met sa main sur mon front pour sentir si j'ai de la fièvre",
+      "dialect": "Atie loboko na mbunzu na ngai pona ayeba soki na zo bela."
+    },
+    {
+      "id": 7606,
+      "item_order": 62,
+      "french": "Est-ce que je peux compter sur toi ?",
+      "dialect": "Na koki ko talela yo ?"
+    },
+    {
+      "id": 7607,
+      "item_order": 63,
+      "french": "Sous",
+      "dialect": "Na se ya"
+    },
+    {
+      "id": 7608,
+      "item_order": 64,
+      "french": "Vers",
+      "dialect": "Mosika te na"
+    },
+    {
+      "id": 7609,
+      "item_order": 65,
+      "french": "À quelle heure ton mari rentre du travail ? Il rentre vers 17h",
+      "dialect": "Na ngonga nini mobali na yo ako wuta mosala ? Ako ya na ba ngonga zomi na sambo."
+    },
+    {
+      "id": 7610,
+      "item_order": 66,
+      "french": "Chez",
+      "dialect": "Epai ya"
+    },
+    {
+      "id": 7611,
+      "item_order": 67,
+      "french": "Rentre chez toi",
+      "dialect": "Zonga na ndako na yo."
+    },
+    {
+      "id": 7612,
+      "item_order": 68,
+      "french": "Bienvenue chez moi",
+      "dialect": "Boyeyi malamu epai na ngai."
+    },
+    {
+      "id": 7613,
+      "item_order": 69,
+      "french": "Devant",
+      "dialect": "Liboso ya"
+    },
+    {
+      "id": 7614,
+      "item_order": 70,
+      "french": "Derrière",
+      "dialect": "Sima"
+    },
+    {
+      "id": 7615,
+      "item_order": 71,
+      "french": "À Droite",
+      "dialect": "Na lokobo ya mobali"
+    },
+    {
+      "id": 7616,
+      "item_order": 72,
+      "french": "À Gauche",
+      "dialect": "Na loboko ya mwasi"
+    },
+    {
+      "id": 7617,
+      "item_order": 73,
+      "french": "Entre",
+      "dialect": "Katikati ya… na…"
+    },
+    {
+      "id": 7618,
+      "item_order": 74,
+      "french": "Qu'est-ce qui se passe entre eux deux ?",
+      "dialect": "Nini ezo leka kati na bango mibale ?"
+    },
+    {
+      "id": 7619,
+      "item_order": 75,
+      "french": "Je  n'aime pas quand la viande reste coincée entre mes dents",
+      "dialect": "Na lingaka te tango mosuni ekangamaka na mino na ngai."
+    },
+    {
+      "id": 7620,
+      "item_order": 76,
+      "french": "Jusque",
+      "dialect": "Kino"
+    },
+    {
+      "id": 7621,
+      "item_order": 77,
+      "french": "Nous construisons la barrière d'ici jusqu'à là-bas",
+      "dialect": "To zo tonga mondelo banda awa kino kuna."
+    },
+    {
+      "id": 7622,
+      "item_order": 78,
+      "french": "Contre",
+      "dialect": "Na"
+    },
+    {
+      "id": 7623,
+      "item_order": 79,
+      "french": "Il est toujours contre moi",
+      "dialect": "Aza kaka na likunia pona ngai."
+    },
+    {
+      "id": 7624,
+      "item_order": 80,
+      "french": "Il ne s'est jamais battu contre moi",
+      "dialect": "Nani abunda te na ngai."
+    },
+    {
+      "id": 7625,
+      "item_order": 81,
+      "french": "À côté",
+      "dialect": "Pembeni ya"
+    },
+    {
+      "id": 7626,
+      "item_order": 82,
+      "french": "Loin (de)",
+      "dialect": "Mosika (ya)"
+    },
+    {
+      "id": 7627,
+      "item_order": 83,
+      "french": "Je suis triste quand tu es loin de moi",
+      "dialect": "Na za mawa soki oza mosika na ngai."
+    },
+    {
+      "id": 7628,
+      "item_order": 84,
+      "french": "En face",
+      "dialect": "Liboso (na)"
+    },
+    {
+      "id": 7629,
+      "item_order": 85,
+      "french": "Hors",
+      "dialect": "Libanda (ya)"
+    },
+    {
+      "id": 7630,
+      "item_order": 86,
+      "french": "Au-delà",
+      "dialect": "Ko leka"
+    },
+    {
+      "id": 7631,
+      "item_order": 87,
+      "french": "À partir",
+      "dialect": "Ko banda"
+    },
+    {
+      "id": 7632,
+      "item_order": 88,
+      "french": "Autour de",
+      "dialect": "Nzinganzinga ya"
+    },
+    {
+      "id": 7633,
+      "item_order": 89,
+      "french": "Alors",
+      "dialect": "Kasi"
+    },
+    {
+      "id": 7634,
+      "item_order": 90,
+      "french": "Danse alors !",
+      "dialect": "Bina kasi !"
+    },
+    {
+      "id": 7635,
+      "item_order": 91,
+      "french": "J'ai épousé la femme que vous détestiez, et alors ?",
+      "dialect": "Na bali mwasi oyo bo lingaka te, sikoyo ?"
+    },
+    {
+      "id": 7636,
+      "item_order": 92,
+      "french": "À travers",
+      "dialect": "Na kati"
+    },
+    {
+      "id": 7637,
+      "item_order": 93,
+      "french": "La voiture s'est garée de travers sur la route",
+      "dialect": "Motuka ekangami na ndenge ya mabe na nzela."
+    },
+    {
+      "id": 7638,
+      "item_order": 94,
+      "french": "Ici",
+      "dialect": "Awa"
+    },
+    {
+      "id": 7639,
+      "item_order": 95,
+      "french": "Est-ce que c'est la première fois que tu viens ici ?",
+      "dialect": "Eza mbala ya liboso oya awa ?"
+    },
+    {
+      "id": 7640,
+      "item_order": 96,
+      "french": "Ailleurs",
+      "dialect": "Esika mosusu"
+    },
+    {
+      "id": 7641,
+      "item_order": 97,
+      "french": "Partout",
+      "dialect": "Bisika nionso"
+    },
+    {
+      "id": 7642,
+      "item_order": 98,
+      "french": "Nulle part",
+      "dialect": "Esika te"
+    },
+    {
+      "id": 7643,
+      "item_order": 99,
+      "french": "Avant",
+      "dialect": "Liboso na"
+    },
+    {
+      "id": 7644,
+      "item_order": 100,
+      "french": "Avant d'être professeur, j'étais d'abord agriculteur",
+      "dialect": "Yambo na koma molakisi, na zalaki mosali bilanga."
+    },
+    {
+      "id": 7645,
+      "item_order": 101,
+      "french": "Après",
+      "dialect": "Sima ya"
+    },
+    {
+      "id": 7646,
+      "item_order": 102,
+      "french": "Depuis",
+      "dialect": "Banda"
+    },
+    {
+      "id": 7647,
+      "item_order": 103,
+      "french": "Nous ne sommes pas retournés au village depuis longtemps",
+      "dialect": "To zongi mboka te banda kala."
+    },
+    {
+      "id": 7648,
+      "item_order": 104,
+      "french": "Dès",
+      "dialect": "Tango"
+    },
+    {
+      "id": 7649,
+      "item_order": 105,
+      "french": "Pendant",
+      "dialect": "/"
+    },
+    {
+      "id": 7650,
+      "item_order": 106,
+      "french": "À partir de",
+      "dialect": "Ko banda"
+    },
+    {
+      "id": 7651,
+      "item_order": 107,
+      "french": "D'abord",
+      "dialect": "Nanu"
+    },
+    {
+      "id": 7652,
+      "item_order": 108,
+      "french": "Longtemps",
+      "dialect": "Kala"
+    },
+    {
+      "id": 7653,
+      "item_order": 109,
+      "french": "Hier",
+      "dialect": "Lobi"
+    },
+    {
+      "id": 7654,
+      "item_order": 110,
+      "french": "Demain",
+      "dialect": "Lobi"
+    },
+    {
+      "id": 7655,
+      "item_order": 111,
+      "french": "Dorénavant",
+      "dialect": "Ko banda sikoyo"
+    },
+    {
+      "id": 7656,
+      "item_order": 112,
+      "french": "Encore",
+      "dialect": "Lisusu"
+    },
+    {
+      "id": 7657,
+      "item_order": 113,
+      "french": "Les invités sont encore là ?",
+      "dialect": "Ba paya ba za nani wana ?"
+    },
+    {
+      "id": 7658,
+      "item_order": 114,
+      "french": "C'est qui ?     - C'est moi.      - Encore toi ?",
+      "dialect": "Eza nani ? - Eza ngai. - Eza lisusu yo ?"
+    },
+    {
+      "id": 7659,
+      "item_order": 115,
+      "french": "Elle est encore enceinte, c'est la 3e fois en 3ans",
+      "dialect": "Azalaki lisusu na zemi, eza mbala misato na ba mbula misato."
+    },
+    {
+      "id": 7660,
+      "item_order": 116,
+      "french": "Finalement",
+      "dialect": "Sikoyo"
+    },
+    {
+      "id": 7661,
+      "item_order": 117,
+      "french": "De",
+      "dialect": "Ya"
+    },
+    {
+      "id": 7662,
+      "item_order": 118,
+      "french": "Le fils de Njoya est parti",
+      "dialect": "Mwana ya Njoya akeyi."
+    },
+    {
+      "id": 7663,
+      "item_order": 119,
+      "french": "Avec",
+      "dialect": "Na"
+    },
+    {
+      "id": 7664,
+      "item_order": 120,
+      "french": "Si",
+      "dialect": "Soki"
+    },
+    {
+      "id": 7665,
+      "item_order": 121,
+      "french": "Si tu finis ton travail tu auras ton salaire",
+      "dialect": "Soki osilisi mosala na yo, oko zua lifuta."
+    },
+    {
+      "id": 7666,
+      "item_order": 122,
+      "french": "Si je savais que tu ne viendrais pas je serais resté chez moi",
+      "dialect": "Soki na yebaki ete oko ya te, na lingaki ko fanda epai na ngai."
+    },
+    {
+      "id": 7667,
+      "item_order": 123,
+      "french": "Pour (que)",
+      "dialect": "Po"
+    },
+    {
+      "id": 7668,
+      "item_order": 124,
+      "french": "Nous nous battons pour que notre peuple ne manque de rien",
+      "dialect": "To zo bunda po ekolo na biso ezanga eloko te."
+    },
+    {
+      "id": 7669,
+      "item_order": 125,
+      "french": "Sans",
+      "dialect": "/"
+    },
+    {
+      "id": 7670,
+      "item_order": 126,
+      "french": "Il a réussi à me retrouver sans que je lui dise où j'étais",
+      "dialect": "Akoki ko zua nga kasi na yebisi ye esika na zalaki te."
+    },
+    {
+      "id": 7671,
+      "item_order": 127,
+      "french": "Sur",
+      "dialect": "Likolo ya"
+    },
+    {
+      "id": 7672,
+      "item_order": 128,
+      "french": "Le bébé est tombé sur la tête.",
+      "dialect": "Mwana akweyi na mutu."
+    },
+    {
+      "id": 7673,
+      "item_order": 129,
+      "french": "Répète-moi ce que tu m'as dit sur ton frère",
+      "dialect": "Bandela oyo olobi pona ndeko na yo ya mobali."
+    },
+    {
+      "id": 7674,
+      "item_order": 130,
+      "french": "Sauf",
+      "dialect": "Kasi ya"
+    },
+    {
+      "id": 7675,
+      "item_order": 131,
+      "french": "Tu devrais te taire, sauf si tu as quelque chose d'intéressant à dire",
+      "dialect": "Esengeli okanga monoko, soki oza na eloko ya ko loba te."
+    },
+    {
+      "id": 7676,
+      "item_order": 132,
+      "french": "Envers",
+      "dialect": "Pona"
+    },
+    {
+      "id": 7677,
+      "item_order": 133,
+      "french": "Parmi",
+      "dialect": "Na"
+    },
+    {
+      "id": 7678,
+      "item_order": 134,
+      "french": "Selon",
+      "dialect": "Pona"
+    },
+    {
+      "id": 7679,
+      "item_order": 135,
+      "french": "La semaine prochaine on ira se promener ou manger selon ce que tu choisiras",
+      "dialect": "Mposo oyo eko ya to ko kende ko tambola to ko lia ndenge oko pona."
+    },
+    {
+      "id": 7680,
+      "item_order": 136,
+      "french": "Grâce à",
+      "dialect": "Pona"
+    },
+    {
+      "id": 7681,
+      "item_order": 137,
+      "french": "Merci car je m'en sors dans ma vie grâce à toi",
+      "dialect": "Matondo po na zo koka ko bika na bomoyi pona yo."
+    },
+    {
+      "id": 7682,
+      "item_order": 138,
+      "french": "À cause de",
+      "dialect": "Pona"
+    },
+    {
+      "id": 7683,
+      "item_order": 139,
+      "french": "Ils se sont fâchés à cause de nous",
+      "dialect": "Ba siliki pona biso."
+    },
+    {
+      "id": 7684,
+      "item_order": 140,
+      "french": "Beaucoup",
+      "dialect": "Ebele"
+    },
+    {
+      "id": 7685,
+      "item_order": 141,
+      "french": "Elle a épluché beaucoup de bananes",
+      "dialect": "Alongoli poso na makemba ebele."
+    },
+    {
+      "id": 7686,
+      "item_order": 142,
+      "french": "Vous avez beaucoup fait pour nous, merci.",
+      "dialect": "Bo sali mingi pona biso, matondo."
+    },
+    {
+      "id": 7687,
+      "item_order": 143,
+      "french": "Très",
+      "dialect": "Penza"
+    },
+    {
+      "id": 7688,
+      "item_order": 144,
+      "french": "Elle a très bien cuisiné",
+      "dialect": "Alambi malamu penza."
+    },
+    {
+      "id": 7689,
+      "item_order": 145,
+      "french": "Trop",
+      "dialect": "Mingi"
+    },
+    {
+      "id": 7690,
+      "item_order": 146,
+      "french": "Peu",
+      "dialect": "Mokie"
+    },
+    {
+      "id": 7691,
+      "item_order": 147,
+      "french": "Prends un peu de sauce, voici la cuillère.",
+      "dialect": "Zwa supu mokie, tala lutu."
+    },
+    {
+      "id": 7692,
+      "item_order": 148,
+      "french": "Elle est timide, elle sourit un peu quand je la taquine.",
+      "dialect": "Aza kimia, asekaka mokie soki na tumboli ye."
+    },
+    {
+      "id": 7693,
+      "item_order": 149,
+      "french": "Tellement",
+      "dialect": "Mingi"
+    },
+    {
+      "id": 7694,
+      "item_order": 150,
+      "french": "Elle est tellement belle qu'elle nous rend tous bêtes",
+      "dialect": "Aza kitoko mingi akomisaka biso nionso ba zoba."
+    },
+    {
+      "id": 7695,
+      "item_order": 151,
+      "french": "Environ",
+      "dialect": "Na"
+    },
+    {
+      "id": 7696,
+      "item_order": 152,
+      "french": "Vraiment",
+      "dialect": "Penza"
+    },
+    {
+      "id": 7697,
+      "item_order": 153,
+      "french": "Aussi",
+      "dialect": "Pe"
+    },
+    {
+      "id": 7698,
+      "item_order": 154,
+      "french": "Nous vivons à Pointe-Noire. Elle aussi.",
+      "dialect": "To fandaka na Pointe-Noire. Na ye pe."
+    },
+    {
+      "id": 7699,
+      "item_order": 155,
+      "french": "Elle est aussi grande que toi.",
+      "dialect": "Aza molayi lokola yo."
+    },
+    {
+      "id": 7700,
+      "item_order": 156,
+      "french": "Même",
+      "dialect": "Ata"
+    },
+    {
+      "id": 7701,
+      "item_order": 157,
+      "french": "Elle porte la même robe que moi",
+      "dialect": "Alati lopo moko na ngai."
+    },
+    {
+      "id": 7702,
+      "item_order": 158,
+      "french": "Même si elle n'aime pas la nourriture elle mange quand même",
+      "dialect": "Ata alingi bilia te aliaka kaka."
+    },
+    {
+      "id": 7703,
+      "item_order": 159,
+      "french": "Je ne ferai jamais ça même si tu me payes",
+      "dialect": "Na ko sala yango te ata ofuti ngai."
+    },
+    {
+      "id": 7704,
+      "item_order": 160,
+      "french": "Elle est quand même venue au deuil malgré qu'elle ne parle plus à sa famille.",
+      "dialect": "Aye kaka na matanga ata alobisaka lisusu libota na ye te."
+    },
+    {
+      "id": 7705,
+      "item_order": 161,
+      "french": "Autre",
+      "dialect": "Mosusu"
+    },
+    {
+      "id": 7706,
+      "item_order": 162,
+      "french": "Il faut penser aux autres",
+      "dialect": "Esengeli ko kanisa na ba misusu."
+    },
+    {
+      "id": 7707,
+      "item_order": 163,
+      "french": "Va dire ça à quelqu'un d'autre",
+      "dialect": "Kende oloba yango na moto mosusu."
+    },
+    {
+      "id": 7708,
+      "item_order": 164,
+      "french": "Certaines personnes aiment les chiens, d'autres aiment les chats",
+      "dialect": "Bato mosusu ba lingi ba mbwa, misusu ba lingi ba niao."
+    },
+    {
+      "id": 7709,
+      "item_order": 165,
+      "french": "Presque",
+      "dialect": "Esi kaka"
+    },
+    {
+      "id": 7710,
+      "item_order": 166,
+      "french": "Je suis presque tombé (j'ai failli tomber)",
+      "dialect": "Na lingaki na kweya."
+    },
+    {
+      "id": 7711,
+      "item_order": 167,
+      "french": "Elle est presque adulte",
+      "dialect": "/"
+    },
+    {
+      "id": 7712,
+      "item_order": 168,
+      "french": "Sinon",
+      "dialect": "Soki te"
+    },
+    {
+      "id": 7713,
+      "item_order": 169,
+      "french": "Ensemble",
+      "dialect": "Elongo"
+    },
+    {
+      "id": 7714,
+      "item_order": 170,
+      "french": "Ils restent toujours ensemble.",
+      "dialect": "Ba zalaka kaka elongo."
+    },
+    {
+      "id": 7715,
+      "item_order": 171,
+      "french": "Et",
+      "dialect": "Pe"
+    },
+    {
+      "id": 7716,
+      "item_order": 172,
+      "french": "On attend Femelie et Esther.",
+      "dialect": "To zo zela Femelie pe Esther."
+    },
+    {
+      "id": 7717,
+      "item_order": 173,
+      "french": "Malgré",
+      "dialect": "Kasi"
+    },
+    {
+      "id": 7718,
+      "item_order": 174,
+      "french": "Étant donné",
+      "dialect": "Po"
+    },
+    {
+      "id": 7719,
+      "item_order": 175,
+      "french": "Par rapport à",
+      "dialect": "Ko leka"
+    },
+    {
+      "id": 7720,
+      "item_order": 176,
+      "french": "Je suis gêné par rapport à Naya car je sais où son mari était hier.",
+      "dialect": "Na za na soni pona Naya po na yebi esika mobali na ye azalaki lobi."
+    },
+    {
+      "id": 7721,
+      "item_order": 177,
+      "french": "Je",
+      "dialect": "Na"
+    },
+    {
+      "id": 7722,
+      "item_order": 178,
+      "french": "Tu",
+      "dialect": "O"
+    },
+    {
+      "id": 7723,
+      "item_order": 179,
+      "french": "Il/Elle",
+      "dialect": "A"
+    },
+    {
+      "id": 7724,
+      "item_order": 180,
+      "french": "Nous",
+      "dialect": "To"
+    },
+    {
+      "id": 7725,
+      "item_order": 181,
+      "french": "Vous",
+      "dialect": "Bo"
+    },
+    {
+      "id": 7726,
+      "item_order": 182,
+      "french": "Ils/Elles",
+      "dialect": "Ba"
+    },
+    {
+      "id": 7727,
+      "item_order": 183,
+      "french": "Moi",
+      "dialect": "Nga / Ngai"
+    },
+    {
+      "id": 7728,
+      "item_order": 184,
+      "french": "Toi",
+      "dialect": "Yo"
+    },
+    {
+      "id": 7729,
+      "item_order": 185,
+      "french": "Lui",
+      "dialect": "Ye"
+    },
+    {
+      "id": 7730,
+      "item_order": 186,
+      "french": "Elle",
+      "dialect": "Ye"
+    },
+    {
+      "id": 7731,
+      "item_order": 187,
+      "french": "Nous",
+      "dialect": "Biso"
+    },
+    {
+      "id": 7732,
+      "item_order": 188,
+      "french": "Vous",
+      "dialect": "Bino"
+    },
+    {
+      "id": 7733,
+      "item_order": 189,
+      "french": "Ils",
+      "dialect": "Bango"
+    },
+    {
+      "id": 7734,
+      "item_order": 190,
+      "french": "J'achète ça pour elles",
+      "dialect": "Na zo somba yango pona bango."
+    },
+    {
+      "id": 7735,
+      "item_order": 191,
+      "french": "Me",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7736,
+      "item_order": 192,
+      "french": "Te",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7737,
+      "item_order": 193,
+      "french": "Se (masculin singulier)",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7738,
+      "item_order": 194,
+      "french": "Se (féminin singulier)",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7739,
+      "item_order": 195,
+      "french": "Nous",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7740,
+      "item_order": 196,
+      "french": "Vous",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7741,
+      "item_order": 197,
+      "french": "Se (masculin pluriel)",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7742,
+      "item_order": 198,
+      "french": "Se (féminin pluriel)",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7743,
+      "item_order": 199,
+      "french": "Me (m')",
+      "dialect": "Nga"
+    },
+    {
+      "id": 7744,
+      "item_order": 200,
+      "french": "Te (t')",
+      "dialect": "Yo"
+    },
+    {
+      "id": 7745,
+      "item_order": 201,
+      "french": "Le/La/L'",
+      "dialect": "Ye"
+    },
+    {
+      "id": 7746,
+      "item_order": 202,
+      "french": "Nous",
+      "dialect": "Biso"
+    },
+    {
+      "id": 7747,
+      "item_order": 203,
+      "french": "Vous",
+      "dialect": "Bino"
+    },
+    {
+      "id": 7748,
+      "item_order": 204,
+      "french": "Les",
+      "dialect": "Bango"
+    },
+    {
+      "id": 7749,
+      "item_order": 205,
+      "french": "Moi",
+      "dialect": "Ngai"
+    },
+    {
+      "id": 7750,
+      "item_order": 206,
+      "french": "Toi",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7751,
+      "item_order": 207,
+      "french": "Lui",
+      "dialect": "Ye"
+    },
+    {
+      "id": 7752,
+      "item_order": 208,
+      "french": "En",
+      "dialect": "Yango"
+    },
+    {
+      "id": 7753,
+      "item_order": 209,
+      "french": "Y",
+      "dialect": "Kuna"
+    },
+    {
+      "id": 7754,
+      "item_order": 210,
+      "french": "Nous",
+      "dialect": "Biso"
+    },
+    {
+      "id": 7755,
+      "item_order": 211,
+      "french": "Vous",
+      "dialect": "Mi"
+    },
+    {
+      "id": 7756,
+      "item_order": 212,
+      "french": "Leur",
+      "dialect": "Bango"
+    },
+    {
+      "id": 7757,
+      "item_order": 213,
+      "french": "Mon",
+      "dialect": "Na ngai"
+    },
+    {
+      "id": 7758,
+      "item_order": 214,
+      "french": "Ma",
+      "dialect": "Na ngai"
+    },
+    {
+      "id": 7759,
+      "item_order": 215,
+      "french": "Mes",
+      "dialect": "Na ngai"
+    },
+    {
+      "id": 7760,
+      "item_order": 216,
+      "french": "Mienne",
+      "dialect": "Ya ngai"
+    },
+    {
+      "id": 7761,
+      "item_order": 217,
+      "french": "Miens",
+      "dialect": "Ya ngai"
+    },
+    {
+      "id": 7762,
+      "item_order": 218,
+      "french": "Tienne",
+      "dialect": "Ya yo"
+    },
+    {
+      "id": 7763,
+      "item_order": 219,
+      "french": "Tiens",
+      "dialect": "Ya yo"
+    },
+    {
+      "id": 7764,
+      "item_order": 220,
+      "french": "Sienne",
+      "dialect": "Ya ye"
+    },
+    {
+      "id": 7765,
+      "item_order": 221,
+      "french": "Siens",
+      "dialect": "Ya ye"
+    },
+    {
+      "id": 7766,
+      "item_order": 222,
+      "french": "Nôtre",
+      "dialect": "Ya biso"
+    },
+    {
+      "id": 7767,
+      "item_order": 223,
+      "french": "Nôtres",
+      "dialect": "Ya biso"
+    },
+    {
+      "id": 7768,
+      "item_order": 224,
+      "french": "Vôtre",
+      "dialect": "Ya bino"
+    },
+    {
+      "id": 7769,
+      "item_order": 225,
+      "french": "Vôtres",
+      "dialect": "Ya bino"
+    },
+    {
+      "id": 7770,
+      "item_order": 226,
+      "french": "Sienne",
+      "dialect": "Ya ye"
+    },
+    {
+      "id": 7771,
+      "item_order": 227,
+      "french": "Leurs",
+      "dialect": "Ya bango"
+    },
+    {
+      "id": 7772,
+      "item_order": 228,
+      "french": "Cet",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7773,
+      "item_order": 229,
+      "french": "Cette",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7774,
+      "item_order": 230,
+      "french": "Ces",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7775,
+      "item_order": 231,
+      "french": "Ce",
+      "dialect": "(Oyo)"
+    },
+    {
+      "id": 7776,
+      "item_order": 232,
+      "french": "C'",
+      "dialect": "/"
+    },
+    {
+      "id": 7777,
+      "item_order": 233,
+      "french": "Celui/Celle",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7778,
+      "item_order": 234,
+      "french": "Celui/Celle-là",
+      "dialect": "Oyo"
+    },
+    {
+      "id": 7779,
+      "item_order": 235,
+      "french": "Ceux",
+      "dialect": "Ba oyo"
+    },
+    {
+      "id": 7780,
+      "item_order": 236,
+      "french": "Ceux-là/ci",
+      "dialect": "Bango"
+    },
+    {
+      "id": 7781,
+      "item_order": 237,
+      "french": "Ça",
+      "dialect": "Yango"
+    }
+  ]
+}

@@ -1,0 +1,565 @@
+{
+  "ts": "20260727_120212",
+  "lesson": {
+    "id": 350,
+    "course_id": 36,
+    "title": "Chiffres, jours et temps",
+    "parent_theme": "Niveau 1",
+    "lesson_order": 5,
+    "created_at": "2026-04-07T01:05:38.569299+00:00"
+  },
+  "items": [
+    {
+      "id": 7153,
+      "item_order": 1,
+      "french": "1",
+      "dialect": "Moko"
+    },
+    {
+      "id": 7154,
+      "item_order": 2,
+      "french": "2",
+      "dialect": "Mibale"
+    },
+    {
+      "id": 7155,
+      "item_order": 3,
+      "french": "3",
+      "dialect": "Misato"
+    },
+    {
+      "id": 7156,
+      "item_order": 4,
+      "french": "4",
+      "dialect": "Minei"
+    },
+    {
+      "id": 7157,
+      "item_order": 5,
+      "french": "5",
+      "dialect": "Mitano"
+    },
+    {
+      "id": 7158,
+      "item_order": 6,
+      "french": "6",
+      "dialect": "Motoba"
+    },
+    {
+      "id": 7159,
+      "item_order": 7,
+      "french": "7",
+      "dialect": "Sambo"
+    },
+    {
+      "id": 7160,
+      "item_order": 8,
+      "french": "8",
+      "dialect": "Mwambe"
+    },
+    {
+      "id": 7161,
+      "item_order": 9,
+      "french": "9",
+      "dialect": "Libwa"
+    },
+    {
+      "id": 7162,
+      "item_order": 10,
+      "french": "10",
+      "dialect": "Zomi"
+    },
+    {
+      "id": 7163,
+      "item_order": 11,
+      "french": "11",
+      "dialect": "Zomi na moko"
+    },
+    {
+      "id": 7164,
+      "item_order": 12,
+      "french": "12",
+      "dialect": "Zomi na mibale j"
+    },
+    {
+      "id": 7165,
+      "item_order": 13,
+      "french": "13",
+      "dialect": "Zomi na misato"
+    },
+    {
+      "id": 7166,
+      "item_order": 14,
+      "french": "14",
+      "dialect": "zomi na minei"
+    },
+    {
+      "id": 7167,
+      "item_order": 15,
+      "french": "15",
+      "dialect": "Zomi na mitano"
+    },
+    {
+      "id": 7168,
+      "item_order": 16,
+      "french": "16",
+      "dialect": "Zomi na motoba"
+    },
+    {
+      "id": 7169,
+      "item_order": 17,
+      "french": "17",
+      "dialect": "Zomi na sambo"
+    },
+    {
+      "id": 7170,
+      "item_order": 18,
+      "french": "18",
+      "dialect": "Zomi na mwambe"
+    },
+    {
+      "id": 7171,
+      "item_order": 19,
+      "french": "19",
+      "dialect": "Zomi na libwa"
+    },
+    {
+      "id": 7172,
+      "item_order": 20,
+      "french": "20",
+      "dialect": "Tuku mibale"
+    },
+    {
+      "id": 7173,
+      "item_order": 21,
+      "french": "30",
+      "dialect": "Tuku misato"
+    },
+    {
+      "id": 7174,
+      "item_order": 22,
+      "french": "40",
+      "dialect": "Tuku minei"
+    },
+    {
+      "id": 7175,
+      "item_order": 23,
+      "french": "50",
+      "dialect": "Tuku mitano"
+    },
+    {
+      "id": 7176,
+      "item_order": 24,
+      "french": "60",
+      "dialect": "Tuku motoba"
+    },
+    {
+      "id": 7177,
+      "item_order": 25,
+      "french": "70",
+      "dialect": "Tuku sambo"
+    },
+    {
+      "id": 7178,
+      "item_order": 26,
+      "french": "80",
+      "dialect": "Tuku mwambe"
+    },
+    {
+      "id": 7179,
+      "item_order": 27,
+      "french": "90",
+      "dialect": "Tuku libwa"
+    },
+    {
+      "id": 7180,
+      "item_order": 28,
+      "french": "100",
+      "dialect": "Nkama"
+    },
+    {
+      "id": 7181,
+      "item_order": 29,
+      "french": "101",
+      "dialect": "Nkama na moko"
+    },
+    {
+      "id": 7182,
+      "item_order": 30,
+      "french": "110",
+      "dialect": "Nkama na zomi"
+    },
+    {
+      "id": 7183,
+      "item_order": 31,
+      "french": "200",
+      "dialect": "Nkama mibale"
+    },
+    {
+      "id": 7184,
+      "item_order": 32,
+      "french": "300",
+      "dialect": "Nkama misato"
+    },
+    {
+      "id": 7185,
+      "item_order": 33,
+      "french": "400",
+      "dialect": "Nkama minei"
+    },
+    {
+      "id": 7186,
+      "item_order": 34,
+      "french": "500",
+      "dialect": "Nkama mitano"
+    },
+    {
+      "id": 7187,
+      "item_order": 35,
+      "french": "600",
+      "dialect": "Nkama motoba"
+    },
+    {
+      "id": 7188,
+      "item_order": 36,
+      "french": "700",
+      "dialect": "Nkama sambo"
+    },
+    {
+      "id": 7189,
+      "item_order": 37,
+      "french": "800",
+      "dialect": "Nkama mwambe"
+    },
+    {
+      "id": 7190,
+      "item_order": 38,
+      "french": "900",
+      "dialect": "Nkama libwa"
+    },
+    {
+      "id": 7191,
+      "item_order": 39,
+      "french": "1000",
+      "dialect": "Nkoto"
+    },
+    {
+      "id": 7192,
+      "item_order": 40,
+      "french": "1001",
+      "dialect": "Nkoto na moko"
+    },
+    {
+      "id": 7193,
+      "item_order": 41,
+      "french": "1100",
+      "dialect": "Nkoto na nkama"
+    },
+    {
+      "id": 7194,
+      "item_order": 42,
+      "french": "2000",
+      "dialect": "Nkoto mibale"
+    },
+    {
+      "id": 7195,
+      "item_order": 43,
+      "french": "3000",
+      "dialect": "Nkoto misato"
+    },
+    {
+      "id": 7196,
+      "item_order": 44,
+      "french": "4000",
+      "dialect": "Nkoto minei"
+    },
+    {
+      "id": 7197,
+      "item_order": 45,
+      "french": "5000",
+      "dialect": "Nkoto mitano"
+    },
+    {
+      "id": 7198,
+      "item_order": 46,
+      "french": "6000",
+      "dialect": "Nkoto motoba"
+    },
+    {
+      "id": 7199,
+      "item_order": 47,
+      "french": "7000",
+      "dialect": "Nkoto sambo"
+    },
+    {
+      "id": 7200,
+      "item_order": 48,
+      "french": "8000",
+      "dialect": "Nkoto mwambe"
+    },
+    {
+      "id": 7201,
+      "item_order": 49,
+      "french": "9000",
+      "dialect": "Nkoto libwa"
+    },
+    {
+      "id": 7202,
+      "item_order": 50,
+      "french": "10000",
+      "dialect": "Mokoko"
+    },
+    {
+      "id": 7203,
+      "item_order": 51,
+      "french": "10100",
+      "dialect": "Mokoko na nkama"
+    },
+    {
+      "id": 7204,
+      "item_order": 52,
+      "french": "11000",
+      "dialect": "Mokoko na nkoto"
+    },
+    {
+      "id": 7205,
+      "item_order": 53,
+      "french": "100000",
+      "dialect": "Elundu"
+    },
+    {
+      "id": 7206,
+      "item_order": 54,
+      "french": "200000",
+      "dialect": "Bilundu mibale"
+    },
+    {
+      "id": 7207,
+      "item_order": 55,
+      "french": "1000000",
+      "dialect": "Efuku"
+    },
+    {
+      "id": 7208,
+      "item_order": 56,
+      "french": "1er",
+      "dialect": "Ya liboso"
+    },
+    {
+      "id": 7209,
+      "item_order": 57,
+      "french": "2e",
+      "dialect": "Ya mibale"
+    },
+    {
+      "id": 7210,
+      "item_order": 58,
+      "french": "3e",
+      "dialect": "Ya misato"
+    },
+    {
+      "id": 7211,
+      "item_order": 59,
+      "french": "Jour",
+      "dialect": "Mokolo"
+    },
+    {
+      "id": 7212,
+      "item_order": 60,
+      "french": "Semaine",
+      "dialect": "Mposo"
+    },
+    {
+      "id": 7213,
+      "item_order": 61,
+      "french": "Mois",
+      "dialect": "Sanza"
+    },
+    {
+      "id": 7214,
+      "item_order": 62,
+      "french": "Saison",
+      "dialect": "Eleko"
+    },
+    {
+      "id": 7215,
+      "item_order": 63,
+      "french": "Saison sèche",
+      "dialect": "Elanga"
+    },
+    {
+      "id": 7216,
+      "item_order": 64,
+      "french": "Année",
+      "dialect": "Mbula"
+    },
+    {
+      "id": 7217,
+      "item_order": 65,
+      "french": "Lundi",
+      "dialect": "Mokolo ya liboso"
+    },
+    {
+      "id": 7218,
+      "item_order": 66,
+      "french": "Mardi",
+      "dialect": "Mokolo ya mibale"
+    },
+    {
+      "id": 7219,
+      "item_order": 67,
+      "french": "Mercredi",
+      "dialect": "Mokolo ya misato"
+    },
+    {
+      "id": 7220,
+      "item_order": 68,
+      "french": "Jeudi",
+      "dialect": "Mokolo ya minei"
+    },
+    {
+      "id": 7221,
+      "item_order": 69,
+      "french": "Vendredi",
+      "dialect": "Mokolo ya mitano"
+    },
+    {
+      "id": 7222,
+      "item_order": 70,
+      "french": "Samedi",
+      "dialect": "Mokolo ya poso"
+    },
+    {
+      "id": 7223,
+      "item_order": 71,
+      "french": "Dimanche",
+      "dialect": "Mokolo ya eyenga"
+    },
+    {
+      "id": 7224,
+      "item_order": 72,
+      "french": "Janvier",
+      "dialect": "Sanza ya liboso"
+    },
+    {
+      "id": 7225,
+      "item_order": 73,
+      "french": "Février",
+      "dialect": "Sanza ya mibale"
+    },
+    {
+      "id": 7226,
+      "item_order": 74,
+      "french": "mars",
+      "dialect": "Sanza ya misato"
+    },
+    {
+      "id": 7227,
+      "item_order": 75,
+      "french": "avril",
+      "dialect": "Sanza ya minei"
+    },
+    {
+      "id": 7228,
+      "item_order": 76,
+      "french": "mai",
+      "dialect": "Sanza ya mitano"
+    },
+    {
+      "id": 7229,
+      "item_order": 77,
+      "french": "juin",
+      "dialect": "Sanza ya motoba"
+    },
+    {
+      "id": 7230,
+      "item_order": 78,
+      "french": "juillet",
+      "dialect": "Sanza ya sambo"
+    },
+    {
+      "id": 7231,
+      "item_order": 79,
+      "french": "août",
+      "dialect": "Sanza ya mwambe"
+    },
+    {
+      "id": 7232,
+      "item_order": 80,
+      "french": "septembre",
+      "dialect": "Sanza ya libwa"
+    },
+    {
+      "id": 7233,
+      "item_order": 81,
+      "french": "octobre",
+      "dialect": "Sanza ya zomi"
+    },
+    {
+      "id": 7234,
+      "item_order": 82,
+      "french": "novembre",
+      "dialect": "Sanza ya zomi na moko"
+    },
+    {
+      "id": 7235,
+      "item_order": 83,
+      "french": "décembre",
+      "dialect": "Sanza ya zomi na mibale"
+    },
+    {
+      "id": 7236,
+      "item_order": 84,
+      "french": "Saison des pluies",
+      "dialect": "Tango ya mbula"
+    },
+    {
+      "id": 7237,
+      "item_order": 85,
+      "french": "Saison sèche",
+      "dialect": "Elanga"
+    },
+    {
+      "id": 7238,
+      "item_order": 86,
+      "french": "Quelle heure est-il ?",
+      "dialect": "Ekomi ngonga nini ?"
+    },
+    {
+      "id": 7239,
+      "item_order": 87,
+      "french": "A quelle heure on part ?",
+      "dialect": "To ko kende na ngonga nini ?"
+    },
+    {
+      "id": 7240,
+      "item_order": 88,
+      "french": "C'est trop tard",
+      "dialect": "Ngonga esi eleki."
+    },
+    {
+      "id": 7241,
+      "item_order": 89,
+      "french": "Il est trop tôt",
+      "dialect": "Eza tongo makasi."
+    },
+    {
+      "id": 7242,
+      "item_order": 90,
+      "french": "C'est l'heure de partir",
+      "dialect": "Ekomi ngonga ko kende."
+    },
+    {
+      "id": 7243,
+      "item_order": 91,
+      "french": "Attends un peu",
+      "dialect": "Zela mokie."
+    },
+    {
+      "id": 7244,
+      "item_order": 92,
+      "french": "Je suis prêt / Je ne suis pas prêt",
+      "dialect": "Na bongami / Nanu na bongami te."
+    }
+  ]
+}

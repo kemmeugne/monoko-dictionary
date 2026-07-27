@@ -1,0 +1,18 @@
+{
+  "ts": "20260727_115708",
+  "url": "https://haioiccujncsehadipzb.supabase.co",
+  "rows": [
+    {
+      "table": "lessons",
+      "id": 366,
+      "before": {
+        "id": 366,
+        "course_id": 39,
+        "title": "La ville et les lieux",
+        "parent_theme": "Niveau 4",
+        "lesson_order": 5,
+        "created_at": "2026-04-07T01:05:38.569299+00:00"
+      }
+    }
+  ]
+}

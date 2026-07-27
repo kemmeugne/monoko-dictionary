@@ -49,6 +49,12 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 .section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .section-title::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--primary);}
 .ref-box{padding:10px 13px;background:var(--ref);border:1px solid var(--ref-border);border-radius:var(--radius-sm);font-size:15px;font-style:italic;color:var(--text);margin-bottom:10px;line-height:1.5;}
+.ref-editable{width:100%;font-family:inherit;resize:vertical;cursor:text;border-color:var(--accent);background:#FFFDF8;}
+.ref-editable:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,116,14,.12);background:white;}
+.add-example-btn{display:flex;align-items:center;gap:6px;padding:9px 14px;border:2px dashed var(--border);border-radius:var(--radius-sm);background:white;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;width:100%;transition:all .2s;margin-top:4px;}
+.add-example-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.extra-delete-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;font-weight:600;}
+.extra-delete-btn:hover{background:var(--danger-light);}
 .ref-label{font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
 .field-group{margin-top:4px;}
 .field-group label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;}
@@ -80,7 +86,7 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 .export-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:2px solid var(--border);padding:10px 18px;display:flex;gap:10px;align-items:center;justify-content:center;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.08);}
 .export-btn{padding:10px 28px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s;}
 .export-btn:hover{background:#B8620C;transform:translateY(-1px);}
-.export-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.export-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}.import-btn{padding:10px 20px;background:white;color:var(--primary);border:2px solid var(--primary);border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s;}.import-btn:hover{background:var(--primary-light);}.import-btn:disabled{opacity:.5;cursor:not-allowed;}
 .export-summary{font-size:12px;color:var(--text-secondary);text-align:center;}
 .reset-btn{padding:7px 13px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);cursor:pointer;transition:all .2s;white-space:nowrap;}
 .reset-btn:hover{border-color:var(--danger);color:var(--danger);}
@@ -138,6 +144,7 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 
 <div class="export-bar">
   <button class="reset-btn" onclick="confirmReset()">🗑 Réinitialiser</button>
+  <button class="import-btn" id="importBtn" onclick="importZip()">📂 Importer ZIP</button>
   <div class="export-summary" id="exportSummary">Prêt à exporter</div>
   <button class="export-btn" id="exportBtn" onclick="exportZip()">📦 Exporter ZIP</button>
 </div>
@@ -177,6 +184,7 @@ const state = ENTRIES.map(e => ({
   phrase_fr2:e.phrase_fr2, phrase_lang2:e.phrase_lang2,
   prefilled:e.prefilled,
   audio_label:null, audio_phrase:null, audio_phrase2:null,
+  extra_examples:[],
 }));
 
 let currentIdx=0,activeRecorder=null,activeRecField=null,recStartTime=null,recTimerInterval=null;
@@ -243,8 +251,8 @@ function renderEntry(){
   let html=`<div class="entry-card"><div class="entry-breadcrumb">${escHtml(e.breadcrumb)}</div>`;
   if(e.label_fr!==null){
     html+=`<div class="entry-section"><div class="section-title">Mot / Expression</div>
-      <div class="ref-label">Référence française</div>
-      <div class="ref-box">${escHtml(e.label_fr)}</div>
+      <div class="ref-label">Référence française <em style="font-style:normal;font-size:10px;color:var(--text-secondary)">(modifiable)</em></div>
+      <textarea class="ref-box ref-editable" rows="2" oninput="onField('label_fr',this.value)">${escHtml(e.label_fr)}</textarea>
       <div class="field-group"><label>En ${LANGUAGE}</label>
       <textarea id="fl-label" placeholder="Traduction en ${LANGUAGE}…"
         class="${e.label_lang?'prefilled':''}"
@@ -253,8 +261,8 @@ function renderEntry(){
   }
   if(e.phrase_fr!==null){
     html+=`<div class="entry-section"><div class="section-title">Phrase principale</div>
-      <div class="ref-label">Référence française</div>
-      <div class="ref-box">${escHtml(e.phrase_fr)}</div>
+      <div class="ref-label">Référence française <em style="font-style:normal;font-size:10px;color:var(--text-secondary)">(modifiable)</em></div>
+      <textarea class="ref-box ref-editable" rows="2" oninput="onField('phrase_fr',this.value)">${escHtml(e.phrase_fr)}</textarea>
       <div class="field-group"><label>En ${LANGUAGE}</label>
       <textarea id="fl-phrase" placeholder="Traduction en ${LANGUAGE}…"
         class="${e.phrase_lang?'prefilled':''}"
@@ -263,17 +271,20 @@ function renderEntry(){
   }
   if(e.phrase_fr2!==null){
     html+=`<div class="entry-section"><div class="section-title">Phrase exemple</div>
-      <div class="ref-label">Référence française</div>
-      <div class="ref-box">${escHtml(e.phrase_fr2)}</div>
+      <div class="ref-label">Référence française <em style="font-style:normal;font-size:10px;color:var(--text-secondary)">(modifiable)</em></div>
+      <textarea class="ref-box ref-editable" rows="2" oninput="onField('phrase_fr2',this.value)">${escHtml(e.phrase_fr2)}</textarea>
       <div class="field-group"><label>En ${LANGUAGE}</label>
       <textarea id="fl-phrase2" placeholder="Traduction en ${LANGUAGE}…"
         class="${e.phrase_lang2?'prefilled':''}"
         oninput="onField('phrase_lang2',this.value)">${escHtml(e.phrase_lang2||'')}</textarea></div>
       ${audioRow('phrase2',e.audio_phrase2)}</div>`;
   }
+  if(e.extra_examples&&e.extra_examples.length>0){e.extra_examples.forEach((ex,xi)=>{html+=`<div class="entry-section"><div class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><span>Exemple supplémentaire ${xi+1}</span><button class="extra-delete-btn" onclick="deleteExtraExample(${xi})">✕ Retirer</button></div><div class="ref-label">Référence française <em style="font-style:normal;font-size:10px;color:var(--text-secondary)">(modifiable)</em></div><textarea class="ref-box ref-editable" rows="2" oninput="onExtraField(${xi},'phrase_fr',this.value)">${escHtml(ex.phrase_fr)}</textarea><div class="field-group"><label>En ${LANGUAGE}</label><textarea class="${ex.phrase_lang?'prefilled':''}" placeholder="Traduction en ${LANGUAGE}…" oninput="onExtraField(${xi},'phrase_lang',this.value)">${escHtml(ex.phrase_lang)}</textarea></div>${audioRow('extra_'+xi,ex.audio)}</div>`;});}
+  html+=`<div class="entry-section" style="padding:10px 18px"><button class="add-example-btn" onclick="addExtraExample()">+ Ajouter un exemple</button></div>`;
   html+=`</div>`;
   area.innerHTML=html;
   ['label','phrase','phrase2'].forEach(f=>{const blob=e[`audio_${f}`];if(blob)showAudioPlayer(f,blob);});
+  if(e.extra_examples)e.extra_examples.forEach((ex,xi)=>{if(ex.audio)showAudioPlayer('extra_'+xi,ex.audio);});
   document.getElementById('btnPrev').disabled=currentIdx===0;
   document.getElementById('btnNext').textContent=currentIdx===ENTRIES.length-1?'Terminé ✓':'Suivant →';
   updateNav();updateProgress();
@@ -298,6 +309,9 @@ function showAudioPlayer(field,blob){
   if(pb&&el&&blob){pb.classList.remove('hidden');el.src=URL.createObjectURL(blob);}
 }
 function onField(field,value){state[currentIdx][field]=value;scheduleSave();updateProgress();}
+function addExtraExample(){state[currentIdx].extra_examples.push({phrase_fr:'',phrase_lang:'',audio:null});scheduleSave();renderEntry();}
+function deleteExtraExample(xi){const e=state[currentIdx];saveAudioClip(e.id,'extra_'+xi,null);e.extra_examples.splice(xi,1);scheduleSave();renderEntry();}
+function onExtraField(xi,field,value){if(state[currentIdx].extra_examples[xi])state[currentIdx].extra_examples[xi][field]=value;scheduleSave();}
 
 async function toggleRecording(field){
   const btn=document.getElementById(`rbtn-${field}`);if(!btn)return;
@@ -311,7 +325,7 @@ async function toggleRecording(field){
     recorder.onstop=()=>{
       stream.getTracks().forEach(t=>t.stop());
       const blob=new Blob(chunks,{type:recorder.mimeType});
-      state[currentIdx][`audio_${field}`]=blob;
+      if(field.startsWith('extra_')){const xi=parseInt(field.slice(6));if(state[currentIdx].extra_examples[xi])state[currentIdx].extra_examples[xi].audio=blob;}else state[currentIdx][`audio_${field}`]=blob;
       saveAudioClip(state[currentIdx].id,field,blob);renderEntry();
     };
     recorder.start();activeRecorder=recorder;activeRecField=field;
@@ -329,7 +343,7 @@ function stopRecording(){
   activeRecorder=null;activeRecField=null;
   if(recTimerInterval){clearInterval(recTimerInterval);recTimerInterval=null;}
 }
-function deleteAudio(field){state[currentIdx][`audio_${field}`]=null;saveAudioClip(state[currentIdx].id,field,null);renderEntry();}
+function deleteAudio(field){if(field.startsWith('extra_')){const xi=parseInt(field.slice(6));if(state[currentIdx].extra_examples[xi])state[currentIdx].extra_examples[xi].audio=null;}else state[currentIdx][`audio_${field}`]=null;saveAudioClip(state[currentIdx].id,field,null);renderEntry();}
 function getSupportedMime(){
   const types=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
   for(const t of types)if(MediaRecorder.isTypeSupported(t))return t;return '';
@@ -341,6 +355,62 @@ function getAudioExt(){
 function goTo(idx){if(idx<0||idx>=ENTRIES.length)return;stopRecording();saveTextState();currentIdx=idx;renderEntry();window.scrollTo({top:0,behavior:'smooth'});}
 function startWork(){document.getElementById('splashScreen').classList.add('hidden');document.getElementById('workArea').classList.remove('hidden');currentIdx=0;renderEntry();}
 
+function parseZip(u8){
+  const view=new DataView(u8.buffer);const entries=[];let i=0;
+  while(i<u8.length-4){
+    if(view.getUint32(i,true)===0x04034b50){
+      const fnLen=view.getUint16(i+26,true);const extraLen=view.getUint16(i+28,true);
+      const compSize=view.getUint32(i+18,true);
+      const name=new TextDecoder().decode(u8.slice(i+30,i+30+fnLen));
+      const dataStart=i+30+fnLen+extraLen;
+      entries.push({name,data:u8.slice(dataStart,dataStart+compSize)});
+      i=dataStart+compSize;
+    }else{i++;}
+  }
+  return entries;
+}
+function importZip(){
+  const input=document.createElement('input');input.type='file';input.accept='.zip';
+  input.onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    const btn=document.getElementById('importBtn');btn.disabled=true;btn.textContent='⏳ Import…';
+    try{
+      const u8=new Uint8Array(await file.arrayBuffer());
+      const entries=parseZip(u8);
+      const dataEntry=entries.find(e=>e.name==='data.json');
+      if(!dataEntry){alert('Fichier data.json introuvable dans le ZIP.');return;}
+      const json=JSON.parse(new TextDecoder().decode(dataEntry.data));
+      for(let i=0;i<(json.entries||[]).length&&i<state.length;i++){
+        const p=json.entries[i];
+        if(p.phrase_fr!==undefined)state[i].phrase_fr=p.phrase_fr;
+        if(p.phrase_fr2!==undefined)state[i].phrase_fr2=p.phrase_fr2;
+        if(p.phrase_lang!==undefined)state[i].phrase_lang=p.phrase_lang;
+        if(p.phrase_lang2!==undefined)state[i].phrase_lang2=p.phrase_lang2;
+        if(p.label_fr!==undefined)state[i].label_fr=p.label_fr;
+        if(p.label_lang!==undefined)state[i].label_lang=p.label_lang;
+        if(p.extra_examples)state[i].extra_examples=p.extra_examples.map(ex=>({phrase_fr:ex.phrase_fr||'',phrase_lang:ex.phrase_lang||'',audio:null}));
+      }
+      for(const entry of entries){
+        if(!entry.name.startsWith('audio/'))continue;
+        const fname=entry.name.replace('audio/','');
+        const m=fname.match(/^e(\d+)_(.+)\.[^.]+$/);if(!m)continue;
+        const id=parseInt(m[1]);const field=m[2];
+        const blob=new Blob([entry.data],{type:'audio/webm'});
+        const se=state.find(s=>s.id===id);
+        if(se){
+          if(field==='phrase')se.audio_phrase=blob;
+          else if(field==='phrase2')se.audio_phrase2=blob;
+          else if(field.startsWith('extra_')){const xi=parseInt(field.replace('extra_',''));if(se.extra_examples[xi])se.extra_examples[xi].audio=blob;}
+          await saveAudioClip(id,field,blob);
+        }
+      }
+      saveTextState();renderEntry();updateProgress();
+      alert('✓ Import réussi ! Toutes vos données ont été restaurées.');
+    }catch(err){console.error(err);alert('Erreur lors de l\'import : '+err.message);}
+    finally{btn.disabled=false;btn.textContent='📂 Importer ZIP';}
+  };
+  input.click();
+}
 function exportZip(){
   stopRecording();
   const btn=document.getElementById('exportBtn');btn.disabled=true;btn.textContent='⏳ Préparation…';
@@ -356,6 +426,7 @@ function exportZip(){
           phrase_fr2:e.phrase_fr2,phrase_lang2:e.phrase_lang2,
           audio_phrase: e.audio_phrase  ?`audio/e${e.id}_phrase.${getAudioExt()}` :null,
           audio_phrase2:e.audio_phrase2 ?`audio/e${e.id}_phrase2.${getAudioExt()}`:null,
+          extra_examples:e.extra_examples.map((ex,xi)=>({phrase_fr:ex.phrase_fr,phrase_lang:ex.phrase_lang,audio:ex.audio?`audio/e${e.id}_extra_${xi}.${getAudioExt()}`:null})),
         }))
       };
       files.push({name:'data.json',data:new TextEncoder().encode(JSON.stringify(exportData,null,2))});
@@ -364,6 +435,7 @@ function exportZip(){
           const blob=e[`audio_${f}`];
           if(blob)files.push({name:`audio/e${e.id}_${f}.${getAudioExt()}`,data:new Uint8Array(await blob.arrayBuffer())});
         }
+        for(let xi=0;xi<e.extra_examples.length;xi++){const blob=e.extra_examples[xi].audio;if(blob)files.push({name:`audio/e${e.id}_extra_${xi}.${getAudioExt()}`,data:new Uint8Array(await blob.arrayBuffer())});}
       }
       const zipBlob=buildZip(files);
       const url=URL.createObjectURL(zipBlob);
@@ -419,8 +491,10 @@ function dbDelete(k){if(!db)return Promise.resolve();return new Promise(r=>{try{
 function dbClear(){if(!db)return Promise.resolve();return new Promise(r=>{try{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).clear();tx.oncomplete=()=>r();tx.onerror=()=>r();}catch(e){r();}});}
 function audioKey(id,field){return `e${id}_${field}`;}
 function saveTextState(){
-  const ts=state.map(e=>(({id:e.id,phrase_lang:e.phrase_lang,phrase_lang2:e.phrase_lang2,has_audio_phrase:!!e.audio_phrase,has_audio_phrase2:!!e.audio_phrase2})));
-  try{localStorage.setItem(STORE_KEY,JSON.stringify({data:ts,savedAt:Date.now(),currentIdx}));lastSaveTime=Date.now();storageAvailable=true;}catch(e){storageAvailable=false;}
+  const ts=state.map(e=>({id:e.id,label_fr:e.label_fr,phrase_fr:e.phrase_fr,phrase_fr2:e.phrase_fr2,phrase_lang:e.phrase_lang,phrase_lang2:e.phrase_lang2,has_audio_phrase:!!e.audio_phrase,has_audio_phrase2:!!e.audio_phrase2,extra_examples:e.extra_examples.map(ex=>({phrase_fr:ex.phrase_fr,phrase_lang:ex.phrase_lang,has_audio:!!ex.audio}))}));
+  const payload=JSON.stringify({data:ts,savedAt:Date.now(),currentIdx});
+  try{localStorage.setItem(STORE_KEY,payload);lastSaveTime=Date.now();storageAvailable=true;}catch(e){storageAvailable=false;}
+  if(db){try{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(payload,'__text_state__');lastSaveTime=Date.now();storageAvailable=true;}catch(e){}}
   updateSaveIndicator();
 }
 async function saveAudioClip(id,field,blob){const k=audioKey(id,field);if(blob)await dbPut(k,blob);else await dbDelete(k);scheduleSave();}
@@ -428,12 +502,19 @@ function scheduleSave(){if(saveTimeout)clearTimeout(saveTimeout);saveTimeout=set
 async function loadState(){
   await openDB();
   try{
-    const raw=localStorage.getItem(STORE_KEY);if(!raw)return;
+    let raw=localStorage.getItem(STORE_KEY);
+    if(!raw&&db){try{raw=await(new Promise(r=>{const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get('__text_state__');req.onsuccess=()=>r(req.result||null);req.onerror=()=>r(null);}));}catch(e){}}
+    if(!raw)return;
     const{data:parsed,currentIdx:savedIdx}=JSON.parse(raw);if(!parsed)return;
     for(let i=0;i<parsed.length&&i<state.length;i++){
-      state[i].phrase_lang =parsed[i].phrase_lang ||state[i].phrase_lang;
-      state[i].phrase_lang2=parsed[i].phrase_lang2!==undefined?parsed[i].phrase_lang2:state[i].phrase_lang2;
+      const p=parsed[i];
+      if(p.label_fr!==undefined)state[i].label_fr=p.label_fr;
+      if(p.phrase_fr!==undefined)state[i].phrase_fr=p.phrase_fr;
+      if(p.phrase_fr2!==undefined)state[i].phrase_fr2=p.phrase_fr2;
+      state[i].phrase_lang =p.phrase_lang ||state[i].phrase_lang;
+      state[i].phrase_lang2=p.phrase_lang2!==undefined?p.phrase_lang2:state[i].phrase_lang2;
       for(const f of ['phrase','phrase2']){const blob=await dbGet(audioKey(state[i].id,f));if(blob)state[i][`audio_${f}`]=blob;}
+      if(p.extra_examples){state[i].extra_examples=p.extra_examples.map(ex=>({phrase_fr:ex.phrase_fr||'',phrase_lang:ex.phrase_lang||'',audio:null}));for(let xi=0;xi<state[i].extra_examples.length;xi++){const blob=await dbGet(audioKey(state[i].id,'extra_'+xi));if(blob)state[i].extra_examples[xi].audio=blob;}}
     }
     if(typeof savedIdx==='number'&&savedIdx>=0&&savedIdx<ENTRIES.length)currentIdx=savedIdx;
     lastSaveTime=Date.now();
@@ -442,7 +523,7 @@ async function loadState(){
 async function clearAllData(){
   try{localStorage.removeItem(STORE_KEY);}catch(e){}
   await dbClear();
-  state.forEach((e,i)=>{e.phrase_lang=ENTRIES[i].phrase_lang;e.phrase_lang2=ENTRIES[i].phrase_lang2;e.audio_phrase=null;e.audio_phrase2=null;});
+  state.forEach((e,i)=>{e.label_fr=ENTRIES[i].label_fr;e.phrase_fr=ENTRIES[i].phrase_fr;e.phrase_fr2=ENTRIES[i].phrase_fr2;e.phrase_lang=ENTRIES[i].phrase_lang;e.phrase_lang2=ENTRIES[i].phrase_lang2;e.audio_phrase=null;e.audio_phrase2=null;e.extra_examples=[];});
   currentIdx=0;renderEntry();updateSaveIndicator();
 }
 function updateSaveIndicator(){

@@ -1,0 +1,14 @@
+{
+  "name": "monoko-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:sync-test-schema": "node scripts/sync_test_schema.js",
+    "db:seed-test": "node scripts/seed_test_data.js"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
+  }
+}
