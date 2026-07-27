@@ -1,6 +1,6 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-04-14
+Last updated: 2026-07-27
 
 ---
 
@@ -9,6 +9,11 @@ Last updated: 2026-04-14
 - Live app at https://monoko-dictionary.vercel.app
 - Lingala dictionary (public) with audio, professor-verified
 - 29-module CEFR-aligned course structure (A1 → B2+) — content partially complete
+- **Lesson structure reorganized & deduped (2026-07-27)** — mega-lessons split into
+  focused ones, duplicates removed, pronouns consolidated. Full record in
+  `LESSON_STRUCTURE_AUDIT.md`; backup-first scripts + rollback JSONs in
+  `artifacts/lesson_backups/`. This is the last structural work possible until the
+  professor delivers the remaining content (see Phase 1).
 - Monoko AI chat (RAG-backed, pgvector, gpt-4o-mini)
 - Supabase Auth — dictionary public, courses + chat require login
 - Admin panel for professor corrections at `/admin.html`
@@ -20,18 +25,31 @@ Last updated: 2026-04-14
 
 **Goal:** Full Lingala course content ready for learners.
 
+**Status (2026-07-27):** All app-side structural work is done (see Current state).
+Everything below is **waiting on the professor's recordings** — nothing more to do
+until they arrive.
+
 **What's needed from the professor:**
-- 346 items in `audio_collection_html/` need Lingala translations filled in + audio recorded
+- Items in `audio_collection_html/` need Lingala translations filled in + audio recorded
+- Conjugation modules 3.3 / 3.4 were rebuilt to the parler/finir/vendre paradigm
+  (all persons + example sentences); the professor records those. **Until they come
+  back, the live conjugation lessons L358/L359 keep the old single-verb content** —
+  the DB rebuild is deliberately deferred to avoid shipping empty rows.
 - 4 modules left entirely to professor:
   - 3.3 / 3.4 — Conjugaison présent/passé + futur/impératif (verb tables are language-specific)
-  - 4.3 — Proverbes et expressions idiomatiques (native speaker required)
-  - 6.4 — La langue dans le monde (cultural context required)
+  - 4.3 — Proverbes et expressions idiomatiques (native speaker required) — placeholder rows live
+  - 6.4 — La langue dans le monde (cultural context required) — placeholder rows live
 
-**After professor delivers ZIPs:**
+**After professor delivers ZIPs — do these in order:**
 1. Upload audio files to Cloudflare R2 (`audios/Lingala/...`)
-2. Update `lesson_items.audio_url` in Supabase
-3. Re-run `embed_lesson_items.py` for newly added items
+2. Update `lesson_items.audio_url` in Supabase (and populate the deferred conjugation
+   + placeholder lessons with the delivered Lingala)
+3. Re-run `embed_lesson_items.py` for newly added/changed items
 4. Re-generate `audio_collection_html/` and verify coverage
+5. **Then: fine-tune Lingala TTS on the professor's voice** — this is the trigger for
+   that work. Full pipeline in CLAUDE.md → "Next: Fine-tune TTS on professor's voice"
+   (prepare data from R2 + `dialect` transcripts → ESPnet2 VITS fine-tune on Colab →
+   deploy new weights to the HF Space).
 
 ---
 

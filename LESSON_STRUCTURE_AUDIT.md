@@ -4,7 +4,14 @@
 **Scope:** Full audit of the live Lingala curriculum in production Supabase
 (`courses` → `lessons` → `lesson_items`), 6 levels / 28 lessons / ~1,076 items.
 **Method:** Queried production directly (read-only, anon key). No data was modified.
-**Status:** Recommendations only — awaiting approval before any DB changes.
+**Status:** ✅ **Executed 2026-07-27.** P0–P4 applied live to Supabase (mislabel fix,
+5 lesson splits, ~50-row dedup, pronoun consolidation, minor cleanups). Backup-first
+scripts (`split_lesson.py`, `dedup_lessons_p2.py`, `consolidate_pronouns_p3.py`,
+`cleanup_p4.py`, `restructure_lessons_p0.py`) + rollback JSONs in
+`artifacts/lesson_backups/`. **Still open, content-blocked (waiting on professor):**
+conjugation rebuild L358/L359, placeholder lessons (Proverbes, Langue dans le monde),
+and the L386 reflexive-pronoun quality pass. Next steps once content arrives: see
+`ROADMAP.md` Phase 1.
 
 ---
 
