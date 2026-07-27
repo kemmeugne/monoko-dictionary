@@ -1,0 +1,61 @@
+{
+  "ts": "20260727_125644",
+  "deleted": [
+    {
+      "lesson_id": 356,
+      "id": 8495,
+      "item_order": 37,
+      "french": "Je suis perdu(e).",
+      "dialect": ""
+    },
+    {
+      "lesson_id": 362,
+      "id": 8458,
+      "item_order": 12,
+      "french": "Combien ça coûte ?",
+      "dialect": ""
+    },
+    {
+      "lesson_id": 362,
+      "id": 8459,
+      "item_order": 13,
+      "french": "C'est trop cher !",
+      "dialect": ""
+    },
+    {
+      "lesson_id": 362,
+      "id": 8464,
+      "item_order": 18,
+      "french": "C'est bon marché.",
+      "dialect": ""
+    },
+    {
+      "lesson_id": 388,
+      "id": 7841,
+      "item_order": 15,
+      "french": "Jour",
+      "dialect": "Mokolo"
+    },
+    {
+      "lesson_id": 388,
+      "id": 7852,
+      "item_order": 26,
+      "french": "Saison des pluies",
+      "dialect": "Tango ya mvula"
+    },
+    {
+      "lesson_id": 388,
+      "id": 7853,
+      "item_order": 27,
+      "french": "Saison sèche",
+      "dialect": "Elanga"
+    },
+    {
+      "lesson_id": 388,
+      "id": 7861,
+      "item_order": 35,
+      "french": "Verre",
+      "dialect": "Kopo"
+    }
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "ts": "20260727_125637",
+  "lesson": {
+    "id": 347,
+    "course_id": 36,
+    "title": "Salutations et politesse",
+    "parent_theme": "Niveau 1",
+    "lesson_order": 2,
+    "created_at": "2026-04-07T01:05:38.569299+00:00"
+  },
+  "items": [
+    {
+      "id": 7067,
+      "item_order": 1,
+      "french": "Bonjour / Bonsoir",
+      "dialect": "Mbote"
+    },
+    {
+      "id": 7068,
+      "item_order": 2,
+      "french": "Comment tu vas ?",
+      "dialect": "Ndenge nini ?"
+    },
+    {
+      "id": 7069,
+      "item_order": 3,
+      "french": "Je vais bien et toi ?",
+      "dialect": "Na za malamu bongo yo ?"
+    },
+    {
+      "id": 7070,
+      "item_order": 4,
+      "french": "Couci-Couça",
+      "dialect": "Mukie mukie"
+    },
+    {
+      "id": 7071,
+      "item_order": 5,
+      "french": "Je vais mal",
+      "dialect": "Naza malamu te"
+    },
+    {
+      "id": 7072,
+      "item_order": 6,
+      "french": "Au revoir",
+      "dialect": "Tikala malamu (au revoir)"
+    },
+    {
+      "id": 7073,
+      "item_order": 7,
+      "french": "Merci. Merci beaucoup.",
+      "dialect": "Matondo. Matondo mingi."
+    },
+    {
+      "id": 7074,
+      "item_order": 8,
+      "french": "De rien",
+      "dialect": "Likambo te"
+    },
+    {
+      "id": 7075,
+      "item_order": 9,
+      "french": "C'est gentil",
+      "dialect": "Eza malamu"
+    },
+    {
+      "id": 7076,
+      "item_order": 10,
+      "french": "Excuse-moi, désolé",
+      "dialect": "Limbisa ngai"
+    },
+    {
+      "id": 7077,
+      "item_order": 11,
+      "french": "Bon appétit",
+      "dialect": "Ko lia malamu"
+    },
+    {
+      "id": 7078,
+      "item_order": 12,
+      "french": "Bonne nuit, dors bien !",
+      "dialect": "Butu malamu, lala malamu !"
+    },
+    {
+      "id": 7079,
+      "item_order": 13,
+      "french": "Passe une bonne journée",
+      "dialect": "Lekisa mokolo malamu"
+    },
+    {
+      "id": 7080,
+      "item_order": 14,
+      "french": "A plus tard",
+      "dialect": "Ngonga moko"
+    },
+    {
+      "id": 7081,
+      "item_order": 15,
+      "french": "Prends soin de toi",
+      "dialect": "Mi kipe"
+    },
+    {
+      "id": 7082,
+      "item_order": 16,
+      "french": "Enchanté / de même",
+      "dialect": "Na sepeli ko yeba yo / Ngai pe"
+    },
+    {
+      "id": 7083,
+      "item_order": 17,
+      "french": "Au revoir !",
+      "dialect": "Tikala malamu !"
+    },
+    {
+      "id": 7084,
+      "item_order": 18,
+      "french": "A bientôt !",
+      "dialect": "Ba kala te !"
+    },
+    {
+      "id": 7085,
+      "item_order": 19,
+      "french": "Bonne journée",
+      "dialect": "Mokolo malamu"
+    },
+    {
+      "id": 7086,
+      "item_order": 20,
+      "french": "Bon voyage",
+      "dialect": "Mobembo malamu"
+    },
+    {
+      "id": 7087,
+      "item_order": 21,
+      "french": "Bienvenue",
+      "dialect": "Boyeyi malamu"
+    },
+    {
+      "id": 7088,
+      "item_order": 22,
+      "french": "S'il-te-plait : Va me chercher le couteau stp.",
+      "dialect": "Limbisa : Kende ko zuela ngai mbeli limbisa."
+    },
+    {
+      "id": 7089,
+      "item_order": 23,
+      "french": "Merci",
+      "dialect": "Matondi"
+    },
+    {
+      "id": 7090,
+      "item_order": 24,
+      "french": "Que Dieu te bénisse",
+      "dialect": "Nzambe apambola yo."
+    },
+    {
+      "id": 7091,
+      "item_order": 25,
+      "french": "à demain !",
+      "dialect": "Lobi !"
+    },
+    {
+      "id": 7092,
+      "item_order": 26,
+      "french": "à la semaine prochaine",
+      "dialect": "Mposo ekoya"
+    },
+    {
+      "id": 7093,
+      "item_order": 27,
+      "french": "A bientôt",
+      "dialect": "Ba kala te"
+    },
+    {
+      "id": 7094,
+      "item_order": 28,
+      "french": "Allons-y",
+      "dialect": "To keyi"
+    },
+    {
+      "id": 7095,
+      "item_order": 29,
+      "french": "Comment tu t'appelles ?",
+      "dialect": "Kombo na yo nani ?"
+    },
+    {
+      "id": 7096,
+      "item_order": 30,
+      "french": "Comment va ton père ?",
+      "dialect": "Boni tata na yo ?"
+    },
+    {
+      "id": 7097,
+      "item_order": 31,
+      "french": "Comment vas-tu ?",
+      "dialect": "Ndenge nini ?"
+    },
+    {
+      "id": 7098,
+      "item_order": 32,
+      "french": "Je t'aime",
+      "dialect": "Na lingi yo."
+    },
+    {
+      "id": 7099,
+      "item_order": 33,
+      "french": "Joyeux Anniversaire",
+      "dialect": "Mbotama elamu."
+    },
+    {
+      "id": 7100,
+      "item_order": 34,
+      "french": "Bonne chance",
+      "dialect": "Lupemba malamu."
+    },
+    {
+      "id": 7101,
+      "item_order": 35,
+      "french": "Bon courage",
+      "dialect": "Mpiko malamu."
+    },
+    {
+      "id": 7102,
+      "item_order": 36,
+      "french": "Ne t'inquiète pas",
+      "dialect": "Ko banga te."
+    },
+    {
+      "id": 7103,
+      "item_order": 37,
+      "french": "Ne pleure pas",
+      "dialect": "Ko lela te."
+    },
+    {
+      "id": 7104,
+      "item_order": 38,
+      "french": "Tu es très gentil",
+      "dialect": "Oza motema malamu."
+    },
+    {
+      "id": 7105,
+      "item_order": 39,
+      "french": "Que tu es belle !",
+      "dialect": "Oza kitoko !"
+    },
+    {
+      "id": 7106,
+      "item_order": 40,
+      "french": "Tu danses bien",
+      "dialect": "Obinaka malamu."
+    },
+    {
+      "id": 7107,
+      "item_order": 41,
+      "french": "Tu chantes bien",
+      "dialect": "Oyembaka malamu."
+    }
+  ]
+}

@@ -55,6 +55,15 @@ CONFIGS = {
         ],
         "delete_orders": [],
     },
+    # L347 "Salutations" (41) -> keep greetings; split off Vœux et compliments
+    "L347": {
+        "src_lesson": 347, "course_id": 36, "parent_theme": "Niveau 1",
+        "keep_title": "Salutations et politesse", "keep_orders": rng(1, 28) + [30],
+        "new_lessons": [
+            {"title": "Vœux et compliments", "src_orders": rng(32, 41)},
+        ],
+        "delete_orders": [29, 31],
+    },
     # L363 "Nature et animaux" (75) -> Animaux / Nature et éléments / Météo
     "L363": {
         "src_lesson": 363, "course_id": 39, "parent_theme": "Niveau 4",
