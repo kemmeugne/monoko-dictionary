@@ -107,16 +107,18 @@ def main() -> None:
                     cut(src, dst, bounds[k], bounds[k + 1])
                 planned.append({"path": dst, "object_key": obj})
             new_rows.append({
-                "lesson_id": r["lesson_id"],
                 "french": seg["fr"].strip(),
                 "dialect": seg["ln"].strip(),
-                # the example belongs to the row as a whole; keep it on the first only
-                "example_french": r.get("example_french") if n == 0 else None,
-                "example_dialect": r.get("example_dialect") if n == 0 else None,
                 "audio_url": f"{base}/{obj}" if obj else None,
                 "audio_key": obj,
             })
-        r["_new_rows"] = new_rows
+        # The course shows ONE way to say a thing; the alternatives still teach
+        # the model, so they go to parallel_sentences instead of cluttering the
+        # lesson. The first surviving variant keeps the existing lesson_items
+        # row — updating in place means no delete/reinsert, so item_order,
+        # user_progress and every FK stay intact.
+        r["_course_row"] = new_rows[0] if new_rows else None
+        r["_corpus_rows"] = new_rows[1:]
 
     print(f"\n{'would cut' if args.dry_run else 'cut'} {len(planned)} audio segments")
     if args.dry_run:
@@ -163,30 +165,59 @@ def main() -> None:
     print(f"{'would rewrite' if args.dry_run else 'rewrote'} {rewritten} rows in place "
           f"({len(keeps)} kept + {len(rerec)} flagged for re-record)")
 
-    # ── 4. replace split rows ───────────────────────────────────────────────
-    made = 0
+    # ── 4. course keeps variant 1, in place ─────────────────────────────────
+    updated = 0
     for r in splits:
-        if not args.dry_run:
-            requests.delete(f"{ing.SUPABASE_URL}/rest/v1/lesson_items?id=eq.{r['row_id']}",
-                            headers=H, timeout=60).raise_for_status()
-            requests.post(f"{ing.SUPABASE_URL}/rest/v1/lesson_items",
-                          headers=H, json=r["_new_rows"], timeout=60).raise_for_status()
-        made += len(r["_new_rows"])
-    print(f"{'would replace' if args.dry_run else 'replaced'} {len(splits)} rows "
-          f"with {made} rows (+{made - len(splits)})")
+        cr = r.get("_course_row")
+        if not cr:
+            continue
+        updated += 1
+        if args.dry_run:
+            continue
+        requests.patch(f"{ing.SUPABASE_URL}/rest/v1/lesson_items?id=eq.{r['row_id']}",
+                       headers=H, json={**cr, "embedding": None}, timeout=60).raise_for_status()
+    print(f"{'would update' if args.dry_run else 'updated'} {updated} lesson rows "
+          f"to their first variant (row ids preserved, no renumbering)")
 
-    # ── 5. renumber item_order per touched lesson ───────────────────────────
-    if not args.dry_run:
-        for lid in touched:
-            live = sorted(ing._all_items(lid), key=lambda x: (x["item_order"] or 0, x["id"]))
-            for n, row in enumerate(live, 1):
-                if row["item_order"] != n:
-                    requests.patch(
-                        f"{ing.SUPABASE_URL}/rest/v1/lesson_items?id=eq.{row['id']}",
-                        headers=H, json={"item_order": n}, timeout=60).raise_for_status()
-        print(f"renumbered item_order across {len(touched)} lessons")
+    # ── 5. alternatives -> RAG corpus ───────────────────────────────────────
+    existing = {
+        (ing.norm(p["french_text"]), ing.norm(p["lingala_text"]))
+        for p in ing.paginate("parallel_sentences",
+                              "select=french_text,lingala_text&language_id=eq.1")
+    }
+    corpus, dupes = [], 0
+    for r in splits:
+        for cr in r.get("_corpus_rows", []):
+            fr, ln = cr["french"], cr["dialect"]
+            if not fr or not ln:
+                continue
+            if (ing.norm(fr), ing.norm(ln)) in existing:
+                dupes += 1
+                continue
+            existing.add((ing.norm(fr), ing.norm(ln)))
+            corpus.append({"language_id": 1, "french_text": fr, "lingala_text": ln,
+                           "source": "course_variant", "quality": "verified"})
+    print(f"{'would add' if args.dry_run else 'adding'} {len(corpus)} alternatives to "
+          f"parallel_sentences (skipped {dupes} already present)")
+    if corpus and not args.dry_run:
+        for i in range(0, len(corpus), 200):
+            requests.post(f"{ing.SUPABASE_URL}/rest/v1/parallel_sentences",
+                          headers=H, json=corpus[i:i + 200], timeout=120).raise_for_status()
 
-    print("\nNext: python3 embed_lesson_items.py --force   (new + edited rows need vectors)")
+    # parallel_sentences has no audio column, but the cut clips are real
+    # (audio, transcript) pairs — exactly what the professor-voice TTS
+    # fine-tune consumes. Record the mapping so they are not lost.
+    tts = [{"object_key": cr["audio_key"], "url": cr["audio_url"], "dialect": cr["dialect"],
+            "french": cr["french"]}
+           for r in splits for cr in r.get("_corpus_rows", []) if cr.get("audio_key")]
+    (ART / "variant_clips_for_tts.json").write_text(
+        json.dumps(tts, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"{len(tts)} extra clips recorded for TTS fine-tuning -> "
+          f"{ART/'variant_clips_for_tts.json'}")
+
+    print("\nNext:")
+    print("  python3 embed_lesson_items.py --force      # edited lesson rows")
+    print("  python3 embed_parallel_sentences.py        # the new corpus rows")
 
 
 if __name__ == "__main__":
