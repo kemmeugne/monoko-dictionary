@@ -67,7 +67,7 @@ def main() -> None:
     print(f"decisions: {len(splits)} split, {len(keeps)} keep, {len(rerec)} re-record")
 
     # snapshot every lesson we are about to touch
-    touched = sorted({r["lesson_id"] for r in splits} | {r["lesson_id"] for r in keeps})
+    touched = sorted({r["lesson_id"] for r in splits + keeps + rerec})
     snap = {lid: ing._all_items(lid) for lid in touched}
     ART.mkdir(parents=True, exist_ok=True)
     (ART / "rollback_variant_split.json").write_text(
@@ -76,9 +76,15 @@ def main() -> None:
           f"{len(touched)} lessons -> {ART/'rollback_variant_split.json'}")
 
     if rerec:
+        # Carry the corrected text through, so the "à refaire" page shows the
+        # professor the sentence he should actually be reading.
         (ART / "rerecord.json").write_text(
             json.dumps([{"row_id": r["row_id"], "lesson_id": r["lesson_id"],
-                         "audio_url": r["audio_url"]} for r in rerec],
+                         "lesson": lessons[r["lesson_id"]]["title"],
+                         "audio_url": r["audio_url"],
+                         "variants": [{"fr": s["fr"], "ln": s["ln"]}
+                                      for s in r["segments"] if not s.get("drop")]}
+                        for r in rerec],
                        ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"{len(rerec)} rows flagged for re-record -> {ART/'rerecord.json'}")
 
@@ -133,16 +139,29 @@ def main() -> None:
 
     H = {**ing.headers(key), "Content-Type": "application/json", "Prefer": "return=minimal"}
 
-    # ── 3. text-only edits on kept rows ─────────────────────────────────────
-    for r in keeps:
-        body = {"french": "\n".join(f"- {s['fr']}" for s in r["segments"] if not s.get("drop"))
-                if len({s["fr"] for s in r["segments"]}) > 1 else r["segments"][0]["fr"],
-                "dialect": "\n".join(f"- {s['ln']}" for s in r["segments"] if not s.get("drop"))}
+    # ── 3. text edits on rows that keep their single row ────────────────────
+    # `rerecord` rows are included: the audio needs redoing, but the French was
+    # often a stub prompt ("Proverbe sur l'union qui fait la force") that gets
+    # replaced with the real sentence during review. That edit must survive even
+    # though the clip is being sent back.
+    rewritten = 0
+    for r in keeps + rerec:
+        live = [s for s in r["segments"] if not s.get("drop")]
+        if not live:
+            continue
+        frs = {s["fr"].strip() for s in live}
+        body = {
+            "french": "\n".join(f"- {s['fr'].strip()}" for s in live)
+                      if len(frs) > 1 else live[0]["fr"].strip(),
+            "dialect": "\n".join(f"- {s['ln'].strip()}" for s in live),
+        }
+        rewritten += 1
         if args.dry_run:
             continue
         requests.patch(f"{ing.SUPABASE_URL}/rest/v1/lesson_items?id=eq.{r['row_id']}",
                        headers=H, json=body, timeout=60).raise_for_status()
-    print(f"{'would rewrite' if args.dry_run else 'rewrote'} {len(keeps)} kept rows in place")
+    print(f"{'would rewrite' if args.dry_run else 'rewrote'} {rewritten} rows in place "
+          f"({len(keeps)} kept + {len(rerec)} flagged for re-record)")
 
     # ── 4. replace split rows ───────────────────────────────────────────────
     made = 0
