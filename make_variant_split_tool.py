@@ -146,14 +146,21 @@ def build_entries() -> list[dict]:
     for row in rows:
         vs = variants(row["dialect"])
         fr_vs = variants(row["french"])
+        # "[Formel]" / "[Argot kinois]" is the register of the whole row, not of
+        # one variant, so it rides along onto every split — including glosses,
+        # where the parent French is a stub note the reviewer replaces outright.
+        tag = re.match(r"^\s*(\[[^\]]+\])", row["french"] or "")
+        prefix = tag.group(1) + " " if tag else ""
         segments = []
         for k, v in enumerate(vs):
             gloss = GLOSS_RE.match(v)
             if is_header(v):
                 seg = {"ln": v, "fr": "", "drop": True}          # "Eyélé / Motoí:" label
             elif gloss:
-                seg = {"ln": gloss.group("ln").strip(),           # "Kondóndwa (se réjouir)"
-                       "fr": gloss.group("fr").strip(), "drop": False}
+                fr = gloss.group("fr").strip()                    # "Kondóndwa (se réjouir)"
+                seg = {"ln": gloss.group("ln").strip(),
+                       "fr": prefix + fr[0].upper() + fr[1:] if fr else prefix.strip(),
+                       "drop": False}
             elif len(fr_vs) == len(vs):
                 seg = {"ln": v, "fr": fr_vs[k], "drop": False}    # French listed in parallel
             else:
