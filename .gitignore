@@ -4,3 +4,6 @@ node_modules
 !.env*.example
 coverage
 keys/
+
+# Staged professor audio (70MB of transcoded mp3, regenerable from the ZIPs)
+artifacts/professor_ingest/mp3/

@@ -1,0 +1,47 @@
+[
+  {
+    "id": 7868,
+    "lesson_id": 364,
+    "french": "[PLACEHOLDER] Proverbe 1 - REQUIERT SAISIE DU PROFESSEUR",
+    "dialect": "[A COMPLETER]",
+    "example_french": null,
+    "example_dialect": null,
+    "item_order": 1,
+    "audio_url": null,
+    "audio_key": null,
+    "audio_source_cell": null,
+    "example_audio_url": null,
+    "example_audio_key": null,
+    "example_audio_source_cell": null
+  },
+  {
+    "id": 7869,
+    "lesson_id": 364,
+    "french": "[PLACEHOLDER] Proverbe 2 - REQUIERT SAISIE DU PROFESSEUR",
+    "dialect": "[A COMPLETER]",
+    "example_french": null,
+    "example_dialect": null,
+    "item_order": 2,
+    "audio_url": null,
+    "audio_key": null,
+    "audio_source_cell": null,
+    "example_audio_url": null,
+    "example_audio_key": null,
+    "example_audio_source_cell": null
+  },
+  {
+    "id": 7870,
+    "lesson_id": 364,
+    "french": "[PLACEHOLDER] Proverbe 3 - REQUIERT SAISIE DU PROFESSEUR",
+    "dialect": "[A COMPLETER]",
+    "example_french": null,
+    "example_dialect": null,
+    "item_order": 3,
+    "audio_url": null,
+    "audio_key": null,
+    "audio_source_cell": null,
+    "example_audio_url": null,
+    "example_audio_key": null,
+    "example_audio_source_cell": null
+  }
+]
