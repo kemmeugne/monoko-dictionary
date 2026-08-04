@@ -1,6 +1,6 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-07-27
+Last updated: 2026-08-04
 
 ---
 
@@ -8,7 +8,8 @@ Last updated: 2026-07-27
 
 - Live app at https://monoko-dictionary.vercel.app
 - Lingala dictionary (public) with audio, professor-verified
-- 29-module CEFR-aligned course structure (A1 → B2+) — content partially complete
+- 31-module CEFR-aligned course structure (A1 → B2+) — **content complete for Lingala**
+  (100% audio, no missing translations) as of 2026-08-04
 - **Lesson structure reorganized & deduped (2026-07-27)** — mega-lessons split into
   focused ones, duplicates removed, pronouns consolidated. Full record in
   `LESSON_STRUCTURE_AUDIT.md`; backup-first scripts + rollback JSONs in
@@ -21,35 +22,44 @@ Last updated: 2026-07-27
 
 ---
 
-## Phase 1 — Content completion (BLOCKED on professor)
+## Phase 1 — Content completion ✅ Shipped 2026-08-04
 
 **Goal:** Full Lingala course content ready for learners.
 
-**Status (2026-07-27):** All app-side structural work is done (see Current state).
-Everything below is **waiting on the professor's recordings** — nothing more to do
-until they arrive.
+**Status:** Done. All 39 returned ZIPs were ingested on 2026-08-04 via
+`ingest_professor_zips.py` (three re-runnable stages: `plan` / `upload` / `apply`,
+rollback JSONs in `artifacts/professor_ingest/`).
 
-**What's needed from the professor:**
-- Items in `audio_collection_html/` need Lingala translations filled in + audio recorded
-- Conjugation modules 3.3 / 3.4 were rebuilt to the parler/finir/vendre paradigm
-  (all persons + example sentences); the professor records those. **Until they come
-  back, the live conjugation lessons L358/L359 keep the old single-verb content** —
-  the DB rebuild is deliberately deferred to avoid shipping empty rows.
-- 4 modules left entirely to professor:
-  - 3.3 / 3.4 — Conjugaison présent/passé + futur/impératif (verb tables are language-specific)
-  - 4.3 — Proverbes et expressions idiomatiques (native speaker required) — placeholder rows live
-  - 6.4 — La langue dans le monde (cultural context required) — placeholder rows live
+**Delivered:**
+- Lingala course audio coverage **70% → 100%** (1,311 / 1,311 items)
+- **183** rows with no Lingala text → **0**; all **6** `[PLACEHOLDER]` rows purged
+- **587** clips transcoded WebM/Opus → MP3 128k mono and uploaded to
+  `audios/Lingala/lesson_items/<module>/`. The transcode is **not optional** —
+  iOS Safari cannot decode Opus, so the raw exports are silent on iPhone.
+- Conjugation L358/L359 rebuilt to the parler/finir/vendre paradigm
+  (`LESSON_STRUCTURE_AUDIT.md` §3a); the old single-verb *aimer* rows are gone
+- 3 lessons added: *Conjugaison futur proche* (L393), *Religion et spiritualité*
+  (L394), *Technologie et communication* (L395) — the last two are new modules the
+  professor authored and are **not yet in `Cours/MONOKO_CURRICULUM.md`**
+- All rows re-embedded so `match_lesson_items` stays correct
 
-**After professor delivers ZIPs — do these in order:**
-1. Upload audio files to Cloudflare R2 (`audios/Lingala/...`)
-2. Update `lesson_items.audio_url` in Supabase (and populate the deferred conjugation
-   + placeholder lessons with the delivered Lingala)
-3. Re-run `embed_lesson_items.py` for newly added/changed items
-4. Re-generate `audio_collection_html/` and verify coverage
-5. **Then: fine-tune Lingala TTS on the professor's voice** — this is the trigger for
-   that work. Full pipeline in CLAUDE.md → "Next: Fine-tune TTS on professor's voice"
-   (prepare data from R2 + `dialect` transcripts → ESPnet2 VITS fine-tune on Colab →
-   deploy new weights to the HF Space).
+**Still open (small):**
+- **35 items owed by the professor**, both from his first batch (2026-05-23, never
+  revisited): `2.1-supp Famille` has 11 entries recorded with **no Lingala text
+  typed** (audio exists, no transcript), and `2.3-supp Manger_boire` has 24 of 25
+  untouched. Send a slim "à refaire" page rather than the full modules.
+- **142 rows hold two dash-separated Lingala variants in one cell** (`- variant A\n
+  - variant B`) — worst in L358 (22), L367/L371/L374 (13 each). A single clip covers
+  both, so these need a professor pass to pick one, or a split like
+  `split_multi_lingala_rows.py` did previously.
+- **17 rows in L364 Proverbes have a French side that is still a stub prompt**
+  ("Proverbe sur l'union qui fait la force.") rather than the French proverb. The
+  Lingala is real; the French needs authoring.
+
+**Next: fine-tune Lingala TTS on the professor's voice** — now unblocked. Full
+pipeline in CLAUDE.md → "Next: Fine-tune TTS on professor's voice" (prepare data
+from R2 + `dialect` transcripts → ESPnet2 VITS fine-tune on Colab → deploy new
+weights to the HF Space).
 
 ---
 
