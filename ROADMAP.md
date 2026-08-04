@@ -48,15 +48,29 @@ rollback JSONs in `artifacts/professor_ingest/`).
   revisited): `2.1-supp Famille` has 11 entries recorded with **no Lingala text
   typed** (audio exists, no transcript), and `2.3-supp Manger_boire` has 24 of 25
   untouched. Send a slim "à refaire" page rather than the full modules.
-- **142 rows hold two dash-separated Lingala variants in one cell** (`- variant A\n
-  - variant B`) — worst in L358 (22), L367/L371/L374 (13 each). A single clip covers
-  both, so these need a professor pass to pick one, or a split like
-  `split_multi_lingala_rows.py` did previously.
+- ✅ **Multi-variant cells split (2026-08-04).** 148 rows held 2–6 dash-separated
+  Lingala variants in one cell, with a single clip covering all of them. Reviewed
+  in `variant_split_tool.html` (see "Variant policy" below); 141 done, **7 left**.
 - **17 rows in L364 Proverbes have a French side that is still a stub prompt**
   ("Proverbe sur l'union qui fait la force.") rather than the French proverb. The
   Lingala is real; the French needs authoring.
 
-**Next: fine-tune Lingala TTS on the professor's voice** — now unblocked. Full
+**Variant policy (decided 2026-08-04):** when the professor gives several ways to
+say the same thing, the **course shows one** — the rest go to `parallel_sentences`
+as `source='course_variant'` so the RAG chat knows them without cluttering the
+lesson. First pass moved **184** alternatives into the corpus. Verified live: a
+query for *"une autre façon de dire aide-moi"* returns `Tiya ngai loboko,
+bolimbisi !`, an alternative that no longer appears in any lesson.
+
+Tooling: `make_variant_split_tool.py` → review in browser → `apply_variant_split.py`.
+Cuts are pre-placed by a position-weighted silence search (validated at median
+0.11 s against hand-placed cuts) but always human-confirmed — a slash inside a
+variant means he read more utterances than the text lists, and no confidence
+score detects that.
+
+**Next: fine-tune Lingala TTS on the professor's voice** — now unblocked, and
+richer for this work: `artifacts/professor_ingest/variant_clips_for_tts.json`
+holds 185 extra (audio, transcript) pairs from the split clips. Full
 pipeline in CLAUDE.md → "Next: Fine-tune TTS on professor's voice" (prepare data
 from R2 + `dialect` transcripts → ESPnet2 VITS fine-tune on Colab → deploy new
 weights to the HF Space).
