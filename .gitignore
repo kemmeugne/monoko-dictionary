@@ -7,3 +7,7 @@ keys/
 
 # Staged professor audio (70MB of transcoded mp3, regenerable from the ZIPs)
 artifacts/professor_ingest/mp3/
+
+# Generated review tool (36MB, embeds audio; regenerate with make_variant_split_tool.py)
+variant_split_tool.html
+variant_split_decisions.json
