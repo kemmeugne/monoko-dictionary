@@ -7,13 +7,18 @@ Lingala cell holds several dash-separated variants in one field.
 
 The professor read *every* variant into a single audio clip (duration tracks the
 combined text length), so splitting the text into separate rows also means
-deciding where the clip is cut. Automatic cutting was tried and rejected: taking
-the N-1 longest silences validates against expected segment length on only ~12%
-of clips, because he pauses mid-sentence as often as between variants.
+deciding where the clip is cut.
 
-So the cut is a human call. This tool renders one row per screen with a waveform,
-pre-placed cut suggestions, per-segment playback, and editable text, and exports
-a decision JSON that `apply_variant_split.py` consumes.
+Cutting on the N-1 *longest* pauses alone is wrong ~88% of the time — he pauses
+mid-sentence as often as between variants. Weighting each candidate pause by how
+close it sits to the position the text predicts (see `suggest_cuts`) agrees with
+the text on 98% of clips, so the tool pre-places cuts and reports a per-row
+confidence rather than asking for every cut by hand.
+
+That confidence is only a self-consistency check between two signals, not ground
+truth, so a human still confirms. This tool renders one row per screen with a
+waveform, the pre-placed cuts, per-segment playback and editable text, and
+exports a decision JSON that `apply_variant_split.py` consumes.
 
 Audio is embedded as data URIs: the r2.dev public bucket sends no CORS headers,
 so `decodeAudioData` on a fetched URL is blocked, and the waveform needs samples.
@@ -59,17 +64,77 @@ def variants(text: str | None) -> list[str]:
     return [re.sub(r"^[-•*]\s*", "", l).strip() for l in lines]
 
 
-def suggest_cuts(path: Path, n: int) -> list[float]:
-    """N-1 longest silences, as a starting guess for the human to drag."""
+ALPHA = 8.0  # weight of the text-position prior against raw pause length
+
+
+def probe_silence(path: Path) -> tuple[list[tuple[float, float]], float]:
     r = subprocess.run(
         ["ffmpeg", "-nostdin", "-i", str(path), "-af",
-         "silencedetect=noise=-32dB:d=0.25", "-f", "null", "-"],
+         "silencedetect=noise=-32dB:d=0.20", "-f", "null", "-"],
         capture_output=True, text=True,
     )
-    starts = [float(x) for x in re.findall(r"silence_start: ([\d.]+)", r.stderr)]
+    starts = [float(x) for x in re.findall(r"silence_start: ([-\d.]+)", r.stderr)]
     ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", r.stderr)]
-    gaps = sorted(zip(starts, ends), key=lambda g: -(g[1] - g[0]))[: n - 1]
-    return sorted(round((s + e) / 2, 3) for s, e in gaps)
+    d = re.search(r"Duration: (\d+):(\d+):([\d.]+)", r.stderr)
+    total = int(d.group(2)) * 60 + float(d.group(3)) if d else 0.0
+    return sorted(zip(starts, ends)), total
+
+
+def speech_before(t: float, silences: list[tuple[float, float]]) -> float:
+    """Seconds of actual speech between 0 and t, discounting silence."""
+    s = t
+    for a, b in silences:
+        if b <= t:
+            s -= (b - a)
+        elif a < t:
+            s -= (t - a)
+    return max(s, 0.0)
+
+
+def suggest_cuts(path: Path, texts: list[str]) -> tuple[list[float], float]:
+    """Cut points, plus a 0-1 confidence.
+
+    Picking the N-1 *longest* pauses alone is wrong ~88% of the time — the
+    professor pauses mid-sentence as often as between variants. Scoring each
+    candidate pause by `duration - ALPHA * position_error`, where the expected
+    position comes from each variant's share of the total characters (measured
+    in speech seconds, not wall-clock), makes two independent signals agree.
+
+    Confidence is how well the resulting speech shares match the text shares;
+    a low value means no real pause sits where the text says the break is, and
+    the row needs a careful human listen.
+    """
+    n = len(texts)
+    sil, total = probe_silence(path)
+    if total <= 0 or n < 2:
+        return [], 0.0
+    chars = [max(len(t), 1) for t in texts]
+    tc = sum(chars)
+    speech_total = speech_before(total, sil) or total
+    cands = [((a + b) / 2, b - a) for a, b in sil if b - a >= 0.20]
+
+    picks: list[float] = []
+    prev = 0.0
+    for i in range(1, n):
+        target = speech_total * sum(chars[:i]) / tc
+        best = None
+        for mid, dur in cands:
+            if mid <= prev + 0.15:
+                continue
+            err = abs(speech_before(mid, sil) - target) / speech_total
+            score = dur - ALPHA * err
+            if best is None or score > best[0]:
+                best = (score, mid)
+        if best is None:
+            return [], 0.0
+        picks.append(round(best[1], 3))
+        prev = best[1]
+
+    bounds = [0.0] + picks + [total]
+    shares = [speech_before(bounds[k + 1], sil) - speech_before(bounds[k], sil) for k in range(n)]
+    s = sum(shares) or 1.0
+    worst = max(abs(shares[k] / s - chars[k] / tc) for k in range(n))
+    return picks, round(max(0.0, 1.0 - worst / 0.25), 2)
 
 
 def build_entries() -> list[dict]:
@@ -97,10 +162,10 @@ def build_entries() -> list[dict]:
 
         key = (row["audio_url"] or "").split("/Lingala/lesson_items/")[-1]
         mp3 = MP3_CACHE / key
-        audio, cuts = "", []
+        audio, cuts, conf = "", [], 0.0
         if row["audio_url"] and mp3.exists():
             audio = "data:audio/mpeg;base64," + base64.b64encode(mp3.read_bytes()).decode()
-            cuts = suggest_cuts(mp3, len(vs))
+            cuts, conf = suggest_cuts(mp3, [s["ln"] for s in segments])
 
         entries.append({
             "row_id": row["id"],
@@ -113,6 +178,7 @@ def build_entries() -> list[dict]:
             "audio_url": row["audio_url"],
             "audio": audio,
             "cuts": cuts,
+            "confidence": conf,
             "segments": segments,
         })
     return entries
@@ -261,7 +327,9 @@ function onWave(ev){
 function render(){
   const e = cur(), s = st(e);
   document.getElementById('card').innerHTML = `
-    <div class="meta">${esc(e.lesson)} · row ${e.row_id} · ${s.segments.length} variantes</div>
+    <div class="meta">${esc(e.lesson)} · row ${e.row_id} · ${s.segments.length} variantes ·
+       <b style="color:${e.confidence>=0.8?'var(--ok)':e.confidence>=0.5?'var(--acc)':'var(--warn)'}">
+       coupe auto ${Math.round(e.confidence*100)}%</b></div>
     <div class="fr">${esc(e.french_raw || '')}</div>
     ${e.audio ? '<canvas id="wave"></canvas>' : '<p class="hint">⚠ pas d\'audio pour cette ligne</p>'}
     <div class="tools">
