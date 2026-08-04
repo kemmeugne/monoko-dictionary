@@ -102,9 +102,12 @@ DBID_OVERRIDES = {
 #   append         — add as new items at the end of an existing lesson
 #   replace_all    — delete every existing item in the lesson, then insert
 #   new_lesson     — create a lesson under `course_title` first
+#   upsert         — match on French within the lesson; update if present, else
+#                    insert. Used when the professor re-delivers a module he had
+#                    already partly filled, correcting earlier rows in the process.
 NEW_CONTENT_TARGETS = {
-    "2.1-supp":         {"mode": "append",      "lesson": "La famille et les relations"},
-    "2.3-supp":         {"mode": "append",      "lesson": "Manger et boire"},
+    "2.1-supp":         {"mode": "upsert",      "lesson": "La famille et les relations"},
+    "2.3-supp":         {"mode": "upsert",      "lesson": "Manger et boire"},
     "3.1-supp":         {"mode": "append",      "lesson": "Deplacements et directions"},
     "3.3":              {"mode": "replace_all", "lesson": "Conjugaison - present et passe"},
     "3.4":              {"mode": "replace_all", "lesson": "Conjugaison - futur et imperatif"},
@@ -263,6 +266,13 @@ def build_plan() -> dict:
                                  "issue": f"target lesson {target['lesson']!r} not found in DB"})
                 continue
 
+        # A re-delivery reuses the same module + entry ids, so without a suffix
+        # the new recording would silently overwrite the old object and the
+        # unchanged DB URL could still serve a cached copy of the old audio.
+        suffix = ""
+        if target and target["mode"] == "upsert":
+            suffix = "_" + (z["exported_at"][:10].replace("-", ""))
+
         max_order = 0
         if dest_lesson:
             max_order = max((it["item_order"] or 0) for it in items.values()
@@ -287,6 +297,19 @@ def build_plan() -> dict:
 
             row = None
             match = "db_id"
+            # A re-delivered supplement carries no db_id, but its rows may
+            # already be live from an earlier partial delivery. Match on French
+            # inside the destination lesson so a correction updates rather than
+            # duplicates. Hash the clip into the key: the text changed, so the
+            # audio did too, and reusing the old URL would serve a stale CDN copy.
+            if not entry.get("db_id") and target and target["mode"] == "upsert":
+                want = norm(entry.get("phrase_fr"))
+                row = next((it for it in items.values()
+                            if it["lesson_id"] == dest_lesson["id"] and norm(it["french"]) == want),
+                           None)
+                if row is not None:
+                    match = "upsert-text"
+
             if entry.get("db_id"):
                 row = items.get(entry["db_id"])
                 if row is None and entry["db_id"] in DBID_OVERRIDES:
@@ -322,7 +345,7 @@ def build_plan() -> dict:
                     "member": member,
                     "column": audio_col,
                     "object_key": f"{R2_PREFIX}/{mod}/{slug(entry.get('phrase_fr'))}"
-                                  f"_e{entry['id']}_{field}.mp3",
+                                  f"_e{entry['id']}_{field}{suffix}.mp3",
                     "replaces": row[audio_col],
                 } for field, _, audio_col, member in slots]
                 actions.append({
@@ -340,7 +363,7 @@ def build_plan() -> dict:
                     "member": member,
                     "column": audio_col,
                     "object_key": f"{R2_PREFIX}/{mod}/{slug(entry.get('phrase_fr'))}"
-                                  f"_e{entry['id']}_{field}.mp3",
+                                  f"_e{entry['id']}_{field}{suffix}.mp3",
                     "replaces": None,
                 } for field, _, audio_col, member in slots]
                 actions.append({
@@ -605,7 +628,9 @@ def apply(plan: dict, dry_run: bool) -> None:
         for n, x in enumerate(rows, 1):
             row = dict(x["row"])
             row["lesson_id"] = lesson["id"] if lesson else None
-            row["item_order"] = x["item_order"] if mode == "append" else n
+            # append/upsert continue the lesson's existing numbering (planned);
+            # replace_all and new_lesson start from 1 on an emptied lesson.
+            row["item_order"] = x["item_order"] if mode in ("append", "upsert") else n
             for clip in x["clips"]:
                 row[clip["column"]] = f"{base}/{clip['object_key']}"
                 row[clip["column"].replace("_url", "_key")] = clip["object_key"]
@@ -641,12 +666,21 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=["plan", "upload", "apply"])
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--only", help="comma-separated module codes, e.g. '2.1-supp,2.3-supp'. "
+                                   "Required when re-running after a delivery is already "
+                                   "applied, or every other module inserts twice.")
     args = ap.parse_args()
 
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
 
     if args.stage == "plan":
         plan = build_plan()
+        if args.only:
+            want = {m.strip() for m in args.only.split(",")}
+            plan["actions"] = [a for a in plan["actions"] if a["module"] in want]
+            plan["zips"] = [z for z in plan["zips"] if z["module"] in want]
+            plan["problems"] = [p for p in plan["problems"] if True]
+            print(f"restricted to modules: {sorted(want)}")
         PLAN_PATH.write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
         report = write_report(plan)
         REPORT_PATH.write_text(report, encoding="utf-8")
