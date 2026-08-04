@@ -179,6 +179,11 @@ def build_entries() -> list[dict]:
             "audio": audio,
             "cuts": cuts,
             "confidence": conf,
+            # A slash inside a variant is itself an alternative ("Bokoki/okoki"),
+            # so he read more utterances than there are variants and the cut
+            # cannot be trusted however high the confidence looks. Verified on
+            # row 8494: confidence 0.97, cut wrong by 4.8s.
+            "has_slash": any("/" in s["ln"] for s in segments),
             "segments": segments,
         })
     return entries
@@ -329,7 +334,8 @@ function render(){
   document.getElementById('card').innerHTML = `
     <div class="meta">${esc(e.lesson)} · row ${e.row_id} · ${s.segments.length} variantes ·
        <b style="color:${e.confidence>=0.8?'var(--ok)':e.confidence>=0.5?'var(--acc)':'var(--warn)'}">
-       coupe auto ${Math.round(e.confidence*100)}%</b></div>
+       coupe auto ${Math.round(e.confidence*100)}%</b>
+       ${e.has_slash?'<b style="color:var(--warn)"> · ⚠ contient « / » — plus d\'énoncés que de variantes, vérifier à l\'oreille</b>':''}</div>
     <div class="fr">${esc(e.french_raw || '')}</div>
     ${e.audio ? '<canvas id="wave"></canvas>' : '<p class="hint">⚠ pas d\'audio pour cette ligne</p>'}
     <div class="tools">
