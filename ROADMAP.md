@@ -13,8 +13,8 @@ Last updated: 2026-08-04
 - **Lesson structure reorganized & deduped (2026-07-27)** — mega-lessons split into
   focused ones, duplicates removed, pronouns consolidated. Full record in
   `LESSON_STRUCTURE_AUDIT.md`; backup-first scripts + rollback JSONs in
-  `artifacts/lesson_backups/`. This is the last structural work possible until the
-  professor delivers the remaining content (see Phase 1).
+  `artifacts/lesson_backups/`. The content it was waiting on landed 2026-08-04
+  (see Phase 1).
 - Monoko AI chat (RAG-backed, pgvector, gpt-4o-mini)
 - Supabase Auth — dictionary public, courses + chat require login
 - Admin panel for professor corrections at `/admin.html`
