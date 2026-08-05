@@ -55,6 +55,28 @@ def is_header(line: str) -> bool:
     return bool(tokens) and all(LABEL_WORD.match(t) for t in tokens)
 
 
+def expand_slash(v: str) -> list[str]:
+    """'Bokoki/okoki kokitisa ngai awa ?' -> two full sentences.
+
+    Only an unspaced slash joining word-forms is expanded. A spaced slash
+    ('Yaya / Ya', 'Teká ! / Tekisá !') is left alone: sometimes it is one
+    concept the course should keep together, and that is a human call.
+    """
+    words = re.split(r"(\s+)", v)
+    for i, w in enumerate(words):
+        if "/" in w and len(w) > 2 and not w.startswith("/") and not w.endswith("/"):
+            alts = [a for a in w.split("/") if a]
+            if len(alts) < 2:
+                continue
+            out = []
+            for a in alts:
+                copy = words[:]
+                copy[i] = a[0].upper() + a[1:] if i == 0 else a
+                out.append("".join(copy))
+            return out
+    return [v]
+
+
 def variants(text: str | None) -> list[str]:
     if not text:
         return []
@@ -153,26 +175,38 @@ def build_entries() -> list[dict]:
         prefix = tag.group(1) + " " if tag else ""
         segments = []
         for k, v in enumerate(vs):
+            if is_header(v):                                     # "Eyélé / Motoí:" label
+                segments.append({"ln": v, "fr": "", "drop": True})
+                continue
+
+            # Resolve the French BEFORE expanding slashes. A gloss carries its
+            # own slashes inside the parentheses ("Douter/discuter avec
+            # quelqu'un"), and those are alternative French senses, not extra
+            # Lingala utterances — expanding them shreds the entry.
             gloss = GLOSS_RE.match(v)
-            if is_header(v):
-                seg = {"ln": v, "fr": "", "drop": True}          # "Eyélé / Motoí:" label
-            elif gloss:
-                fr = gloss.group("fr").strip()                    # "Kondóndwa (se réjouir)"
-                seg = {"ln": gloss.group("ln").strip(),
-                       "fr": prefix + fr[0].upper() + fr[1:] if fr else prefix.strip(),
-                       "drop": False}
-            elif len(fr_vs) == len(vs):
-                seg = {"ln": v, "fr": fr_vs[k], "drop": False}    # French listed in parallel
+            if gloss:
+                ln_text = gloss.group("ln").strip()
+                fr = gloss.group("fr").strip()
+                fr_text = prefix + (fr[0].upper() + fr[1:]) if fr else prefix.strip()
             else:
-                seg = {"ln": v, "fr": (row["french"] or "").strip(), "drop": False}
-            segments.append(seg)
+                ln_text = v
+                fr_text = fr_vs[k] if len(fr_vs) == len(vs) else (row["french"] or "").strip()
+
+            # He reads every combination, so a dash-variant holding an unspaced
+            # slash accounts for several utterances in the one clip.
+            alts = expand_slash(ln_text)
+            for a in alts:
+                segments.append({"ln": a, "fr": fr_text, "drop": False,
+                                 **({"from_slash": True} if len(alts) > 1 else {})})
 
         key = (row["audio_url"] or "").split("/Lingala/lesson_items/")[-1]
         mp3 = MP3_CACHE / key
-        audio, cuts, conf = "", [], 0.0
+        audio, cuts, conf, sil, total = "", [], 0.0, [], 0.0
         if row["audio_url"] and mp3.exists():
             audio = "data:audio/mpeg;base64," + base64.b64encode(mp3.read_bytes()).decode()
             cuts, conf = suggest_cuts(mp3, [s["ln"] for s in segments])
+            raw, total = probe_silence(mp3)
+            sil = [[round(a, 3), round(b, 3)] for a, b in raw]
 
         entries.append({
             "row_id": row["id"],
@@ -186,6 +220,8 @@ def build_entries() -> list[dict]:
             "audio": audio,
             "cuts": cuts,
             "confidence": conf,
+            "sil": sil,
+            "total": round(total, 3),
             # A slash inside a variant is itself an alternative ("Bokoki/okoki"),
             # so he read more utterances than there are variants and the cut
             # cannot be trusted however high the confidence looks. Verified on
@@ -255,7 +291,10 @@ canvas{background:#2c2a28}textarea,button{background:#2a2827;color:var(--ink)}.s
   <div class="dots" id="dots"></div>
   <p class="hint">Raccourcis — <b>espace</b> écouter tout · <b>1…9</b> écouter un segment ·
      <b>←/→</b> naviguer · <b>Entrée</b> valider et suivant. Cliquez sur la forme d'onde pour
-     déplacer la coupe la plus proche.</p>
+     déplacer la coupe la plus proche.<br>
+     Si vous entendez <b>plus d'énoncés que de variantes</b> (fréquent quand le texte
+     contient « / »), utilisez <b>＋ variante</b> : les coupes sont recalculées pour
+     le nouveau nombre.</p>
 </main>
 <script>
 const ENTRIES = __ENTRIES__;
@@ -292,6 +331,47 @@ function play(from, to){
   src.start(0, from, Math.max(0.05, (to ?? dur) - from));
 }
 const playSeg = (k) => { const b = bounds(); play(b[k], b[k+1]); };
+function speechBefore(t, sil){
+  let s = t;
+  for (const [a,b] of sil){ if (b <= t) s -= (b-a); else if (a < t) s -= (t-a); }
+  return Math.max(s, 0);
+}
+// Same scoring as suggest_cuts() in make_variant_split_tool.py: pause length
+// penalised by how far it sits from where the text says the break belongs,
+// measured in speech seconds. Re-run whenever the segment count changes.
+function suggestCuts(segs){
+  const e = cur(), sil = e.sil || [], total = e.total || dur;
+  const n = segs.length;
+  if (n < 2 || !total || !sil.length) return [];
+  const chars = segs.map(s => Math.max((s.ln||'').length, 1));
+  const tc = chars.reduce((a,b) => a+b, 0);
+  const ST = speechBefore(total, sil) || total;
+  const cands = sil.filter(([a,b]) => b-a >= 0.20).map(([a,b]) => [(a+b)/2, b-a]);
+  const picks = []; let prev = 0;
+  for (let i = 1; i < n; i++){
+    const target = ST * chars.slice(0,i).reduce((a,b)=>a+b,0) / tc;
+    let best = null;
+    for (const [mid,d] of cands){
+      if (mid <= prev + 0.15) continue;
+      const sc = d - 8 * Math.abs(speechBefore(mid,sil) - target) / ST;
+      if (!best || sc > best[0]) best = [sc, mid];
+    }
+    if (!best) break;
+    picks.push(+best[1].toFixed(3)); prev = best[1];
+  }
+  return picks;
+}
+function addSeg(k){
+  const s = st(cur());
+  s.segments.splice(k+1, 0, {...s.segments[k], ln: s.segments[k].ln});
+  s.cuts = suggestCuts(s.segments); save(); render();
+}
+function delSeg(k){
+  const s = st(cur());
+  if (s.segments.length < 2) return;
+  s.segments.splice(k, 1);
+  s.cuts = suggestCuts(s.segments); save(); render();
+}
 function bounds(){
   const c = st(cur()).cuts.slice().sort((a,b) => a-b);
   return [0, ...c, dur];
@@ -353,8 +433,10 @@ function render(){
     ${s.segments.map((sg, k) => `
       <div class="seg ${sg.drop ? 'dropped' : ''}">
         <div class="row"><span class="tag">${k+1}</span>
-          <button onclick="toggleDrop(${k})">${sg.drop ? 'Réintégrer' : 'Supprimer'}</button>
-          <button onclick="playSeg(${k})">▶ écouter</button></div>
+          <button onclick="toggleDrop(${k})">${sg.drop ? 'Réintégrer' : 'Ignorer'}</button>
+          <button onclick="playSeg(${k})">▶ écouter</button>
+          <button onclick="addSeg(${k})" title="le clip contient un énoncé de plus">＋ variante</button>
+          <button onclick="delSeg(${k})" title="supprimer cette variante">✕</button></div>
         <label>Français</label>
         <textarea oninput="edit(${k},'fr',this.value)">${esc(sg.fr)}</textarea>
         <label>Lingala</label>
