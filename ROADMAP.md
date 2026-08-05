@@ -39,10 +39,11 @@ rollback JSONs in `artifacts/professor_ingest/`).
 - Conjugation L358/L359 rebuilt to the parler/finir/vendre paradigm
   (`LESSON_STRUCTURE_AUDIT.md` §3a); the old single-verb *aimer* rows are gone
 - 3 lessons added: *Conjugaison futur proche* (L393), *Religion et spiritualité*
-  (L394), *Technologie et communication* (L395) — the last two are new modules the
-  professor authored and are **not yet in `Cours/MONOKO_CURRICULUM.md`**
+  (L394), *Technologie et communication* (L395) — the last two the professor
+  authored unprompted, now curriculum modules **6.5** and **6.6**
 - All rows re-embedded so `match_lesson_items` stays correct
 
+**Follow-on work, same day:**
 - ✅ **The two stalled supplements landed 2026-08-04.** `2.1-supp Famille` (20/20)
   and `2.3-supp Manger_boire` (25/25) came back complete — and as *revisions*: he
   also corrected Lingala he had already submitted. Ingested with the new `upsert`
@@ -87,7 +88,8 @@ re-suggested for the new count.
 
 **Next: fine-tune Lingala TTS on the professor's voice** — now unblocked, and
 richer for this work: `artifacts/professor_ingest/variant_clips_for_tts.json`
-holds 185 extra (audio, transcript) pairs from the split clips. Full
+holds **203** extra single-utterance (audio, transcript) pairs cut out of the
+multi-variant recordings. Full
 pipeline in CLAUDE.md → "Next: Fine-tune TTS on professor's voice" (prepare data
 from R2 + `dialect` transcripts → ESPnet2 VITS fine-tune on Colab → deploy new
 weights to the HF Space).
