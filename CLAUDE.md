@@ -86,6 +86,9 @@ generate_audio_collection_html.py — generates one HTML recording app per modul
 populate_stub_modules.py          — populates stub modules with suggested French content, then re-runs HTML generator
 audio_collection_html/            — generated HTML recording apps (one per module), sent to professor for audio recording
 generate_course_templates.py      — generates generic HTML recording apps for all 29 modules for any new language
+ingest_professor_zips.py          — ZIP -> R2 -> Supabase ingest for returned recording apps; stages plan/upload/apply, --only <modules>, modes append/replace_all/new_lesson/upsert (2026-08-04)
+make_variant_split_tool.py        — builds variant_split_tool.html: waveform review UI for rows holding several Lingala variants in one cell
+apply_variant_split.py            — applies the tool's decisions: cuts clips, course keeps variant 1, alternatives -> parallel_sentences
 translate_examples_to_parallel_sentences.py — translates professor example sentences (Lingala) to French via GPT and inserts into parallel_sentences; supports --dry-run and --from-log to insert directly from existing JSON log
 sql/corrections_reviewed_at.sql   — migration: adds reviewed_at to corrections + pace monitoring queries
 sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms integer columns to chat_events (applied 2026-04-30)
@@ -99,7 +102,7 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `words` → `senses` → `examples` — dictionary hierarchy
 - `senses.audio_url/audio_key/audio_source_cell` — Lingala word audio links (added 2026-03-15)
 - `examples.audio_url/audio_key/audio_source_cell` — Lingala example audio links (added 2026-03-15)
-- `parallel_sentences` — FR↔dialect sentence pairs for RAG (FLORES + approved corrections); `embedding vector(384)` added 2026-03-31
+- `parallel_sentences` — FR↔dialect sentence pairs for RAG (FLORES + approved corrections + `source='course_variant'`: alternative phrasings pulled out of the courses, 202 rows added 2026-08-04); `embedding vector(384)` added 2026-03-31
 - `corrections` — user-submitted AI corrections (pending → approved); `professor_modified boolean` tracks whether the professor edited the correction before approving; `reviewed_at timestamptz` set on approve/reject for session pace tracking (added 2026-04-18)
 - `chat_events` — tester-tracked chat activity (`tester_name`, `session_id`, query/response, timestamps, `t_rag_ms`, `t_llm_ms` added 2026-04-30)
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
@@ -253,6 +256,7 @@ The old 4-course flat structure (courses id=22,23,24,25) was migrated to a CEFR-
 
 **New structure:**
 - 6 courses (levels A1→B2+), 29 modules, ~948 lesson_items
+  *(now 31 modules / 1,346 items after the 2026-08-04 professor ingest — see below)*
 - Migration script: `Cours/lingala_curriculum_migration.sql`
 - Old courses (22,23,24,25) still exist — **delete only after verifying new structure in app and re-embedding**
 
@@ -463,9 +467,41 @@ The Space is a separate git repo on HuggingFace. Fastest update path:
 
 ---
 
+## Professor ZIP ingest + variant policy (2026-08-04)
+
+All 39 returned recording ZIPs were ingested (they had been sitting unused —
+no tooling existed for the recording-app export format). Lingala course content
+is now **1,346 items, 100% audio, no missing translations**, across 31 modules.
+
+**Pipeline:** `ingest_professor_zips.py plan | upload | apply` — re-runnable,
+rollback JSON before every write, artifacts in `artifacts/professor_ingest/`.
+
+**Non-obvious rules — read before touching course audio again:**
+- Recording apps export **WebM/Opus, which iOS Safari cannot decode**. Always
+  transcode to MP3 before upload or the audio is silent on every iPhone.
+- New course audio goes to `Lingala/lesson_items/<module>/`. The existing
+  `Lingala/lesson_items/course_1..4/` is March workbook audio under the **deleted**
+  22/23/24/25 course numbering with workbook-cell filenames (`2.C259.mp3`) —
+  do not reuse those prefixes, they mean something else.
+- **Always pass `--only <modules>` when re-running after a delivery is applied**,
+  or every other module's content inserts a second time.
+- A re-delivery (`upsert` mode) matches on French inside the target lesson and
+  stamps object keys with the export date — reusing the key would overwrite the
+  old object at a URL the DB still points to, and serve a stale cached copy.
+- `embed_lesson_items.py` embeds only rows **missing** a vector by default; use
+  `--force` after any text edit. `match_lesson_items` takes `p_language_id`.
+
+**Variant policy:** when the professor gives several ways to say one thing, the
+**course shows one**; the rest go to `parallel_sentences` with
+`source='course_variant'`, so RAG knows them without cluttering the lesson.
+202 alternatives live there now. Review via `make_variant_split_tool.py` →
+`apply_variant_split.py`; see `ROADMAP.md` Phase 1 for the cut heuristics and the
+slash trap (an unspaced `Bokoki/okoki` means he read every combination, and no
+confidence score detects it).
+
 ## Next: Fine-tune TTS on professor's voice
 
-**Status**: waiting for professor to finish the remaining audio collection modules.
+**Status**: ✅ **unblocked 2026-08-04** — the professor's audio collection is complete (1,346/1,346 course items have audio).
 
 **Goal**: replace the current DigitalUmuganda speaker voice with the professor's voice, keeping the same Lingala phonetics. The Space, API, and frontend stay exactly as-is — only the model weights change.
 
@@ -473,8 +509,12 @@ The Space is a separate git repo on HuggingFace. Fastest update path:
 - Single speaker throughout (one professor, Borgeas studio)
 - Already have ~3,400 sentence-level clips with transcriptions in DB:
   - `examples` with `audio_url`: 2,593 clips (~3.6h estimated)
-  - `lesson_items` with `audio_url`: 815 clips (~0.9h estimated)
-  - Total: ~4.5h — sufficient for fine-tuning an existing VITS checkpoint
+  - `lesson_items` with `audio_url`: **1,346** clips (all of them, after the
+    2026-08-04 ingest) — was 815
+  - plus **203** single-utterance clips cut out of multi-variant recordings,
+    listed with their transcripts in
+    `artifacts/professor_ingest/variant_clips_for_tts.json`
+  - Total: **~6h+** — comfortably above what fine-tuning a VITS checkpoint needs
 - Transcriptions already paired in Supabase (`dialect` column) — no labelling needed
 - Audio on Cloudflare R2 at `https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev`
 
@@ -493,7 +533,9 @@ The Space is a separate git repo on HuggingFace. Fastest update path:
 
 3. **Deploy**: upload new `.pth` weights to `Kemz42/monoko-lingala-tts` Space, update `model_path` in `app.py`
 
-**Trigger**: start this once the professor has finished all remaining audio collection modules (stub modules + missing items from `audio_collection_html/`).
+**Trigger**: reached. The only outstanding professor item is one argot row flagged
+for re-record (`artifacts/professor_ingest/rerecord.json`), which does not block
+this work.
 
 ---
 

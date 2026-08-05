@@ -31,9 +31,9 @@ Last updated: 2026-08-04
 rollback JSONs in `artifacts/professor_ingest/`).
 
 **Delivered:**
-- Lingala course audio coverage **70% → 100%** (1,311 / 1,311 items)
+- Lingala course audio coverage **70% → 100%** (**1,346 / 1,346** items)
 - **183** rows with no Lingala text → **0**; all **6** `[PLACEHOLDER]` rows purged
-- **587** clips transcoded WebM/Opus → MP3 128k mono and uploaded to
+- **632** clips transcoded WebM/Opus → MP3 128k mono and uploaded to
   `audios/Lingala/lesson_items/<module>/`. The transcode is **not optional** —
   iOS Safari cannot decode Opus, so the raw exports are silent on iPhone.
 - Conjugation L358/L359 rebuilt to the parler/finir/vendre paradigm
@@ -43,30 +43,45 @@ rollback JSONs in `artifacts/professor_ingest/`).
   professor authored and are **not yet in `Cours/MONOKO_CURRICULUM.md`**
 - All rows re-embedded so `match_lesson_items` stays correct
 
-**Still open (small):**
-- **35 items owed by the professor**, both from his first batch (2026-05-23, never
-  revisited): `2.1-supp Famille` has 11 entries recorded with **no Lingala text
-  typed** (audio exists, no transcript), and `2.3-supp Manger_boire` has 24 of 25
-  untouched. Send a slim "à refaire" page rather than the full modules.
-- ✅ **Multi-variant cells split (2026-08-04).** 148 rows held 2–6 dash-separated
-  Lingala variants in one cell, with a single clip covering all of them. Reviewed
-  in `variant_split_tool.html` (see "Variant policy" below); 141 done, **7 left**.
-- **17 rows in L364 Proverbes have a French side that is still a stub prompt**
-  ("Proverbe sur l'union qui fait la force.") rather than the French proverb. The
-  Lingala is real; the French needs authoring.
+- ✅ **The two stalled supplements landed 2026-08-04.** `2.1-supp Famille` (20/20)
+  and `2.3-supp Manger_boire` (25/25) came back complete — and as *revisions*: he
+  also corrected Lingala he had already submitted. Ingested with the new `upsert`
+  mode (10 rows updated, 35 inserted). L351 → 40 rows, L353 → 49 rows.
+- ✅ **Multi-variant cells split.** 163 rows held 2–6 dash-separated Lingala
+  variants in one cell with a single clip covering all of them; **162 resolved**
+  across two review passes, **202** alternatives moved to the corpus.
+- ✅ **L364 Proverbes French rewritten** — the stub prompts ("Proverbe sur l'union
+  qui fait la force") were replaced with real French during the variant review.
+
+**Still open — needs the professor, not code:**
+- **Row 8384** (`[Argot kinois]`, six street expressions in one clip) is flagged
+  for re-record; it is the last multi-variant row. Details + corrected French in
+  `artifacts/professor_ingest/rerecord.json`, ready for a slim "à refaire" page
+  via the `generate-todo-recording-files` skill.
+- **`Kulutu` vs `Kuluntu`** — the dictionary has one entry spelled `Kulutu`; six
+  course rows and the corpus consistently use `Kuluntu`. Needs his ruling, then
+  normalise so a learner searching one finds the other.
+- **Religion + Technologie are not in `Cours/MONOKO_CURRICULUM.md`** — the doc
+  describes 29 modules, the database now has 31.
 
 **Variant policy (decided 2026-08-04):** when the professor gives several ways to
 say the same thing, the **course shows one** — the rest go to `parallel_sentences`
 as `source='course_variant'` so the RAG chat knows them without cluttering the
-lesson. First pass moved **184** alternatives into the corpus. Verified live: a
-query for *"une autre façon de dire aide-moi"* returns `Tiya ngai loboko,
-bolimbisi !`, an alternative that no longer appears in any lesson.
+lesson. **202** alternatives now live in the corpus. Verified live: a query for
+*"une autre façon de dire aide-moi"* returns `Tiya ngai loboko, bolimbisi !`, an
+alternative that no longer appears in any lesson.
+
+Because the course keeps *one* variant, each lesson row is **updated in place** —
+no delete/reinsert, so row ids, `item_order` and `user_progress` FKs are untouched.
 
 Tooling: `make_variant_split_tool.py` → review in browser → `apply_variant_split.py`.
 Cuts are pre-placed by a position-weighted silence search (validated at median
-0.11 s against hand-placed cuts) but always human-confirmed — a slash inside a
-variant means he read more utterances than the text lists, and no confidence
-score detects that.
+**0.11 s** against Anthony's hand-placed cuts, vs 3.62 s for a plain longest-pause
+heuristic) but always human-confirmed. An unspaced slash (`Bokoki/okoki`) is
+auto-expanded — he reads every combination, so 2 variants × 2 alternatives is 4
+utterances in one clip — and **no confidence score detects this**: row 8494 scored
+0.97 and was 4.8 s wrong. The reviewer can add or remove segments, and cuts are
+re-suggested for the new count.
 
 **Next: fine-tune Lingala TTS on the professor's voice** — now unblocked, and
 richer for this work: `artifacts/professor_ingest/variant_clips_for_tts.json`
