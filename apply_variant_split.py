@@ -207,13 +207,24 @@ def main() -> None:
     # parallel_sentences has no audio column, but the cut clips are real
     # (audio, transcript) pairs — exactly what the professor-voice TTS
     # fine-tune consumes. Record the mapping so they are not lost.
-    tts = [{"object_key": cr["audio_key"], "url": cr["audio_url"], "dialect": cr["dialect"],
-            "french": cr["french"]}
-           for r in splits for cr in r.get("_corpus_rows", []) if cr.get("audio_key")]
-    (ART / "variant_clips_for_tts.json").write_text(
-        json.dumps(tts, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"{len(tts)} extra clips recorded for TTS fine-tuning -> "
-          f"{ART/'variant_clips_for_tts.json'}")
+    tts_path = ART / "variant_clips_for_tts.json"
+    # Accumulate across runs — the review happens in batches, and a plain
+    # overwrite would drop every clip logged by the previous one.
+    prior = json.loads(tts_path.read_text(encoding="utf-8")) if tts_path.exists() else []
+    by_key = {c["object_key"]: c for c in prior}
+    added = 0
+    for r in splits:
+        for cr in r.get("_corpus_rows", []):
+            if not cr.get("audio_key"):
+                continue
+            added += cr["audio_key"] not in by_key
+            by_key[cr["audio_key"]] = {"object_key": cr["audio_key"], "url": cr["audio_url"],
+                                       "dialect": cr["dialect"], "french": cr["french"]}
+    if not args.dry_run:
+        tts_path.write_text(json.dumps(list(by_key.values()), ensure_ascii=False, indent=2),
+                            encoding="utf-8")
+    print(f"{added} new clips recorded for TTS fine-tuning "
+          f"({len(by_key)} total) -> {tts_path}")
 
     print("\nNext:")
     print("  python3 embed_lesson_items.py --force      # edited lesson rows")
