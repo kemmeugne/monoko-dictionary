@@ -8,7 +8,7 @@ Last updated: 2026-08-04
 
 - Live app at https://monoko-dictionary.vercel.app
 - Lingala dictionary (public) with audio, professor-verified
-- 31-module CEFR-aligned course structure (A1 → B2+) — **content complete for Lingala**
+- 31-module CEFR-aligned curriculum (A1 → B2+), 50 lessons live — **content complete for Lingala**
   (100% audio, no missing translations) as of 2026-08-04
 - **Lesson structure reorganized & deduped (2026-07-27)** — mega-lessons split into
   focused ones, duplicates removed, pronouns consolidated. Full record in
@@ -61,8 +61,10 @@ rollback JSONs in `artifacts/professor_ingest/`).
 - **`Kulutu` vs `Kuluntu`** — the dictionary has one entry spelled `Kulutu`; six
   course rows and the corpus consistently use `Kuluntu`. Needs his ruling, then
   normalise so a learner searching one finds the other.
-- **Religion + Technologie are not in `Cours/MONOKO_CURRICULUM.md`** — the doc
-  describes 29 modules, the database now has 31.
+- ✅ **Religion + Technologie added to `Cours/MONOKO_CURRICULUM.md`** as modules
+  **6.5** and **6.6** (2026-08-04). They are part of the *universal* curriculum
+  now, so a new language should collect them too — `generate_course_templates.py`
+  reads the live Lingala content, so it emits them automatically.
 
 **Variant policy (decided 2026-08-04):** when the professor gives several ways to
 say the same thing, the **course shows one** — the rest go to `parallel_sentences`

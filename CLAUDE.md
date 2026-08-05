@@ -256,7 +256,9 @@ The old 4-course flat structure (courses id=22,23,24,25) was migrated to a CEFR-
 
 **New structure:**
 - 6 courses (levels A1→B2+), 29 modules, ~948 lesson_items
-  *(now 31 modules / 1,346 items after the 2026-08-04 professor ingest — see below)*
+  *(now **50 lessons / 1,346 items** — the July 2026 restructure split mega-lessons
+  into focused ones, so a curriculum module no longer maps 1:1 to a DB lesson;
+  `MONOKO_CURRICULUM.md` describes 31 modules)*
 - Migration script: `Cours/lingala_curriculum_migration.sql`
 - Old courses (22,23,24,25) still exist — **delete only after verifying new structure in app and re-embedding**
 
@@ -471,7 +473,9 @@ The Space is a separate git repo on HuggingFace. Fastest update path:
 
 All 39 returned recording ZIPs were ingested (they had been sitting unused —
 no tooling existed for the recording-app export format). Lingala course content
-is now **1,346 items, 100% audio, no missing translations**, across 31 modules.
+is now **1,346 items across 50 lessons, 100% audio, no missing translations**.
+(`Cours/MONOKO_CURRICULUM.md` describes **31 modules**; the July restructure split
+several into multiple lessons, so modules and lessons are not 1:1.)
 
 **Pipeline:** `ingest_professor_zips.py plan | upload | apply` — re-runnable,
 rollback JSON before every write, artifacts in `artifacts/professor_ingest/`.

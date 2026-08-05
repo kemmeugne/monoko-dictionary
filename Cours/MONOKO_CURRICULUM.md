@@ -12,6 +12,15 @@ Each level contains themed modules. Each module contains lessons. Each lesson co
 Every module ends with an exam (written + listening + speaking).
 Every lesson includes a pronunciation practice component.
 
+**31 modules across 6 levels.** (A module may be delivered as several lessons in
+the database — the Lingala restructure of July 2026 split the largest ones, so
+the live course has 50 lessons.) Modules **6.5 Religion et spiritualité** and
+**6.6 Technologie et communication** were added 2026-08-04: the Lingala professor
+authored both unprompted, and they filled real gaps — faith vocabulary is
+inseparable from everyday speech in the target communities, and no module covered
+phones, messaging or mobile money at all. They are part of the universal
+curriculum, so a new language should collect them too.
+
 ---
 
 ## LEVEL 1 — FONDATIONS (A1 Beginner)
@@ -351,6 +360,25 @@ The language in its modern, global context.
 - Borrowings from other languages and vice versa
 - Language preservation and why it matters
 - Resources for continued learning beyond Monoko
+- **Target: 20-30 items**
+
+### Module 6.5 — Religion et spiritualité
+Faith, ritual, and spiritual vocabulary — central to daily life across the target
+communities and heavily represented in music, greetings, and set expressions.
+- Places of worship and their role in community life
+- Clergy, congregation, and the vocabulary of a service
+- Prayer, blessing, and common devotional formulas
+- Traditional beliefs alongside imported religions, and how they coexist
+- Religious festivals and the language used around them
+- **Target: 20-30 items**
+
+### Module 6.6 — Technologie et communication
+Modern digital life, which older curricula omit entirely and learners need daily.
+- Phone, internet, and messaging vocabulary
+- Social media and how the language behaves online
+- Sending, receiving, sharing — the verbs of digital exchange
+- Money transfer and mobile payment (dominant in the target markets)
+- Neologisms and borrowings for technology that has no traditional term
 - **Target: 20-30 items**
 
 ### 📝 Exam final

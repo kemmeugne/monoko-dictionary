@@ -597,6 +597,11 @@ def apply(plan: dict, dry_run: bool) -> None:
                 )
                 res.raise_for_status()
                 lesson = res.json()[0]
+                # Register it so the next new_lesson in the same course sees it —
+                # `lessons` was fetched before the loop, so without this two new
+                # lessons under one course both take max+1 and collide.
+                lessons[lesson["id"]] = lesson
+                lesson_by_title[norm(title)] = lesson
                 print(f"  created lesson {title!r} -> id {lesson['id']}")
 
         # `replace_all` clears the lesson anyway; `append` must still drop the
