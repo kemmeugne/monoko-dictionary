@@ -1,0 +1,34 @@
+[
+  {
+    "row_id": 8384,
+    "lesson_id": 367,
+    "lesson": "Registres : formel vs informel",
+    "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/5.1/argot_kinois_expression_de_rue_courante_a_kinshasa_e12_phrase.mp3",
+    "variants": [
+      {
+        "fr": "[Argot kinois] Se réjouir",
+        "ln": "Kondóndwa"
+      },
+      {
+        "fr": "[Argot kinois] Ça ne va pas chez toi ?",
+        "ln": "Oza na farata na motu na yo ?"
+      },
+      {
+        "fr": "[Argot kinois] Douter/discuter avec quelqu'un/ remettre en question quelque chose",
+        "ln": "Kokatela moto lingála"
+      },
+      {
+        "fr": "[Argot kinois] Énerver quelqu'un",
+        "ln": "Komatisa moto mafuta"
+      },
+      {
+        "fr": "[Argot kinois] Dédicace/Salutations",
+        "ln": "Libanga"
+      },
+      {
+        "fr": "[Argot kinois] Regretter/ S'en mordre le doigt",
+        "ln": "Kotuna ngulu"
+      }
+    ]
+  }
+]

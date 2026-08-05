@@ -2,63 +2,22 @@ MONOKO — professor ZIP ingest plan
 ==============================================================================
 
 module            export         n  upd  new  txt+  ovr   !
-1.1               2026-06-22    45   45    0     0    0   0
-1.2               2026-06-22     5    5    0     0    0   0
-1.3               2026-06-22     6    6    0     0    0   0
-1.5               2026-06-22     2    2    0     0    0   0
-2.1-supp          2026-05-23    20    0    9     0    0  11
-2.3               2026-06-22     6    6    0     0    0   0
-2.3-supp          2026-05-23    25    0    1     0    0   0
-2.4               2026-06-22    12   12    0     0    0   0
-2.5               2026-06-22    10   10    0     0    0   0
-3.1               2026-06-25    22   22    0    16    1   0
-3.1-supp          2026-07-25    16    0   16     0    0   0
-3.3               2026-07-30    54    0   54     0    0   0
-3.4               2026-08-01    21    0   21     0    0   0
-3.4-supp          2026-07-30    21    0   21     0    0   0
-3.5               2026-06-22    10    9    0     0    0   0
-3.6               2026-06-26    28   28    0     0    1   0
-4.1               2026-06-27    24   24    0    21    3   0
-4.1-supp          2026-07-25    21    0   21     0    0   0
-4.2               2026-06-26     2    2    0     0    0   0
-4.3               2026-07-28    20    0   20     0    0   0
-4.4               2026-06-26    18   18    0    18    0   0
-5.1               2026-06-30    30   30    0    28    0   0
-5.2               2026-06-30     9    9    0     0    0   0
-5.2-supp          2026-07-28    15    0   15     0    0   0
-5.3               2026-07-02    20   20    0    20    0   0
-5.4               2026-07-02    25   25    0    25    0   0
-6.1               2026-07-02    25   25    0    25    0   0
-6.2               2026-06-30     1    1    0     0    0   0
-6.3               2026-07-02    30   30    0    30    0   0
-6.4               2026-06-30     4    4    0     0    0   0
-6.4-supp          2026-07-29    18    0   18     0    0   0
-NOUVEAU-religion  2026-07-29    25    0   25     0    0   0
-NOUVEAU-techno    2026-07-29    25    0   25     0    0   0
+2.1-supp          2026-07-22    20    9   11     0    9   0
+2.3-supp          2026-07-22    25    1   24     0    1   0
 
   upd  = existing rows updated        new  = rows created
   txt+ = rows gaining Lingala text    ovr  = clips replacing existing audio
   !    = entries needing the professor
 
 ------------------------------------------------------------------------------
-TOTAL   333 updates, 246 inserts, 587 clips to transcode+upload
-        283 rows change Lingala text
-        5 clips overwrite existing audio
-        13 rows matched by text (db_id was deleted)
+TOTAL   10 updates, 35 inserts, 45 clips to transcode+upload
+        6 rows change Lingala text
+        10 clips overwrite existing audio
+        0 rows matched by text (db_id was deleted)
 
 NEW CONTENT DESTINATIONS
-  append        21 items -> Le marche et l'argent
-  replace_all   21 items -> Conjugaison - futur et imperatif
-  replace_all   54 items -> Conjugaison - present et passe
-  new_lesson    21 items -> Conjugaison : futur proche et imperatif negatif
-  append        15 items -> Debats et opinions
-  append        16 items -> Deplacements et directions
-  append         9 items -> La famille et les relations
-  append        18 items -> La langue dans le monde
-  append         1 items -> Manger et boire
-  replace_all   20 items -> Proverbes et expressions idiomatiques
-  new_lesson    25 items -> Religion et spiritualite
-  new_lesson    25 items -> Technologie et communication
+  upsert        11 items -> La famille et les relations
+  upsert        24 items -> Manger et boire
 
 SKIPPED ZIPS
   Monoko_Audio_Lingala_1.1_Sons et alphabet_2026-05-22.zip
@@ -72,26 +31,13 @@ SKIPPED ZIPS
   Monoko_Audio_Lingala_3.4_Conjugaison - futur et imperatif_2026-06-22.zip
       old single-verb 'aimer' content, replaced by the 2026-08-01 rebuild
 
-NEEDS THE PROFESSOR (11)
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Mon beau-père vit avec nous.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Ma belle-mère cuisine très bien.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Mon beau-frère travaille en ville.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Ma belle-sœur est infirmière.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Le gendre est le mari de ma fille.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: La bru est la femme de mon fils.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Mon parrain m'a beaucoup aidé.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Ma marraine est très généreuse.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Il est orphelin depuis l'enfance.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Elle est fille unique dans sa famille.
-  [Monoko_Audio_Lingala_2.1-supp_Famille_supple] recorded but no Lingala text typed
-      fr: Nous avons une grande famille nombreuse.
+NEEDS THE PROFESSOR (3)
+  [Monoko_Audio_Lingala_6.4_La langue dans le m] db_id 8009 gone and text match failed
+      fr: [PLACEHOLDER] Lingala diaspora 1 - REQUIERT SAISIE DU PROFESSEUR:
+Vous
+  [Monoko_Audio_Lingala_6.4_La langue dans le m] db_id 8010 gone and text match failed
+      fr: [PLACEHOLDER] Lingala diaspora 2 - REQUIERT SAISIE DU PROFESSEUR:
+Rega
+  [Monoko_Audio_Lingala_6.4_La langue dans le m] db_id 8011 gone and text match failed
+      fr: [PLACEHOLDER] Lingala diaspora 3 - REQUIERT SAISIE DU PROFESSEUR:
+Je n
