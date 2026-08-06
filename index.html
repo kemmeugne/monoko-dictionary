@@ -312,70 +312,59 @@
     };
 
     // ── Alphabet Panel (Module 1.1 Sons et alphabet) ─────────────────────────
-    const ALPHABET_DATA = {
-      voyelles: [
-        { letter:"A", word:"Bokáni",    meaning:"Décision",   hint:"comme dans « patte »" },
-        { letter:"E", word:"Emétu",     meaning:"Genre",      hint:"comme dans « été »" },
-        { letter:"I", word:"Lisakolí",  meaning:"Discours",   hint:"comme dans « vie »" },
-        { letter:"O", word:"Motóki",    meaning:"Sueur",      hint:"comme dans « eau »" },
-        { letter:"U", word:"Kozúza",    meaning:"Déformer",   hint:"comme dans « ou »" },
-        { letter:"Ɛ", word:"Tɛmbɛlɛ",  meaning:"Timbre",     hint:"comme dans « fête »" },
-        { letter:"Ɔ", word:"Mpɔ",       meaning:"Pour",       hint:"comme dans « or »" },
-      ],
-      consonnes: [
-        { letter:"B", word:"Bokono",   meaning:"Maladie" },
-        { letter:"D", word:"Dangu",    meaning:"Panier" },
-        { letter:"F", word:"Fúlu",     meaning:"Poubelle" },
-        { letter:"G", word:"Gádi",     meaning:"Jardin" },
-        { letter:"K", word:"Kala",     meaning:"Autrefois" },
-        { letter:"L", word:"Likásu",   meaning:"Noix de cola" },
-        { letter:"M", word:"Mbúla",    meaning:"Pluie" },
-        { letter:"N", word:"Ngúma",    meaning:"Python" },
-        { letter:"P", word:"Pépélé",   meaning:"Lumière" },
-        { letter:"S", word:"Sánzá",    meaning:"Lune" },
-        { letter:"T", word:"Taú",      meaning:"Fragile" },
-        { letter:"V", word:"Víno",     meaning:"Vin" },
-        { letter:"W", word:"Wangíla",  meaning:"Sésame" },
-        { letter:"Y", word:"Yambí",    meaning:"Bienvenue" },
-        { letter:"Z", word:"Zála",     meaning:"Nid" },
-      ],
-      composes: [
-        { letter:"GB", word:"Gbagba",      meaning:"Pont" },
-        { letter:"KP", word:"Ekpángba",    meaning:"Entrepôt" },
-        { letter:"KW", word:"Mokwéte",     meaning:"Vénus" },
-        { letter:"MB", word:"Mbano",       meaning:"Récompense" },
-        { letter:"MF", word:"Mfúti",       meaning:"Taxe" },
-        { letter:"MP", word:"Mpéma",       meaning:"Respirer" },
-        { letter:"MV", word:"Litamvula",   meaning:"Frange" },
-        { letter:"MW", word:"Mwambe",      meaning:"Huit" },
-        { letter:"ND", word:"Ndáko",       meaning:"Maison" },
-        { letter:"NG", word:"Ngúlu",       meaning:"Cochon" },
-        { letter:"NK", word:"Nkámá",       meaning:"Cent" },
-        { letter:"NS", word:"Nsinga",      meaning:"Fil" },
-        { letter:"NT", word:"Ntaba",       meaning:"Chèvre" },
-        { letter:"NY", word:"Nyama",       meaning:"Animal" },
-        { letter:"NZ", word:"Nzále",       meaning:"Buffle" },
-        { letter:"TS", word:"Etsúséláká",  meaning:"Grammaire" },
-      ],
-      trigraphes: [
-        { letter:"NGB", word:"Ngbá",    meaning:"Hachette" },
-        { letter:"NGW", word:"Ngwaa",   meaning:"Brillant" },
-        { letter:"TSH", word:"Tshádi",  meaning:"Tchad" },
-      ],
-      tons: [
-        { letter:"—",  mark:"(sans accent)", word:"Kopésa",  meaning:"Donner",  desc:"Ton bas" },
-        { letter:"´",  mark:"accent aigu",   word:"Tatá",    meaning:"Père",    desc:"Ton haut" },
-        { letter:"^",  mark:"circonflexe",   word:"Sâmbóle", meaning:"Énigme",  desc:"Ton descendant" },
-        { letter:"ˇ",  mark:"caron",         word:"Mwǎsi",   meaning:"Femme",   desc:"Ton montant" },
-      ],
+    // Tiles are built from the lesson_items rows, so the word printed on a tile
+    // is always the one in the clip the professor recorded. Only the
+    // pronunciation hints live here — they have no column in the DB.
+    const VOWEL_HINTS = {
+      "A": "comme dans « patte »",
+      "E": "comme dans « été »",
+      "I": "comme dans « vie »",
+      "O": "comme dans « eau »",
+      "U": "comme dans « ou »",
+      "Ɛ": "comme dans « fête »",
+      "Ɔ": "comme dans « or »",
+    };
+
+    // "Voyelle A — Décision" / "Consonne B — Maladie" / "Son composé GB — Pont"
+    // / "Ton haut (accent aigu ´) — Père"
+    const parseAlphabetItem = (item) => {
+      const raw = (item.french || "").replace(/\s+/g, " ").trim();
+      const sep = raw.indexOf("—");
+      const left = (sep === -1 ? raw : raw.slice(0, sep)).trim();
+      const base = {
+        word: (item.dialect || "").trim(),
+        meaning: sep === -1 ? "" : raw.slice(sep + 1).trim(),
+        audio: item.audio_url,
+        key: item.id,
+      };
+      let m;
+      if ((m = left.match(/^Voyelle\s+(.+)$/i))) {
+        const letter = m[1].trim();
+        return { ...base, kind:"voyelle", letter, hint: VOWEL_HINTS[letter] };
+      }
+      if ((m = left.match(/^Consonne\s+(.+)$/i)))
+        return { ...base, kind:"consonne", letter: m[1].trim() };
+      if ((m = left.match(/^Sons?\s+composés?\s+(.+)$/i))) {
+        const letter = m[1].trim();
+        return { ...base, kind: letter.length > 2 ? "trigraphe" : "digraphe", letter };
+      }
+      if ((m = left.match(/^(Ton\s+[^(]+?)\s*(?:\(([^)]*)\))?$/i)))
+        return { ...base, kind:"ton", desc: m[1].trim(), mark: (m[2] || "").trim() };
+      return { ...base, kind:"autre", letter: left };
     };
 
     const AlphabetPanel = ({ lessonItems }) => {
-      // Build audio map: item_order (1-based) → audio_url
-      const audioMap = {};
-      lessonItems.forEach(item => { if (item.audio_url) audioMap[item.item_order] = item.audio_url; });
+      const parsed = [...lessonItems]
+        .sort((a, b) => (a.item_order || 0) - (b.item_order || 0))
+        .map(parseAlphabetItem);
+      const group = (kind) => parsed.filter(p => p.kind === kind);
+      const voyelles   = group("voyelle");
+      const consonnes  = group("consonne");
+      const digraphes  = group("digraphe");
+      const trigraphes = group("trigraphe");
+      const tons       = group("ton");
+      const autres     = group("autre");
 
-      // Sequential item_order: vowels=1-7, consonants=8-22, digraphs=23-38, tones=39-42
       const playAudio = (src) => {
         if (!src) return;
         const a = new Audio(src); a.play().catch(()=>{});
@@ -388,8 +377,8 @@
         </div>
       );
 
-      const Tile = ({ letter, word, meaning, hint, itemOrder, accent }) => {
-        const audio = audioMap[itemOrder];
+      const Tile = ({ entry, accent }) => {
+        const { letter, word, meaning, hint, audio } = entry;
         const colors = {
           voyelle:  { bg:"#FFF7ED", border:"#FDBA74", letter:"#C2410C", badge:"#FED7AA" },
           consonne: { bg:"#F5F3FF", border:"#C4B5FD", letter:"#6D28D9", badge:"#EDE9FE" },
@@ -429,8 +418,8 @@
         );
       };
 
-      const ToneTile = ({ item, itemOrder }) => {
-        const audio = audioMap[itemOrder];
+      const ToneTile = ({ entry }) => {
+        const audio = entry.audio;
         return (
           <button onClick={() => playAudio(audio)} style={{
             background:"#EFF6FF", border:`1.5px solid ${audio ? "#93C5FD" : "#E8E0D4"}`,
@@ -439,16 +428,16 @@
             display:"flex", flexDirection:"column", alignItems:"center", gap:4,
           }}>
             <div style={{ fontSize:10, fontWeight:700, color:"#1D4ED8", textTransform:"uppercase",
-              letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>{item.desc}</div>
+              letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>{entry.desc}</div>
             <div style={{ fontSize:22, fontWeight:800, color:"#1D4ED8",
-              fontFamily:"'Playfair Display', serif" }}>{item.word}</div>
-            <div style={{ fontSize:11, color:"#2D2118", fontWeight:600 }}>{item.meaning}</div>
-            <div style={{ fontSize:10, color:"#9B8A6E", fontStyle:"italic" }}>{item.mark}</div>
+              fontFamily:"'Playfair Display', serif" }}>{entry.word}</div>
+            <div style={{ fontSize:11, color:"#2D2118", fontWeight:600 }}>{entry.meaning}</div>
+            {entry.mark && <div style={{ fontSize:10, color:"#9B8A6E", fontStyle:"italic" }}>{entry.mark}</div>}
           </button>
         );
       };
 
-      const hasAudio = Object.keys(audioMap).length > 0;
+      const hasAudio = parsed.some(p => p.audio);
       return (
         <div>
           {!hasAudio && (
@@ -459,40 +448,47 @@
             </div>
           )}
 
-          <SectionLabel>Voyelles — {ALPHABET_DATA.voyelles.length} sons</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.voyelles.map((v, i) => (
-              <Tile key={v.letter} {...v} itemOrder={i+1} accent="voyelle" />
-            ))}
-          </div>
+          {voyelles.length > 0 && (<React.Fragment>
+            <SectionLabel>Voyelles — {voyelles.length} sons</SectionLabel>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+              {voyelles.map(v => <Tile key={v.key} entry={v} accent="voyelle" />)}
+            </div>
+          </React.Fragment>)}
 
-          <SectionLabel>Consonnes simples — {ALPHABET_DATA.consonnes.length} sons</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.consonnes.map((c, i) => (
-              <Tile key={c.letter} {...c} itemOrder={i+8} accent="consonne" />
-            ))}
-          </div>
+          {consonnes.length > 0 && (<React.Fragment>
+            <SectionLabel>Consonnes simples — {consonnes.length} sons</SectionLabel>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+              {consonnes.map(c => <Tile key={c.key} entry={c} accent="consonne" />)}
+            </div>
+          </React.Fragment>)}
 
-          <SectionLabel>Sons composés — {ALPHABET_DATA.composes.length} digraphes</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.composes.map((c, i) => (
-              <Tile key={c.letter} {...c} itemOrder={i+23} accent="compose" />
-            ))}
-          </div>
+          {digraphes.length > 0 && (<React.Fragment>
+            <SectionLabel>Sons composés — {digraphes.length} digraphes</SectionLabel>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+              {digraphes.map(c => <Tile key={c.key} entry={c} accent="compose" />)}
+            </div>
+          </React.Fragment>)}
 
-          <SectionLabel>Sons composés — {ALPHABET_DATA.trigraphes.length} trigraphes</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.trigraphes.map((c, i) => (
-              <Tile key={c.letter} {...c} itemOrder={i+39} accent="compose" />
-            ))}
-          </div>
+          {trigraphes.length > 0 && (<React.Fragment>
+            <SectionLabel>Sons composés — {trigraphes.length} trigraphes</SectionLabel>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+              {trigraphes.map(c => <Tile key={c.key} entry={c} accent="compose" />)}
+            </div>
+          </React.Fragment>)}
 
-          <SectionLabel>Les 4 tons du lingala</SectionLabel>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
-            {ALPHABET_DATA.tons.map((t, i) => (
-              <ToneTile key={t.desc} item={t} itemOrder={i+42} />
-            ))}
-          </div>
+          {tons.length > 0 && (<React.Fragment>
+            <SectionLabel>Les {tons.length} tons du lingala</SectionLabel>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
+              {tons.map(t => <ToneTile key={t.key} entry={t} />)}
+            </div>
+          </React.Fragment>)}
+
+          {autres.length > 0 && (<React.Fragment>
+            <SectionLabel>Autres — {autres.length}</SectionLabel>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8 }}>
+              {autres.map(a => <Tile key={a.key} entry={a} accent="consonne" />)}
+            </div>
+          </React.Fragment>)}
 
           <div style={{ marginTop:20, padding:"12px 16px", background:"#FAFAF8",
             borderRadius:12, border:"1px solid #E8E0D4", fontSize:11, color:"#9B8A6E", lineHeight:1.6 }}>

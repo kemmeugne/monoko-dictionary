@@ -1,0 +1,35 @@
+{
+  "source": "Downloads/Monoko_Audio_Lingala_1.1_Sons et alphabet_2026-08-06/data.json",
+  "lesson_id": 346,
+  "applied_at": "2026-08-06",
+  "changes": [
+    {
+      "id": 8309,
+      "item_order": 1,
+      "french": "Voyelle A — Décision",
+      "old_dialect": "Bokáni",
+      "new_dialect": "Mokáno"
+    },
+    {
+      "id": 8310,
+      "item_order": 2,
+      "french": "Voyelle E — Genre",
+      "old_dialect": "Emétu",
+      "new_dialect": "Lokelé, eléko"
+    },
+    {
+      "id": 8311,
+      "item_order": 3,
+      "french": "Voyelle I — Discours",
+      "old_dialect": "Lisakolí",
+      "new_dialect": "Lisakolí, lisúkúlu"
+    },
+    {
+      "id": 8313,
+      "item_order": 5,
+      "french": "Voyelle U — Déformer",
+      "old_dialect": "Kozúza",
+      "new_dialect": "Mbula"
+    }
+  ]
+}
