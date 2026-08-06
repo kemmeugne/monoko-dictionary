@@ -47,6 +47,11 @@ OUT = Path("variant_split_tool.html")
 LABEL_WORD = re.compile(r"^(ey[ée]l[ée]|moto[ií]|proverbe|proverbes|expression|expressions)$", re.I)
 # "Kondóndwa (se réjouir)" — the closing paren may be followed by punctuation.
 GLOSS_RE = re.compile(r"^(?P<ln>.+?)\s*\((?P<fr>[^()]{2,})\)\s*[.!?;:]*\s*$")
+# ...but "Ekíndo (Singulier)" is a grammatical annotation, not a translation.
+# Treating it as the French silently replaced two rows' French with "Singulier".
+ANNOTATION = re.compile(
+    r"^\s*(singulier|pluriel|sing\.?|plur\.?|masculin|f[ée]minin|verbe|nom|adjectif|"
+    r"adverbe|argot|familier|litt[ée]ral|litt\.?|au pluriel|au singulier)\s*$", re.I)
 
 
 def is_header(line: str) -> bool:
@@ -78,12 +83,21 @@ def expand_slash(v: str) -> list[str]:
 
 
 def variants(text: str | None) -> list[str]:
+    """Split a cell into its variants.
+
+    Two conventions are in the data. Dash-per-line is the common one. A few rows
+    use `|` to separate *concepts* while `/` separates synonyms inside one
+    concept — "Eyenga / Feti | Kosepela" is (une fête = Eyenga or Feti) then
+    (célébrer = Kosepela). Those are two lesson rows, not one.
+    """
     if not text:
         return []
     lines = [l.strip() for l in text.split("\n") if l.strip()]
-    if not any(l.startswith(("-", "•", "*")) for l in lines):
-        return []
-    return [re.sub(r"^[-•*]\s*", "", l).strip() for l in lines]
+    if any(l.startswith(("-", "•", "*")) for l in lines):
+        return [re.sub(r"^[-•*]\s*", "", l).strip() for l in lines]
+    if "|" in text:
+        return [part.strip() for part in text.split("|") if part.strip()]
+    return []
 
 
 ALPHA = 8.0  # weight of the text-position prior against raw pause length
@@ -168,6 +182,13 @@ def build_entries() -> list[dict]:
     for row in rows:
         vs = variants(row["dialect"])
         fr_vs = variants(row["french"])
+        # A pipe row's French was often written "A | B" and later had its pipe
+        # rewritten as a slash, which makes two concepts look like synonyms.
+        # Recover the pair when the slash count matches the concept count.
+        if not fr_vs and "|" in (row["dialect"] or "") and row["french"]:
+            parts = [p.strip() for p in re.split(r"\s*[|/]\s*", row["french"]) if p.strip()]
+            if len(parts) == len(vs):
+                fr_vs = parts
         # "[Formel]" / "[Argot kinois]" is the register of the whole row, not of
         # one variant, so it rides along onto every split — including glosses,
         # where the parent French is a stub note the reviewer replaces outright.
@@ -184,6 +205,10 @@ def build_entries() -> list[dict]:
             # quelqu'un"), and those are alternative French senses, not extra
             # Lingala utterances — expanding them shreds the entry.
             gloss = GLOSS_RE.match(v)
+            if gloss and ANNOTATION.match(gloss.group("fr")):
+                # Keep the annotation attached to the Lingala; it qualifies the
+                # word, it does not translate it.
+                gloss = None
             if gloss:
                 ln_text = gloss.group("ln").strip()
                 fr = gloss.group("fr").strip()
