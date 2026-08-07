@@ -9,7 +9,8 @@ vi.mock("../../api/_rate-limit.js", () => ({
 }));
 
 const { checkRateLimit } = await import("../../api/_rate-limit.js");
-const { default: handler, formatContext } = await import("../../api/rag-context.js");
+const { default: handler, formatContext, formatDictionaryContext, topCluster } =
+  await import("../../api/rag-context.js");
 
 beforeEach(() => {
   checkRateLimit.mockReturnValue(true);
@@ -45,7 +46,67 @@ describe("formatContext", () => {
   });
 });
 
-function mockEmbedAndMatch({ matchRows = [], embedOk = true, matchOk = true } = {}) {
+describe("topCluster", () => {
+  it("returns nothing for empty input", () => {
+    expect(topCluster([])).toEqual([]);
+    expect(topCluster(null)).toEqual([]);
+  });
+
+  it("keeps only the hits clustered near the best score", () => {
+    // The "cuillère" shape: one right answer, then an unrelated noise band.
+    const rows = [
+      { french_word: "Cuillère", similarity: 0.666 },
+      { french_word: "Flèche",   similarity: 0.523 },
+      { french_word: "Cochon",   similarity: 0.502 },
+    ];
+    expect(topCluster(rows).map(r => r.french_word)).toEqual(["Cuillère"]);
+  });
+
+  it("keeps the whole set when everything is equally relevant", () => {
+    // The "parle-moi de la famille" shape: a broad query where every hit is on topic.
+    const rows = [
+      { id: 1, similarity: 0.382 },
+      { id: 2, similarity: 0.379 },
+      { id: 3, similarity: 0.357 },
+    ];
+    expect(topCluster(rows)).toHaveLength(3);
+  });
+});
+
+describe("formatDictionaryContext", () => {
+  it("returns an empty string when there is nothing to show", () => {
+    expect(formatDictionaryContext([], [])).toBe("");
+    expect(formatDictionaryContext(null, null)).toBe("");
+  });
+
+  it("labels example sentences and words as separate sections", () => {
+    const out = formatDictionaryContext(
+      [{ sentence_french: "Je remue la sauce", sentence_dialect: "Na zo balola elubu" }],
+      [{ french_word: "Cuillère", dialect_word: "Lutu" }]
+    );
+    expect(out).toContain("phrases d'exemple");
+    expect(out).toContain("Je remue la sauce → Na zo balola elubu");
+    expect(out).toContain("=== DICTIONNAIRE — mots (vérifiés) ===");
+    expect(out).toContain("Cuillère → Lutu");
+  });
+
+  it("omits the words section entirely when there are none", () => {
+    const out = formatDictionaryContext(
+      [{ sentence_french: "a", sentence_dialect: "b" }],
+      []
+    );
+    expect(out).not.toContain("mots (vérifiés)");
+  });
+});
+
+function mockEmbedAndMatch({
+  matchRows = [], embedOk = true, matchOk = true,
+  exampleRows = [], senseRows = [], dictOk = true,
+} = {}) {
+  const dict = async (rows) =>
+    dictOk
+      ? jsonResponse(rows)
+      : { ok: false, status: 500, text: async () => "dict rpc failed" };
   return routeFetchByUrl([
     [
       "api.openai.com",
@@ -61,6 +122,8 @@ function mockEmbedAndMatch({ matchRows = [], embedOk = true, matchOk = true } = 
           ? jsonResponse(matchRows)
           : { ok: false, status: 500, text: async () => "rpc failed" },
     ],
+    ["rpc/match_examples", async () => dict(exampleRows)],
+    ["rpc/match_senses",   async () => dict(senseRows)],
   ]);
 }
 
@@ -184,5 +247,50 @@ describe("rag-context handler", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.jsonBody.context).toContain("Bonjour → Mbote [auto]");
+  });
+});
+
+describe("rag-context dictionary retrieval", () => {
+  it("merges dictionary hits into the context alongside the corpus", async () => {
+    global.fetch = mockEmbedAndMatch({
+      matchRows:   [{ french_text: "Bonjour", lingala_text: "Mbote", quality: "verified", similarity: 0.9 }],
+      exampleRows: [{ sentence_french: "Je remue la sauce", sentence_dialect: "Na zo balola elubu", similarity: 0.74 }],
+      senseRows:   [{ french_word: "Cuillère", dialect_word: "Lutu", similarity: 0.67 }],
+    });
+    const req = createMockReq({ method: "POST", body: { query: "cuillère", language_id: 1 } });
+    const res = createMockRes();
+    await handler(req, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.jsonBody.context).toContain("Bonjour → Mbote");
+    expect(res.jsonBody.context).toContain("Je remue la sauce → Na zo balola elubu");
+    expect(res.jsonBody.context).toContain("Cuillère → Lutu");
+    expect(res.jsonBody.result_count).toBe(3);
+  });
+
+  it("still answers from the corpus when the dictionary RPCs fail", async () => {
+    // The dictionary lookups are additive; a failure there must not take chat down.
+    global.fetch = mockEmbedAndMatch({
+      matchRows: [{ french_text: "Bonjour", lingala_text: "Mbote", quality: "verified", similarity: 0.9 }],
+      dictOk: false,
+    });
+    const req = createMockReq({ method: "POST", body: { query: "bonjour", language_id: 1 } });
+    const res = createMockRes();
+    await handler(req, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.jsonBody.context).toContain("Bonjour → Mbote");
+    expect(res.jsonBody.context).not.toContain("DICTIONNAIRE");
+  });
+
+  it("drops dictionary hits that fall below the similarity floor", async () => {
+    global.fetch = mockEmbedAndMatch({
+      matchRows:   [{ french_text: "Bonjour", lingala_text: "Mbote", quality: "verified", similarity: 0.9 }],
+      exampleRows: [{ sentence_french: "sans rapport", sentence_dialect: "x", similarity: 0.12 }],
+      senseRows:   [{ french_word: "Cochon", dialect_word: "Ngulu", similarity: 0.31 }],
+    });
+    const req = createMockReq({ method: "POST", body: { query: "bonjour", language_id: 1 } });
+    const res = createMockRes();
+    await handler(req, res);
+    expect(res.jsonBody.context).not.toContain("sans rapport");
+    expect(res.jsonBody.context).not.toContain("Cochon");
   });
 });
