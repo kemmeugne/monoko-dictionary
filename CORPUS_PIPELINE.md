@@ -1,5 +1,32 @@
 # Monɔkɔ — Corpus-to-Lesson Pipeline
 
+> **STATUS 2026-08-07 — mostly superseded. Read this banner before acting on
+> anything below.**
+>
+> This file was written when Section 1's premise was true: *"no formal lessons
+> were ever written"*, so lessons had to be derived from the corpus and the
+> professor would validate AI drafts. Phase 1 landed 2026-08-04 and made that
+> moot — he authored and recorded 1,347 items across 50 lessons himself.
+>
+> - **Step 1 (corpus audit)** — superseded. Its job was tagging sentences so they
+>   could be routed into modules. Topic routing was instead done on 2026-08-07
+>   with the **existing pgvector embeddings** (cosine, threshold 0.55) — free,
+>   deterministic, no LLM pass over 8k rows. An LLM audit would still buy explicit
+>   grammar tags (tense, polarity, person); not needed yet.
+> - **Step 2 (curriculum mapping)** — superseded, the professor placed the content.
+> - **Step 3 (exercise generator)** — **LIVE. This is the current plan**, with
+>   corrections: the source is `lesson_pool` (built from `lesson_items` +
+>   dictionary + corpus), not a `verification_status` column that was never
+>   created; and listen-and-type is built **last**, not first. See
+>   `EXERCISE_ENGINE_PLAN.md`.
+> - **Step 4 (lesson-draft generator)** — revived for a *different* purpose: not
+>   authoring lessons but inducing the **rule** behind one, shown when a learner
+>   gets a question wrong. See `EXERCISE_ENGINE_PLAN.md` §6.
+> - **Step 5 (verification checkpoint)** — still applies, but only to those rule
+>   cards (~50 items), not to lesson content.
+>
+> §2.3 ("verified-only reaches learners") remains binding.
+
 Spec for Claude Code. Build this when Phase 1 content is landing and we're
 ready to turn the verified corpus into structured lessons + exercises.
 

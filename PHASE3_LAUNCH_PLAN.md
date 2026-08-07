@@ -8,19 +8,44 @@ Strategic framing: launch Lingala-only, as a complete product, before adding oth
 
 ---
 
-## Phase 3 — Exam system + Duolingo engagement mechanics
+## Phase 3 — Exercise engine + engagement mechanics
 
-**Goal:** Turn the finished course content into a testable, habit-forming product.
+**Revised 2026-08-07. Full plan: `EXERCISE_ENGINE_PLAN.md`.**
+
+**Goal:** Turn the finished course content into a playable, habit-forming product.
+
+**Exams are dropped.** The earlier version of this phase specced a per-level exam
+(written 40% / listening 30% / speaking 30%, 70% to pass, gating the next level)
+plus an `exam_results` table. That is a large build whose job is gating rather
+than engagement, and it trapped speaking practice inside a once-per-level event.
+Replaced by continuous points on every exercise. **All levels are open** — the
+paywall below is the only gate.
 
 **Build:**
-- Per-level exam engine: written (40%) / listening (30%) / speaking (30%), 70% pass threshold — per `Cours/MONOKO_CURRICULUM.md` spec
-- Speaking evaluation: ElevenLabs Scribe transcription → match % (levels 1–3) or LLM fluency/grammar scoring (levels 4–6)
-- `exam_results` table (schema already spec'd in `ROADMAP.md`)
-- **Streaks** — daily practice counter; the single biggest retention lever in Duolingo-style apps, cheap to build (just needs a "did the user do anything today" check)
-- **Daily review queue** — SM-2 spaced repetition (already planned in `ROADMAP.md`), surfaced on home screen as "X items to review today"
-- Streak counter — visible in-app counter is the priority; it delivers ~90% of the retention value pre-mobile. Web push/email streak reminders are **optional** at this stage (browser push has poor opt-in rates; email streak nudges tend to land in Promotions). Real streak notifications become native push once wrapped in Capacitor (Phase 5).
+- **Session engine** — one question per screen, progress bar, live queue (wrong
+  answers are re-asked in the same session), XP scoring, session summary
+- **Five exercise types**, generated client-side from a `lesson_pool` table:
+  match pairs, choose-the-audio, tap-words-in-order, fill-the-blank, and
+  listen-and-type last. 3,500–6,500 usable items each.
+- **"Pourquoi ?"** — a wrong answer offers the rule behind the question. Points at
+  the lesson view initially, at an LLM-drafted professor-verified rule card later.
+- **Guest play** — the first session runs without an account, progress in
+  localStorage, migrated on signup. Strongest conversion lever for a game loop:
+  people commit after they have felt it.
+- **Streaks** — still the single biggest retention lever, and now trivial: "did
+  the user finish any session today". Visible in-app counter is the priority;
+  real push notifications arrive with Capacitor in Phase 5.
+- **Daily review queue** — SM-2 spaced repetition, surfaced on home as "X items to
+  review today". A review is just a session sourced from the queue.
+- **Speaking** — an ordinary exercise type, built last and gated on a real WER
+  measurement against the 6,539 professor recordings. See `EXERCISE_ENGINE_PLAN.md` §7.
 
-**Explicitly deferred:** leaderboards, hearts/lives. Both add complexity; hearts specifically frustrate casual users without a clear monetization upside at this stage.
+**Content position:** corpus→lesson routing on 2026-08-07 took the course from
+1,347 items to **5,923** across all 50 lessons, so there is enough material for a
+learner not to see repeats.
+
+**Still explicitly deferred:** leaderboards, hearts/lives. Hearts frustrate casual
+users without a clear monetization upside at this stage.
 
 ---
 

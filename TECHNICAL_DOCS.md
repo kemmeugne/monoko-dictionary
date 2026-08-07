@@ -64,6 +64,8 @@
           └─────────────┘   │  Tables:                    │
                             │  • languages                │
                             │  • words / senses / examples│
+                            │    (senses.embedding,       │
+                            │     examples.embedding)     │
                             │  • parallel_sentences       │
                             │    (embedding vector(384))  │
                             │  • corrections              │
@@ -79,7 +81,8 @@
 1. User types message in index.html chat
 2. If no tester name exists locally, index.html forces a `nom du testeur` step before chat opens
 3. index.html fires two parallel context fetches:
-   a. Vercel POST /api/rag-context  →  OpenAI embed → pgvector match_parallel_sentences → top-30 FR↔LN pairs
+   a. Vercel POST /api/rag-context  →  OpenAI embed → 3 RPCs in parallel:
+      match_parallel_sentences (30 corpus) + match_examples (12 dict sentences) + match_senses (6 dict words)
    b. Vercel POST /api/lesson-context → OpenAI embed → pgvector match_lesson_items → top-8 course rows
 4. Both contexts merged → Vercel POST /api/chat → OpenAI gpt-4o-mini with corpus-first system prompt + context + tester metadata
 5. Response displayed in chat
@@ -87,7 +90,7 @@
 7. Admin approves correction in admin.html → pair inserted into parallel_sentences as verified
 ```
 
-**Migration note (2026-03-31)**: Railway/FAISS backend was decommissioned. All vector search now runs on Supabase pgvector. NLLB auto-quality data was dropped — the corpus is verified/gold pairs only (~7k rows).
+**Migration note (2026-03-31)**: Railway/FAISS backend was decommissioned. All vector search now runs on Supabase pgvector. NLLB auto-quality data was dropped — the corpus is verified/gold pairs only (3,481 rows, counted 2026-08-07; an earlier "~7k" figure double-counted the dictionary, which lives in `senses`/`examples`).
 
 ---
 
@@ -168,7 +171,7 @@ The RAG corpus — all parallel FR↔dialect sentence pairs.
 | `quality` | TEXT | `"gold"`, `"verified"`, `"auto"` |
 | `created_at` | TIMESTAMPTZ | Auto |
 
-**Current data**: 2,008 FLORES-200 gold pairs + approved corrections
+**Current data (2026-08-07)**: 3,481 rows — 2,009 FLORES-200 gold + 1,263 approved corrections + 209 course variants. The dictionary is *not* in this table; it lives in `senses`/`examples` and has its own embeddings since 2026-08-07.
 
 ---
 
@@ -381,17 +384,31 @@ CREATE INDEX IF NOT EXISTS idx_parallel_sentences_lingala_trgm
 
 When a user sends a message in the chat, context is retrieved via two parallel paths and merged before calling the LLM. Both paths run on Vercel + Supabase — no external backend required.
 
+Path A searches **three** sources since 2026-08-07 — the corpus plus the two
+dictionary indexes — but still as a single client round trip: the three RPCs are
+issued in parallel server-side, so retrieval costs the slowest one, not the sum.
+
 ```
 User message
      │
-     ├─── Path A: pgvector Corpus Search (Vercel → Supabase)
+     ├─── Path A: pgvector Corpus + Dictionary Search (Vercel → Supabase)
      │         │
      │         ├─ POST /api/rag-context
      │         ├─ Embed query with OpenAI text-embedding-3-small (384 dim)
-     │         ├─ Call match_parallel_sentences RPC (filtered by language_id)
-     │         ├─ Filter results by similarity >= 0.3
+     │         ├─ Promise.allSettled, in parallel:
+     │         │    ├─ match_parallel_sentences  → top-30 corpus pairs
+     │         │    ├─ match_examples            → top-12 dictionary sentences
+     │         │    └─ match_senses              → top-6  dictionary words
+     │         ├─ Corpus is required; the two dictionary calls are additive —
+     │         │  a failure there degrades to corpus-only, never a 500
+     │         ├─ Filter by similarity >= 0.3 (senses >= 0.45)
+     │         ├─ Dictionary hits also pass a RELATIVE cutoff: keep only those
+     │         │  within 0.06 of the best score. Short strings embed into a
+     │         │  narrow band that shifts per query — on "comment dit-on une
+     │         │  cuillère" the answer scores 0.67 while cochon/grillon/palabre
+     │         │  still score 0.48-0.52, so no absolute floor separates them.
      │         ├─ Sort: verified/gold first
-     │         └─ Return top-30 FR↔LN pairs
+     │         └─ Return corpus pairs + labelled dictionary sections
      │
      └─── Path B: pgvector Course Search (Vercel → Supabase)
                │
@@ -422,12 +439,19 @@ Course lesson audio comes directly from Supabase on `lesson_items.audio_url` and
 
 ### Knowledge base composition
 
+*Counted 2026-08-07. The "Monoko dictionary → parallel_sentences | 5,227" row that
+stood here was wrong: the dictionary was never bulk-copied into the corpus. It
+lives in `senses`/`examples` and only got its own embeddings on 2026-08-07.*
+
 | Source | Count | Quality | Table |
 |---|---|---|---|
-| Monoko dictionary (words) | 5,227 | verified | `parallel_sentences` |
-| FLORES-200 | 2,008 | gold | `parallel_sentences` |
-| Approved user corrections | growing | verified | `parallel_sentences` |
-| Course lesson items | 1,740 | verified | `lesson_items` |
+| FLORES-200 | 2,009 | gold | `parallel_sentences` |
+| Approved user corrections | 1,263 | verified | `parallel_sentences` |
+| Course variants | 209 | verified | `parallel_sentences` |
+| Course lesson items | 1,347 | verified | `lesson_items` |
+| Dictionary example sentences | 2,686 | verified | `examples` |
+| Dictionary headwords | 2,686 | verified | `senses` |
+| **Unique FR↔LN pairs (deduped)** | **10,072** | | |
 
 ---
 
@@ -437,10 +461,13 @@ Course lesson audio comes directly from Supabase on `lesson_items.audio_url` and
 
 | Source | Count | Quality | Table |
 |---|---|---|---|
-| FLORES-200 | 2,008 | gold | `parallel_sentences` |
-| Monoko dictionary | 5,227 | verified | `parallel_sentences` |
-| Approved user corrections | growing | verified | `parallel_sentences` |
-| **Total in corpus** | **~7,235+** | | |
+| FLORES-200 | 2,009 | gold | `parallel_sentences` |
+| Approved user corrections | 1,263 | verified | `parallel_sentences` |
+| Course variants | 209 | verified | `parallel_sentences` |
+| **Total in `parallel_sentences`** | **3,481** | | |
+
+The dictionary (`senses` + `examples`) is a separate 5,372-row store, searchable
+since 2026-08-07. See "Knowledge base composition" above for the full picture.
 
 **Note**: NLLB (Meta) auto-quality data (~60k pairs) was evaluated and dropped in March 2026 — it introduced more noise than signal for this use case.
 
@@ -472,7 +499,13 @@ python step1_download_data.py  # downloads flores dev/devtest splits
 - Excel layout: Row per French word, columns grouped in sets of 3 (dialect word, dialect sentence, French sentence)
 - Uploads to `words` → `senses` → `examples` hierarchy
 
-The dictionary pairs are also mirrored into `parallel_sentences` (quality: `verified`) so they are searchable by the RAG pipeline.
+> **Corrected 2026-08-07.** This section previously claimed *"the dictionary pairs
+> are also mirrored into `parallel_sentences` so they are searchable by the RAG
+> pipeline."* **That was never true**, and the claim is probably why the gap went
+> unnoticed for so long. Only 390 dictionary pairs ever reached an indexed table
+> (promoted into `lesson_items` during the curriculum migration); the other 4,828
+> were unreachable by the chat until `senses` and `examples` were given their own
+> embedding columns on 2026-08-07 (`sql/pgvector_dictionary.sql`).
 
 ---
 

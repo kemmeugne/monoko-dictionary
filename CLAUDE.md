@@ -56,7 +56,11 @@ This app will be wrapped with Capacitor and shipped to the App Store and Play St
 ## Key files in this repo
 
 ```
-index.html                        — entire frontend (React, ~3200 lines)
+index.html                        — entire frontend (React, ~3200 lines). Module 1.1 has a
+                                    special tile view (AlphabetPanel); it reads every tile from
+                                    lesson_items, so DB fixes reach the screen. It used to render
+                                    from a hardcoded ALPHABET_DATA table that had drifted from the
+                                    audio — do not reintroduce hardcoded lesson content.
 admin.html                        — admin panel: per-card approve/reject, pagination top+bottom, page X/Y counter, professor_modified tracking
 api/admin-action.js               — Vercel serverless function (secure Supabase writes)
 api/chat.js                       — Vercel serverless function (SSE-streaming gpt-4o-mini proxy; logs t_rag_ms + t_llm_ms to chat_events)
@@ -74,6 +78,8 @@ tts_space/app.py                  — HuggingFace Space: ESPnet2 VITS Lingala TT
 tts_space/requirements.txt        — Space deps: git+espnet, huggingface_hub, numpy, soundfile, nltk
 tts_space/README.md               — Space metadata: sdk=gradio 6.13.0, python=3.10, app_file=app.py
 sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match_parallel_sentences RPC
+sql/pgvector_dictionary.sql       — SQL migration: embedding cols on senses+examples + match_examples/match_senses RPCs (applied 2026-08-07)
+EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
@@ -102,7 +108,14 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `words` → `senses` → `examples` — dictionary hierarchy
 - `senses.audio_url/audio_key/audio_source_cell` — Lingala word audio links (added 2026-03-15)
 - `examples.audio_url/audio_key/audio_source_cell` — Lingala example audio links (added 2026-03-15)
-- `parallel_sentences` — FR↔dialect sentence pairs for RAG (FLORES + approved corrections + `source='course_variant'`: alternative phrasings pulled out of the courses, 202 rows added 2026-08-04); `embedding vector(384)` added 2026-03-31
+- `parallel_sentences` — FR↔dialect sentence pairs for RAG; `embedding vector(384)` added 2026-03-31.
+  **Actual size 3,481 rows** (counted 2026-08-07): 2,009 `flores200`/gold + 1,263
+  `correction`/verified + 209 `course_variant`/verified. An earlier version of this
+  file claimed ~7k ("5,227 verified Monoko + 2,008 FLORES") — the FLORES half was
+  right, the rest was not.
+- `senses.embedding` / `examples.embedding` — `vector(384)`, added **2026-08-07**
+  (`sql/pgvector_dictionary.sql`), 2,686 + 2,686 rows backfilled. Before this the
+  dictionary was **not in the RAG index at all** — see the RAG section below
 - `corrections` — user-submitted AI corrections (pending → approved); `professor_modified boolean` tracks whether the professor edited the correction before approving; `reviewed_at timestamptz` set on approve/reject for session pace tracking (added 2026-04-18)
 - `chat_events` — tester-tracked chat activity (`tester_name`, `session_id`, query/response, timestamps, `t_rag_ms`, `t_llm_ms` added 2026-04-30)
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
@@ -118,15 +131,39 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 
 1. User clicks chat → if no `nom du testeur` is stored locally, frontend forces a tester setup step
 2. User message → two parallel context fetches:
-   - `POST /api/rag-context` on Vercel → OpenAI embedding → pgvector `match_parallel_sentences` RPC → top-30 verified corpus pairs
+   - `POST /api/rag-context` on Vercel → OpenAI embedding → **three RPCs in parallel server-side**:
+     `match_parallel_sentences` (top-30 corpus) + `match_examples` (top-12 dictionary
+     sentences) + `match_senses` (top-6 dictionary words). Corpus is required; the two
+     dictionary calls run through `allSettled` and degrade to corpus-only on failure.
    - `POST /api/lesson-context` on Vercel → OpenAI embedding → pgvector `match_lesson_items` RPC → top-8 course rows
 3. Both contexts merged → `POST /api/chat` (Vercel serverless) → OpenAI `gpt-4o-mini` streaming SSE. Client consumes `data: {"delta":"..."}` chunks with `getReader()`, updating the message placeholder on each token.
 4. Response shown with quality indicators: ✓ verified / ~ suggestion (assembled from verified elements)
 5. If `SUPABASE_SERVICE_KEY` is configured on Vercel, `/api/chat` logs tester activity into `chat_events` (including `t_rag_ms` passed from client and `t_llm_ms` measured server-side)
 
-**pgvector corpus index**: `parallel_sentences.embedding` — ~7k rows (5,227 verified Monoko + 2,008 gold FLORES) embedded with `text-embedding-3-small` (384 dim), queried via `match_parallel_sentences` RPC
+**pgvector corpus index**: `parallel_sentences.embedding` — 3,481 rows, `text-embedding-3-small` (384 dim), via `match_parallel_sentences`
 
-**pgvector course index**: 1,740 `lesson_items` rows embedded with `text-embedding-3-small` (384 dim), queried via `match_lesson_items` RPC filtered by `language_id`
+**pgvector course index**: `lesson_items.embedding` — 1,347 Lingala rows, via `match_lesson_items` filtered by `language_id`
+
+**pgvector dictionary index** (added 2026-08-07): `examples.embedding` (2,686) +
+`senses.embedding` (2,686), via `match_examples` / `match_senses`, both joined
+through `words` for `language_id`.
+
+**Why this mattered.** Only the corpus and `lesson_items` ever had embedding
+columns, so retrieval reached **5,238 of the ~10,066** verified FR↔LN pairs the app
+owns. The 2,686 professor-recorded dictionary example sentences and 2,686 headword
+pairs were unreachable — and since the system prompt permits best-guess
+translations when a word is absent from the corpus (changed 2026-04-02), the model
+answered those from its own Lingala knowledge while the verified pair sat in a
+table it could not see. Silent, and worst on exactly the vocabulary questions the
+dictionary exists to answer.
+
+**Dictionary filtering is a relative cutoff, not an absolute floor.** Dictionary
+entries are short strings and short strings embed into a narrow band that shifts
+per query: on *"comment dit-on une cuillère"* the right answer scores 0.67 while
+cochon, grillon and palabre still score 0.48–0.52. `topCluster()` in
+`api/rag-context.js` keeps only hits within 0.06 of the best score — which returns
+just `Cuillère → Lutu` for a precise lookup and still returns all 12 family
+sentences for *"parle-moi de la famille"*. Do not replace it with a fixed threshold.
 
 ---
 
@@ -503,9 +540,32 @@ rollback JSON before every write, artifacts in `artifacts/professor_ingest/`.
 slash trap (an unspaced `Bokoki/okoki` means he read every combination, and no
 confidence score detects it).
 
-## Next: Fine-tune TTS on professor's voice
+## Current work: the exercise engine
 
-**Status**: ✅ **unblocked 2026-08-04** — the professor's audio collection is complete (1,346/1,346 course items have audio).
+**Read `EXERCISE_ENGINE_PLAN.md`.** That file holds the settled decisions, the
+measured data, and the build slices. Short version:
+
+- The course is content-complete but is still a **table with play buttons**. The
+  practice loop is the gap between here and a sellable product.
+- **Exams were dropped 2026-08-07** for continuous Duolingo-style points. All
+  levels open; the paywall (1.1 + 1.2 free) is the only gate.
+- **Corpus→lesson routing (2026-08-07)** took the course from 1,347 items to
+  **5,923** across all 50 lessons, using the existing embeddings at cosine ≥ 0.55.
+  Artifact: `artifacts/professor_ingest/corpus_routing_dryrun.json`.
+- **The dictionary has zero tone marks; the course has 31%.** Of 678 words in both,
+  75 are never spelled the same. Rule: untoned and toned content must never appear
+  in the same exercise.
+- Next action is **Slice 0 — routing QA** (100 sampled items reviewed for
+  precision) before any engine code.
+
+## Deprioritised: fine-tune TTS on professor's voice
+
+**Status**: unblocked 2026-08-04, **deprioritised 2026-08-07**. The professor's
+voice already covers 100% of course items and ~2,600 dictionary examples; TTS only
+speaks text he never recorded (chat replies, live translation). **STT fine-tuning
+is now the more valuable of the two** — `api/elevenlabs-stt.js` documents 20–50%
+WER on Lingala, which blocks the speaking exercise type. Measure real WER against
+the 6,539 professor recordings before committing to either.
 
 **Goal**: replace the current DigitalUmuganda speaker voice with the professor's voice, keeping the same Lingala phonetics. The Space, API, and frontend stay exactly as-is — only the model weights change.
 

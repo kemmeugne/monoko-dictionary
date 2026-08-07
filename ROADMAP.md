@@ -15,7 +15,10 @@ Last updated: 2026-08-04
   `LESSON_STRUCTURE_AUDIT.md`; backup-first scripts + rollback JSONs in
   `artifacts/lesson_backups/`. The content it was waiting on landed 2026-08-04
   (see Phase 1).
-- Monoko AI chat (RAG-backed, pgvector, gpt-4o-mini)
+- Monoko AI chat (RAG-backed, pgvector, gpt-4o-mini) — the **dictionary was added
+  to the RAG index on 2026-08-07**; before that the two retrieval RPCs reached
+  5,238 of the ~10,066 verified FR↔LN pairs the app owns, and the model answered
+  the other half from its own Lingala knowledge
 - Supabase Auth — dictionary public, courses + chat require login
 - Admin panel for professor corrections at `/admin.html`
 - User progress tracking — lesson completion, per-level progress bars, "Continuer" home shortcut
@@ -111,59 +114,46 @@ weights to the HF Space).
 
 ---
 
-## Phase 3 — Exam system
+## Phase 3 — Exercise engine  ← CURRENT
 
-**Goal:** Test and certify learner progression between levels.
+**Full plan: `EXERCISE_ENGINE_PLAN.md`. Read that file, not this summary.**
 
-**Structure (per MONOKO_CURRICULUM.md):**
+**Exams were dropped on 2026-08-07.** The old three-component exam (written 40 /
+listening 30 / speaking 30, 70% to pass, gating each level) is replaced by
+continuous points on every exercise, Duolingo-style. Speaking becomes an ordinary
+exercise type rather than an exam component. All levels are open; the paywall
+(modules 1.1 + 1.2 free) is the only gate.
 
-Each of the 6 levels ends with an exam composed of 3 components:
+**Goal:** turn the finished content from a bilingual table into a practice loop.
 
-| Component | Weight | Format |
-|---|---|---|
-| Written | 40% | Translation, fill-in-the-blank, sentence construction |
-| Listening | 30% | Audio comprehension questions |
-| Speaking | 30% | User records response, AI scores via speech-to-text |
+**Five exercise types**, generated client-side from a `lesson_pool` table with no
+hand-authoring and no LLM at question time:
 
-- Pass threshold: **70%** overall
-- Must pass to unlock next level
-- Failed components can be retried individually
-- Wrong answers fed into spaced repetition queue
+| Exercise | Usable items |
+|---|---:|
+| Choose the audio | 6,539 |
+| Fill the blank | 5,193 |
+| Tap words in order | 4,700 |
+| Match pairs | 3,573 |
+| Listen & type | 4,861 — built last, see the plan for why |
 
-**Supabase table:**
-```sql
-exam_results (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users,
-  course_id int references courses(id),
-  written_score numeric,
-  listening_score numeric,
-  speaking_score numeric,
-  overall_score numeric,
-  passed boolean,
-  taken_at timestamptz default now()
-)
-```
+**Where the material came from.** Corpus→lesson routing on 2026-08-07 (cosine
+similarity over the existing embeddings, threshold 0.55) took the course from
+**1,347 items to 5,923** across all 50 lessons. The dictionary was embedded for
+the first time in the same pass. Output:
+`artifacts/professor_ingest/corpus_routing_dryrun.json`.
 
-**UX — flashcard style (Duolingo/Anki inspired):**
-- One question per screen, no scrolling
-- Progress bar at top (e.g. 8/20)
-- Large tap targets (mobile-first)
-- Celebration animation on correct answer
-- Written: multiple choice or fill-in-the-blank
-- Listening: tap to play audio, select correct meaning
-- Speaking: tap microphone → record → submit → score displayed
+**Build order:** routing QA → `lesson_pool` table → session shell + match-pairs →
+choose-the-audio → tokenizer + tap-words-in-order → fill-the-blank → attempts +
+SM-2 review queue + streaks.
 
-**Speaking evaluation:**
-- Levels 1–3: speech-to-text transcription matched against expected text (match %)
-- Levels 4–6: transcription evaluated by LLM for fluency, grammar, vocabulary range
-- Tool: ElevenLabs Scribe (speech-to-text), gpt-4o-mini (LLM evaluation)
-- Level 6 final: 10-minute free conversation with Monoko AI, holistic scoring
+**Spaced repetition (SM-2)** is unchanged from the original plan: wrong answers
+enter a review queue with `ease_factor`, `interval`, `repetitions`; the home
+screen shows "X items to review today". It arrives as the last slice, because a
+review session is just a session sourced from the queue.
 
-**Spaced repetition (SM-2 algorithm):**
-- Wrong answers → added to review queue with `ease_factor`, `interval`, `repetitions`
-- Home screen shows "X items to review today"
-- Review sessions independent of lesson/exam flow
+**Dropped:** `exam_results` table, pass thresholds, level locking. `user_progress`
+keeps its unused `exam_score` column for now.
 
 ---
 

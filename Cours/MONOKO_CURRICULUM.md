@@ -9,8 +9,12 @@ Content is language-specific, but the modules, progression, and exam format are 
 The curriculum follows CEFR-inspired progression (A1 → B2+) adapted for oral-first African languages.
 Each level contains themed modules. Each module contains lessons. Each lesson contains items (vocabulary, phrases, grammar rules, exercises).
 
-Every module ends with an exam (written + listening + speaking).
-Every lesson includes a pronunciation practice component.
+~~Every module ends with an exam (written + listening + speaking).~~
+**Superseded 2026-08-07 — exams were dropped in favour of continuous scoring on
+every exercise. See `EXERCISE_ENGINE_PLAN.md`.** The module structure and content
+targets below are unchanged and still authoritative; only the assessment format
+changed. Pronunciation practice survives as an exercise type rather than an exam
+component, and is gated on a WER measurement for Lingala STT.
 
 **31 modules across 6 levels.** (A module may be delivered as several lessons in
 the database — the Lingala restructure of July 2026 split the largest ones, so
@@ -389,7 +393,13 @@ Modern digital life, which older curricula omit entirely and learners need daily
 
 ---
 
-## EXAM SYSTEM SPECIFICATIONS
+## EXAM SYSTEM SPECIFICATIONS — SUPERSEDED 2026-08-07
+
+> **This whole section is historical.** Exams were dropped in favour of
+> continuous points on every exercise; all levels are open and the paywall is the
+> only gate. Of what follows, only the pronunciation feature survives — as a
+> normal exercise type, built last, gated on measuring real Lingala STT accuracy
+> (`api/elevenlabs-stt.js` documents 20–50% WER). See `EXERCISE_ENGINE_PLAN.md`.
 
 ### Three components per exam:
 1. **Written** — Translation, fill-in-the-blank, sentence construction, short writing
