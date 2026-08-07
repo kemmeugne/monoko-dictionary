@@ -1,0 +1,35 @@
+{
+  "note": "professor glosses relayed 2026-08-07",
+  "before": {
+    "8310": {
+      "id": 8310,
+      "french": "Voyelle E — Genre",
+      "dialect": "Lokelé, eléko"
+    },
+    "8311": {
+      "id": 8311,
+      "french": "Voyelle I — Discours",
+      "dialect": "Lisakolí, lisúkúlu"
+    },
+    "8313": {
+      "id": 8313,
+      "french": "Voyelle U — Déformer",
+      "dialect": "Mbula"
+    }
+  },
+  "updates": [
+    [
+      8310,
+      {
+        "dialect": "Eléko",
+        "french": "Voyelle E — Saison"
+      }
+    ],
+    [
+      8313,
+      {
+        "french": "Voyelle U — Âge / pluie"
+      }
+    ]
+  ]
+}
