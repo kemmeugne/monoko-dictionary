@@ -1,0 +1,377 @@
+{
+  "lesson_id": 346,
+  "taken": "2026-08-07",
+  "lesson_items": [
+    {
+      "id": 8309,
+      "item_order": 1,
+      "french": "Voyelle A — Décision",
+      "dialect": "Mokáno",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_a_decision_e0_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/voyelle_a_decision_e0_phrase.mp3"
+    },
+    {
+      "id": 8310,
+      "item_order": 2,
+      "french": "Voyelle E — Saison",
+      "dialect": "Eléko",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_e_genre_e1_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/voyelle_e_genre_e1_phrase.mp3"
+    },
+    {
+      "id": 8311,
+      "item_order": 3,
+      "french": "Voyelle I — Discours",
+      "dialect": "Lisakolí, lisúkúlu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_i_discours_e2_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/voyelle_i_discours_e2_phrase.mp3"
+    },
+    {
+      "id": 8312,
+      "item_order": 4,
+      "french": "Voyelle O — Sueur",
+      "dialect": "Motóki",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_o_sueur_e3_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/voyelle_o_sueur_e3_phrase.mp3"
+    },
+    {
+      "id": 8313,
+      "item_order": 5,
+      "french": "Voyelle U — Âge / pluie",
+      "dialect": "Mbula",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_u_deformer_e4_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/voyelle_u_deformer_e4_phrase.mp3"
+    },
+    {
+      "id": 8314,
+      "item_order": 6,
+      "french": "Voyelle Ɛ — Timbre",
+      "dialect": "Tɛmbɛlɛ",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_timbre_e5_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/voyelle_timbre_e5_phrase.mp3"
+    },
+    {
+      "id": 8315,
+      "item_order": 7,
+      "french": "Voyelle Ɔ — Pour",
+      "dialect": "Mpɔ",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_pour_e6_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/voyelle_pour_e6_phrase.mp3"
+    },
+    {
+      "id": 8316,
+      "item_order": 8,
+      "french": "Consonne B — Maladie",
+      "dialect": "Bokono",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_b_maladie_e7_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_b_maladie_e7_phrase.mp3"
+    },
+    {
+      "id": 8317,
+      "item_order": 9,
+      "french": "Consonne D — Panier",
+      "dialect": "Dangu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_d_panier_e8_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_d_panier_e8_phrase.mp3"
+    },
+    {
+      "id": 8318,
+      "item_order": 10,
+      "french": "Consonne F — Poubelle",
+      "dialect": "Fúlu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_f_poubelle_e9_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_f_poubelle_e9_phrase.mp3"
+    },
+    {
+      "id": 8319,
+      "item_order": 11,
+      "french": "Consonne G — Saison sèche",
+      "dialect": "(Eleko ya) Gálá",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_g_saison_seche_e10_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_g_saison_seche_e10_phrase.mp3"
+    },
+    {
+      "id": 8320,
+      "item_order": 12,
+      "french": "Consonne K — Pouvoir",
+      "dialect": "Kokoka",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_k_pouvoir_e11_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_k_pouvoir_e11_phrase.mp3"
+    },
+    {
+      "id": 8321,
+      "item_order": 13,
+      "french": "Consonne L — Noix de cola",
+      "dialect": "Likásu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_l_noix_de_cola_e12_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_l_noix_de_cola_e12_phrase.mp3"
+    },
+    {
+      "id": 8322,
+      "item_order": 14,
+      "french": "Consonne M — Pluie",
+      "dialect": "Mbúla",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_m_pluie_e13_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_m_pluie_e13_phrase.mp3"
+    },
+    {
+      "id": 8323,
+      "item_order": 15,
+      "french": "Consonne N — Python",
+      "dialect": "Ngúma",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_n_python_e14_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_n_python_e14_phrase.mp3"
+    },
+    {
+      "id": 8324,
+      "item_order": 16,
+      "french": "Consonne P — Lumière",
+      "dialect": "Polé",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_p_lumiere_e15_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_p_lumiere_e15_phrase.mp3"
+    },
+    {
+      "id": 8325,
+      "item_order": 17,
+      "french": "Consonne S — Lune",
+      "dialect": "Sánzá",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_s_lune_e16_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_s_lune_e16_phrase.mp3"
+    },
+    {
+      "id": 8326,
+      "item_order": 18,
+      "french": "Consonne T — Conseil",
+      "dialect": "Tólí",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_t_conseil_e17_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_t_conseil_e17_phrase.mp3"
+    },
+    {
+      "id": 8327,
+      "item_order": 19,
+      "french": "Consonne V — Vin",
+      "dialect": "Víno",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_v_vin_e18_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_v_vin_e18_phrase.mp3"
+    },
+    {
+      "id": 8328,
+      "item_order": 20,
+      "french": "Consonne W — Sésame",
+      "dialect": "Wangíla",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_w_sesame_e19_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_w_sesame_e19_phrase.mp3"
+    },
+    {
+      "id": 8329,
+      "item_order": 21,
+      "french": "Consonne Y — Cela, Ça",
+      "dialect": "Yango",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_y_cela_ca_e20_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_y_cela_ca_e20_phrase.mp3"
+    },
+    {
+      "id": 8330,
+      "item_order": 22,
+      "french": "Consonne Z — Nid",
+      "dialect": "Zála",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_z_nid_e21_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/consonne_z_nid_e21_phrase.mp3"
+    },
+    {
+      "id": 8331,
+      "item_order": 23,
+      "french": "Son composé GB — Pont",
+      "dialect": "Gbagba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_gb_pont_e22_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_gb_pont_e22_phrase.mp3"
+    },
+    {
+      "id": 8332,
+      "item_order": 24,
+      "french": "Son composé KP — Entrepôt",
+      "dialect": "Ekpángba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_kp_entrepot_e23_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_kp_entrepot_e23_phrase.mp3"
+    },
+    {
+      "id": 8333,
+      "item_order": 25,
+      "french": "Son composé KW — Vénus",
+      "dialect": "Mokwéte",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_kw_venus_e24_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_kw_venus_e24_phrase.mp3"
+    },
+    {
+      "id": 8334,
+      "item_order": 26,
+      "french": "Son composé MB — Récompense",
+      "dialect": "Mbano",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mb_recompense_e25_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_mb_recompense_e25_phrase.mp3"
+    },
+    {
+      "id": 8335,
+      "item_order": 27,
+      "french": "Son composé MF — Taxe",
+      "dialect": "Mfúti",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mf_taxe_e26_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_mf_taxe_e26_phrase.mp3"
+    },
+    {
+      "id": 8336,
+      "item_order": 28,
+      "french": "Son composé MP — Souffle",
+      "dialect": "(M)péma",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mp_souffle_e27_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_mp_souffle_e27_phrase.mp3"
+    },
+    {
+      "id": 8337,
+      "item_order": 29,
+      "french": "Son composé MV — Frange",
+      "dialect": "Litamvula",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mv_frange_e28_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_mv_frange_e28_phrase.mp3"
+    },
+    {
+      "id": 8338,
+      "item_order": 30,
+      "french": "Son composé MW — Huit",
+      "dialect": "Mwambe",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mw_huit_e29_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_mw_huit_e29_phrase.mp3"
+    },
+    {
+      "id": 8339,
+      "item_order": 31,
+      "french": "Son composé ND — Maison",
+      "dialect": "Ndáko",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nd_maison_e30_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_nd_maison_e30_phrase.mp3"
+    },
+    {
+      "id": 8340,
+      "item_order": 32,
+      "french": "Son composé NG — Cochon",
+      "dialect": "Ngúlu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ng_cochon_e31_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_ng_cochon_e31_phrase.mp3"
+    },
+    {
+      "id": 8341,
+      "item_order": 33,
+      "french": "Son composé NK — Cent",
+      "dialect": "Nkáma",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nk_cent_e32_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_nk_cent_e32_phrase.mp3"
+    },
+    {
+      "id": 8342,
+      "item_order": 34,
+      "french": "Son composé NS — Fil",
+      "dialect": "(N)singa",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ns_fil_e33_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_ns_fil_e33_phrase.mp3"
+    },
+    {
+      "id": 8343,
+      "item_order": 35,
+      "french": "Son composé NT — Chèvre",
+      "dialect": "Ntaba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nt_chevre_e34_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_nt_chevre_e34_phrase.mp3"
+    },
+    {
+      "id": 8344,
+      "item_order": 36,
+      "french": "Son composé NY — Animal",
+      "dialect": "Nyama",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ny_animal_e35_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_ny_animal_e35_phrase.mp3"
+    },
+    {
+      "id": 8345,
+      "item_order": 37,
+      "french": "Son composé NZ — Buffle",
+      "dialect": "Nzále",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nz_buffle_e36_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_nz_buffle_e36_phrase.mp3"
+    },
+    {
+      "id": 8346,
+      "item_order": 38,
+      "french": "Son composé TS — Grammaire",
+      "dialect": "Etsúséláká",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ts_grammaire_e37_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_ts_grammaire_e37_phrase.mp3"
+    },
+    {
+      "id": 8347,
+      "item_order": 39,
+      "french": "Son composé NGB — Hachette",
+      "dialect": "Ngbá",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ngb_hachette_e38_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_ngb_hachette_e38_phrase.mp3"
+    },
+    {
+      "id": 8348,
+      "item_order": 40,
+      "french": "Son composé NGW — Brillant",
+      "dialect": "Ngwaa",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ngw_brillant_e39_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_ngw_brillant_e39_phrase.mp3"
+    },
+    {
+      "id": 8349,
+      "item_order": 41,
+      "french": "Son composé TSH — Tchad",
+      "dialect": "Tshádi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_tsh_tchad_e40_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/son_compose_tsh_tchad_e40_phrase.mp3"
+    },
+    {
+      "id": 8350,
+      "item_order": 42,
+      "french": "Ton bas (aucun accent) — Donner",
+      "dialect": "Kopésa",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_bas_aucun_accent_donner_e41_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/ton_bas_aucun_accent_donner_e41_phrase.mp3"
+    },
+    {
+      "id": 8351,
+      "item_order": 43,
+      "french": "Ton haut (accent aigu ´) — Père",
+      "dialect": "Tatá",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_haut_accent_aigu_pere_e42_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/ton_haut_accent_aigu_pere_e42_phrase.mp3"
+    },
+    {
+      "id": 8352,
+      "item_order": 44,
+      "french": "Ton descendant (accent circonflexe ^) — Énigme",
+      "dialect": "Sâmbóle",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_descendant_accent_circonflexe_enigme_e43_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/ton_descendant_accent_circonflexe_enigme_e43_phrase.mp3"
+    },
+    {
+      "id": 8353,
+      "item_order": 45,
+      "french": "Ton montant (caron ˇ) — Femme",
+      "dialect": "Mwǎsi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_montant_caron_femme_e44_phrase.mp3",
+      "audio_key": "Lingala/lesson_items/1.1/ton_montant_caron_femme_e44_phrase.mp3"
+    }
+  ],
+  "parallel_sentences_deleted": [
+    {
+      "id": 3600,
+      "language_id": 1,
+      "french_text": "Cuillère",
+      "lingala_text": "Lokelé",
+      "source": "course_variant",
+      "quality": "verified",
+      "created_at": "2026-08-07T13:50:17.794475+00:00"
+    }
+  ]
+}

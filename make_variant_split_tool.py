@@ -30,6 +30,7 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import base64
 import json
 import re
@@ -173,14 +174,47 @@ def suggest_cuts(path: Path, texts: list[str]) -> tuple[list[float], float]:
     return picks, round(max(0.0, 1.0 - worst / 0.25), 2)
 
 
-def build_entries() -> list[dict]:
+def suspicion(row, mp3: Path) -> float:
+    """How likely the clip says something other than what is written.
+
+    He sometimes changed the word at the microphone without editing the field,
+    so no text comparison can catch it. Speech duration against the syllable
+    count of the written form does: 'Lisakolí' recorded as two words runs 3.1s
+    where one word takes ~1.2s, and 'Kozúza' recorded as 'Mbula' runs short.
+    """
+    if not mp3.exists():
+        return 0.0
+    sil, total = probe_silence(mp3)
+    speech = speech_before(total, sil)
+    text = (row["dialect"] or "").strip()
+    if not text or not speech:
+        return 0.0
+    syl = max(len(re.findall(r"[aeiouɛɔáéíóúâêîôûǎěǐǒǔ]", text, re.I)), 1)
+    expected = 0.22 * syl + 0.35          # rough: onset/offset plus per-syllable
+    return abs(speech - expected) / expected
+
+
+def build_entries(lesson_ids: set[int] | None = None,
+                  row_ids: set[int] | None = None) -> list[dict]:
     _, lessons, items = ing.fetch_db()
-    rows = [i for i in items.values() if len(variants(i["dialect"])) > 1]
-    rows.sort(key=lambda i: (i["lesson_id"], i["item_order"] or 0))
+    if row_ids:
+        # Single-row pass: one clip is known to be wrong and the reviewer only
+        # wants that screen, not the whole lesson.
+        rows = [i for i in items.values() if i["id"] in row_ids]
+    elif lesson_ids:
+        # Verification pass: every row of the named lessons, worst first, so the
+        # clips that disagree with their text surface immediately.
+        rows = [i for i in items.values() if i["lesson_id"] in lesson_ids]
+        scored = [(suspicion(r, MP3_CACHE / (r["audio_url"] or "").split(
+            "/Lingala/lesson_items/")[-1]), r) for r in rows]
+        rows = [r for _, r in sorted(scored, key=lambda x: -x[0])]
+    else:
+        rows = [i for i in items.values() if len(variants(i["dialect"])) > 1]
+        rows.sort(key=lambda i: (i["lesson_id"], i["item_order"] or 0))
 
     entries = []
     for row in rows:
-        vs = variants(row["dialect"])
+        vs = variants(row["dialect"]) or [(row["dialect"] or "").strip()]
         fr_vs = variants(row["french"])
         # A pipe row's French was often written "A | B" and later had its pipe
         # rewritten as a slash, which makes two concepts look like synonyms.
@@ -521,9 +555,18 @@ render();
 
 
 def main() -> None:
-    entries = build_entries()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--lessons", help="comma-separated lesson ids: review EVERY row of "
+                                      "those lessons against its audio, worst-suspicion "
+                                      "first. Default: only multi-variant rows.")
+    ap.add_argument("--rows", help="comma-separated lesson_items ids: review only those "
+                                   "rows. Use when one clip is already known to be wrong.")
+    args = ap.parse_args()
+    ids = {int(x) for x in args.lessons.split(",")} if args.lessons else None
+    row_ids = {int(x) for x in args.rows.split(",")} if args.rows else None
+    entries = build_entries(ids, row_ids)
     if not entries:
-        sys.exit("No multi-variant rows found.")
+        sys.exit("No rows found.")
     html = HTML.replace("__ENTRIES__", json.dumps(entries, ensure_ascii=False))
     OUT.write_text(html, encoding="utf-8")
     with_audio = sum(1 for e in entries if e["audio"])
