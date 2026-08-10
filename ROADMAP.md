@@ -141,7 +141,7 @@ hand-authoring and no LLM at question time:
 similarity over the existing embeddings, threshold 0.55) took the course from
 **1,347 items to 5,923** across all 50 lessons. The dictionary was embedded for
 the first time in the same pass. Output:
-`artifacts/professor_ingest/corpus_routing_dryrun.json`.
+`artifacts/professor_ingest/corpus_routing.json`.
 
 **Build order:** routing QA → `lesson_pool` table → session shell + match-pairs →
 choose-the-audio → tokenizer + tap-words-in-order → fill-the-blank → attempts +

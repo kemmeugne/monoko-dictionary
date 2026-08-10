@@ -60,7 +60,7 @@ After routing to lessons at similarity ≥ 0.55, the course goes from **1,347
 items to 5,923** across 50 lessons, and every lesson gains something. Level
 pools: N1 986 · N2 1,199 · N3 1,734 · N4 890 · N5 469 · N6 645.
 
-Full routing output: `artifacts/professor_ingest/corpus_routing_dryrun.json`.
+Full routing output: `artifacts/professor_ingest/corpus_routing.json (regenerate: `python3 route_corpus_to_lessons.py`)`.
 
 ### Per exercise type (usable counts)
 
@@ -112,15 +112,26 @@ alone covers the course.
 Each slice ships something inspectable. Do not start the next until the previous
 is verified.
 
-### Slice 0 — Routing QA  ⬜ NOT STARTED
-4,576 of the 5,923 items are auto-routed and become the backbone of every
-exercise. Precision has been eyeballed on ~8 samples, which is not a measurement.
+### Slice 0 — Routing QA  🟡 AWAITING VERDICTS (tool built 2026-08-10)
+The routed rows are the backbone of every exercise, and precision had only been
+eyeballed on a handful of samples.
 
-- Generate a review page: 100 random routed items + assigned lesson
-- Anthony or the professor marks belongs / doesn't
-- Output: a precision number and a final threshold (0.55 unless the data says otherwise)
-- **Nothing below starts until this is done.** If precision is ~70%, one exercise
-  in three is off-topic and you would learn it from user complaints instead.
+Tooling, all committed:
+- `route_corpus_to_lessons.py` — routes every verified pair to its nearest lesson
+  by cosine top-1. Run at `--threshold 0.45` so sub-threshold rows exist for QA;
+  the final threshold is applied when `lesson_pool` is built, not here.
+  Output: `artifacts/professor_ingest/corpus_routing.json` — 7,744 rows
+  (1,347 native + 6,397 routed; 289 dictionary pairs already taught were dropped).
+- `make_routing_qa_tool.py` → `routing_qa_tool.html` — 100 items, **stratified by
+  similarity** (25 per band: 0.45-0.55 / 0.55-0.65 / 0.65-0.75 / 0.75+), shuffled
+  so the reviewer cannot infer the band. Uniform sampling would measure precision
+  at the current threshold but say nothing about where it *should* sit; the
+  sub-0.55 band is included precisely to test whether we are being too strict.
+- `analyse_routing_qa.py` — reads the exported verdicts, reports precision per
+  band and per source table, and recommends a threshold.
+
+**Next action: Anthony reviews `routing_qa_tool.html` and returns
+`routing_qa_verdicts.json`.** Nothing below starts until that number exists.
 
 ### Slice 1 — `lesson_pool` table  ⬜
 One SQL migration (Anthony runs it in the Supabase editor), then populate.

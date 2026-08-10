@@ -551,7 +551,7 @@ measured data, and the build slices. Short version:
   levels open; the paywall (1.1 + 1.2 free) is the only gate.
 - **Corpus→lesson routing (2026-08-07)** took the course from 1,347 items to
   **5,923** across all 50 lessons, using the existing embeddings at cosine ≥ 0.55.
-  Artifact: `artifacts/professor_ingest/corpus_routing_dryrun.json`.
+  Artifact: `artifacts/professor_ingest/corpus_routing.json`.
 - **The dictionary has zero tone marks; the course has 31%.** Of 678 words in both,
   75 are never spelled the same. Rule: untoned and toned content must never appear
   in the same exercise.
