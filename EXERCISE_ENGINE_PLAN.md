@@ -60,7 +60,8 @@ After routing to lessons at similarity ≥ 0.55, the course goes from **1,347
 items to 5,923** across 50 lessons, and every lesson gains something. Level
 pools: N1 986 · N2 1,199 · N3 1,734 · N4 890 · N5 469 · N6 645.
 
-Full routing output: `artifacts/professor_ingest/corpus_routing.json (regenerate: `python3 route_corpus_to_lessons.py`)`.
+Full routing output: `artifacts/professor_ingest/corpus_routing.json`
+(regenerate with `python3 route_corpus_to_lessons.py`).
 
 ### Per exercise type (usable counts)
 

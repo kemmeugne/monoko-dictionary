@@ -48,6 +48,7 @@ This app will be wrapped with Capacitor and shipped to the App Store and Play St
 | Lesson context | Vercel serverless function | `api/lesson-context.js` |
 | Vector search (corpus) | Supabase pgvector (`parallel_sentences.embedding`) | `match_parallel_sentences` RPC |
 | Vector search (courses) | Supabase pgvector (`lesson_items.embedding`) | `match_lesson_items` RPC |
+| Vector search (dictionary) | Supabase pgvector (`examples.embedding`, `senses.embedding`) | `match_examples` / `match_senses` RPCs (2026-08-07) |
 | Lingala TTS | HuggingFace Space `Kemz42/monoko-lingala-tts` (ESPnet2 VITS, DigitalUmuganda model, 71.6h Lingala) | called directly from browser |
 | French TTS | Web Speech API (browser built-in, `SpeechSynthesisUtterance`) | `index.html` |
 
@@ -64,7 +65,7 @@ index.html                        — entire frontend (React, ~3200 lines). Modu
 admin.html                        — admin panel: per-card approve/reject, pagination top+bottom, page X/Y counter, professor_modified tracking
 api/admin-action.js               — Vercel serverless function (secure Supabase writes)
 api/chat.js                       — Vercel serverless function (SSE-streaming gpt-4o-mini proxy; logs t_rag_ms + t_llm_ms to chat_events)
-api/rag-context.js                — Vercel serverless function (pgvector semantic search over parallel_sentences; accepts optional min_similarity)
+api/rag-context.js                — Vercel serverless function (pgvector search over parallel_sentences + the dictionary (examples/senses), 3 RPCs in parallel; accepts optional min_similarity)
 api/lesson-context.js             — Vercel serverless function (pgvector semantic search over lesson_items)
 api/mms-tts.js                    — Vercel serverless function (warm-up GET ping for HF Space; POST proxies audio but unused — client calls Space directly)
 api/cron/keep-tts-warm.js         — Vercel cron handler (GET ping to MMS_SPACE_URL; requires Vercel Pro for sub-hourly schedule)
@@ -84,6 +85,9 @@ sql/progress_tracking.sql         — SQL migration: profiles + user_progress ta
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
 liste_200_phrases.docx            — 200 phrase types across 19 themes used by monoko_auto_test.py
+route_corpus_to_lessons.py        — routes every verified FR-dialect pair to its nearest lesson (cosine top-1 over existing embeddings) -> artifacts/professor_ingest/corpus_routing.json
+make_routing_qa_tool.py           — builds routing_qa_tool.html: 100 routed items stratified by similarity, for measuring routing precision
+analyse_routing_qa.py             — reads the QA verdicts, reports precision per similarity band + per source, recommends a threshold
 TECHNICAL_DOCS.md                 — full system documentation
 
 Cours/MONOKO_CURRICULUM.md        — universal CEFR-aligned curriculum (6 levels, 29 modules) for all languages
