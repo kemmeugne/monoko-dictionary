@@ -505,6 +505,320 @@
     };
     // ── End AlphabetPanel ─────────────────────────────────────────────────────
 
+    // ── Exercise engine ───────────────────────────────────────────────────────
+    // One screen = one question, whatever the exercise type. Match-pairs shows 5
+    // pairs on that screen; a future fill-the-blank will show one gap. Keeping the
+    // screen as the unit is what lets a single session mix types without the
+    // progress bar meaning something different from one screen to the next.
+    const SESSION_MAX = 15;        // screens per session, material permitting
+    const PAIRS_PER_SCREEN = 5;
+
+    // Precision measured per tier during the routing work: the professor's own
+    // rows are correct by construction, the others were placed by a model.
+    // Preferring native means a learner meets the most reliable material first.
+    const TIER_RANK = { native: 0, approved: 1, reassigned: 2 };
+
+    const shuffle = (arr) => {
+      const c = [...arr];
+      for (let i = c.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [c[i], c[j]] = [c[j], c[i]];
+      }
+      return c;
+    };
+
+    // A single Audio element, so tapping a second tile cuts the first clip off
+    // instead of letting two professor recordings overlap.
+    let sessionAudio = null;
+    const playClip = (url) => {
+      if (!url) return;
+      try {
+        if (sessionAudio) { sessionAudio.pause(); sessionAudio.currentTime = 0; }
+        sessionAudio = new Audio(url);
+        sessionAudio.play().catch(() => {});
+      } catch (e) { /* autoplay blocked until first gesture — harmless */ }
+    };
+
+    // Shape homogeneity is the hard rule. A single word beside a full sentence is
+    // answerable from length alone — "Ami" against "La famille est sacrée." needs
+    // no Lingala at all. Both sides are measured, because the pool stores a token
+    // count for the Lingala only and the French can be the longer of the two.
+    const longestSide = (r) =>
+      Math.max((r.french || "").trim().split(/\s+/).length, r.token_count || 1);
+
+    // Banding the FRENCH column alone is enough, and it is not a shortcut.
+    // The shape exploit needs CORRELATION between the columns — you pair the long
+    // left tile with the long right one. Make one column uniform and length
+    // variation in the other carries no pairing information, because every tile
+    // over there must match a French of identical shape anyway. Banding both
+    // sides is stricter without being safer, and costs three more lessons their
+    // only exercise. French is also the prompt side the learner reads first.
+    const shapeBand = (r) =>
+      ((r.french || "").trim().split(/\s+/).length <= 1 ? "word" : "phrase");
+
+    // Buckets a screen may be built from. An exercise may never mix orthographies
+    // either: the dictionary is written without tone marks and the course with
+    // them, so `Mbula` beside `Mbúla` would teach that the accent is optional —
+    // the opposite of what lesson 1.1 exists to teach.
+    const pairsBuckets = (rows, level) => {
+      // Both sides are capped. Filtering the Lingala alone let 4-word French
+      // sentences into "short" material, which is how "Ami" ended up facing
+      // "La famille est sacrée." on the same screen.
+      const ok = (rows || []).filter(r =>
+        r && (r.french || "").trim() && (r.lingala || "").trim() &&
+        r.effective_level <= level &&
+        longestSide(r) <= 3);
+
+      const buckets = {};
+      for (const r of ok) (buckets[`${r.orthography}|${shapeBand(r)}`] ||= []).push(r);
+
+      // Two tiles showing the same French — or the same Lingala — would be
+      // unanswerable, so a term may appear only once within a bucket.
+      return Object.values(buckets).map(list => {
+        const seenFr = new Set(), seenLn = new Set(), out = [];
+        for (const r of [...list].sort((a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier])) {
+          const fr = r.french.trim().toLowerCase(), ln = r.lingala.trim().toLowerCase();
+          if (seenFr.has(fr) || seenLn.has(ln)) continue;
+          seenFr.add(fr); seenLn.add(ln); out.push(r);
+        }
+        return out;
+      }).sort((a, b) => b.length - a.length);
+    };
+
+    const buildMatchPairs = (rows) => ({
+      type: "match_pairs",
+      pairs: rows.map(r => ({
+        id: `${r.source_table}:${r.source_id}`,
+        fr: r.french.trim(),
+        ln: r.lingala.trim(),
+        audio: r.audio_url,
+      })),
+    });
+
+    // Sized to the material, not to a fixed target: no lesson currently holds
+    // enough short items for 15 match-pairs screens (the median supports 6), so
+    // asking for 15 would mean repeating terms inside one session.
+    const buildSession = (rows, level, max = SESSION_MAX) => {
+      const out = [];
+      // Each screen is drawn from ONE bucket, so its five pairs share an
+      // orthography and a shape. Buckets are taken largest-first so the session
+      // opens with the lesson's richest material.
+      for (const bucket of pairsBuckets(rows, level)) {
+        const screens = Math.floor(bucket.length / PAIRS_PER_SCREEN);
+        const picked = shuffle(bucket).slice(0, screens * PAIRS_PER_SCREEN);
+        for (let i = 0; i < screens && out.length < max; i++)
+          out.push(buildMatchPairs(picked.slice(i * PAIRS_PER_SCREEN, (i + 1) * PAIRS_PER_SCREEN)));
+        if (out.length >= max) break;
+      }
+      return out;
+    };
+
+    // ── Match-pairs screen ────────────────────────────────────────────────────
+    const MatchPairsScreen = ({ exercise, onDone, onMiss }) => {
+      const [solved, setSolved] = useState([]);     // pair ids cleared
+      const [pickFr, setPickFr] = useState(null);
+      const [pickLn, setPickLn] = useState(null);
+      const [wrong, setWrong] = useState(null);      // {fr, truth}
+      const [shakeIds, setShakeIds] = useState([]);
+      const lnOrder = React.useMemo(() => shuffle(exercise.pairs), [exercise]);
+
+      const finish = (list) => { if (list.length === exercise.pairs.length) setTimeout(onDone, 420); };
+
+      const choose = (side, pair) => {
+        if (solved.includes(pair.id)) return;
+        if (side === "ln") playClip(pair.audio);       // hear it on every tap
+        const nextFr = side === "fr" ? (pickFr?.id === pair.id ? null : pair) : pickFr;
+        const nextLn = side === "ln" ? (pickLn?.id === pair.id ? null : pair) : pickLn;
+        setPickFr(nextFr); setPickLn(nextLn);
+        if (!nextFr || !nextLn) return;
+
+        if (nextFr.id === nextLn.id) {
+          const list = [...solved, nextFr.id];
+          setSolved(list); setPickFr(null); setPickLn(null); setWrong(null);
+          finish(list);
+        } else {
+          setWrong({ fr: nextFr.fr, truth: nextFr.ln });
+          setShakeIds([nextFr.id, nextLn.id]);
+          onMiss(nextFr);
+          setTimeout(() => { setShakeIds([]); setPickFr(null); setPickLn(null); }, 700);
+        }
+      };
+
+      const Tile = ({ pair, side }) => {
+        const done = solved.includes(pair.id);
+        const picked = (side === "fr" ? pickFr : pickLn)?.id === pair.id;
+        const shaking = shakeIds.includes(pair.id) && picked === false ? false : shakeIds.includes(pair.id);
+        return (
+          <button
+            onClick={() => choose(side, pair)}
+            aria-pressed={picked}
+            disabled={done}
+            style={{
+              minHeight: 60, padding: "12px 10px", borderRadius: 14,
+              border: `1.5px solid ${shaking ? "#DC2626" : picked ? "#6B21A8" : "#E8E0D4"}`,
+              background: shaking ? "#FDF0F0" : picked ? "#F3F0FF" : "white",
+              color: done ? "#9B8A6E" : side === "ln" ? "#2C5F2D" : "#2D2118",
+              fontFamily: side === "ln" ? "'Playfair Display', serif" : "'DM Sans', sans-serif",
+              fontWeight: side === "ln" ? 700 : 500,
+              fontSize: side === "ln" ? 17 : 15,
+              opacity: done ? 0.34 : 1,
+              cursor: done ? "default" : "pointer",
+              transform: picked ? "scale(0.97)" : "none",
+              transition: "border-color .15s, background .15s, opacity .3s, transform .12s",
+              display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
+            }}>
+            {side === "fr" ? pair.fr : pair.ln}
+          </button>
+        );
+      };
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+          <p style={{ fontSize: 19, fontWeight: 600, margin: "0 0 20px", lineHeight: 1.35 }}>
+            Associez chaque mot à sa traduction
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, alignContent: "start" }}>
+            {exercise.pairs.map((p, i) => (
+              <React.Fragment key={p.id}>
+                <Tile pair={p} side="fr" />
+                <Tile pair={lnOrder[i]} side="ln" />
+              </React.Fragment>
+            ))}
+          </div>
+          <div style={{ flex: 1, minHeight: 12 }} />
+          {wrong && (
+            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 15, color: "#DC2626" }}>✕ Pas tout à fait</p>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
+                « {wrong.fr} » se dit{" "}
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{wrong.truth}</b>.
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // Renderer per exercise type. Adding fill-the-blank later means adding one
+    // entry here — the shell, progress, scoring and summary stay untouched.
+    const EXERCISE_SCREENS = { match_pairs: MatchPairsScreen };
+
+    const SessionView = ({ lesson, exercises, onExit, onSeeLesson }) => {
+      const [queue, setQueue] = useState(exercises);
+      const [idx, setIdx] = useState(0);
+      const [xp, setXp] = useState(0);
+      const [missed, setMissed] = useState([]);      // pairs answered wrong, deduped
+      const [done, setDone] = useState(false);
+
+      const total = queue.length;
+      const current = queue[idx];
+      const Screen = current && EXERCISE_SCREENS[current.type];
+
+      const noteMiss = (pair) => setMissed(m => m.some(x => x.id === pair.id) ? m : [...m, pair]);
+
+      const advance = () => {
+        setXp(x => x + 10 * PAIRS_PER_SCREEN);
+        // Anything missed comes back before the session can end, as a screen
+        // built from the missed pairs themselves.
+        if (idx + 1 >= queue.length) {
+          const retry = missed.filter(m => !m.retried);
+          if (retry.length >= 2) {
+            const batch = retry.slice(0, PAIRS_PER_SCREEN).map(p => ({ ...p, retried: true }));
+            setMissed(m => m.map(x => batch.some(b => b.id === x.id) ? { ...x, retried: true } : x));
+            setQueue(q => [...q, { type: "match_pairs", pairs: batch }]);
+            setIdx(i => i + 1);
+            return;
+          }
+          setDone(true);
+          return;
+        }
+        setIdx(i => i + 1);
+      };
+
+      const pct = done ? 100 : Math.round(100 * idx / Math.max(1, total));
+
+      return (
+        <div style={{
+          minHeight: "100dvh", background: "#FDFBF7",
+          display: "flex", flexDirection: "column",
+          padding: "calc(env(safe-area-inset-top) + 14px) 18px calc(env(safe-area-inset-bottom) + 16px)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <button onClick={onExit} aria-label="Quitter la session" style={{
+              width: 44, height: 44, marginLeft: -10, border: "none", background: "none",
+              color: "#9B8A6E", fontSize: 26, lineHeight: 1, cursor: "pointer",
+            }}>×</button>
+            <div style={{ flex: 1, height: 10, borderRadius: 5, background: "#E8E0D4", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: "#6B21A8", borderRadius: 5,
+                            transition: "width .45s cubic-bezier(.4,0,.2,1)" }} />
+            </div>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#6B21A8",
+                           fontVariantNumeric: "tabular-nums", minWidth: 46, textAlign: "right" }}>
+              {xp} XP
+            </span>
+          </div>
+
+          {!done && (
+            <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".12em",
+                        textTransform: "uppercase", color: "#9B8A6E", margin: "0 0 6px" }}>
+              {lesson.title}
+            </p>
+          )}
+
+          {done ? (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center" }}>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 800, margin: 0 }}>
+                Session terminée
+              </h2>
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 46, fontWeight: 800, color: "#6B21A8",
+                          fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp} XP</p>
+              <p style={{ color: "#9B8A6E", fontSize: 14, margin: 0 }}>{lesson.title}</p>
+              <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
+                {[[total, "écrans"], [`${Math.max(0, Math.round(100 * (1 - missed.length / Math.max(1, total * PAIRS_PER_SCREEN))))}%`, "réussite"]].map(([v, l]) => (
+                  <div key={l} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14, padding: "13px 8px", background: "white" }}>
+                    <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
+                                fontVariantNumeric: "tabular-nums" }}>{v}</b>
+                    <span style={{ fontSize: 11, color: "#9B8A6E", letterSpacing: ".05em",
+                                   textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>{l}</span>
+                  </div>
+                ))}
+              </div>
+              {missed.length > 0 && (
+                <div style={{ marginTop: 18, textAlign: "left", border: "1px solid #E8E0D4",
+                              borderRadius: 14, background: "white", overflow: "hidden" }}>
+                  <h3 style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
+                               textTransform: "uppercase", color: "#9B8A6E", margin: 0,
+                               padding: "11px 14px", borderBottom: "1px solid #E8E0D4" }}>À revoir</h3>
+                  {missed.slice(0, 6).map(m => (
+                    <div key={m.id} style={{ display: "flex", justifyContent: "space-between", gap: 12,
+                                             padding: "10px 14px", fontSize: 14, borderBottom: "1px solid #F4EFE7" }}>
+                      <span>{m.fr}</span>
+                      <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: "#2C5F2D" }}>{m.ln}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : Screen ? (
+            <Screen key={idx} exercise={current} onDone={advance} onMiss={noteMiss} />
+          ) : null}
+
+          {done ? (
+            <button onClick={onExit} style={{
+              width: "100%", minHeight: 52, border: "none", borderRadius: 14, background: "#6B21A8",
+              color: "white", fontSize: 16, fontWeight: 700, cursor: "pointer", marginTop: 18,
+            }}>Continuer</button>
+          ) : (
+            <button onClick={onSeeLesson} style={{
+              width: "100%", minHeight: 48, borderRadius: 14, background: "transparent",
+              border: "1.5px solid #E8E0D4", color: "#9B8A6E", fontSize: 14, fontWeight: 600, cursor: "pointer",
+            }}>Pourquoi&nbsp;? Voir la leçon</button>
+          )}
+        </div>
+      );
+    };
+
+
     const LessonAudioText = ({ text, audioUrl, title, color = "#2C5F2D", fontSize = 14, fontWeight = 500, italic = false }) => (
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
         <div style={{ flex:1, fontSize, color, fontWeight, fontStyle: italic ? "italic" : "normal", lineHeight:1.5 }}>
@@ -1299,6 +1613,9 @@
       const [selectedCourse, setSelectedCourse] = useState(null);
       const [selectedLesson, setSelectedLesson] = useState(null);
       const [lessonItems, setLessonItems] = useState([]);
+      const [sessionExercises, setSessionExercises] = useState(null); // null = not in a session
+      const [poolLoading, setPoolLoading] = useState(false);
+      const [sessionNote, setSessionNote] = useState("");
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
       // Progress tracking
@@ -1445,6 +1762,30 @@
             .eq("language_id", languageId);
           if (data) setUserProgress(new Set(data.map(r => r.lesson_id)));
         } catch(e) { console.error("loadUserProgress:", e); }
+      };
+
+
+      // Builds a session from lesson_pool. Sized to the material: no lesson holds
+      // enough short items for 15 match-pairs screens today (the median supports
+      // 6), and asking for more would repeat terms inside one session.
+      const startSession = async () => {
+        if (!selectedLesson) return;
+        setPoolLoading(true);
+        try {
+          const level = selectedCourse?.course_order || 1;
+          const rows = await supaFetch("lesson_pool",
+            `lesson_id=eq.${selectedLesson.id}&select=*&limit=1000`);
+          const built = buildSession(rows, level);
+          if (!built.length) {
+            setSessionNote("Pas encore assez de contenu court dans cette leçon pour un exercice.");
+            return;
+          }
+          setSessionNote("");
+          setSessionExercises(built);
+        } catch (e) {
+          console.error("startSession:", e);
+          setSessionNote("Impossible de charger l'exercice. Réessayez.");
+        } finally { setPoolLoading(false); }
       };
 
       const markLessonComplete = async () => {
@@ -2493,7 +2834,16 @@
             )}
 
             {/* LESSON (full content tables) */}
-            {view === "lesson" && selectedLesson && (
+            {view === "lesson" && selectedLesson && sessionExercises && (
+              <SessionView
+                lesson={selectedLesson}
+                exercises={sessionExercises}
+                onExit={() => setSessionExercises(null)}
+                onSeeLesson={() => setSessionExercises(null)}
+              />
+            )}
+
+            {view === "lesson" && selectedLesson && !sessionExercises && (
               <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
                 <button onClick={() => { setView("course_detail"); setSelectedLesson(null); setLessonItems([]); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
@@ -2710,6 +3060,24 @@
                 {/* Complete module CTA */}
                 {currentUser && (
                   <div style={{ marginTop:32, paddingBottom:28 }}>
+                    {/* Practice comes before the completion button: doing the
+                        exercises is the point, marking it done is bookkeeping. */}
+                    <button onClick={startSession} disabled={poolLoading} style={{
+                      width:"100%", padding:"16px 20px", borderRadius:14, border:"none",
+                      background: poolLoading ? "#E8E0D4" : "linear-gradient(135deg, #6B21A8, #9333EA)",
+                      color: poolLoading ? "#9B8A6E" : "white", fontSize:15, fontWeight:700,
+                      cursor: poolLoading ? "default" : "pointer", marginBottom:12,
+                      fontFamily:"'DM Sans', sans-serif",
+                      boxShadow: poolLoading ? "none" : "0 4px 14px rgba(107,33,168,0.28)",
+                    }}>
+                      {poolLoading ? "Préparation…" : "S'entraîner"}
+                    </button>
+                    {sessionNote && (
+                      <p style={{ margin:"0 0 12px", fontSize:13, color:"#9B8A6E",
+                                  textAlign:"center", fontFamily:"'DM Sans', sans-serif" }}>
+                        {sessionNote}
+                      </p>
+                    )}
                     {userProgress.has(selectedLesson.id) ? (
                       <div style={{
                         display:"flex", alignItems:"center", justifyContent:"center", gap:10,
