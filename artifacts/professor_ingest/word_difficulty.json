@@ -746,7 +746,6 @@
 "Fait (en)": 2,
 "Falaise": 2,
 "Falloir": 4,
-"False": 6,
 "Famille": 2,
 "Fardeau": 4,
 "Farine": 2,
@@ -2117,7 +2116,6 @@
 "Troupeau": 2,
 "Trouver": 2,
 "Truc": 2,
-"True": 6,
 "Très": 1,
 "Trébucher": 3,
 "Trésor": 3,
@@ -2310,6 +2308,8 @@
 "Gloire / Glorieux(se)": 4,
 "Humid(it)é": 3,
 "Sacrifier / Sacrifice": 4,
-"Terminer / Terminé": 3
+"Terminer / Terminé": 3,
+"Faux": 2,
+"Vrai": 2
 }
 }

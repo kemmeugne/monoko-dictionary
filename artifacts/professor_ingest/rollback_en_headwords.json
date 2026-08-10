@@ -1,0 +1,15 @@
+{
+ "note": "English leaked into words.french_word; Lingala + audio were correct",
+ "before": [
+  {
+   "id": 692,
+   "french_word": "False",
+   "letter": "F"
+  },
+  {
+   "id": 2162,
+   "french_word": "True",
+   "letter": "T"
+  }
+ ]
+}
