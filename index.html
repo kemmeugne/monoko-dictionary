@@ -527,17 +527,80 @@
       return c;
     };
 
-    // A single Audio element, so tapping a second tile cuts the first clip off
-    // instead of letting two professor recordings overlap.
-    let sessionAudio = null;
+    // Clips are fetched ahead of the tap and played from memory.
+    //
+    // Measured: a clip on R2 takes ~340ms, and 330ms of that is time-to-first-byte
+    // on a 20KB file — latency, not bandwidth, so nothing about the request makes
+    // it faster. The only fix is to have the bytes already.
+    //
+    // Fetched with fetch() into a blob rather than leaning on <audio preload>:
+    // R2 sends no Cache-Control (ETag only), so browser caching is heuristic at
+    // best, and iOS Safari ignores preload on media to save data. A blob is
+    // certain.
+    //
+    // ONE reused <audio> element, whose src is swapped to the blob URL. That kills
+    // the latency and solves iOS's other rule at the same time: an element must be
+    // played inside a real gesture before it can ever play programmatically, and
+    // an element unlocked once stays unlocked. A fresh Audio() per clip would need
+    // a fresh gesture every time, which is why choose-the-audio could not autoplay.
+    // Audio prefetch. The clips live on R2, which answers in ~330ms of pure
+    // latency on a 20KB file and sends no Cache-Control, so a tap that starts
+    // its own request is always audibly late. The fix is to have the bytes
+    // before the tap, not to make the tap faster.
+    //
+    // Prefetching is done with <audio preload="auto"> elements rather than
+    // fetch()+blob: the bucket returns no Access-Control-Allow-Origin and 403s
+    // the preflight, so fetch() cannot read these files from the browser at all.
+    // Media elements are exempt from CORS, and an element that has buffered its
+    // clip plays from that buffer with no request of its own.
+    const CLIP_POOL_MAX = 24;             // ~2 screens of clips, well under memory pressure
+    const clipPool = new Map();           // url -> preloading HTMLAudioElement
+    let nowPlaying = null;
+
+    const primeClip = (url) => {
+      if (!url || clipPool.has(url)) return;
+      try {
+        const a = new Audio();
+        a.preload = "auto";
+        a.src = url;
+        a.load();
+        clipPool.set(url, a);
+        // Evict oldest first; dropping the src lets the buffer be collected.
+        while (clipPool.size > CLIP_POOL_MAX) {
+          const oldest = clipPool.keys().next().value;
+          const stale = clipPool.get(oldest);
+          if (stale && stale !== nowPlaying) { stale.pause(); stale.removeAttribute("src"); }
+          clipPool.delete(oldest);
+        }
+      } catch (e) { /* prefetch is best effort — playClip still works */ }
+    };
+
+    const primeClips = (urls) => (urls || []).filter(Boolean).forEach(primeClip);
+
     const playClip = (url) => {
       if (!url) return;
       try {
-        if (sessionAudio) { sessionAudio.pause(); sessionAudio.currentTime = 0; }
-        sessionAudio = new Audio(url);
-        sessionAudio.play().catch(() => {});
-      } catch (e) { /* autoplay blocked until first gesture — harmless */ }
+        primeClip(url);                   // no-op when already pooled
+        const a = clipPool.get(url);
+        if (!a) return;
+        if (nowPlaying && nowPlaying !== a) nowPlaying.pause();   // never two voices at once
+        nowPlaying = a;
+        a.currentTime = 0;
+        a.play().catch(() => {});         // blocked before the first gesture — harmless
+      } catch (e) {}
     };
+
+    const releaseClips = () => {
+      clipPool.forEach(a => { try { a.pause(); a.removeAttribute("src"); } catch (e) {} });
+      clipPool.clear();
+      nowPlaying = null;
+    };
+
+    // Which clips a screen will need, so they can be fetched before it is shown.
+    const exerciseClips = (ex) =>
+      !ex ? [] :
+      ex.type === "match_pairs" ? ex.pairs.map(p => p.audio) :
+      ex.type === "choose_audio" ? [ex.answer.audio] : [];
 
     // Shape homogeneity is the hard rule. A single word beside a full sentence is
     // answerable from length alone — "Ami" against "La famille est sacrée." needs
@@ -874,6 +937,18 @@
       const total = queue.length;
       const current = queue[idx];
       const Screen = current && EXERCISE_SCREENS[current.type];
+
+      // Fetch this screen's clips and the next one's. By the time a learner has
+      // read the prompt and reached for a tile, the bytes are already local, so
+      // the ~340ms round trip never lands inside the interaction.
+      useEffect(() => {
+        primeClips(exerciseClips(queue[idx]));
+        primeClips(exerciseClips(queue[idx + 1]));
+      }, [idx, queue]);
+
+      // Blob URLs leak until revoked; a long practice run would otherwise hold
+      // every clip it ever played.
+      useEffect(() => releaseClips, []);
 
       const noteMiss = (pair) => setMissed(m => m.some(x => x.id === pair.id) ? m : [...m, pair]);
 
@@ -1942,6 +2017,7 @@
             return;
           }
           setSessionNote("");
+          primeClips(exerciseClips(built[0]));   // first screen is instant too
           setSessionExercises(built);
         } catch (e) {
           console.error("startSession:", e);
