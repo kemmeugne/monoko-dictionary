@@ -598,19 +598,52 @@
     // Sized to the material, not to a fixed target: no lesson currently holds
     // enough short items for 15 match-pairs screens (the median supports 6), so
     // asking for 15 would mean repeating terms inside one session.
-    const buildSession = (rows, level, max = SESSION_MAX) => {
+    // Each match-pairs screen is drawn from ONE bucket, so its five pairs share an
+    // orthography and a French shape. Buckets are taken largest-first so the
+    // session opens with the lesson's richest material.
+    const matchPairsScreens = (rows, level, cap) => {
       const out = [];
-      // Each screen is drawn from ONE bucket, so its five pairs share an
-      // orthography and a shape. Buckets are taken largest-first so the session
-      // opens with the lesson's richest material.
       for (const bucket of pairsBuckets(rows, level)) {
         const screens = Math.floor(bucket.length / PAIRS_PER_SCREEN);
         const picked = shuffle(bucket).slice(0, screens * PAIRS_PER_SCREEN);
-        for (let i = 0; i < screens && out.length < max; i++)
+        for (let i = 0; i < screens && out.length < cap; i++)
           out.push(buildMatchPairs(picked.slice(i * PAIRS_PER_SCREEN, (i + 1) * PAIRS_PER_SCREEN)));
-        if (out.length >= max) break;
+        if (out.length >= cap) break;
       }
       return out;
+    };
+
+    const chooseAudioScreens = (rows, level, cap) => {
+      const out = [];
+      for (const bucket of audioBuckets(rows, level)) {
+        for (const answer of shuffle(bucket)) {
+          if (out.length >= cap) return out;
+          out.push(buildChooseAudio(answer, bucket));
+        }
+      }
+      return out;
+    };
+
+    // A session alternates types rather than running one then the other. Same
+    // material either way, but a block of five identical screens reads as a drill
+    // and a mixed queue reads as practice — and this is the shape every later
+    // exercise type slots into.
+    const interleave = (a, b, max) => {
+      const out = [];
+      for (let i = 0; out.length < max && (i < a.length || i < b.length); i++) {
+        if (i < a.length && out.length < max) out.push(a[i]);
+        if (i < b.length && out.length < max) out.push(b[i]);
+      }
+      return out;
+    };
+
+    const buildSession = (rows, level, max = SESSION_MAX) => {
+      // Match-pairs needs short items on BOTH sides, the rarest shape in the pool
+      // (median 25 per lesson against 79 with audio), so it is capped at roughly
+      // a third of the session and choose-the-audio carries the rest.
+      const pairs = matchPairsScreens(rows, level, Math.ceil(max / 3));
+      const audio = chooseAudioScreens(rows, level, max - pairs.length);
+      return interleave(pairs, audio, max);
     };
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
@@ -699,9 +732,137 @@
       );
     };
 
+
+    // ── Choose-the-audio ──────────────────────────────────────────────────────
+    // The professor's recording is the prompt and the French options are the
+    // answers, rather than the reverse. `CORPUS_PIPELINE.md` specced it the other
+    // way — one written prompt, three clips to compare — but that tests whether
+    // you can tell two recordings apart, which is not a skill anyone needs. This
+    // way tests understanding spoken Lingala, which is the whole point, and costs
+    // one tap instead of three.
+    const AUDIO_OPTIONS = 4;
+
+    const audioBuckets = (rows, level) => {
+      const ok = (rows || []).filter(r =>
+        r && r.audio_url && (r.french || "").trim() && (r.lingala || "").trim() &&
+        r.effective_level <= level);
+      const buckets = {};
+      for (const r of ok) (buckets[`${r.orthography}|${shapeBand(r)}`] ||= []).push(r);
+      return Object.values(buckets).map(list => {
+        const seen = new Set(), out = [];
+        for (const r of [...list].sort((a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier])) {
+          const k = r.french.trim().toLowerCase();
+          if (seen.has(k)) continue;
+          seen.add(k); out.push(r);
+        }
+        return out;
+      }).filter(b => b.length >= AUDIO_OPTIONS).sort((a, b) => b.length - a.length);
+    };
+
+    // Distractors come from the same bucket — same lesson, same shape, same
+    // orthography — so a wrong option is never dismissable on sight. Pulling them
+    // from anywhere in the pool would make the answer obvious without listening.
+    const buildChooseAudio = (answer, bucket) => {
+      const others = shuffle(bucket.filter(r =>
+        r.source_id !== answer.source_id &&
+        r.french.trim().toLowerCase() !== answer.french.trim().toLowerCase()))
+        .slice(0, AUDIO_OPTIONS - 1);
+      return {
+        type: "choose_audio",
+        answer: {
+          id: `${answer.source_table}:${answer.source_id}`,
+          fr: answer.french.trim(), ln: answer.lingala.trim(), audio: answer.audio_url,
+        },
+        options: shuffle([answer, ...others].map(r => ({
+          id: `${r.source_table}:${r.source_id}`, fr: r.french.trim(),
+        }))),
+      };
+    };
+
+    const ChooseAudioScreen = ({ exercise, onDone, onMiss }) => {
+      const [wrongIds, setWrongIds] = useState([]);
+      const [solved, setSolved] = useState(false);
+
+      // Play once on arrival. On iOS this only succeeds if the shared Audio
+      // element has already been unlocked by an earlier tap, so the replay
+      // button below is the reliable path, not a convenience.
+      useEffect(() => { playClip(exercise.answer.audio); }, [exercise]);
+
+      const choose = (opt) => {
+        if (solved || wrongIds.includes(opt.id)) return;
+        if (opt.id === exercise.answer.id) {
+          setSolved(true);
+          setTimeout(onDone, 620);
+        } else {
+          setWrongIds(w => [...w, opt.id]);
+          onMiss({ id: exercise.answer.id, fr: exercise.answer.fr, ln: exercise.answer.ln });
+        }
+      };
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+          <p style={{ fontSize: 19, fontWeight: 600, margin: "0 0 20px", lineHeight: 1.35 }}>
+            Qu'est-ce que vous entendez&nbsp;?
+          </p>
+
+          <button
+            onClick={() => playClip(exercise.answer.audio)}
+            aria-label="Réécouter"
+            style={{
+              alignSelf: "center", width: 108, height: 108, borderRadius: 54,
+              border: "none", background: "linear-gradient(135deg, #6B21A8, #9333EA)",
+              color: "white", fontSize: 40, cursor: "pointer", marginBottom: 8,
+              boxShadow: "0 8px 24px rgba(107,33,168,0.30)",
+            }}>▶</button>
+          <p style={{ textAlign: "center", fontSize: 12, color: "#9B8A6E",
+                      fontFamily: "'DM Mono', monospace", margin: "0 0 22px" }}>
+            Touchez pour réécouter
+          </p>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            {exercise.options.map(o => {
+              const isWrong = wrongIds.includes(o.id);
+              const isRight = solved && o.id === exercise.answer.id;
+              return (
+                <button key={o.id} onClick={() => choose(o)} disabled={isWrong || solved}
+                  style={{
+                    minHeight: 56, padding: "12px 16px", borderRadius: 14,
+                    border: `1.5px solid ${isRight ? "#16A34A" : isWrong ? "#DC2626" : "#E8E0D4"}`,
+                    background: isRight ? "#EAF7EE" : isWrong ? "#FDF0F0" : "white",
+                    color: isRight ? "#16A34A" : isWrong ? "#DC2626" : "#2D2118",
+                    fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500,
+                    opacity: isWrong ? 0.55 : 1,
+                    cursor: (isWrong || solved) ? "default" : "pointer",
+                    transition: "border-color .15s, background .15s, opacity .2s",
+                  }}>{o.fr}</button>
+              );
+            })}
+          </div>
+
+          <div style={{ flex: 1, minHeight: 12 }} />
+
+          {solved && (
+            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{exercise.answer.ln}</b>
+                {" — "}{exercise.answer.fr}
+              </p>
+            </div>
+          )}
+          {wrongIds.length > 0 && !solved && (
+            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "#DC2626", fontWeight: 600 }}>
+                Réécoutez et réessayez.
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
     // Renderer per exercise type. Adding fill-the-blank later means adding one
     // entry here — the shell, progress, scoring and summary stay untouched.
-    const EXERCISE_SCREENS = { match_pairs: MatchPairsScreen };
+    const EXERCISE_SCREENS = { match_pairs: MatchPairsScreen, choose_audio: ChooseAudioScreen };
 
     const SessionView = ({ lesson, exercises, onExit, onSeeLesson }) => {
       const [queue, setQueue] = useState(exercises);
