@@ -145,7 +145,8 @@ def main() -> None:
             "source_table": "lesson_items", "source_id": r["id"],
             "french": r["french"], "lingala": r["dialect"], "audio_url": r["audio_url"],
             "token_count": tokens(r["dialect"]), "orthography": "toned",
-            "similarity": 1.0, "is_native": True, "matched_item": None,
+            "similarity": 1.0, "is_native": True,
+            "matched_item": None, "matched_lingala": None,
         })
 
     dropped_dupe = 0
@@ -162,7 +163,7 @@ def main() -> None:
             "french": fr, "lingala": ln, "audio_url": audio,
             "token_count": tokens(ln), "orthography": orth,
             "similarity": round(float(sim[i]), 4), "is_native": False,
-            "matched_item": item["french"],
+            "matched_item": item["french"], "matched_lingala": item["dialect"],
         })
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

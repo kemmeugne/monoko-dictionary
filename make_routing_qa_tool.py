@@ -17,6 +17,17 @@ current cut — lets us plot precision against similarity and choose the knee.
 Rows below 0.55 are included on purpose: if they turn out to be mostly fine, the
 threshold is too strict and we are discarding usable material.
 
+SENTENCES ONLY. Single-word rows from `senses` are excluded, because "does this
+word belong in this lesson" is barely answerable — *grand*, *faire*, *chose* could
+sit in half the curriculum, and the reviewer would be forced into "Incertain"
+again and again for no signal. Words are governed by DIFFICULTY LEVEL rather than
+topic (a Niveau 1 learner should never meet *victimisation*, wherever it routes),
+so their topical placement carries much less risk and is validated separately.
+
+The reviewer does not read Lingala. Both languages are shown and explicitly
+labelled, but the judgement asked for is topical and answerable from the French
+alone.
+
 Usage:
     python3 make_routing_qa_tool.py                 # 100 items, 4 bands
     python3 make_routing_qa_tool.py --n 160 --seed 7
@@ -27,6 +38,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+from collections import defaultdict
 from pathlib import Path
 
 ROUTING = Path("artifacts/professor_ingest/corpus_routing.json")
@@ -63,11 +75,22 @@ HTML = """<!doctype html>
   .lesson { font-size:22px; font-weight:700; margin:0 0 4px; }
   .level { font-size:13px; color:#9aa0aa; margin-bottom:22px; }
   .pair { background:#14161a; border:1px solid #2c313a; border-radius:12px;
-          padding:16px 18px; margin-bottom:14px; }
-  .fr { font-size:16px; margin-bottom:6px; }
-  .ln { font-size:16px; color:#8fd6a0; font-weight:600; }
-  .why { font-size:12px; color:#7c8595; margin-bottom:22px; line-height:1.5; }
-  .why b { color:#9aa0aa; font-weight:600; }
+          padding:16px 18px; margin-bottom:20px; }
+  .lbl { font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+         color:#6b7280; display:block; margin-bottom:3px; }
+  .fr { font-size:17px; margin-bottom:14px; }
+  .ln { font-size:17px; color:#8fd6a0; font-weight:600; }
+  .ctxhead { font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+             color:#7c8595; margin:0 0 8px; }
+  .ctx { border:1px solid #2c313a; border-radius:12px; overflow:hidden; margin-bottom:22px; }
+  .ctxrow { display:flex; gap:14px; padding:9px 14px; font-size:13px;
+            border-bottom:1px solid #232833; align-items:baseline; }
+  .ctxrow:last-child { border-bottom:none; }
+  .ctxrow.matched { background:#20263a; }
+  .cfr { flex:1; color:#c9ccd2; }
+  .cln { flex:1; color:#8fd6a0; }
+  .near { font-size:9px; color:#a08cff; letter-spacing:.06em;
+          text-transform:uppercase; white-space:nowrap; }
   .actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
   .yes { border-color:#2f7d4f; } .yes:hover { background:#1d3d2a; }
   .no  { border-color:#8c3b3b; } .no:hover  { background:#3d1d1d; }
@@ -111,14 +134,24 @@ function render() {
         <span class="tag">${it.source_table}</span>
         ${orth}
       </div>
-      <p class="lesson">${esc(it.lesson)}</p>
-      <p class="level">Cette phrase a-t-elle sa place dans cette leçon&nbsp;?</p>
       <div class="pair">
+        <span class="lbl">Français</span>
         <div class="fr">${esc(it.french)}</div>
+        <span class="lbl">Lingala</span>
         <div class="ln">${esc(it.lingala)}</div>
         ${it.audio_url ? `<audio controls preload="none" src="${it.audio_url}"></audio>` : ''}
       </div>
-      <p class="why"><b>Rapprochée de&nbsp;:</b> ${esc(it.matched_item || '—')}</p>
+      <p class="level">Cette phrase a-t-elle sa place dans la leçon</p>
+      <p class="lesson">${esc(it.lesson)}</p>
+      <p class="ctxhead">qui contient déjà, entre autres&nbsp;:</p>
+      <div class="ctx">
+        ${(it.lesson_sample || []).map(x => `
+          <div class="ctxrow${x.matched ? ' matched' : ''}">
+            <span class="cfr">${esc(x.fr)}</span>
+            <span class="cln">${esc(x.ln)}</span>
+            ${x.matched ? '<span class="near">↑ la plus proche</span>' : ''}
+          </div>`).join('')}
+      </div>
       <div class="actions">
         <button class="yes" onclick="mark('yes')">Oui, sa place ✓</button>
         <button class="no"  onclick="mark('no')">Non ✗</button>
@@ -126,8 +159,10 @@ function render() {
       </div>
       <p class="hint">Raccourcis&nbsp;: <kbd>1</kbd> oui · <kbd>2</kbd> non ·
         <kbd>3</kbd> incertain · <kbd>←</kbd> revenir<br>
-        Jugez seulement le <b>thème</b>&nbsp;: la phrase pourrait-elle apparaître dans un
-        exercice de cette leçon&nbsp;? La qualité du lingala n'est pas en cause ici.</p>
+        Jugez seulement le <b>thème</b>, à partir du français&nbsp;: cette phrase
+        pourrait-elle apparaître dans un exercice de cette leçon&nbsp;? Ni la qualité
+        ni la traduction du lingala ne sont en cause — les deux ont déjà été
+        validées par le professeur.</p>
     </div>`;
 }
 
@@ -160,6 +195,23 @@ render();
 """
 
 
+def lesson_sample(native, row, rng, n: int = 4) -> list[dict]:
+    """A few real items from the target lesson, with the matched one pinned first
+    so the reviewer can see what pulled the candidate in."""
+    rows = native.get(row["lesson_id"], [])
+    out, seen = [], set()
+    matched = row.get("matched_item")
+    for r in rows:
+        if r["french"] == matched:
+            out.append({"fr": r["french"], "ln": r["lingala"], "matched": True})
+            seen.add(r["french"])
+            break
+    pool = [r for r in rows if r["french"] not in seen]
+    for r in rng.sample(pool, min(n - len(out), len(pool))):
+        out.append({"fr": r["french"], "ln": r["lingala"], "matched": False})
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=100, help="total items to review (default 100)")
@@ -169,7 +221,16 @@ def main() -> None:
     if not ROUTING.exists():
         raise SystemExit(f"{ROUTING} missing — run route_corpus_to_lessons.py first")
     data = json.loads(ROUTING.read_text(encoding="utf-8"))
-    routed = [r for r in data["rows"] if not r["is_native"]]
+    # Sentences only — see the module docstring for why `senses` is excluded.
+    routed = [r for r in data["rows"]
+              if not r["is_native"] and r["source_table"] != "senses"]
+
+    # What each lesson actually holds, so the reviewer judges against content
+    # rather than a title. "Construction de phrases 1" means nothing on its own.
+    native = defaultdict(list)
+    for r in data["rows"]:
+        if r["is_native"]:
+            native[r["lesson_id"]].append(r)
 
     # The routing file only holds rows at or above its own threshold, so the
     # sub-threshold band is empty unless it was generated with a lower one.
@@ -182,7 +243,7 @@ def main() -> None:
             print(f"  band {lo:.2f}-{hi:.2f}: empty (re-run routing with --threshold {lo} to include it)")
             continue
         for r in rng.sample(band, min(per, len(band))):
-            sample.append({**r, "idx": idx})
+            sample.append({**r, "idx": idx, "lesson_sample": lesson_sample(native, r, rng)})
             idx += 1
         print(f"  band {lo:.2f}-{hi:.2f}: {min(per, len(band))} sampled of {len(band)}")
 
