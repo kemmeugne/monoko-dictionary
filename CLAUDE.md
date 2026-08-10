@@ -80,6 +80,8 @@ tts_space/requirements.txt        — Space deps: git+espnet, huggingface_hub, n
 tts_space/README.md               — Space metadata: sdk=gradio 6.13.0, python=3.10, app_file=app.py
 sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match_parallel_sentences RPC
 sql/pgvector_dictionary.sql       — SQL migration: embedding cols on senses+examples + match_examples/match_senses RPCs (applied 2026-08-07)
+sql/lesson_pool.sql               — SQL migration: lesson_pool, the exercise engine's material (applied 2026-08-10)
+populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
@@ -566,8 +568,11 @@ measured data, and the build slices. Short version:
   flat across similarity bands, so it was replaced by an LLM judge (96%) plus a
   reassignment pass for what the judge rejects (90%). Pool: **6,196 items** —
   1,347 native + 3,063 judge-approved + 1,786 reassigned, 4.6x the original.
-- Next action is **Slice 1 — the `lesson_pool` table** (one SQL migration, then
-  populate from the three tiers with precision recorded per row).
+- **Slice 1 is done (2026-08-10).** `lesson_pool` holds **6,196 rows** across all
+  50 lessons (median 107), each tagged `tier` (native/approved/reassigned =
+  100%/96%/90% precision), `orthography`, `token_count` and `effective_level`.
+  Re-runnable via `populate_lesson_pool.py`; anon-key read verified.
+- Next action is **Slice 2 — the session shell + match-pairs exercise**.
 
 ## Deprioritised: fine-tune TTS on professor's voice
 

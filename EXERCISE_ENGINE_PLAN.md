@@ -182,15 +182,31 @@ into an easy one. Distribution 155/821/858/467/5/4 — levels 5–6 are nearly e
 because this is an everyday dictionary; *exporter*, *victimisation*,
 *négociation* are not in it at all.
 
-### Slice 1 — `lesson_pool` table  ⬜
-One SQL migration (Anthony runs it in the Supabase editor), then populate.
+### Slice 1 — `lesson_pool` table  ✅ DONE 2026-08-10
 
-Columns: `lesson_id`, `source_table` + `source_id`, French and Lingala text
-denormalised, `audio_url`, `token_count`, `orthography` (`toned` | `untoned`),
-`similarity`, `is_native` (professor-authored vs routed).
+`sql/lesson_pool.sql` (applied) + `populate_lesson_pool.py`. **6,196 rows, all
+50 lessons, median 107 items per lesson.** Only one lesson under 20 items
+(Nombres ordinaux, 11).
 
-Text is denormalised on purpose: the client does one query per pool instead of
-joining four tables, and it freezes exactly what an exercise may display.
+A table rather than a view: the pool is assembled from four source tables plus
+two LLM passes whose verdicts live in artifacts, not in the database — a view
+cannot express "a model approved this placement" or "a model moved this row".
+Text is denormalised so the client fetches a lesson's pool in one query, with
+`source_table` + `source_id` keeping provenance traceable.
+
+| Column | Why it exists |
+|---|---|
+| `tier` | native / approved / reassigned = 100% / 96% / 90% precision. Stored per row so the engine can prefer native material and reach for the rest only to top up. |
+| `unique (source_table, source_id)` | Makes populate re-runnable — verified idempotent, 6,196 → 6,196. Without it a re-route silently doubles a lesson. |
+| `orthography` | Follows the SOURCE, not the string. Sniffing for accents would misclassify every legitimately toneless word. This is what keeps toned and untoned content out of the same exercise. |
+| `effective_level` | `max(level, difficulty)` — difficulty only ever restricts. 168 word rows are raised above their lesson's level; a hard word cannot leak into an easy lesson. `difficulty` is null for sentences, which length already grades. |
+
+Shape available to the generator: 4,668 rows with audio · 4,553 with ≥3 tokens ·
+968 single words · 3,425 untoned.
+
+**Anon-key read verified** — the RLS policy is what stands between a working
+engine and a table the app cannot see, so it is checked with the live app's own
+publishable key, not the service key.
 
 ### Slice 2 — session shell + match-pairs  ⬜
 The frame everything else plugs into.
