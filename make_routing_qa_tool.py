@@ -159,10 +159,12 @@ function render() {
       </div>
       <p class="hint">Raccourcis&nbsp;: <kbd>1</kbd> oui · <kbd>2</kbd> non ·
         <kbd>3</kbd> incertain · <kbd>←</kbd> revenir<br>
-        Jugez seulement le <b>thème</b>, à partir du français&nbsp;: cette phrase
-        pourrait-elle apparaître dans un exercice de cette leçon&nbsp;? Ni la qualité
-        ni la traduction du lingala ne sont en cause — les deux ont déjà été
-        validées par le professeur.</p>
+        <b>Oui</b> = la phrase a sa place ici, <b>même si une autre leçon
+        conviendrait peut-être mieux</b>. <b>Non</b> = elle détonne&nbsp;; un
+        apprenant serait surpris de la trouver dans cette leçon.<br>
+        Jugez seulement le <b>thème</b>, à partir du français. Ni la qualité ni la
+        traduction du lingala ne sont en cause — les deux ont déjà été validées
+        par le professeur.</p>
     </div>`;
 }
 
