@@ -367,10 +367,44 @@ The refactor is the point of this slice; the table is the small half.
 Pratiquer (native) / Élargir (corpus), the 80% gate and unlock, the
 "18/25 maîtrisés" mastery counter. Depends on Slice 4.
 
-### Slice 6 — tokenizer + tap-words-in-order, then fill-the-blank  ⬜
-Build and unit-test the tokenizer **first** — it must handle Lingala spacing,
-apostrophes and tone marks consistently. These two are what give thin lessons
-real cross-format variety, and they are the formats the corpus unlocks.
+### Slice 6 — the four remaining exercise types  ⬜
+**All six types ship here** (decided 2026-08-10). Nothing is deferred: listen-and-type
+and speaking were previously "build last", but the blockers on both turned out to be
+input-mechanism problems, not feasibility problems.
+
+1. **Tokenizer** — build and unit-test it first. It must handle Lingala spacing,
+   apostrophes and tone marks consistently; tap-words, fill-the-blank and
+   listen-and-type all depend on it.
+2. **Tap words in order** — French prompt, shuffled Lingala word tiles. 3–9 tokens.
+3. **Fill the blank** — one content word removed. ≥3 tokens.
+4. **Listen & type** — **character tiles, never a keyboard** (see §5).
+5. **Speaking** — **record-and-compare**, no STT (see §7).
+
+### Slice 6 constraints that are not negotiable
+
+**Listen-and-type is a tile exercise.** The pool uses **42 distinct alphabetic
+characters**; 16 of them cannot be produced on an iPhone French keyboard at all:
+`à á â ç è é ë í î ó ô ú ē ǎ ɔ ɛ`. A free-text input makes the exercise
+unanswerable, not merely awkward. Tapping from an offered character bank also
+dissolves the orthography objection — the learner can only build what is offered,
+so there is no "accept tone-mark variants" fudge teaching that tone is optional.
+
+Restricted to ≤2 tokens the tile version covers **1,524 items (602 native) across
+45/50 lessons**, median 6 characters and p90 12 — a comfortable tile count. At
+1 token it is 927 items / 35 lessons; at ≤3 tokens, 1,961 items / 48 lessons but
+p90 rises to 15 characters. **≤2 tokens is the right cut.**
+
+**Speaking is record-and-compare, and is excluded from the Pratiquer 80% gate.**
+Play the professor, record yourself, hear them back to back. No STT, so no
+dependency on the unmeasured WER (§7). Coverage is not a problem: 75% of the pool
+carries the professor's voice, **49/50 lessons have ≥20 such items and none have
+zero**.
+
+Because self-assessment cannot be objectively scored, a speaking question earns
+XP and self-grades ("Encore" / "C'était bon") but **does not count toward the 80%
+pass calculation** — certifying a lesson on an unscoreable question would make
+the bar meaningless. If WER is later measured below ~15% on sentences, scored
+speaking can replace the self-grade and rejoin the gate.
 
 ### Slice 7 — progression and retention  ⬜
 XP, best score, medals, streak. Thin once sessions and attempts exist.
@@ -404,20 +438,27 @@ human review at a volume no one can review by hand.
 
 ---
 
-## 5. Why listen-and-type is last
+## 5. Listen-and-type needs tiles, not a keyboard
 
-`CORPUS_PIPELINE.md` §7 says to build it first as "the simplest". The data says
-otherwise:
+**Superseded 2026-08-10.** This section used to argue that listen-and-type should
+be built last, against `CORPUS_PIPELINE.md` §7 which called it "the simplest".
+Both were reasoning about a *typed* exercise. The objections were:
 
 - The learner types, so the expected string decides right/wrong — and 65% of the
-  pool is in a different orthography from the course. Mixed spelling makes it
-  unanswerable.
-- Tone marks and `ɛ`/`ɔ` cannot be typed on an iPhone French keyboard at all.
+  pool is in a different orthography from the course.
+- Tone marks and `ɛ`/`ɔ` cannot be typed on an iPhone French keyboard.
 - The spec's mitigation ("accept tone-mark variants") teaches that tone is
   optional, contradicting module 1.1.
 
-If built, restrict it to the 914 course-grade items, or add a tap-the-character
-helper rather than a raw keyboard.
+**A character-tile input removes all three at once**, so the exercise ships in
+Slice 6 with everything else. The learner taps from an offered bank rather than
+typing: orthography cannot drift because only the correct characters are offered,
+`ɛ`/`ɔ`/toned vowels are just tiles, and no variant-acceptance fudge is needed.
+
+Measured: the pool needs a 42-key bank, of which **16 keys are unreachable from an
+iPhone French keyboard** — which is what makes tiles mandatory rather than merely
+nicer. Scope it to ≤2 tokens: 1,524 items, 602 native, 45/50 lessons, median 6
+characters. See Slice 6.
 
 ---
 
@@ -442,8 +483,19 @@ Two constraints:
 
 ## 7. Speaking, and the STT question
 
-Speaking is now an ordinary exercise type (app shows a word → learner says it →
-STT scores it), built **last**.
+**Decided 2026-08-10: speaking ships in Slice 6 as record-and-compare, with no
+STT at all.** Play the professor's clip, record yourself, hear them back to back.
+That removes the WER dependency entirely, so speaking is no longer gated on the
+measurement below — the measurement now only decides whether a *scored* version
+can replace the self-grade later.
+
+Coverage is not a constraint: 75% of the pool carries the professor's voice,
+49/50 lessons have ≥20 such items, none have zero. Because self-assessment
+cannot be objectively scored, speaking earns XP but is excluded from the
+Pratiquer 80% gate (see Slice 6).
+
+The original framing, kept because the STT reasoning still governs any future
+scored version:
 
 `api/elevenlabs-stt.js` already exists and is deployed (Scribe v2, `lin`). But
 its own header comment records the blocker: **20–50% WER on Lingala**. Making

@@ -603,6 +603,11 @@ Non-obvious rules that fall out of it:
   errors safe; hearts were rejected for the opposite reason.
 - **Every format is universal except match-pairs**, which needs 5 items sharing
   orthography + shape band and excludes 12/50 lessons.
+- **All six exercise types ship together in Slice 6.** Listen-and-type uses
+  **character tiles, never a keyboard** — the pool needs 42 letters and 16 of them
+  (`ɛ ɔ` and the toned vowels) cannot be typed on an iPhone French keyboard at all.
+  Speaking is **record-and-compare** (no STT, so no WER dependency) and is excluded
+  from the Pratiquer 80% gate because self-assessment cannot be scored.
 
 **Next action is Slice 4 — attempts table + refactoring `buildSession` to be
 pool-shaped.** Slices 2 and 3 shipped before the stage model was settled, so

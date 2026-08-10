@@ -135,7 +135,8 @@ hand-authoring and no LLM at question time:
 | Fill the blank | 5,193 |
 | Tap words in order | 4,700 |
 | Match pairs | 3,573 |
-| Listen & type | 4,861 — built last, see the plan for why |
+| Listen & type | 4,861 — **character tiles, not a keyboard**; 1,524 items at ≤2 tokens |
+| Speaking | 4,668 — **record-and-compare**, no STT, excluded from the 80% gate |
 
 **Where the material came from.** Corpus→lesson routing, then two LLM passes to
 make it trustworthy. Cosine similarity alone measured **77% precision and flat
@@ -172,8 +173,9 @@ leaderboards and hearts were all rejected — see the plan for why.
 
 **Build order:** routing QA ✅ → `lesson_pool` ✅ → session shell + match-pairs ✅
 → choose-the-audio ✅ → **attempts + pool-shaped `buildSession` ← NEXT** → stage
-split + 80% gate → tokenizer + tap-words-in-order + fill-the-blank → XP/streaks →
-session cap. Slices 2–3 shipped before the stage model was settled;
+split + 80% gate → **all four remaining exercise types** (tokenizer,
+tap-words-in-order, fill-the-blank, listen-and-type as character tiles, speaking
+as record-and-compare) → XP/streaks → session cap. Slices 2–3 shipped before the stage model was settled;
 `EXERCISE_ENGINE_PLAN.md` §4b lists what must change.
 
 **Spaced repetition (SM-2)** belongs **only to Pratiquer** — it needs a finite
