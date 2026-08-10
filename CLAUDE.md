@@ -572,7 +572,47 @@ measured data, and the build slices. Short version:
   50 lessons (median 107), each tagged `tier` (native/approved/reassigned =
   100%/96%/90% precision), `orthography`, `token_count` and `effective_level`.
   Re-runnable via `populate_lesson_pool.py`; anon-key read verified.
-- Next action is **Slice 2 — the session shell + match-pairs exercise**.
+- **Slices 2 and 3 are done (2026-08-10).** Session shell + match-pairs
+  (`212ba5e`), choose-the-audio (`599ae7b`), audio prefetch (`eb55200`).
+
+### The stage model (settled 2026-08-10) — read §2 of the plan
+
+A lesson is **three stages over two disjoint pools**:
+
+| Stage | Material | Shape |
+|---|---|---|
+| Apprendre | the lesson page (exists) | the teach beat |
+| **Pratiquer** | `tier = native` (100% precision) | finite, **80% to pass**, unlocks Élargir |
+| **Élargir** | `approved` + `reassigned` | endless, replayable for best score |
+
+Non-obvious rules that fall out of it:
+
+- **A session is 20 questions, not 15 screens.** A match-pairs screen counts as
+  5. Screens are unequal in time; questions are not, and question-counting makes
+  variable screen sizes free.
+- **Thin lessons repeat the item, not the session.** The same item may be tested
+  in up to 3 *different formats*. 47/50 lessons then fill a full session from
+  native content alone.
+- **Routing error is not linguistic error.** Everything in `lesson_pool` is
+  professor-verified; the 96%/90% tiers measure *lesson placement*, not Lingala
+  correctness. A miss serves a correct off-topic sentence (~1.2 per session) —
+  which is what makes endless Élargir acceptable.
+- **`buildSession` takes a pool, never a `lesson_id`.** The topic hub, play
+  button and placement session are all just different pools.
+- **Free tier caps sessions per day (~3), never mistakes.** Limiting time keeps
+  errors safe; hearts were rejected for the opposite reason.
+- **Every format is universal except match-pairs**, which needs 5 items sharing
+  orthography + shape band and excludes 12/50 lessons.
+
+**Next action is Slice 4 — attempts table + refactoring `buildSession` to be
+pool-shaped.** Slices 2 and 3 shipped before the stage model was settled, so
+`EXERCISE_ENGINE_PLAN.md` §4b lists exactly what already-shipped code must change.
+
+**Audio prefetch gotcha:** R2 sends no `Access-Control-Allow-Origin` and 403s the
+OPTIONS preflight, so `fetch()` cannot read audio clips from the browser — a blob
+cache fails *silently* and streams on every tap. Prefetch uses
+`<audio preload="auto">`, which is exempt from CORS. Setting `Cache-Control` +
+CORS on the bucket would fix this at the source for dictionary audio too.
 
 ## Deprioritised: fine-tune TTS on professor's voice
 

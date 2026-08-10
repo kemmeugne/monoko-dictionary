@@ -43,6 +43,50 @@ two — see §7.
 | Guest play | **First session free**, progress in localStorage, migrates on signup |
 | Distractors | **Shape homogeneity is a hard rule**; same-lesson preference is a soft nudge |
 
+### Stage model (settled 2026-08-10)
+
+The course has something Duolingo does not: a professor-authored lesson behind
+every game. That asset is wasted if the game draws on the same undifferentiated
+pool the lesson does. So a lesson is **three stages over two disjoint pools**.
+
+| Stage | Material | Shape |
+|---|---|---|
+| **Apprendre** | the lesson page (exists today) | the teach beat |
+| **Pratiquer** | `tier = native` only — 100% precision | **finite**, 80% to pass, unlocks Élargir |
+| **Élargir** | `tier IN (approved, reassigned)` | **endless**, replayable for best score |
+
+The stages never share material. Élargir is everything routed to that topic that
+the lesson itself never taught.
+
+| Question | Decision |
+|---|---|
+| Session length | **20 questions, fixed.** A match-pairs screen contributes 5 |
+| Why questions, not screens | Screens are wildly unequal in time — a match-pairs screen is 5 decisions, a listen-and-type screen is 1. Counting questions equalises session duration *and* makes variable screen sizes free (a 3-pair screen is simply 3 questions) |
+| Pratiquer pass bar | **80% first-try accuracy** (16/20). First-try can't be farmed by brute-forcing the retry |
+| Failing Pratiquer | Retry immediately. No lives, no lockout |
+| Thin lessons | **Test the same item in up to 3 different formats** rather than shortening the session. Varied retrieval practice beats 20 distinct items tested once |
+| Élargir progression | Topic XP → topic level. The level **widens the pool** (short → long, approved → reassigned) and shifts the exercise mix **recognition → production** |
+| Élargir exhaustion | **Recycles with spacing** — recently-seen suppressed, distractors reshuffled. Never "draw unseen", which breaks at session ~10 |
+| Tier order | Serve `approved` before `reassigned`, so early sessions are ~96% precision |
+| Free tier | **Cap sessions per day (~3), never cap mistakes.** Élargir capped; Pratiquer uncapped since it is finite. Limiting *time* keeps errors safe, which is why hearts were rejected |
+| Retention mechanics | Streak · best score + medals (80/90/100) · perfect-session bonus · "18/25 maîtrisés" · the professor's voice on every correct answer |
+| Rejected mechanics | **Speed bonuses** (train guessing; in a tonal language rushing teaches wrong tone) · **leaderboards** (need user density that does not exist) · **hearts/lives** (punitive) |
+| Session builder signature | **`buildSession(items, level, count)` — a pool, never a `lesson_id`.** Every future entry point (topic hub, play button, level-wide play) is then the same function with a different pool |
+
+**Routing error is not linguistic error.** Every row in `lesson_pool` comes from
+professor-verified sources. The 96%/90% tiers measure *whether the item belongs
+to this lesson*, not whether the Lingala is correct. A routing miss in Élargir
+serves a correct sentence about food while you practise greetings — topical
+dilution, not misinformation. Expected exposure is **~1.2 off-topic items per
+20-question session**. This is what makes endless Élargir acceptable.
+
+**Deferred, in this order:** practice hub (topic-first entry) → play button
+(level-wide corpus) → placement session. All three are pool selectors over the
+same engine, which is why the builder signature above matters now. A
+self-rating "how good are you, 1–4" was considered and **rejected** — people
+rate themselves badly in both directions; a 10-question adaptive placement
+session using `effective_level` is the honest version.
+
 ---
 
 ## 3. The data (measured 2026-08-07 — trust these numbers over older docs)
@@ -73,6 +117,69 @@ Full routing output: `artifacts/professor_ingest/corpus_routing.json`
 | Tap words in order | 2,097 | 2,603 | **4,700** | text; 3–9 tokens |
 | Fill the blank | 2,298 | 2,895 | **5,193** | text; ≥3 tokens |
 | Listen & type | 914 | 3,947 | **4,861** | needs audio; ≤6 tokens — **build last, see §5** |
+
+### Per-lesson feasibility (measured 2026-08-10)
+
+The §"Per exercise type" counts above are **corpus-wide** — how many items in the
+whole pool fit each format's shape. They say nothing about whether an individual
+lesson can build a session, which is what the stage model needs. Measured
+per lesson, native content only:
+
+| Exercise | Lessons with enough NATIVE material | With the full pool |
+|---|---:|---:|
+| Choose the audio | 49/50 | 50/50 |
+| Listen & type | 47/50 | 50/50 |
+| Match pairs | 38/50 | 47/50 |
+| Fill the blank | 35/50 | 50/50 |
+| Tap words in order | 32/50 | 50/50 |
+
+**24 of 50 lessons support all five types from native content alone; 46 support
+at least three.** Native content is 1,347 rows across 50 lessons — min 3,
+median 25, max 62.
+
+Two findings drive the design:
+
+**The corpus's job is to unlock formats the lesson cannot pose.** The types
+native content fails are exactly the two needing 3+ token sentences — tap-words
+(32/50) and fill-the-blank (35/50) — and the corpus lifts both to 50/50. Élargir
+is therefore not "more of the same, lower quality"; for a word-heavy lesson,
+tap-words-in-order literally *becomes available* there.
+
+**Every format is universal at the item level except match-pairs.** Because the
+professor recorded everything, speaking and choose-the-audio are eligible on
+**100%** of native items and listen-and-type on 79% — with **zero lessons
+excluded**. Match-pairs excludes 12/50 lessons, and it is the only format with a
+*group* requirement (5 items sharing orthography + shape band + ≤3 tokens).
+Dropping the floor from 5 pairs to 3 recovers most of them, which the
+question-budget model makes free.
+
+Allowing an item to be tested in up to 3 different formats, **47/50 lessons fill
+a full 20-question session from native content alone**. The exceptions are
+content gaps, not engineering problems:
+
+| Lesson | Native | Max questions |
+|---|---:|---:|
+| Comparatifs et superlatifs | 6 | 18 |
+| Météo | 6 | 18 |
+| **Les nombres ordinaux** | **3** | **9** |
+
+### Élargir depth (measured 2026-08-10)
+
+Distinct 20-question sessions before any repeat, corpus-only, per lesson:
+**min 1 · p25 6 · median 10 · max 32**. **16 of 50 lessons hold fewer than 8
+sessions**; *Les nombres ordinaux* (8 corpus items) and *Les mois* (13) hold one.
+This is why Élargir must be built as a recycling pool from the start.
+
+Tier split of the Élargir pool: **3,063 approved (96%) / 1,786 reassigned (90%)**
+— 36% is the weaker tier. Most reassigned-heavy lessons: Comparatifs et
+superlatifs (80%), Pronoms relatifs (80%), Conjugaison futur et impératif (74%).
+
+Worked example — **Salutations et politesse**, 178 items: 29 native (Pratiquer) /
+120 approved + 29 reassigned (Élargir, 149 items ≈ 7–10 sessions). Length spread
+`1 token:15 · 2–3:64 · 4–6:72 · 7–9:24 · 10+:3`, and 119 toned / 59 untoned —
+so the selector slices on **(level band × orthography)**, not level band alone.
+*Présentation personnelle* inverts that ratio (40 toned / 75 untoned, being
+dictionary-heavy), which is why orthography cannot be a global setting.
 
 ### Three findings that shape the design
 
@@ -208,34 +315,92 @@ Shape available to the generator: 4,668 rows with audio · 4,553 with ≥3 token
 engine and a table the app cannot see, so it is checked with the live app's own
 publishable key, not the service key.
 
-### Slice 2 — session shell + match-pairs  ⬜
-The frame everything else plugs into.
+### Slice 2 — session shell + match-pairs  ✅ DONE 2026-08-10
+Full-screen view, one question per screen, no scrolling. Live queue — missed
+pairs are re-inserted and must be cleared before the session ends. XP, summary
+screen, "Pourquoi ?" button, entry via "S'entraîner" on the lesson screen.
+Shipped as `212ba5e`.
 
-- Full-screen view, one question per screen, no scrolling (mobile-first, 375px)
-- 15 questions, **live queue** — wrong items are re-inserted and must be answered
-  correctly before the session ends
-- Shape-homogeneous options; same-lesson distractors preferred, level pool as fallback
-- Orthography never mixed within one exercise
-- XP scoring, session summary screen
-- **"Pourquoi ?"** button on wrong answers → the existing lesson view for now,
-  swapped for a rule card later (§6)
-- Guest-capable; progress in localStorage, migrated on signup
-- Entry point: an "S'entraîner" button on the lesson screen, so nothing existing
-  changes until it is seen working
+Shape homogeneity took three attempts and the first two shipped a broken
+exercise. Filtering Lingala length alone still paired "Ami" with "La famille est
+sacrée." The rule that works: **band the FRENCH column only**. The exploit needs
+*correlation* between the columns — you pair the long left tile with the long
+right one — so making one column uniform leaves length variation in the other
+carrying no pairing information.
 
-### Slice 3 — choose-the-audio  ⬜
+### Slice 3 — choose-the-audio  ✅ DONE 2026-08-10
 Largest pool (6,539) and the one that shows off the professor's recordings.
+The professor's clip is the **prompt** and the French options are the answers,
+not the reverse — three clips to compare tests whether you can tell recordings
+apart, which is not a skill anyone needs. Shipped as `599ae7b`.
 
-### Slice 4 — tokenizer + tap-words-in-order  ⬜
+**Audio prefetch** (`eb55200`): each screen preloads its own clips and the next
+screen's, so the ~330ms R2 round trip never lands inside a tap. Measured
+814ms → 0ms. Prefetch uses `<audio preload="auto">`, **not** `fetch()`+blob —
+the bucket sends no `Access-Control-Allow-Origin` and 403s the OPTIONS
+preflight, so `fetch()` cannot read those clips from the browser at all. A blob
+cache fails *silently*, falling back to a network fetch on every tap. Media
+elements are exempt from CORS. Setting `Cache-Control` + CORS on the R2 bucket
+would fix this at the source and speed up dictionary audio too.
+
+---
+
+## 4b. Build order from here (revised 2026-08-10)
+
+The stage model changes the remaining slices. **Slices 2 and 3 shipped before it
+was settled and now need modification** — see "What already-shipped code must
+change" below.
+
+### Slice 4 — foundations: attempts + pool-shaped builder  ⬜  ← NEXT
+The refactor is the point of this slice; the table is the small half.
+
+- SQL migration: an attempts table (`user_id`, `pool_item_id`, `correct`,
+  `answered_at`, `format`) plus per-lesson stage state (Pratiquer passed?,
+  topic XP, best Élargir score). RLS mirroring `user_progress`.
+- Refactor `buildSession` to **`buildSession(items, level, count)`** — takes a
+  pool, never a `lesson_id`. Do this before anything else is built on top: the
+  topic hub, the play button and the placement session are all just different
+  pools, and baking `lesson_id` in now turns each into a rewrite.
+- Switch the session budget from **15 screens to 20 questions**.
+
+### Slice 5 — stage split  ⬜
+Pratiquer (native) / Élargir (corpus), the 80% gate and unlock, the
+"18/25 maîtrisés" mastery counter. Depends on Slice 4.
+
+### Slice 6 — tokenizer + tap-words-in-order, then fill-the-blank  ⬜
 Build and unit-test the tokenizer **first** — it must handle Lingala spacing,
-apostrophes and tone marks consistently. Then the exercise.
+apostrophes and tone marks consistently. These two are what give thin lessons
+real cross-format variety, and they are the formats the corpus unlocks.
 
-### Slice 5 — fill-the-blank  ⬜
-Reuses the tokenizer.
+### Slice 7 — progression and retention  ⬜
+XP, best score, medals, streak. Thin once sessions and attempts exist.
+SM-2 scheduling belongs **only to Pratiquer** — spaced repetition needs a finite
+item set with per-item state, which native content (median 25) is and the
+6,196-row corpus is not. Élargir draws at random with no per-item state.
 
-### Slice 6 — attempts + SM-2 review queue + streaks  ⬜
-All thin once sessions exist. A review is a session sourced from the SM-2 queue;
-a streak is "did you finish any session today".
+### Slice 8 — monetization  ⬜
+Daily session cap on Élargir. Needs auth + the attempts table.
+
+### Later
+Listen-and-type (§5) · speaking (§7, still gated on measuring WER) ·
+practice hub · play button · placement session.
+
+### What already-shipped code must change
+
+| Shipped | Change needed | Slice |
+|---|---|---|
+| `buildSession(rows, level, max)` builds from one undifferentiated pool | Split by `tier`: native → Pratiquer, corpus → Élargir | 5 |
+| `SESSION_MAX = 15` screens | 20 **questions**; a match-pairs screen contributes 5 | 4 |
+| `PAIRS_PER_SCREEN = 5` fixed | Allow 3–5 so the 12 match-pairs-short lessons qualify | 4 |
+| An item may appear only once per session | Allow up to 3 appearances **in different formats** — required for thin lessons | 4 |
+| Session ends, XP discarded | Persist XP, best score, pass/fail | 7 |
+| No reporting path | "Signaler" button → existing `corrections` table → `admin.html` | 5 |
+
+**The "signaler" button is worth more than it looks.** The whole flow already
+exists end to end (`corrections` → admin panel → professor approve/reject →
+`professor_modified`). Wiring Élargir into it makes learners the QA pass on
+routing — and the 1,786 reassigned items are exactly the population that needs
+human review at a volume no one can review by hand.
 
 ---
 

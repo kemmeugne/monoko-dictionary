@@ -145,14 +145,40 @@ showing the model all 50 lessons (90% precision). Course material went from
 **1,347 items to 6,196** — 1,347 native + 3,063 judge-approved + 1,786
 reassigned. Full detail in `EXERCISE_ENGINE_PLAN.md` §Slice 0.
 
-**Build order:** routing QA → `lesson_pool` table → session shell + match-pairs →
-choose-the-audio → tokenizer + tap-words-in-order → fill-the-blank → attempts +
-SM-2 review queue + streaks.
+**The stage model (settled 2026-08-10).** A lesson is three stages over two
+**disjoint** pools — Élargir is everything routed to the topic that the lesson
+itself never taught:
 
-**Spaced repetition (SM-2)** is unchanged from the original plan: wrong answers
-enter a review queue with `ease_factor`, `interval`, `repetitions`; the home
-screen shows "X items to review today". It arrives as the last slice, because a
-review session is just a session sourced from the queue.
+| Stage | Material | Shape |
+|---|---|---|
+| Apprendre | the lesson page (exists) | the teach beat |
+| **Pratiquer** | `tier = native`, 100% precision | finite, **80% to pass**, unlocks Élargir |
+| **Élargir** | `approved` + `reassigned` | endless, replayable for best score |
+
+A session is **20 questions** (a match-pairs screen counts as 5), identical in
+both stages, so every session takes the same time regardless of lesson size.
+Thin lessons test the same item in up to 3 *different formats* rather than
+running short — 47/50 lessons then fill a full session from native content alone.
+
+Élargir levels up on topic XP: the level widens the pool (short → long
+sentences, `approved` → `reassigned`) and shifts the exercise mix from
+recognition to production. It recycles with spacing rather than exhausting —
+median depth is only 10 distinct sessions.
+
+**Free tier caps sessions per day (~3), never mistakes.** Élargir is capped;
+Pratiquer is not, being finite. Retention comes from streak, best score +
+medals, perfect-session bonus and the mastery counter. Speed bonuses,
+leaderboards and hearts were all rejected — see the plan for why.
+
+**Build order:** routing QA ✅ → `lesson_pool` ✅ → session shell + match-pairs ✅
+→ choose-the-audio ✅ → **attempts + pool-shaped `buildSession` ← NEXT** → stage
+split + 80% gate → tokenizer + tap-words-in-order + fill-the-blank → XP/streaks →
+session cap. Slices 2–3 shipped before the stage model was settled;
+`EXERCISE_ENGINE_PLAN.md` §4b lists what must change.
+
+**Spaced repetition (SM-2)** belongs **only to Pratiquer** — it needs a finite
+item set with per-item state, which native content (median 25 items) is and the
+6,196-row corpus is not. Élargir draws at random with no per-item state.
 
 **Dropped:** `exam_results` table, pass thresholds, level locking. `user_progress`
 keeps its unused `exam_score` column for now.
