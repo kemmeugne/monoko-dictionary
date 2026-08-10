@@ -85,7 +85,10 @@ sql/progress_tracking.sql         — SQL migration: profiles + user_progress ta
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
 liste_200_phrases.docx            — 200 phrase types across 19 themes used by monoko_auto_test.py
-route_corpus_to_lessons.py        — routes every verified FR-dialect pair to its nearest lesson (cosine top-1 over existing embeddings) -> artifacts/professor_ingest/corpus_routing.json
+route_corpus_to_lessons.py        — first-pass routing: nearest lesson_item by cosine. Measured at only 77% precision, FLAT across similarity bands -> superseded by the two scripts below, kept because it produces the candidate pool
+llm_route_judge.py                — stage 1: LLM votes yes/no on cosine's guess (gpt-4.1-mini + `strict` prompt; 96% precision, 82% recall). --compare scores prompt variants against the human labels; --run does the full pass
+reassign_discarded.py             — stage 2: shows the model all 50 lessons and asks WHICH one a rejected sentence belongs to. Recovered 1,786 of 3,334 rejects at 90% precision
+classify_word_difficulty.py       — rates all 2,311 dictionary headwords 1-6; topic is the wrong axis for a single word, level is the right one
 make_routing_qa_tool.py           — builds routing_qa_tool.html: 100 routed items stratified by similarity, for measuring routing precision
 analyse_routing_qa.py             — reads the QA verdicts, reports precision per similarity band + per source, recommends a threshold
 TECHNICAL_DOCS.md                 — full system documentation
@@ -559,8 +562,12 @@ measured data, and the build slices. Short version:
 - **The dictionary has zero tone marks; the course has 31%.** Of 678 words in both,
   75 are never spelled the same. Rule: untoned and toned content must never appear
   in the same exercise.
-- Next action is **Slice 0 — routing QA** (100 sampled items reviewed for
-  precision) before any engine code.
+- **Slice 0 is done (2026-08-10).** Cosine routing measured 77% precision and
+  flat across similarity bands, so it was replaced by an LLM judge (96%) plus a
+  reassignment pass for what the judge rejects (90%). Pool: **6,196 items** —
+  1,347 native + 3,063 judge-approved + 1,786 reassigned, 4.6x the original.
+- Next action is **Slice 1 — the `lesson_pool` table** (one SQL migration, then
+  populate from the three tiers with precision recorded per row).
 
 ## Deprioritised: fine-tune TTS on professor's voice
 

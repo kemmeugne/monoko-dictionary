@@ -56,9 +56,10 @@ two — see §7.
 | FLORES-200 (unusable, see below) | 2,009 |
 | **Usable for exercises** | **8,063** |
 
-After routing to lessons at similarity ≥ 0.55, the course goes from **1,347
-items to 5,923** across 50 lessons, and every lesson gains something. Level
-pools: N1 986 · N2 1,199 · N3 1,734 · N4 890 · N5 469 · N6 645.
+~~After routing to lessons at similarity ≥ 0.55, the course goes from 1,347 to
+5,923 items.~~ **Superseded 2026-08-10** — cosine routing measured only 77%
+precision and was replaced (see Slice 0). The real pool is **6,196**: 1,347
+native + 3,063 judge-approved + 1,786 AI-reassigned.
 
 Full routing output: `artifacts/professor_ingest/corpus_routing.json`
 (regenerate with `python3 route_corpus_to_lessons.py`).
@@ -113,26 +114,73 @@ alone covers the course.
 Each slice ships something inspectable. Do not start the next until the previous
 is verified.
 
-### Slice 0 — Routing QA  🟡 AWAITING VERDICTS (tool built 2026-08-10)
-The routed rows are the backbone of every exercise, and precision had only been
-eyeballed on a handful of samples.
+### Slice 0 — Routing QA  ✅ DONE 2026-08-10
 
-Tooling, all committed:
-- `route_corpus_to_lessons.py` — routes every verified pair to its nearest lesson
-  by cosine top-1. Run at `--threshold 0.45` so sub-threshold rows exist for QA;
-  the final threshold is applied when `lesson_pool` is built, not here.
-  Output: `artifacts/professor_ingest/corpus_routing.json` — 7,744 rows
-  (1,347 native + 6,397 routed; 289 dictionary pairs already taught were dropped).
-- `make_routing_qa_tool.py` → `routing_qa_tool.html` — 100 items, **stratified by
-  similarity** (25 per band: 0.45-0.55 / 0.55-0.65 / 0.65-0.75 / 0.75+), shuffled
-  so the reviewer cannot infer the band. Uniform sampling would measure precision
-  at the current threshold but say nothing about where it *should* sit; the
-  sub-0.55 band is included precisely to test whether we are being too strict.
-- `analyse_routing_qa.py` — reads the exported verdicts, reports precision per
-  band and per source table, and recommends a threshold.
+Every routed row now carries a measured precision, not an assumed one.
 
-**Next action: Anthony reviews `routing_qa_tool.html` and returns
-`routing_qa_verdicts.json`.** Nothing below starts until that number exists.
+**Cosine routing failed the QA, and the way it failed is the point.**
+`route_corpus_to_lessons.py` assigns each verified pair to its nearest
+`lesson_item` and inherits that item's lesson. 100 stratified sentences reviewed
+by Anthony: **77% precision, flat across all four similarity bands**
+(72/79/76/80). Precision was supposed to rise with similarity — it didn't, so no
+threshold could rescue it. Cause: embeddings measure *topic*, but ~1/3 of the
+lessons are defined by *grammar*. "Je ne sais pas quoi faire" matched an
+identical sentence at 0.94 that lives in Pronoms relatifs as a structural
+example. Grammar lessons scored 69%, topic lessons 79%. k-NN voting was tested
+against the labels and was not a clear win, so it was not adopted.
+
+**Stage 1 — `llm_route_judge.py`** asks the model the same yes/no question the
+human answered, showing it real items from the target lesson (titles alone are
+not judgeable — a human couldn't grade "Construction de phrases 1" from the name
+either). Three prompt calibrations were scored head-to-head against the 101
+labels; `strict` won and `open` was strictly dominated by `wide`:
+
+| prompt | kept | precision | recall | bad kept |
+|---|---:|---:|---:|---:|
+| (cosine baseline) | 101 | 77% | 100% | 23 |
+| **strict** | **67** | **96%** | **82%** | **3** |
+| open | 86 | 86% | 95% | 12 |
+| wide | 84 | 88% | 95% | 10 |
+
+**The model mattered more than the prompt.** Identical `strict` prompt: 64%
+recall on gpt-4o-mini, 82% on gpt-4.1-mini, precision unchanged at 96%. The
+looser prompts existed only because strict seemed to discard too much; the model
+swap largely removed that objection. Full pass kept **3,063 of 6,397**.
+
+**Stage 2 — `reassign_discarded.py`** fixes what a yes/no judge structurally
+cannot. When cosine mis-routes, the judge says no and the row is *discarded, not
+corrected* — a cooking sentence that landed in Animaux is lost even though it is
+good material one lesson over. Showing the model all 50 lessons at once (title,
+level, and 8 real professor items each; the catalogue is a stable system-prompt
+prefix so caching makes the repetition near-free) and asking **which** lesson it
+belongs to recovered **1,786 of the 3,334 rejects at 90% precision** (60
+reviewed, 0 unsure). **1,674 of them — 94% — went to a different lesson than
+cosine chose**, which is the sharpest available measure of what cosine got wrong.
+
+The 1,548 `null` results are mostly bare verbs and adjectives (*Soulever*,
+*Détruire*, *Vérifier*) with no topical home — correctly unplaced, and still
+reachable through the level-gated word pool their difficulty score governs.
+
+**Resulting pool — carry these numbers into Slice 1:**
+
+| Tier | Items | Precision |
+|---|---:|---|
+| Native (professor-authored) | 1,347 | 100% by construction |
+| Judge-approved routing | 3,063 | 96% |
+| AI-reassigned | 1,786 | 90% |
+| **Total** | **6,196** | ≈95% weighted |
+
+Up 4.6× from 1,347. Artifacts: `corpus_routing.json`,
+`llm_route_verdicts_strict.json`, `lesson_reassignments.json`,
+`lesson_catalogue.json`, plus both human verdict sets.
+
+**Word difficulty** (`classify_word_difficulty.py`) ran alongside: all 2,311
+dictionary headwords rated 1–6. Topic is the wrong axis for a single word;
+level is the right one. Effective level = `max(lesson level, word difficulty)`,
+so topical routing still enriches a lesson while a hard word cannot leak down
+into an easy one. Distribution 155/821/858/467/5/4 — levels 5–6 are nearly empty
+because this is an everyday dictionary; *exporter*, *victimisation*,
+*négociation* are not in it at all.
 
 ### Slice 1 — `lesson_pool` table  ⬜
 One SQL migration (Anthony runs it in the Supabase editor), then populate.

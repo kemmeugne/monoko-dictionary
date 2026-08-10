@@ -137,11 +137,13 @@ hand-authoring and no LLM at question time:
 | Match pairs | 3,573 |
 | Listen & type | 4,861 — built last, see the plan for why |
 
-**Where the material came from.** Corpus→lesson routing on 2026-08-07 (cosine
-similarity over the existing embeddings, threshold 0.55) took the course from
-**1,347 items to 5,923** across all 50 lessons. The dictionary was embedded for
-the first time in the same pass. Output:
-`artifacts/professor_ingest/corpus_routing.json`.
+**Where the material came from.** Corpus→lesson routing, then two LLM passes to
+make it trustworthy. Cosine similarity alone measured **77% precision and flat
+across similarity bands** in human QA, so it was replaced: an LLM judge votes on
+each placement (96% precision), and a second pass re-places what it rejects by
+showing the model all 50 lessons (90% precision). Course material went from
+**1,347 items to 6,196** — 1,347 native + 3,063 judge-approved + 1,786
+reassigned. Full detail in `EXERCISE_ENGINE_PLAN.md` §Slice 0.
 
 **Build order:** routing QA → `lesson_pool` table → session shell + match-pairs →
 choose-the-audio → tokenizer + tap-words-in-order → fill-the-blank → attempts +
