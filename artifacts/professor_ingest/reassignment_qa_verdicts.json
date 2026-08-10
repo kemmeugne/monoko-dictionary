@@ -1,0 +1,605 @@
+{
+ "reviewed_at": "2026-08-10T19:04:15.857Z",
+ "rows": [
+  {
+   "idx": 0,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 363,
+   "lesson": "Animaux",
+   "french": "Les fleurs attirent les abeilles",
+   "lingala": "Ba fololo ebendaka ba nzoi."
+  },
+  {
+   "idx": 1,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 358,
+   "lesson": "Conjugaison - present et passe",
+   "french": "J'étais libre tout à l'heure.",
+   "lingala": "Nazalakina mosala te kala mingi te."
+  },
+  {
+   "idx": 2,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 393,
+   "lesson": "Conjugaison : futur proche et imperatif negatif",
+   "french": "Il va partir seul",
+   "lingala": "Ako kende ye moko."
+  },
+  {
+   "idx": 3,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "senses",
+   "lesson_id": 388,
+   "lesson": "Nature et éléments",
+   "french": "Raisin",
+   "lingala": "Mbuma"
+  },
+  {
+   "idx": 4,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 348,
+   "lesson": "Presentation personnelle",
+   "french": "Je ne vis pas seul.",
+   "lingala": "Nafándaka ngai moko te."
+  },
+  {
+   "idx": 5,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 358,
+   "lesson": "Conjugaison - present et passe",
+   "french": "Je n'entendrai pas bien.",
+   "lingala": "Nazoyoka malamu te."
+  },
+  {
+   "idx": 6,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 359,
+   "lesson": "Conjugaison - futur et imperatif",
+   "french": "Attrape-le pour moi d'abord.",
+   "lingala": "Kanga ye pona ngai nanu."
+  },
+  {
+   "idx": 7,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 354,
+   "lesson": "La santé",
+   "french": "J'ai de la peine pour lui depuis car son père est malade.",
+   "lingala": "Na za na mawa na ye po tata na ye aza na bokono."
+  },
+  {
+   "idx": 8,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 379,
+   "lesson": "Pronoms relatifs",
+   "french": "Il m'a raconté ce qui était écrit dans la lettre qu'il nous a envoyée",
+   "lingala": "Akomelaki ngai maloba na mokanda wana atindelaki biso."
+  },
+  {
+   "idx": 9,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 363,
+   "lesson": "Animaux",
+   "french": "Regarde la patte du canard",
+   "lingala": "Tala matambe ya libata."
+  },
+  {
+   "idx": 10,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 358,
+   "lesson": "Conjugaison - present et passe",
+   "french": "J'ai glissé mais je ne suis pas tombé.",
+   "lingala": "Na sielumuki kasi na kweyi te."
+  },
+  {
+   "idx": 11,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 378,
+   "lesson": "Saisons et l'heure",
+   "french": "Il était tard hier soir.",
+   "lingala": "Ezalaki tango molayi lobi na butu."
+  },
+  {
+   "idx": 12,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 360,
+   "lesson": "Sentiments et emotions",
+   "french": "J'attends les résultats du bac, ça me rend nerveux",
+   "lingala": "Na zo zela ba sango ya bac, ezo pesa ngai kanda."
+  },
+  {
+   "idx": 13,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 382,
+   "lesson": "Prépositions de lieu",
+   "french": "Par",
+   "lingala": "na nzela ya"
+  },
+  {
+   "idx": 14,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 360,
+   "lesson": "Sentiments et emotions",
+   "french": "Je vais être crevé après cette journée.",
+   "lingala": "Nakozala na bolémbu  sima ya mokolo oyo."
+  },
+  {
+   "idx": 15,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 362,
+   "lesson": "Le marche et l'argent",
+   "french": "Il n'y a pas de marché ici.",
+   "lingala": "Ezali na zándo awa te."
+  },
+  {
+   "idx": 16,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 382,
+   "lesson": "Prépositions de lieu",
+   "french": "Je me repose sous l'ombre du cocotier.",
+   "lingala": "Na zo pema na se ya nzete ya kokoti."
+  },
+  {
+   "idx": 17,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 391,
+   "lesson": "Le corps",
+   "french": "Les ailes sont ma partie préférée du poulet",
+   "lingala": "Mapapu eza oyo na lingaka mingi na soso."
+  },
+  {
+   "idx": 18,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 383,
+   "lesson": "Prépositions de temps",
+   "french": "Nous avons rendez-vous demain.",
+   "lingala": "Tozali na bokutani lobi."
+  },
+  {
+   "idx": 19,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 351,
+   "lesson": "La famille et les relations",
+   "french": "Son attention est portée sur son fils.",
+   "lingala": "Makanisi na ye eza epai ya mwana na ye."
+  },
+  {
+   "idx": 20,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 359,
+   "lesson": "Conjugaison - futur et imperatif",
+   "french": "Sois avec moi demain.",
+   "lingala": "\"Zala na ngai lobi.\""
+  },
+  {
+   "idx": 21,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 368,
+   "lesson": "Debats et opinions",
+   "french": "Il a refait la même erreur, pourtant on l'avait prévenu.",
+   "lingala": "Azongi kaka na buzoba asalaki liboso, kasi to lakaki ye."
+  },
+  {
+   "idx": 22,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 387,
+   "lesson": "Pronoms possessifs et démonstratifs",
+   "french": "Regarde cet arc-en ciel !",
+   "lingala": "Tala monama oyo !"
+  },
+  {
+   "idx": 23,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 393,
+   "lesson": "Conjugaison : futur proche et imperatif negatif",
+   "french": "Il va fêter son anniversaire ce week-end.",
+   "lingala": "Akosala féti ya mokolo ya mbotama na ye wikende oyo."
+  },
+  {
+   "idx": 24,
+   "verdict": "no",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 380,
+   "lesson": "Comparatifs et superlatifs",
+   "french": "Cet homme est géant",
+   "lingala": "Mobali oyo aza mbinga."
+  },
+  {
+   "idx": 25,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 389,
+   "lesson": "Météo",
+   "french": "Aujourd'hui il y a trop de vagues dans le lac",
+   "lingala": "Lelo eza na ba mbonge ebele na etima."
+  },
+  {
+   "idx": 26,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 358,
+   "lesson": "Conjugaison - present et passe",
+   "french": "On n'est pas encore arrivés.",
+   "lingala": "Tokomi nano te."
+  },
+  {
+   "idx": 27,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 367,
+   "lesson": "Registres : formel vs informel",
+   "french": "Lâchez-moi",
+   "lingala": "Bo tika ngai."
+  },
+  {
+   "idx": 28,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "senses",
+   "lesson_id": 382,
+   "lesson": "Prépositions de lieu",
+   "french": "Haut / en haut",
+   "lingala": "Likolo / Na likolo"
+  },
+  {
+   "idx": 29,
+   "verdict": "no",
+   "similarity": null,
+   "source_table": "senses",
+   "lesson_id": 360,
+   "lesson": "Sentiments et emotions",
+   "french": "Grandir",
+   "lingala": "Ko kola"
+  },
+  {
+   "idx": 30,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 379,
+   "lesson": "Pronoms relatifs",
+   "french": "Qui est-ce qui va appeler demain ?",
+   "lingala": "Nani akobenga lobi ?"
+  },
+  {
+   "idx": 31,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 391,
+   "lesson": "Le corps",
+   "french": "J'ai une cicatrice",
+   "lingala": "Naza na elembo."
+  },
+  {
+   "idx": 32,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 362,
+   "lesson": "Le marche et l'argent",
+   "french": "J'ai besoin d'un million de francs",
+   "lingala": "Na za na posa ya efuku."
+  },
+  {
+   "idx": 33,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 355,
+   "lesson": "Construction de phrases 1",
+   "french": "Notre père nous a interdit de sortir aujourd'hui",
+   "lingala": "Tata na biso apekisi biso ko bima lelo."
+  },
+  {
+   "idx": 34,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 367,
+   "lesson": "Registres : formel vs informel",
+   "french": "J'ai vraiment apprécié votre aide.",
+   "lingala": "Nasepeli mpenza na lisungi na bino."
+  },
+  {
+   "idx": 35,
+   "verdict": "no",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 357,
+   "lesson": "Le travail et les metiers",
+   "french": "Méfie toi des fétiches.",
+   "lingala": "Keba na ba kisi."
+  },
+  {
+   "idx": 36,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 359,
+   "lesson": "Conjugaison - futur et imperatif",
+   "french": "Je te répondrai tout à l'heure.",
+   "lingala": "Nakoyanola yo na ntango mukie."
+  },
+  {
+   "idx": 37,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 347,
+   "lesson": "Salutations et politesse",
+   "french": "On s'est salués en se serrant la main.",
+   "lingala": "To pesami mbote na ko pesa loboko."
+  },
+  {
+   "idx": 38,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "senses",
+   "lesson_id": 361,
+   "lesson": "Conjonctions",
+   "french": "Comme",
+   "lingala": "Lokola"
+  },
+  {
+   "idx": 39,
+   "verdict": "no",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 385,
+   "lesson": "Adverbes de quantité et de degré",
+   "french": "J'en veux deux.",
+   "lingala": "Nalingi mibale ya wana/yango."
+  },
+  {
+   "idx": 40,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 366,
+   "lesson": "Couleurs et vêtements",
+   "french": "Ce costume est joli",
+   "lingala": "Kazaka oyo eza kitoko."
+  },
+  {
+   "idx": 41,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 391,
+   "lesson": "Le corps",
+   "french": "Il faut aplatir la patte qui est entre tes mains.",
+   "lingala": "Esengeli ko fina poto poto oyo eza kati na maboko na yo."
+  },
+  {
+   "idx": 42,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 392,
+   "lesson": "Vœux et compliments",
+   "french": "On se reverra bientôt.",
+   "lingala": "Tokomonana lisusu na tango mukie."
+  },
+  {
+   "idx": 43,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 355,
+   "lesson": "Construction de phrases 1",
+   "french": "Depuis qu'elle a eu quinze ans elle ne grandit plus.",
+   "lingala": "Banda akokisi mbula zomi na mitano azo kola lisusu te."
+  },
+  {
+   "idx": 44,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 358,
+   "lesson": "Conjugaison - present et passe",
+   "french": "On est revenus hier.",
+   "lingala": "Todzóngaki lobi."
+  },
+  {
+   "idx": 45,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 359,
+   "lesson": "Conjugaison - futur et imperatif",
+   "french": "Attache et serre ta ceinture",
+   "lingala": "Kanga mokaba na yo."
+  },
+  {
+   "idx": 46,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 391,
+   "lesson": "Le corps",
+   "french": "L’estomac contient ce qu’on mange",
+   "lingala": "Likundu eza na biloko to liaka."
+  },
+  {
+   "idx": 47,
+   "verdict": "no",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 348,
+   "lesson": "Presentation personnelle",
+   "french": "On vient sur la terre pour être heureux et faire le bien",
+   "lingala": "To yaka na mabele po to zala malamu pe to sala malamu."
+  },
+  {
+   "idx": 48,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 352,
+   "lesson": "La maison et les objets",
+   "french": "J’ai une maison et une voiture.",
+   "lingala": "Na za na ndaku na motuka."
+  },
+  {
+   "idx": 49,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "senses",
+   "lesson_id": 360,
+   "lesson": "Sentiments et emotions",
+   "french": "Adorer",
+   "lingala": "Ko linga mingi"
+  },
+  {
+   "idx": 50,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 359,
+   "lesson": "Conjugaison - futur et imperatif",
+   "french": "Je fermerai la porte.",
+   "lingala": "Nakokánga ekúké."
+  },
+  {
+   "idx": 51,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 368,
+   "lesson": "Debats et opinions",
+   "french": "Je n'avais pas l'intention de refuser d'aider. Mais je n'ai pas pu me justifier à propos des choses que nous avons en ce moment.",
+   "lingala": "Nakanaki te koboya kosunga. Kasi nakokaki te kodzwa mbela mpo na makambo tozali na yango sikoyo.."
+  },
+  {
+   "idx": 52,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 380,
+   "lesson": "Comparatifs et superlatifs",
+   "french": "Ce meuble est le plus beau du quartier",
+   "lingala": "Biloko ya ndako oyo eza kitoko ko leka na kalitie oyo."
+  },
+  {
+   "idx": 53,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "senses",
+   "lesson_id": 356,
+   "lesson": "Deplacements et directions",
+   "french": "Montrer",
+   "lingala": "Ko lakisa"
+  },
+  {
+   "idx": 54,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 358,
+   "lesson": "Conjugaison - present et passe",
+   "french": "J'allais bien la semaine dernière.",
+   "lingala": "Nazalaki koyoka nzóto malamu mposo oyo eleki."
+  },
+  {
+   "idx": 55,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 355,
+   "lesson": "Construction de phrases 1",
+   "french": "Il s'est fait poignarder.",
+   "lingala": "Ba tyubi ye mbeli."
+  },
+  {
+   "idx": 56,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 359,
+   "lesson": "Conjugaison - futur et imperatif",
+   "french": "Il te parlera et répondra à toutes tes questions quand le moment sera venu",
+   "lingala": "Akosolola na yo mpe akoyanola mituna na yo nionso na ntango mukie"
+  },
+  {
+   "idx": 57,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "examples",
+   "lesson_id": 379,
+   "lesson": "Pronoms relatifs",
+   "french": "Il m'a rendu mon argent qui était chez lui",
+   "lingala": "Azongiseli nga mbongo oyo ezalaki epai na ye."
+  },
+  {
+   "idx": 58,
+   "verdict": "yes",
+   "similarity": null,
+   "source_table": "senses",
+   "lesson_id": 388,
+   "lesson": "Nature et éléments",
+   "french": "Fer",
+   "lingala": "Ebende"
+  },
+  {
+   "idx": 59,
+   "verdict": "no",
+   "similarity": null,
+   "source_table": "parallel_sentences",
+   "lesson_id": 389,
+   "lesson": "Météo",
+   "french": "On s'est vus ce soir.",
+   "lingala": "Tomonani na mpokwa oyo."
+  }
+ ]
+}

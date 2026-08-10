@@ -1,0 +1,616 @@
+{
+ "model": "gpt-4o-mini",
+ "n": 101,
+ "tp": 50,
+ "fp": 2,
+ "fn": 28,
+ "tn": 21,
+ "rows": [
+  {
+   "french": "Bonjour ! Comment vas-tu ?",
+   "lesson": "Registres : formel vs informel",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Bonjour ! Comment vas-tu ?",
+   "lesson": "Registres : formel vs informel",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Non, je ne peux pas venir.",
+   "lesson": "La santé",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Ils ont mal au ventre après avoir mangé.",
+   "lesson": "La santé",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je ne vis pas seul.",
+   "lesson": "Debats et opinions",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "J'avais mal à la tête hier.",
+   "lesson": "Le corps",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je ne comprends pas pourquoi elle est en colère.",
+   "lesson": "Pronoms sujets et adjectifs possessifs",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Je ne pouvais pas parler à ce moment-là.",
+   "lesson": "Raconter une histoire",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Parle plus lentement, s'il te plaît.",
+   "lesson": "Compréhension et communication",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Que fait ton père ?",
+   "lesson": "Salutations et politesse",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Ce n'est pas très cher.",
+   "lesson": "Le marche et l'argent",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Peux-tu me rappeler plus tard ? Nous sommes en train de prier...",
+   "lesson": "Registres : formel vs informel",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je travaille en ce moment. C'est pour cela que je ne vais pas te déranger maintenant.",
+   "lesson": "Deplacements et directions",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Ce sera quoi demain ?",
+   "lesson": "Météo",
+   "human": "no",
+   "llm": "yes"
+  },
+  {
+   "french": "C'était qui déjà ?",
+   "lesson": "Prépositions de temps",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Tu vas laisser ça, non ?",
+   "lesson": "Pronoms possessifs et démonstratifs",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "C'est vraiment trop cher !",
+   "lesson": "Le marche et l'argent",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Il est venu hier.",
+   "lesson": "Prépositions de lieu",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Je ne pourrai pas revenir demain.",
+   "lesson": "Le marche et l'argent",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Ils vont continuer ensemble.",
+   "lesson": "Adverbes de quantité et de degré",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "On continue, non ?",
+   "lesson": "Registres : formel vs informel",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je ne voulais pas déranger.",
+   "lesson": "Debats et opinions",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "On a fini le travail, non ?",
+   "lesson": "Conjugaison - present et passe",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "On a terminé le boulot.",
+   "lesson": "Conjugaison - present et passe",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Tu lis quoi en ce moment ?",
+   "lesson": "Construction de phrases 1",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Tu as déjà lavé les vêtements ?",
+   "lesson": "Pronoms possessifs et démonstratifs",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Ça rentre bien dans la voiture.",
+   "lesson": "Deplacements et directions",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Je suis originaire de Lyon.",
+   "lesson": "Prépositions de lieu",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Je suis à sec.",
+   "lesson": "La santé",
+   "human": "no",
+   "llm": "yes"
+  },
+  {
+   "french": "J'étais vraiment content de te voir hier.",
+   "lesson": "Sentiments et emotions",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je comprends un peu.",
+   "lesson": "Registres : formel vs informel",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Notre travail commence à s'améliorer. Vous voyez que Dieu a commencé à agir parmi nous.\nDieu va nous bénir, n'est-ce pas?",
+   "lesson": "Salutations et politesse",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Formule de salutation traditionnelle entre personnes du même village.",
+   "lesson": "Proverbes et expressions idiomatiques",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "[Informel] Merci ! / Merci beaucoup !",
+   "lesson": "Registres : formel vs informel",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "La musique touche le cœur.",
+   "lesson": "Musique et arts",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Plus de vingt millions de personnes parlent le lingala dans le monde.",
+   "lesson": "La langue dans le monde",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Pratiquer avec des locuteurs natifs est irremplaçable.",
+   "lesson": "La langue dans le monde",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Les élections",
+   "lesson": "Medias et actualites",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Se réconcilier",
+   "lesson": "Traditions et ceremonies",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Ne te perds pas dans la foule.",
+   "lesson": "Cuisine et gastronomie",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "L’igname peut remplacer le manioc s’il n’y en a plus",
+   "lesson": "Cuisine et gastronomie",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Il attend son salaire de la fin du mois.",
+   "lesson": "Prépositions et mots de liaison",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Certaines chenilles se transforment en papillon",
+   "lesson": "Animaux",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je surveille ton enfant mais tu délaisses le mien",
+   "lesson": "Pronoms sujets et adjectifs possessifs",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Cette marmite n'est pas pratique",
+   "lesson": "La maison et les objets",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "J'ai payé le double du prix habituel",
+   "lesson": "Le marche et l'argent",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Cette danse est magnifique",
+   "lesson": "Musique et arts",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Mon père était boucher.",
+   "lesson": "Le travail et les metiers",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je veux boire de l'eau",
+   "lesson": "Manger et boire",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Nous avons célébré le mariage jusqu'au matin",
+   "lesson": "Traditions et ceremonies",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Il est circoncis",
+   "lesson": "Pronoms relatifs",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Je ne mange pas de porc (cochon)",
+   "lesson": "Animaux",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Tu seras puni pour ta mauvaise conduite",
+   "lesson": "Conjugaison : futur proche et imperatif negatif",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Couvre ton fils avec un tissu, sinon il va être malade",
+   "lesson": "La famille et les relations",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Le chien a sauté au-dessus  de la table",
+   "lesson": "Prépositions de lieu",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Elle s'est échappée pendant la nuit",
+   "lesson": "Construction de phrases 1",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "C'est exactement ce que je t'ai dit",
+   "lesson": "Debats et opinions",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "J'ai déjà mangé trois fois aujourd'hui",
+   "lesson": "Les nombres",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Tu es un monstre !",
+   "lesson": "Vœux et compliments",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Il y a trop de monde ici, partons !",
+   "lesson": "Saisons et l'heure",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "C'est un ouvrier de mon village",
+   "lesson": "Presentation personnelle",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Le football se joue à onze contre onze",
+   "lesson": "Les nombres",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "J'ai des bons parents",
+   "lesson": "La famille et les relations",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Dieu a un plan merveilleux pour les croyants",
+   "lesson": "Prépositions de lieu",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Je cours quotidiennement.",
+   "lesson": "Debats et opinions",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Je ne sais pas quoi faire.",
+   "lesson": "Pronoms relatifs",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Je n'ai pas sommeil",
+   "lesson": "Debats et opinions",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Mon t-shirt est sale",
+   "lesson": "Couleurs et vêtements",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Certaines personnes prient au temple.",
+   "lesson": "Traditions et ceremonies",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Je tisse mon habit.",
+   "lesson": "Couleurs et vêtements",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Nous vêtements sont pliés dans l’armoire.",
+   "lesson": "Couleurs et vêtements",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "L’ombre de l’arbre nous protège des brûlures du soleil.",
+   "lesson": "Cuisine et gastronomie",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Avant nous n'avions pas de téléphones.",
+   "lesson": "Technologie et communication",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "J'ai besoin d'un gros bâton",
+   "lesson": "La santé",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Mon chapeau est trop serré",
+   "lesson": "Couleurs et vêtements",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "il dérange tout le monde",
+   "lesson": "Pronoms compléments et toniques",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Nous sommes seulement à la première étape",
+   "lesson": "Debats et opinions",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "C'est moi que tu espionnes?",
+   "lesson": "Prépositions de temps",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "En général les enfants n’aiment pas manger du foie",
+   "lesson": "Cuisine et gastronomie",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Elle a un foulard sur sa tête",
+   "lesson": "Couleurs et vêtements",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Ne gaspille pas la nourriture",
+   "lesson": "Manger et boire",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "J'ai gardé cette bouteille au frais pendant 1 an",
+   "lesson": "La maison et les objets",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Cette statue est impressionnante",
+   "lesson": "Pronoms possessifs et démonstratifs",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "L’igname peut remplacer le manioc s’il n’y en a plus",
+   "lesson": "Cuisine et gastronomie",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "C'est la loi personne ne peut y échapper",
+   "lesson": "Medias et actualites",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Ils partent récupérer leurs enfants à l'école",
+   "lesson": "Construction de phrases 1",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Peux-tu réparer ma moto ?",
+   "lesson": "Registres : formel vs informel",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Un mur nous sépare de chez le voisin",
+   "lesson": "La maison et les objets",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Mon oncle est poli",
+   "lesson": "La famille et les relations",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Tu as progressé en lingala !",
+   "lesson": "Conjugaison - present et passe",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "J'ai un problème avec mon voisin",
+   "lesson": "La santé",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Cette viande périmée m'a rendu malade.",
+   "lesson": "Cuisine et gastronomie",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "Elle a renversée la sauce sans faire exprès",
+   "lesson": "Prépositions de lieu",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "C'est son téléphone ?",
+   "lesson": "Prépositions de temps",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "La sagesse vient avec le temps",
+   "lesson": "Proverbes et expressions idiomatiques",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "La température change beaucoup ces derniers temps.",
+   "lesson": "Adverbes de fréquence",
+   "human": "yes",
+   "llm": "no"
+  },
+  {
+   "french": "On ne peut pas cacher la vérité pendant longtemps",
+   "lesson": "Medias et actualites",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Elle vend des oignons au marché",
+   "lesson": "Le marche et l'argent",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Aujourd'hui il y a trop de vagues dans le lac",
+   "lesson": "Cuisine et gastronomie",
+   "human": "no",
+   "llm": "no"
+  },
+  {
+   "french": "Dans cette affaire, il faut de la transparence.",
+   "lesson": "Debats et opinions",
+   "human": "yes",
+   "llm": "yes"
+  },
+  {
+   "french": "Le soleil m’éblouit",
+   "lesson": "Nature et éléments",
+   "human": "yes",
+   "llm": "yes"
+  }
+ ]
+}

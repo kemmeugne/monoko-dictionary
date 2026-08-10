@@ -1,0 +1,742 @@
+[
+ {
+  "lesson_id": 346,
+  "level": 1,
+  "title": "Sons et alphabet",
+  "samples": [
+   "Consonne L — Noix de cola",
+   "Ton montant (caron ˇ) — Femme",
+   "Son composé NZ — Buffle",
+   "Son composé MV — Frange",
+   "Consonne Y — Cela, Ça",
+   "Consonne M — Pluie",
+   "Consonne D — Panier",
+   "Voyelle E — Saison"
+  ]
+ },
+ {
+  "lesson_id": 347,
+  "level": 1,
+  "title": "Salutations et politesse",
+  "samples": [
+   "C'est gentil",
+   "Bienvenue",
+   "A bientôt !",
+   "Passe une bonne journée",
+   "Excuse-moi, désolé",
+   "à demain !",
+   "à la semaine prochaine",
+   "Je vais bien et toi ?"
+  ]
+ },
+ {
+  "lesson_id": 392,
+  "level": 1,
+  "title": "Vœux et compliments",
+  "samples": [
+   "Ne t'inquiète pas",
+   "Bonne chance",
+   "Bon courage",
+   "Tu danses bien",
+   "Ne pleure pas",
+   "Joyeux Anniversaire",
+   "Je t'aime",
+   "Que tu es belle !"
+  ]
+ },
+ {
+  "lesson_id": 348,
+  "level": 1,
+  "title": "Presentation personnelle",
+  "samples": [
+   "Grossesse / Enceinte",
+   "La vie",
+   "Je viens de",
+   "Mon métier est",
+   "Malédiction",
+   "Tu habites où ?",
+   "Tu es marié ?",
+   "Tu as quel âge ? J'ai 15ans"
+  ]
+ },
+ {
+  "lesson_id": 349,
+  "level": 1,
+  "title": "Pronoms sujets et adjectifs possessifs",
+  "samples": [
+   "Ta",
+   "Tu",
+   "Tes",
+   "Il/Elle",
+   "Votre",
+   "Vous",
+   "Mes",
+   "Vos"
+  ]
+ },
+ {
+  "lesson_id": 350,
+  "level": 1,
+  "title": "Les nombres",
+  "samples": [
+   "7000",
+   "11000",
+   "15",
+   "18",
+   "110",
+   "200",
+   "80",
+   "50"
+  ]
+ },
+ {
+  "lesson_id": 375,
+  "level": 1,
+  "title": "Les nombres ordinaux",
+  "samples": [
+   "1er",
+   "3e",
+   "2e"
+  ]
+ },
+ {
+  "lesson_id": 376,
+  "level": 1,
+  "title": "Jours et unités de temps",
+  "samples": [
+   "Mois",
+   "Jour",
+   "Semaine",
+   "Samedi",
+   "Mardi",
+   "Jeudi",
+   "Mercredi",
+   "Année"
+  ]
+ },
+ {
+  "lesson_id": 377,
+  "level": 1,
+  "title": "Les mois",
+  "samples": [
+   "août",
+   "Janvier",
+   "mars",
+   "juillet",
+   "juin",
+   "avril",
+   "octobre",
+   "Février"
+  ]
+ },
+ {
+  "lesson_id": 378,
+  "level": 1,
+  "title": "Saisons et l'heure",
+  "samples": [
+   "C'est trop tard",
+   "Saison sèche",
+   "C'est l'heure de partir",
+   "A quelle heure on part ?",
+   "Quelle heure est-il ?",
+   "Je suis prêt / Je ne suis pas prêt",
+   "Attends un peu",
+   "Saison"
+  ]
+ },
+ {
+  "lesson_id": 351,
+  "level": 2,
+  "title": "La famille et les relations",
+  "samples": [
+   "Il tient de son père pour le caractère.",
+   "Nous nous entendons bien entre frères.",
+   "Elle soutient sa famille depuis des années.",
+   "Je suis très proche de ma grand-mère.",
+   "Il est orphelin depuis l'enfance.",
+   "Neveu / Nièce",
+   "Mère",
+   "Famille"
+  ]
+ },
+ {
+  "lesson_id": 352,
+  "level": 2,
+  "title": "La maison et les objets",
+  "samples": [
+   "Marmite / Casserole",
+   "Cuillère",
+   "Mur",
+   "Mortier",
+   "Chaise",
+   "Lumière",
+   "Couvrir",
+   "Couteau"
+  ]
+ },
+ {
+  "lesson_id": 353,
+  "level": 2,
+  "title": "Manger et boire",
+  "samples": [
+   "J'ai soif, et mon verre est vide, remplis-le stp",
+   "Je n'ai pas mangé le taro et la sauce jaune depuis longtemps",
+   "J'ai faim, on mange quoi ? On mange quand ?",
+   "Le lotoko est une boisson traditionnelle forte.",
+   "Légume",
+   "Le ntsámba, c'est le vin de palme traditionnel.",
+   "L'eau de source est fraîche et pure.",
+   "Je te sers du jus bien frais."
+  ]
+ },
+ {
+  "lesson_id": 354,
+  "level": 2,
+  "title": "La santé",
+  "samples": [
+   "Vomir",
+   "Fièvre",
+   "Je me sens mal",
+   "Tu es malade ?",
+   "J'ai faim",
+   "Il est mort",
+   "Qu'est-ce qu'il y a ? Qu'est-ce qu'il se passe ?",
+   "Médecin"
+  ]
+ },
+ {
+  "lesson_id": 390,
+  "level": 2,
+  "title": "Compréhension et communication",
+  "samples": [
+   "Qu'est-ce que ça veut dire ?",
+   "Vous parlez français ?",
+   "Je n'ai pas compris",
+   "Quelque chose ne va pas ? Il y a un souci ? Quel est le problème",
+   "Comment on dit « merci (ou autre mot français) » en lingala ?",
+   "Tu comprends ? / Tu as compris ?",
+   "Tu peux parler plus lentement stp ? Tu parles trop vite"
+  ]
+ },
+ {
+  "lesson_id": 391,
+  "level": 2,
+  "title": "Le corps",
+  "samples": [
+   "Doigt",
+   "Épaule",
+   "Poitrine",
+   "Cœur",
+   "Genou",
+   "Joue",
+   "Sang",
+   "Lèvres"
+  ]
+ },
+ {
+  "lesson_id": 355,
+  "level": 2,
+  "title": "Construction de phrases 1",
+  "samples": [
+   "Combien d'enfants vivent ici ?",
+   "Tu vas rester là-bas combien de temps ?",
+   "Vous n'allez pas à l'école s'il pleut beaucoup",
+   "Je ne vais pas à l'école s'il pleut beaucoup",
+   "Pense à moi quand tu seras là-bas",
+   "Qui est venu chez nous ce matin ?",
+   "Il s'est fait tuer à la tombée de la nuit",
+   "Depuis quand tu vis chez ton frère ?"
+  ]
+ },
+ {
+  "lesson_id": 356,
+  "level": 3,
+  "title": "Deplacements et directions",
+  "samples": [
+   "Tournez au carrefour et continuez tout droit.",
+   "Montre moi un raccourci pour arriver là-bas",
+   "Prenez la première rue à droite.",
+   "Faites demi-tour.",
+   "La douane contrôle les bagages à la frontière.",
+   "Je suis perdu, je me suis trompé de chemin",
+   "Le taxi-bus est le transport en commun le plus utilisé.",
+   "J'ai besoin d'un visa pour entrer dans ce pays."
+  ]
+ },
+ {
+  "lesson_id": 357,
+  "level": 3,
+  "title": "Le travail et les metiers",
+  "samples": [
+   "Élever",
+   "Professeur",
+   "Commerçant",
+   "Agriculteur",
+   "Cultiver",
+   "Pêcheur",
+   "Chef",
+   "Marabout / Sorcier"
+  ]
+ },
+ {
+  "lesson_id": 358,
+  "level": 3,
+  "title": "Conjugaison - present et passe",
+  "samples": [
+   "Nous finissons le projet cette semaine.",
+   "Ils parlaient sans arrêt pendant le cours.",
+   "Ils ont parlé de leurs vacances l'année dernière.",
+   "Elle vend du poisson frais chaque matin.",
+   "Vous vendez ça à quel prix ?",
+   "Elles finissent leurs devoirs ensemble.",
+   "Vous finissez à quelle heure aujourd'hui ?",
+   "J'ai fini de manger il y a une heure."
+  ]
+ },
+ {
+  "lesson_id": 359,
+  "level": 3,
+  "title": "Conjugaison - futur et imperatif",
+  "samples": [
+   "Il vendra ses vaches au marché.",
+   "Elle finira ses études l'an prochain.",
+   "Ils parleront avec le chef du village.",
+   "Demain, je parlerai au médecin.",
+   "vends ! (tu)",
+   "Ils finiront la construction dans deux mois.",
+   "Vous parlerez en premier à la réunion.",
+   "Vous vendrez tout avant midi."
+  ]
+ },
+ {
+  "lesson_id": 360,
+  "level": 3,
+  "title": "Sentiments et emotions",
+  "samples": [
+   "J'ai peur de",
+   "Je suis déçu",
+   "Je suis content",
+   "Je suis triste",
+   "Je suis fatigué",
+   "Je suis heureux",
+   "J'ai peur que",
+   "Je suis étonné"
+  ]
+ },
+ {
+  "lesson_id": 361,
+  "level": 3,
+  "title": "Conjonctions",
+  "samples": [
+   "Que",
+   "Ou",
+   "Et",
+   "Donc",
+   "Alors que",
+   "Ni",
+   "Puisque",
+   "Comme si"
+  ]
+ },
+ {
+  "lesson_id": 379,
+  "level": 3,
+  "title": "Pronoms relatifs",
+  "samples": [
+   "Quoi",
+   "Laquelle",
+   "Lequel",
+   "C'est la personne que je respecte le plus",
+   "Il tient le couteau que je lui ai offert.",
+   "Je le reconnais, c'est lui l'homme qui a volé mon sac hier",
+   "Qui",
+   "Duquel"
+  ]
+ },
+ {
+  "lesson_id": 380,
+  "level": 3,
+  "title": "Comparatifs et superlatifs",
+  "samples": [
+   "Tu es plus intelligent que moi",
+   "Moins",
+   "Le plus / La plus / Les plus",
+   "C'est le meilleur des élèves ici",
+   "Plus",
+   "Vous êtes moins forts que nous"
+  ]
+ },
+ {
+  "lesson_id": 381,
+  "level": 3,
+  "title": "Adverbes de fréquence",
+  "samples": [
+   "Toujours",
+   "Je ne suis jamais montée en haut de cette montagne",
+   "Devoir (dans le sens fortement possible)",
+   "Parfois",
+   "En général",
+   "Souvent",
+   "La plupart du temps",
+   "Jamais"
+  ]
+ },
+ {
+  "lesson_id": 382,
+  "level": 3,
+  "title": "Prépositions de lieu",
+  "samples": [
+   "Par",
+   "À côté",
+   "Bienvenue chez moi",
+   "Nulle part",
+   "Vers",
+   "En bas",
+   "À Gauche",
+   "Je suis triste quand tu es loin de moi"
+  ]
+ },
+ {
+  "lesson_id": 383,
+  "level": 3,
+  "title": "Prépositions de temps",
+  "samples": [
+   "À partir de",
+   "C'est qui ?     - C'est moi.      - Encore toi ?",
+   "D'abord",
+   "Demain",
+   "Après",
+   "Pendant",
+   "Longtemps",
+   "Avant"
+  ]
+ },
+ {
+  "lesson_id": 384,
+  "level": 3,
+  "title": "Prépositions et mots de liaison",
+  "samples": [
+   "Merci car je m'en sors dans ma vie grâce à toi",
+   "Grâce à",
+   "Sauf",
+   "Avec",
+   "Ils se sont fâchés à cause de nous",
+   "Si",
+   "Si je savais que tu ne viendrais pas je serais resté chez moi",
+   "À cause de"
+  ]
+ },
+ {
+  "lesson_id": 385,
+  "level": 3,
+  "title": "Adverbes de quantité et de degré",
+  "samples": [
+   "Même si elle n'aime pas la nourriture elle mange quand même",
+   "Sinon",
+   "Très",
+   "Va dire ça à quelqu'un d'autre",
+   "Vraiment",
+   "Il faut penser aux autres",
+   "Prends un peu de sauce, voici la cuillère.",
+   "On attend Femelie et Esther."
+  ]
+ },
+ {
+  "lesson_id": 386,
+  "level": 3,
+  "title": "Pronoms compléments et toniques",
+  "samples": [
+   "Elle",
+   "Te",
+   "Toi",
+   "Lui",
+   "Vous",
+   "Nous",
+   "Moi",
+   "Nous"
+  ]
+ },
+ {
+  "lesson_id": 387,
+  "level": 3,
+  "title": "Pronoms possessifs et démonstratifs",
+  "samples": [
+   "Ceux",
+   "Mienne",
+   "Ceux-là/ci",
+   "Siens",
+   "Tiens",
+   "Celui/Celle",
+   "Cet",
+   "Celui/Celle-là"
+  ]
+ },
+ {
+  "lesson_id": 393,
+  "level": 3,
+  "title": "Conjugaison : futur proche et imperatif negatif",
+  "samples": [
+   "Tu vas finir par tomber malade.",
+   "Il va parler pendant la cérémonie.",
+   "Il va finir son discours dans un instant.",
+   "Tu vas parler avec elle bientôt ?",
+   "ne vends pas ! (tu)\nne vendons pas ! (nous)\nne vendez pas ! (vous)",
+   "Vous allez vendre à perte comme ça.",
+   "Je vais parler à mon patron cet après-midi.",
+   "ne parle pas ! (tu)\nne parlons pas ! (nous)\nne parlez pas ! (vous)"
+  ]
+ },
+ {
+  "lesson_id": 362,
+  "level": 4,
+  "title": "Le marche et l'argent",
+  "samples": [
+   "C'est pour offrir.",
+   "Je vous dois combien ?",
+   "Vous pouvez baisser le prix ?",
+   "C'est mon dernier prix, je ne descends pas.",
+   "Donnez-moi un kilo d'oignons.",
+   "Gardez-le pour moi, je reviens.",
+   "Je retire de l'argent via Airtel Money.",
+   "Je vous donne cinq cents francs."
+  ]
+ },
+ {
+  "lesson_id": 363,
+  "level": 4,
+  "title": "Animaux",
+  "samples": [
+   "Coq",
+   "Mouche",
+   "Singe",
+   "Animal",
+   "Araignée",
+   "Serpent",
+   "Porc/Cochon",
+   "Papillon"
+  ]
+ },
+ {
+  "lesson_id": 388,
+  "level": 4,
+  "title": "Nature et éléments",
+  "samples": [
+   "Eau",
+   "Midi",
+   "Air",
+   "Soleil",
+   "Soir",
+   "Sable",
+   "Ciel",
+   "Caillou"
+  ]
+ },
+ {
+  "lesson_id": 389,
+  "level": 4,
+  "title": "Météo",
+  "samples": [
+   "Quel temps fera-t-il demain ?",
+   "Il fait froid",
+   "Il fait beau aujourd'hui",
+   "Il fait chaud",
+   "Il fait beau",
+   "Il pleut"
+  ]
+ },
+ {
+  "lesson_id": 364,
+  "level": 4,
+  "title": "Proverbes et expressions idiomatiques",
+  "samples": [
+   "Intelligence",
+   "Proverbe : respecte ton aîné, tu seras respecté à ton tour.",
+   "Bienvenue ! Nous sommes très heureux de vous accueillir chez nous !",
+   "Intelligence",
+   "Expression idiomatique pour exprimer la colère.",
+   "Proverbe : un homme sage apprend de ses erreurs.",
+   "Proverbe sur l'union qui fait la force.",
+   "quand l'argent manque, les amis disparaissent."
+  ]
+ },
+ {
+  "lesson_id": 365,
+  "level": 4,
+  "title": "Raconter une histoire",
+  "samples": [
+   "Après ça / Après cela",
+   "D'abord / Premièrement",
+   "Il y a longtemps",
+   "Et c'est ainsi que se termine l'histoire.",
+   "Finalement / À la fin",
+   "Soudain / Tout à coup",
+   "Quelqu'un dit que...",
+   "Mais / Cependant"
+  ]
+ },
+ {
+  "lesson_id": 366,
+  "level": 4,
+  "title": "Couleurs et vêtements",
+  "samples": [
+   "Parapluie",
+   "Vêtement / Habit",
+   "Vert",
+   "Chapeau",
+   "Chaussures",
+   "Foulard",
+   "Bleu",
+   "Bracelet"
+  ]
+ },
+ {
+  "lesson_id": 367,
+  "level": 5,
+  "title": "Registres : formel vs informel",
+  "samples": [
+   "[Code-switching] Mélanger lingala et français",
+   "[Informel] Aide-moi stp !",
+   "[Formel] Je vous remercie de votre compréhension.",
+   "[Informel] Merci ! / Merci beaucoup !",
+   "[Respect] S'adresser à un aîné (vouvoiement)",
+   "[Formel] Permettez-moi de me présenter.",
+   "[Formel] Je vous remercie beaucoup.",
+   "[Neutre] Parler à quelqu'un qu'on ne connaît pas"
+  ]
+ },
+ {
+  "lesson_id": 368,
+  "level": 5,
+  "title": "Debats et opinions",
+  "samples": [
+   "Je suis fermement opposé(e) à cette idée.",
+   "Je sais",
+   "Voilà",
+   "Bonne idée / mauvaise idée",
+   "J'aime la viande mais je préfère le poisson",
+   "Je ne suis pas d'accord",
+   "Cela dépend beaucoup du contexte et des circonstances.",
+   "Pour résumer ce que nous avons dit jusqu'ici..."
+  ]
+ },
+ {
+  "lesson_id": 369,
+  "level": 5,
+  "title": "Medias et actualites",
+  "samples": [
+   "Un accord / Un traité",
+   "La loi / Un décret",
+   "Un discours",
+   "Une annonce officielle",
+   "La radio",
+   "La paix",
+   "Rapporter ce que quelqu'un a dit",
+   "Les nouvelles / L'actualité"
+  ]
+ },
+ {
+  "lesson_id": 370,
+  "level": 5,
+  "title": "Ecriture et composition",
+  "samples": [
+   "Veuillez agréer mes salutations respectueuses.",
+   "Il convient de noter que...",
+   "La conclusion / Pour conclure",
+   "Objet : [sujet de la lettre]",
+   "Cher / Chère [nom] — ouverture d'une lettre",
+   "En réponse à votre message...",
+   "Je vous adresse mes sincères salutations.",
+   "Avec tout mon respect"
+  ]
+ },
+ {
+  "lesson_id": 371,
+  "level": 6,
+  "title": "Musique et arts",
+  "samples": [
+   "Quelle belle danse !",
+   "La musique traditionnelle africaine",
+   "Il/elle chante très bien.",
+   "La rumba congolaise",
+   "Un groupe de musique",
+   "La musique",
+   "La scène / Le podium",
+   "La danse / Danser"
+  ]
+ },
+ {
+  "lesson_id": 372,
+  "level": 6,
+  "title": "Cuisine et gastronomie",
+  "samples": [
+   "Racine",
+   "Tronc",
+   "Frire",
+   "Arbre",
+   "Lait",
+   "Herbe",
+   "Graine",
+   "Cuire"
+  ]
+ },
+ {
+  "lesson_id": 373,
+  "level": 6,
+  "title": "Traditions et ceremonies",
+  "samples": [
+   "Le repas de fête",
+   "Une célébration religieuse",
+   "Un discours de bienvenue",
+   "Les cadeaux de mariage",
+   "Les danses cérémonielles",
+   "Honorer les ancêtres",
+   "Le griot / Le conteur traditionnel",
+   "Un mariage / Se marier"
+  ]
+ },
+ {
+  "lesson_id": 374,
+  "level": 6,
+  "title": "La langue dans le monde",
+  "samples": [
+   "Le lingala moderne intègre beaucoup de mots empruntés au français.",
+   "Regarder des films et séries en lingala est une excellente méthode.",
+   "Je ne parle pas bien la langue. Je parle un peu le swahili.",
+   "Le lingala est aussi parlé dans certaines parties de l'Angola.",
+   "Les parents de la diaspora transmettent le Lingála à leurs enfants.",
+   "Les néologismes créés par les jeunes enrichissent la langue.",
+   "La diaspora congolaise est présente sur tous les continents.",
+   "Même loin du Congo, on garde le lingala dans le cœur."
+  ]
+ },
+ {
+  "lesson_id": 394,
+  "level": 6,
+  "title": "Religion et spiritualite",
+  "samples": [
+   "Dieu est grand, tout est possible avec lui.",
+   "C'est la volonté de Dieu, nous devons l'accepter.",
+   "La retraite spirituelle dure trois jours de prière intense.",
+   "Il a témoigné devant toute la congrégation.",
+   "Pâques célèbre la résurrection du Christ.",
+   "Nzámbé, c'est le mot lingala pour DIEU.",
+   "Je me sens béni(e) par la grâce de Dieu.",
+   "On se prépare spirituellement avant les grandes fêtes."
+  ]
+ },
+ {
+  "lesson_id": 395,
+  "level": 6,
+  "title": "Technologie et communication",
+  "samples": [
+   "Je dois aller retirer de l'argent au point M-Pesa.",
+   "La communauté lingala est très active sur les réseaux.",
+   "Je t'ai envoyé un message sur WhatsApp.",
+   "Mon téléphone est mort, il ne s'allume plus.",
+   "Le message n'est pas passé, essaie encore.",
+   "Elle a partagé une photo dans le groupe familial.",
+   "Je vais t'appeler ce soir après le travail.",
+   "Cette vidéo YouTube en lingala a beaucoup de vues."
+  ]
+ }
+]

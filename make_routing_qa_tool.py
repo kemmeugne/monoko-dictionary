@@ -43,6 +43,7 @@ from pathlib import Path
 
 ROUTING = Path("artifacts/professor_ingest/corpus_routing.json")
 OUT = Path("routing_qa_tool.html")
+REASSIGN = Path("artifacts/professor_ingest/lesson_reassignments.json")
 
 # The lowest band sits under the 0.55 threshold deliberately — see the docstring.
 BANDS = [(0.45, 0.55), (0.55, 0.65), (0.65, 0.75), (0.75, 1.01)]
@@ -130,7 +131,8 @@ function render() {
     <div class="card">
       <div class="meta">
         <span>${i + 1} / ${ITEMS.length}</span>
-        <span class="tag">similarité ${it.similarity.toFixed(2)}</span>
+        <span class="tag">${it.reassigned ? 'reclassée par IA'
+            : 'similarité ' + it.similarity.toFixed(2)}</span>
         <span class="tag">${it.source_table}</span>
         ${orth}
       </div>
@@ -218,6 +220,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=100, help="total items to review (default 100)")
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--reassignments", action="store_true",
+                    help="review reassign_discarded.py placements instead of the cosine routing")
     args = ap.parse_args()
 
     if not ROUTING.exists():
@@ -237,6 +241,32 @@ def main() -> None:
     # The routing file only holds rows at or above its own threshold, so the
     # sub-threshold band is empty unless it was generated with a lower one.
     rng = random.Random(args.seed)
+
+    if args.reassignments:
+        # Reassignments carry no similarity score — the model chose the lesson
+        # outright — so there are no bands to stratify by. Sample uniformly.
+        # The previous lesson is deliberately NOT shown: the question is whether
+        # this placement is right on its own merits, and showing the move would
+        # invite the reviewer to grade the change rather than the destination.
+        asg = json.loads(REASSIGN.read_text(encoding="utf-8"))["assignments"]
+        by_key = {f'{r["source_table"]}:{r["source_id"]}': r
+                  for r in data["rows"] if not r["is_native"]}
+        titles = {r["lesson_id"]: r["lesson"] for r in data["rows"]}
+        placed = [(by_key[k], v) for k, v in asg.items() if v is not None and k in by_key]
+        print(f"  {len(placed)} placements available; sampling {min(args.n, len(placed))}")
+        sample = []
+        for i, (r, lid) in enumerate(rng.sample(placed, min(args.n, len(placed)))):
+            row = {**r, "lesson_id": lid, "lesson": titles.get(lid, f"lesson {lid}"),
+                   "similarity": None, "matched_item": None, "idx": i,
+                   "reassigned": True}
+            row["lesson_sample"] = lesson_sample(native, row, rng)
+            sample.append(row)
+        OUT.write_text(HTML.replace("__ITEMS__", json.dumps(sample, ensure_ascii=False)),
+                       encoding="utf-8")
+        print(f"\n{len(sample)} items -> {OUT}  [{OUT.stat().st_size/1024:.0f} KB]")
+        print(f"open {OUT}")
+        return
+
     per = max(1, args.n // len(BANDS))
     sample, idx = [], 0
     for lo, hi in BANDS:
