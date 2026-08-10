@@ -413,22 +413,131 @@ item set with per-item state, which native content (median 25) is and the
 6,196-row corpus is not. Élargir draws at random with no per-item state.
 
 ### Slice 8 — monetization  ⬜
-Daily session cap on Élargir. Needs auth + the attempts table.
+Daily session cap on Élargir (~3/day free, unlimited paid). Mistakes are never
+capped. Needs auth + the attempts table.
 
-### Later
-Listen-and-type (§5) · speaking (§7, still gated on measuring WER) ·
-practice hub · play button · placement session.
+### Later (genuinely deferred)
+Practice hub (topic-first entry) · play button (level-wide corpus) · placement
+session · scored speaking, if WER is ever measured below ~15%.
 
-### What already-shipped code must change
+---
 
-| Shipped | Change needed | Slice |
-|---|---|---|
-| `buildSession(rows, level, max)` builds from one undifferentiated pool | Split by `tier`: native → Pratiquer, corpus → Élargir | 5 |
-| `SESSION_MAX = 15` screens | 20 **questions**; a match-pairs screen contributes 5 | 4 |
-| `PAIRS_PER_SCREEN = 5` fixed | Allow 3–5 so the 12 match-pairs-short lessons qualify | 4 |
-| An item may appear only once per session | Allow up to 3 appearances **in different formats** — required for thin lessons | 4 |
-| Session ends, XP discarded | Persist XP, best score, pass/fail | 7 |
-| No reporting path | "Signaler" button → existing `corrections` table → `admin.html` | 5 |
+## 4c. Tomorrow's task list (written 2026-08-10)
+
+All engine code lives in `index.html` inside the `<script type="text/babel">`
+block. Line numbers are from commit `76482bd` and will drift — grep the
+identifier, do not trust the number.
+
+| What | Where (76482bd) |
+|---|---|
+| `SESSION_MAX = 15`, `PAIRS_PER_SCREEN = 5` | `index.html:513-514` |
+| `TIER_RANK`, `shapeBand` | `index.html:519`, `619` |
+| `buildMatchPairs`, `matchPairsScreens` | `index.html:651`, `667` |
+| `audioBuckets`, `buildChooseAudio`, `AUDIO_OPTIONS` | `index.html:808`, `828`, `806` |
+| `chooseAudioScreens`, `interleave`, `buildSession` | `index.html:679`, `694`, `703` |
+| `MatchPairsScreen`, `ChooseAudioScreen`, `EXERCISE_SCREENS` | `index.html:713`, `845`, `928` |
+| `SessionView` | `index.html:930` |
+| `startSession` — **the query with no tier filter** | `index.html:2007` |
+
+### Slice 4 — do these in order
+
+**1. SQL migration** → new file `sql/exercise_progress.sql`, applied by hand in
+the Supabase SQL editor like every other migration in `sql/`.
+
+```sql
+-- one row per question answered; the substrate for SM-2, the 80% bar and streaks
+create table if not exists exercise_attempts (
+  id           bigserial primary key,
+  user_id      uuid not null references auth.users(id) on delete cascade,
+  pool_item_id bigint not null references lesson_pool(id) on delete cascade,
+  lesson_id    bigint not null,
+  stage        text   not null check (stage in ('pratiquer','elargir')),
+  format       text   not null,      -- match_pairs | choose_audio | word_order | ...
+  correct      boolean not null,     -- FIRST-TRY correctness; retries are separate rows
+  answered_at  timestamptz not null default now()
+);
+create index if not exists exercise_attempts_user_lesson
+  on exercise_attempts (user_id, lesson_id, answered_at desc);
+
+-- one row per user per lesson: the stage state the UI reads
+create table if not exists lesson_stage_state (
+  user_id           uuid   not null references auth.users(id) on delete cascade,
+  lesson_id         bigint not null,
+  language_id       bigint not null,
+  pratiquer_passed  boolean     not null default false,
+  pratiquer_best    int         not null default 0,   -- % first-try, best session
+  elargir_best      int         not null default 0,   -- % first-try, best session
+  elargir_xp        int         not null default 0,   -- drives the topic level
+  updated_at        timestamptz not null default now(),
+  primary key (user_id, lesson_id)
+);
+
+alter table exercise_attempts  enable row level security;
+alter table lesson_stage_state enable row level security;
+-- RLS mirrors user_progress in sql/progress_tracking.sql: own rows only.
+create policy "own attempts" on exercise_attempts
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "own stage state" on lesson_stage_state
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+```
+
+Note `correct` stores **first-try** correctness — the 80% bar is computed from it,
+and storing retries in the same column would let the bar be farmed by
+brute-forcing the retry.
+
+**2. Refactor `buildSession` to take a pool** (`index.html:703`).
+Signature becomes `buildSession(items, level, count)`. It must not know what a
+lesson is. `startSession` (`index.html:2007`) does the filtering and passes the
+result in. This is the whole point of the slice: the topic hub, play button and
+placement session are all just different pools.
+
+**3. Switch the budget from screens to questions.** Replace `SESSION_MAX = 15`
+with `SESSION_QUESTIONS = 20`; a match-pairs screen contributes `pairs.length`,
+every other type contributes 1. `matchPairsScreens` / `chooseAudioScreens` /
+`interleave` currently count screens and all need to count questions.
+
+**4. Allow 3–5 pair screens** (`PAIRS_PER_SCREEN`). A 3-pair screen is simply 3
+questions against the budget, which is what makes this free — and it recovers
+most of the 12 lessons that currently cannot build a match-pairs screen at all.
+
+**5. Allow an item in up to 3 screens, in different formats.** `pairsPool`
+(`index.html`, `seenFr`/`seenLn` dedupe) enforces once-per-session today. Thin
+lessons need cross-format reuse — the same item as match-pairs, then listen &
+type, then speaking. Dedupe must become per-format, not per-session.
+
+### Slice 5 — the stage split
+
+**The bug this fixes.** `startSession` queries
+`lesson_id=eq.<id>&select=*&limit=1000` with **no tier filter**, so practice
+already serves corpus items the lesson never taught — 178 items for Salutations
+where the professor wrote 29.
+
+- Pratiquer → `tier=eq.native`; Élargir → `tier=in.(approved,reassigned)`
+- Two entry buttons on the lesson screen; Élargir locked until `pratiquer_passed`
+- 80% first-try = 16/20 → set `pratiquer_passed`, unlock Élargir
+- Failing → retry immediately, no lives, no lockout
+- Mastery counter "18/25 maîtrisés" from distinct native items with a correct attempt
+- Élargir: serve `approved` before `reassigned`; slice on **(level band × orthography)**
+- Élargir recycles with spacing once the pool is exhausted (median 10 sessions) —
+  build it as a recycling pool, never "draw unseen"
+- **"Signaler" button** on every Élargir item → existing `corrections` table
+
+### Slice 6 — see the four types above
+
+Tokenizer first, unit-tested. Each new type is one entry in `EXERCISE_SCREENS`
+(`index.html:928`) plus a builder — the shell, progress, scoring and summary do
+not change. That was the design goal of Slice 2 and it should hold.
+
+### Definition of done for each slice
+
+- `npx esbuild` syntax check on the extracted babel block passes
+- `npm test` passes (119 tests)
+- Verified on a 375px viewport, and on a real iPhone via the Vercel URL
+- Verified against a **thin** lesson (Météo, 6 native) and a **fat** one
+  (Salutations, 29 native / 149 corpus) — the thin case is where every
+  bucket/shape rule breaks
+
+---
 
 **The "signaler" button is worth more than it looks.** The whole flow already
 exists end to end (`corrections` → admin panel → professor approve/reject →

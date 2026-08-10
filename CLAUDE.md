@@ -610,8 +610,14 @@ Non-obvious rules that fall out of it:
   from the Pratiquer 80% gate because self-assessment cannot be scored.
 
 **Next action is Slice 4 — attempts table + refactoring `buildSession` to be
-pool-shaped.** Slices 2 and 3 shipped before the stage model was settled, so
-`EXERCISE_ENGINE_PLAN.md` §4b lists exactly what already-shipped code must change.
+pool-shaped.** `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**:
+the SQL to run, the exact `index.html` identifiers to change, and a
+definition-of-done per slice. Read it before touching engine code.
+
+**Known bug the split fixes:** `startSession` queries `lesson_pool` by
+`lesson_id` with **no tier filter**, so practice already serves corpus items the
+lesson never taught (178 items for Salutations where the professor wrote 29).
+Match-pairs and choose-the-audio both inherit this. Fixed in Slice 5.
 
 **Audio prefetch gotcha:** R2 sends no `Access-Control-Allow-Origin` and 403s the
 OPTIONS preflight, so `fetch()` cannot read audio clips from the browser — a blob
