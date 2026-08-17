@@ -166,6 +166,19 @@ test file so each handler's tests focus on its own logic. `buildSystemPrompt`,
 keywords (no logic changes) so their pure logic gets tested directly too.
 See `tests/README.md` for full conventions.
 
+**Since then (2026-08-17): the suite covers frontend engine code too — 213
+tests.** The exercise engine lives inside `index.html`'s babel block with no
+module to import, so `tests/tokenizer.test.js`, `tests/exercise-builders.test.js`
+and `tests/audio-handoff.test.js` slice the relevant runs out of the file and
+evaluate them. That means they test **the exact source the browser runs** rather
+than a copy that can drift, and a moved section fails loudly instead of silently
+testing nothing. Pattern documented in `tests/README.md`.
+
+This does not replace Session 3's Playwright work: these are unit tests over pure
+logic, so nothing here proves a screen renders or that a tap does what it looks
+like it does. `node scripts/audit_exercise_types.mjs` covers the other half —
+every exercise type against the live pool, all lessons, both stages.
+
 ---
 
 ## 6. Session 3 — Playwright smoke tests

@@ -173,19 +173,35 @@ leaderboards and hearts were all rejected — see the plan for why.
 
 **Build order:** routing QA ✅ → `lesson_pool` ✅ → session shell + match-pairs ✅
 → choose-the-audio ✅ → attempts + pool-shaped `buildSession` ✅ → stage split +
-80% gate ✅ → **all four remaining exercise types ← NEXT** (tokenizer,
-tap-words-in-order, fill-the-blank, listen-and-type as character tiles, speaking
-as record-and-compare) → XP/streaks → session cap.
+80% gate ✅ → tokenizer ✅ → tap-words ✅ → fill-the-blank ✅ →
+listen-and-type ✅ → **record-and-compare speaking ← NEXT** → XP/streaks →
+session cap.
 
-**Shipped 2026-08-17 (Slices 4 + 5).** The session budget is 20 **questions**,
-not 15 screens; `buildSession(items, level, count)` takes a pool and never a
-`lesson_id`; match-pairs screens are 3–5 pairs; a (item, format) ledger lets a
-thin lesson reuse an item in a different format, capped at 3. `startSession(stage)`
-filters by tier, which was the whole bug — practice had been serving corpus rows
-the lesson never taught (178 items for Salutations against 29 written).
-`exercise_attempts` + `lesson_stage_state` are live (`sql/exercise_progress.sql`),
-first-try correctness only. Measured over all 50 lessons: **no lesson has an
-unreachable gate**, 35 build a full 20-question Pratiquer, 12 build 10–19, 3 fewer.
+**Shipped 2026-08-17 — the practice loop is playable end to end.** A learner
+opens a lesson, runs a 20-question **Pratiquer** session on the professor's own
+rows, passes it at 80% first-try, and unlocks endless **Élargir** on the routed
+corpus. Five of the six exercise types exist: match-pairs, choose-the-audio,
+tap-words-in-order, fill-the-blank and listen-and-type. Only speaking is left.
+
+- The budget is 20 **questions**, not 15 screens; `buildSession(items, level,
+  count, history)` takes a pool, never a `lesson_id`.
+- `startSession(stage)` filters by tier — the whole stage split. Before it,
+  practice served corpus rows the lesson never taught (178 items for Salutations
+  against the 29 the professor wrote).
+- `exercise_attempts` + `lesson_stage_state` persist attempts, the gate and the
+  "18/25 maîtrisés" counter (`sql/exercise_progress.sql`), first-try only.
+- **Selection is breadth-first**: unseen across sessions → unused in this
+  session → better tier → longest ago → random. Replaying "S'entraîner" sweeps
+  forward through the lesson instead of re-rolling — Les nombres goes from 87%
+  coverage after 6 random sessions to 100% after 4.
+- A three-item lesson turned out to be a content problem, not an engine one:
+  "Les nombres ordinaux" was folded into "Les nombres"
+  (`sql/merge_ordinals_into_numbers.sql`), leaving **49 lessons**.
+
+**Measured across every lesson:** 46 build a full 20-question Pratiquer session,
+3 build 13–19, and **none falls below 13** — so the harshest gate in the
+curriculum is 8/10 rather than the 3/3 one lesson demanded that morning.
+Verified by `npm test` (213) and `node scripts/audit_exercise_types.mjs`.
 
 **Spaced repetition (SM-2)** belongs **only to Pratiquer** — it needs a finite
 item set with per-item state, which native content (median 25 items) is and the

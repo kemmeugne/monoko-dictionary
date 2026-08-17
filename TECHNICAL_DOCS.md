@@ -608,9 +608,55 @@ State-based routing with a `view` variable:
 | `detail` | Word detail with senses and examples |
 | `courses` | Course list (with per-level progress bars) |
 | `course_detail` | Lesson list within a course (with completion checkmarks) |
-| `lesson` | Lesson items table (FR ↔ dialect) + "J'ai terminé" CTA |
+| `lesson` | Lesson items table (FR ↔ dialect), Pratiquer / Élargir CTAs, "J'ai terminé" |
+| `lesson` + `sessionExercises` | Full-screen practice session (see below) — same `view`, different render branch |
 | `chat` | AI chat with Monoko |
 | `auth` | Login / signup form |
+
+---
+
+### The exercise engine (added 2026-08-10 → 2026-08-17)
+
+The practice loop lives in the same `<script type="text/babel">` block as the
+rest of the frontend. **`EXERCISE_ENGINE_PLAN.md` is the authority**; this is the
+map.
+
+A lesson is three stages over two **disjoint** pools drawn from `lesson_pool`:
+
+| Stage | Material | Shape |
+|---|---|---|
+| Apprendre | the lesson table | the teach beat |
+| **Pratiquer** | `tier = native` — what the professor wrote | finite, **80% first-try to pass**, unlocks Élargir |
+| **Élargir** | `tier IN (approved, reassigned)` — routed corpus | endless, replayable, carries a ⚑ Signaler flag |
+
+**A session is 20 questions, not 15 screens** — a match-pairs screen contributes
+5, every other type 1. `buildSession(items, level, count, history)` takes a
+**pool**, never a `lesson_id`, so the future topic hub, play button and placement
+session are the same function with a different pool.
+
+| Piece | What it does |
+|---|---|
+| `tokenize` / `characters` / `fold` / `sameWord` | The one definition of a word, a letter, and "same word ignoring accents". Do **not** count words with `lesson_pool.token_count` — it came from a naive whitespace split and disagrees on 947 rows |
+| `usableRow` | Blocks the dictionary's `/` and `?` placeholders, which `.trim()` lets through |
+| `selectionOrder` | Draw order: unseen across sessions → unused this session → better tier → longest ago → random |
+| `makeLedger` | Caps an item at 3 formats per session; cross-format reuse is what fills a thin lesson |
+| `EXERCISE_SCREENS` | Type → component. A new type is one entry plus a builder |
+| `ClipPlayer` | Shared play button + waveform (drawn, not measured — R2 sends no CORS, so Web Audio would output silence) |
+| `afterClip` | Holds the screen until the clip finishes. **Never hand over on a bare timer** |
+
+Six exercise types, five built: `match_pairs`, `choose_audio`, `word_order`,
+`fill_blank`, `listen_type`, and `speaking` (not yet — record-and-compare, no
+STT, excluded from the 80% gate because a self-grade cannot be scored).
+
+Two rules that look inconsistent and are not: **fill-the-blank folds accents**
+(17.7% of its answers need a character no iPhone French keyboard can produce, and
+it shows the accented spelling afterwards), while **listen-and-type compares
+exactly** (it *is* the spelling, and tiles mean the learner can only build what
+is offered).
+
+Writes land in `exercise_attempts` (one row per question, **first-try only**,
+batched at session end) and `lesson_stage_state` (the gate the lesson screen
+reads). Verified by `npm test` and `node scripts/audit_exercise_types.mjs`.
 
 ---
 

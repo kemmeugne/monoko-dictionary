@@ -21,11 +21,15 @@ than engagement, and it trapped speaking practice inside a once-per-level event.
 Replaced by continuous points on every exercise. **All levels are open** — the
 paywall below is the only gate.
 
-**Status 2026-08-17: the session engine, both first exercise types, and the
-stage split are live.** A session is 20 questions; Pratiquer (the professor's own
-rows) certifies a lesson at 80% first-try and unlocks Élargir (the routed
-corpus). Attempts, the gate and the mastery counter all persist. Remaining in
-this phase: the four other exercise types, then streaks/XP, then the session cap.
+**Status 2026-08-17: the practice loop is playable end to end.** A session is 20
+questions; Pratiquer (the professor's own rows) certifies a lesson at 80%
+first-try and unlocks Élargir (the routed corpus). Attempts, the gate and the
+mastery counter persist, and repeat sessions sweep forward through unseen
+material rather than re-rolling. **Five of the six exercise types exist** —
+match-pairs, choose-the-audio, tap-words-in-order, fill-the-blank,
+listen-and-type — and 46 of 49 lessons build a full session, none below 13
+questions. Remaining in this phase: **record-and-compare speaking**, then
+streaks/XP, then the session cap.
 
 **Build:**
 - ✅ **Session engine** — one question per screen, progress bar, live queue (wrong

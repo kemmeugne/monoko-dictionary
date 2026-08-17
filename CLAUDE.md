@@ -238,8 +238,11 @@ both hard-refuse to run unless pointed at that exact test project ref.
 
 - Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
   and fill in real values, or ask for them.
-- `npm test` — Vitest unit tests for every `api/*.js` file (110 tests, no
-  network calls, fully mocked). See `tests/README.md`.
+- `npm test` — Vitest, **213 tests, no network calls, fully mocked**. Covers
+  every `api/*.js` handler plus the exercise engine: the tokenizer, the
+  exercise builders, and the audio hand-off. Engine tests slice the code out of
+  `index.html` and evaluate it, so they run against the source the browser runs.
+  See `tests/README.md`.
 - `npm run db:sync-test-schema` / `npm run db:seed-test` — set up or reset
   the test project's schema and data. Both are safe to re-run any time.
 - Full spec and session-by-session status: `HARNESS_SPRINT.md`. This runs

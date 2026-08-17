@@ -5,7 +5,7 @@ Written 2026-08-07, last updated 2026-08-17. **This file supersedes the Phase 3
 `Cours/MONOKO_CURRICULUM.md`.** Where they disagree with this file, this file is
 right.
 
-**Status: Slices 0–5 shipped, Slice 6 half done.** A learner can open a lesson,
+**Status: Slices 0–5 shipped. Slice 6 is one exercise type from done.** A learner can open a lesson,
 run a 20-question Pratiquer session on the professor's own rows, pass it at 80%
 first-try, and unlock an endless Élargir session on the routed corpus. Attempts,
 the gate and the mastery counter persist. **Five of six exercise types exist**:
@@ -25,7 +25,7 @@ listen-and-type. Only record-and-compare speaking is left.
 | 7 · Progression + retention | ⬜ | XP, streaks, SM-2 (Pratiquer only) |
 | 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
 
-**Verify engine work with both:** `npm test` (193 tests, builders on hand-made
+**Verify engine work with both:** `npm test` (213 tests, builders on hand-made
 rows) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
 live 6,196-row pool, all lessons, both stages; exits non-zero on a violation).
 
@@ -483,7 +483,7 @@ the key fragments buckets, and match-pairs needs ≥3 in one bucket to build a
 screen at all — it would cost the thin lessons their only matching exercise to
 solve a problem no lesson currently has.
 
-### Slice 6 — the four remaining exercise types  ⬜  ← NEXT
+### Slice 6 — the four remaining exercise types  🔶 IN PROGRESS
 **All six types ship here** (decided 2026-08-10). Nothing is deferred: listen-and-type
 and speaking were previously "build last", but the blockers on both turned out to be
 input-mechanism problems, not feasibility problems.
@@ -912,7 +912,7 @@ not change. That was the design goal of Slice 2 and it should hold.
 ### Definition of done for each slice
 
 - `npx esbuild` syntax check on the extracted babel block passes
-- `npm test` passes (181 tests as of Slice 6's fill-the-blank)
+- `npm test` passes (213 tests as of 2026-08-17)
 - `node scripts/audit_exercise_types.mjs` exits 0 — every shipped type checked
   against the **live** 6,196-row pool, all 50 lessons, both stages. Unit tests
   prove the builders work on hand-made rows; this proves it on the real ones,
