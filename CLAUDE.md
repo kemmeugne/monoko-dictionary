@@ -654,6 +654,15 @@ Non-obvious rules that fall out of it:
   46 of 49 lessons now build a full session, none below 13 questions. 193 tests.
   The play button + waveform are now a shared **`ClipPlayer`**.
 
+- **Selection is breadth-first (2026-08-17).** `selectionOrder` is the order
+  every builder draws in: **unseen across sessions → unused in this session →
+  better tier → longest ago → random**. `startSession` loads the learner's
+  `exercise_attempts` for the lesson and passes them as `history`, so tapping
+  "S'entraîner" again moves through the lesson instead of re-rolling. Measured on
+  Les nombres (58 items): random plateaus at 87% coverage, history-led reaches
+  100% in four sessions. Note breadth **outranks tier** — an unseen `reassigned`
+  row goes before a seen `approved` one.
+
 **Next action is Slice 6's last type** — record-and-compare speaking (see §7 of
 the plan: no STT, self-graded, excluded from the 80% gate). Then Slice 7
 (XP/streaks/SM-2). `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**.
@@ -719,9 +728,12 @@ new exercise types in Slice 6 need both:
 - **No exercise screen autoplays.** `ChooseAudioScreen` waits for its play
   button. Sound follows a tap, never a mount. This also sidesteps iOS entirely,
   where a fresh element cannot play without a gesture anyway.
-- **Never hand over to the next screen on a fixed timer after starting a clip.**
-  Use **`afterClip(clip, onDone)`**, which waits for `ended` with a
-  duration-derived ceiling so an unloadable clip cannot strand the session.
+- **No screen may hand over while a clip is sounding — ever, in any type.**
+  Use **`afterClip(clip, onDone, floorMs)`**, never a bare `setTimeout`. It waits
+  for `ended` with a duration-derived ceiling (an unloadable clip fires no event
+  and would strand the session) and falls back to `floorMs` when nothing is
+  playing. Pass `playingClip(url)` to wait on a clip you did not start.
+  `tests/audio-handoff.test.js` covers this; keep it passing.
 
 Related rule: **a clip belongs to the match, not to the tap.** Playback tied to
 the Lingala tap meant a pair closed from the French tile played nothing at all.

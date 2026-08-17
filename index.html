@@ -632,6 +632,9 @@
           if (!used.has(id)) used.set(id, new Set());
           used.get(id).add(format);
         },
+        // Has this item appeared at all yet in this session, in any format?
+        // Reuse is the fallback for thin lessons, never the first choice.
+        usedAny: (id) => used.has(id),
       };
     };
 
@@ -649,17 +652,37 @@
       return c;
     };
 
-    // Random within a tier, ordered between tiers. A plain shuffle would throw
-    // away what the routing work measured: `approved` was confirmed by a model at
-    // 96% precision and `reassigned` was moved by one at 90%, so a session should
-    // spend the better material first and reach for the rest only to fill up.
-    // In Pratiquer every row is native, which makes this a plain shuffle.
-    const shuffleByTier = (rows) => {
-      const byTier = {};
-      for (const r of rows || []) (byTier[r.tier] ||= []).push(r);
-      return Object.keys(byTier)
-        .sort((a, b) => (TIER_RANK[a] ?? 9) - (TIER_RANK[b] ?? 9))
-        .flatMap(t => shuffle(byTier[t]));
+    // The order every builder draws in. Four rules, in priority order — the
+    // first two exist to make a session as WIDE as the lesson allows, the third
+    // to spend the most reliable material first, the fourth to keep replays from
+    // repeating themselves.
+    //
+    //   1. Never met in a past session. This is what makes tapping "S'entraîner"
+    //      a second time teach something new instead of re-running the same 20
+    //      items: `history` is what this learner has already been asked, so the
+    //      lesson is covered by breadth-first sweeps rather than by luck.
+    //   2. Not yet used in THIS session, in any format. An item may still come
+    //      back in a second format — that is what fills a thin lesson — but only
+    //      once everything else has had a turn.
+    //   3. Better tier. `approved` was confirmed by a model at 96% precision and
+    //      `reassigned` was moved by one at 90%, so spend the better first.
+    //      In Pratiquer every row is native, so this rule never fires.
+    //   4. Longest ago. Among items already met, the stalest comes back first,
+    //      which is spacing in its crudest form until SM-2 lands in Slice 7.
+    //
+    // Shuffled BEFORE sorting, and Array#sort is stable, so ties stay random —
+    // two sessions over the same material never run in the same order.
+    const selectionOrder = (rows, ledger, history) => {
+      const seen = history || new Map();         // lesson_pool.id -> last answered (ms)
+      return shuffle(rows || []).sort((a, b) => {
+        const sa = seen.has(a.id) ? 1 : 0, sb = seen.has(b.id) ? 1 : 0;
+        if (sa !== sb) return sa - sb;
+        const ua = ledger.usedAny(itemId(a)) ? 1 : 0, ub = ledger.usedAny(itemId(b)) ? 1 : 0;
+        if (ua !== ub) return ua - ub;
+        const ta = TIER_RANK[a.tier] ?? 9, tb = TIER_RANK[b.tier] ?? 9;
+        if (ta !== tb) return ta - tb;
+        return (seen.get(a.id) || 0) - (seen.get(b.id) || 0);
+      });
     };
 
     // Clips are fetched ahead of the tap and played from memory.
@@ -748,7 +771,7 @@
     // a solved screen forever.
     const HANDOFF_MIN = 420;     // the beat that makes a solved screen readable
     const HANDOFF_MAX = 4000;    // no clip in the pool runs longer than this
-    const afterClip = (audio, done) => {
+    const afterClip = (audio, done, floorMs = HANDOFF_MIN) => {
       let timer = null, fired = false;
       const run = () => {
         if (fired) return;
@@ -759,7 +782,9 @@
       };
       // A short beat after the voice, so the next prompt does not land on top of it.
       const onEnded = () => { clearTimeout(timer); timer = setTimeout(run, 220); };
-      if (!audio) { timer = setTimeout(run, HANDOFF_MIN); return; }
+      // No clip sounding: still hold the screen for the reveal beat the caller
+      // asked for, which is not the same length on every screen.
+      if (!audio || audio.paused || audio.ended) { timer = setTimeout(run, floorMs); return; }
       audio.addEventListener("ended", onEnded);
       const known = isFinite(audio.duration) && audio.duration > 0;
       const left = known ? Math.max(0, audio.duration - (audio.currentTime || 0)) * 1000 : 0;
@@ -858,12 +883,12 @@
     // Each screen is drawn from ONE bucket, so its pairs share an orthography and
     // a French shape. Buckets are taken largest-first so the session opens with
     // the lesson's richest material.
-    const matchPairsScreens = (items, level, budget, ledger) => {
+    const matchPairsScreens = (items, level, budget, ledger, history) => {
       const out = [];
       let spent = 0;
       for (const bucket of pairsBuckets(items, level)) {
         if (budget - spent < PAIRS_MIN) break;
-        const avail = shuffleByTier(bucket.filter(r => ledger.canUse(itemId(r), "match_pairs")));
+        const avail = selectionOrder(bucket.filter(r => ledger.canUse(itemId(r), "match_pairs")), ledger, history);
         let i = 0;
         while (budget - spent >= PAIRS_MIN && avail.length - i >= PAIRS_MIN) {
           const size = Math.min(PAIRS_MAX, budget - spent, avail.length - i);
@@ -878,10 +903,10 @@
     };
 
     // One screen, one question — so the budget here is simply a screen count.
-    const chooseAudioScreens = (items, level, budget, ledger) => {
+    const chooseAudioScreens = (items, level, budget, ledger, history) => {
       const out = [];
       for (const bucket of audioBuckets(items, level)) {
-        for (const answer of shuffleByTier(bucket)) {
+        for (const answer of selectionOrder(bucket, ledger, history)) {
           if (out.length >= budget) return out;
           if (!ledger.canUse(itemId(answer), "choose_audio")) continue;
           ledger.use(itemId(answer), "choose_audio");
@@ -925,9 +950,9 @@
       };
     };
 
-    const wordOrderScreens = (items, level, budget, ledger) => {
+    const wordOrderScreens = (items, level, budget, ledger, history) => {
       const out = [];
-      for (const r of shuffleByTier(wordOrderRows(items, level))) {
+      for (const r of selectionOrder(wordOrderRows(items, level), ledger, history)) {
         if (out.length >= budget) break;
         if (!ledger.canUse(itemId(r), "word_order")) continue;
         ledger.use(itemId(r), "word_order");
@@ -979,9 +1004,9 @@
       };
     };
 
-    const fillBlankScreens = (items, level, budget, ledger) => {
+    const fillBlankScreens = (items, level, budget, ledger, history) => {
       const out = [];
-      for (const r of shuffleByTier(fillBlankRows(items, level))) {
+      for (const r of selectionOrder(fillBlankRows(items, level), ledger, history)) {
         if (out.length >= budget) break;
         if (!ledger.canUse(itemId(r), "fill_blank")) continue;
         ledger.use(itemId(r), "fill_blank");
@@ -1057,9 +1082,9 @@
       };
     };
 
-    const listenTypeScreens = (items, level, budget, ledger) => {
+    const listenTypeScreens = (items, level, budget, ledger, history) => {
       const out = [];
-      for (const r of shuffleByTier(listenTypeRows(items, level))) {
+      for (const r of selectionOrder(listenTypeRows(items, level), ledger, history)) {
         if (out.length >= budget) break;
         if (!ledger.canUse(itemId(r), "listen_type")) continue;
         ledger.use(itemId(r), "listen_type");
@@ -1099,7 +1124,10 @@
     // passes corpus rows, and the topic hub, play button and placement session
     // are all just different pools — the caller decides what the material is,
     // this decides what to do with it.
-    const buildSession = (items, level, count = SESSION_QUESTIONS) => {
+    // `history` maps `lesson_pool.id` → when this learner last answered it, so a
+    // repeated "S'entraîner" sweeps forward through the lesson instead of
+    // re-rolling the same items. Omit it and the session is simply random.
+    const buildSession = (items, level, count = SESSION_QUESTIONS, history = null) => {
       const ledger = makeLedger();
       // Match-pairs first and capped at roughly a third: it needs short items on
       // BOTH sides, the rarest shape in the pool (median 25 a lesson against 79
@@ -1109,17 +1137,17 @@
       //
       // Order matters: each builder claims items from the ledger as it goes, so
       // the scarcest type must choose before the plentiful ones take its material.
-      const pairs = matchPairsScreens(items, level, Math.ceil(count / 3), ledger);
+      const pairs = matchPairsScreens(items, level, Math.ceil(count / 3), ledger, history);
       let left = count - countQuestions(pairs);
       // Each single-question type takes an even share of what remains, and the
       // last one takes the rest — so a lesson short on one type still fills up.
-      const order = wordOrderScreens(items, level, Math.ceil(left / 4), ledger);
+      const order = wordOrderScreens(items, level, Math.ceil(left / 4), ledger, history);
       left -= countQuestions(order);
-      const blank = fillBlankScreens(items, level, Math.ceil(left / 3), ledger);
+      const blank = fillBlankScreens(items, level, Math.ceil(left / 3), ledger, history);
       left -= countQuestions(blank);
-      const listen = listenTypeScreens(items, level, Math.ceil(left / 2), ledger);
+      const listen = listenTypeScreens(items, level, Math.ceil(left / 2), ledger, history);
       left -= countQuestions(listen);
-      const audio = chooseAudioScreens(items, level, left, ledger);
+      const audio = chooseAudioScreens(items, level, left, ledger, history);
       return interleave([pairs, order, blank, listen, audio], count);
     };
 
@@ -1370,7 +1398,10 @@
           setSolved(true);
           // One screen, one question — first try means no wrong option yet.
           if (!exercise.retry) onAnswer(exercise.answer, wrongIds.length === 0);
-          setTimeout(onDone, 620);
+          // A learner often answers while the clip is still sounding. Handing
+          // over on a timer would clip the professor mid-word, so wait for it —
+          // and hold the 620ms reveal beat when it has already finished.
+          afterClip(playingClip(exercise.answer.audio), onDone, 620);
         } else {
           setWrongIds(w => [...w, opt.id]);
           onMiss({ id: exercise.answer.id, fr: exercise.answer.fr, ln: exercise.answer.ln });
@@ -3028,6 +3059,31 @@
         }
       };
 
+      // What this learner has already been asked in this lesson and stage, so a
+      // repeat session can move on rather than re-roll. Keyed by `lesson_pool.id`
+      // and valued by the most recent answer, which lets the builder put never-
+      // seen items first and stalest-first after that.
+      //
+      // Read at session start rather than kept in state: attempts are written at
+      // session END, so this is the only moment it can change.
+      const loadSeenItems = async (lessonId, stage) => {
+        if (!currentUser || !lessonId) return null;
+        try {
+          const { data } = await supabaseClient
+            .from("exercise_attempts")
+            .select("pool_item_id, answered_at")
+            .eq("user_id", currentUser.id).eq("lesson_id", lessonId).eq("stage", stage)
+            .order("answered_at", { ascending: false })
+            .limit(2000);
+          const seen = new Map();
+          for (const r of data || []) {
+            const t = Date.parse(r.answered_at) || 0;
+            if (!seen.has(r.pool_item_id)) seen.set(r.pool_item_id, t);   // rows arrive newest-first
+          }
+          return seen;
+        } catch (e) { console.error("loadSeenItems:", e); return null; }
+      };
+
       // Chooses the material; `buildSession` decides what to do with it. The tier
       // filter is the whole stage split — without it practice served corpus rows
       // the lesson never taught (178 items for Salutations against 29 written).
@@ -3036,9 +3092,12 @@
         setPoolLoading(true);
         try {
           const level = selectedCourse?.course_order || 1;
-          const items = await supaFetch("lesson_pool",
-            `lesson_id=eq.${selectedLesson.id}&${STAGE_TIERS[stage]}&select=*&limit=1000`);
-          const built = buildSession(items, level, SESSION_QUESTIONS);
+          const [items, seen] = await Promise.all([
+            supaFetch("lesson_pool",
+              `lesson_id=eq.${selectedLesson.id}&${STAGE_TIERS[stage]}&select=*&limit=1000`),
+            loadSeenItems(selectedLesson.id, stage),
+          ]);
+          const built = buildSession(items, level, SESSION_QUESTIONS, seen);
           if (!built.length) {
             setSessionNote(stage === "pratiquer"
               ? "Pas encore assez de contenu court dans cette leçon pour un exercice."

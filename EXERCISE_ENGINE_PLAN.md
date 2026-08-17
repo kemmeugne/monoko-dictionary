@@ -716,6 +716,54 @@ Nothing in the curriculum now falls below **13** questions. Mix stays even:
 choose_audio 250 · listen_type 198 · match_pairs 187 · fill_blank 167 ·
 word_order 166.
 
+### Breadth: one session, and the next one (2026-08-17)
+
+Three rules asked for after the first real play-through, all landing in one
+place — `selectionOrder`, the order every builder now draws in.
+
+**1. No screen hands over while audio is sounding.** Four of the five screens
+already waited via `afterClip`; choose-the-audio did not — it used a fixed 620ms
+timer, and a learner who answers while the clip is still playing got the
+professor cut off. `afterClip` now takes a **floor**, so a screen waits for the
+clip when one is sounding and still holds its own reveal beat when none is.
+Permanently covered by `tests/audio-handoff.test.js`, including the two failure
+modes that hang a session: a clip that never loads (no `ended` event ever) and a
+clip that finished before the learner answered (the event already gone).
+
+**2. A session is as wide as the lesson allows.** Builders used to draw at
+random within tier, so an item could be picked for a second format while others
+had not appeared at all. Selection now prefers items **untouched in this
+session**; cross-format reuse still exists — it is what fills a thin lesson — but
+only once everything else has had a turn.
+
+**3. Tapping "S'entraîner" again teaches something new.** `startSession` loads
+what this learner has already been asked from `exercise_attempts` (keyed by
+`lesson_pool.id`, valued by the most recent answer) and passes it to
+`buildSession`. Never-seen items go first; among seen ones the stalest returns
+first, which is spacing in its crudest form until SM-2 arrives in Slice 7.
+
+The full priority, highest first: **unseen across sessions → unused in this
+session → better tier → longest ago → random**. Ties stay random because the
+list is shuffled before a *stable* sort, so two sessions over the same material
+never run in the same order.
+
+Note rule 3 outranks tier: an **unseen `reassigned` row is served before a seen
+`approved` one**. Breadth was the explicit goal, and a routing miss costs a
+correct sentence in the wrong lesson, not a wrong sentence.
+
+**Measured — distinct items met after N sessions (30 runs, native pool):**
+
+| Lesson | | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Salutations (29) | random | 20 | 25 | 27 | 28 | 28 | 29 |
+| | **history-led** | 20 | **29** | 29 | 29 | 29 | 29 |
+| Les nombres (58) | random | 20 | 31 | 38 | 44 | 48 | 50 |
+| | **history-led** | 20 | 37 | 49 | **58** | 58 | 58 |
+
+Les nombres is the case that matters: random selection plateaus around **87%** of
+the lesson and leaves the tail unseen for a long time, while history-led covers
+**all 58 items in four sessions**. Météo (6 items) is covered in one either way.
+
 ### Slice 6 constraints that are not negotiable
 
 **Listen-and-type is a tile exercise.** The pool uses **42 distinct alphabetic

@@ -30,6 +30,7 @@ const engine = new Function(
            buildFillBlank, fillBlankRows, fillBlankScreens, blankCandidates,
            sameWord, tokenize, fold,
            buildListenType, listenTypeRows, listenTypeScreens, characters,
+           selectionOrder, screenItems,
            interleave, questionCount, countQuestions, makeLedger, itemId,
            usableRow, SESSION_QUESTIONS, WORD_ORDER_MIN, WORD_ORDER_MAX,
            BLANK_MIN_CHARS, FILL_BLANK_MIN_TOKENS,
@@ -369,6 +370,89 @@ describe("interleave — mixing N exercise types", () => {
   it("handles empty lists", () => {
     expect(engine.interleave([[], []], 20)).toEqual([]);
     expect(engine.interleave([], 20)).toEqual([]);
+  });
+});
+
+describe("selectionOrder — breadth first", () => {
+  const rows = [row("aaa", "a"), row("bbb", "b"), row("ccc", "c"), row("ddd", "d")];
+
+  it("puts items never met in a past session ahead of ones already met", () => {
+    const seen = new Map([[rows[0].id, 100], [rows[1].id, 100]]);
+    const out = engine.selectionOrder(rows, engine.makeLedger(), seen);
+    const unseen = [rows[2].id, rows[3].id];
+    expect(unseen).toContain(out[0].id);
+    expect(unseen).toContain(out[1].id);
+  });
+
+  it("puts items untouched in THIS session ahead of ones already used", () => {
+    const ledger = engine.makeLedger();
+    ledger.use(engine.itemId(rows[0]), "match_pairs");
+    ledger.use(engine.itemId(rows[1]), "word_order");
+    const out = engine.selectionOrder(rows, ledger, new Map());
+    expect([rows[2].id, rows[3].id]).toContain(out[0].id);
+  });
+
+  it("brings the stalest item back first among ones already met", () => {
+    const seen = new Map([[rows[0].id, 300], [rows[1].id, 100], [rows[2].id, 200], [rows[3].id, 400]]);
+    const out = engine.selectionOrder(rows, engine.makeLedger(), seen);
+    expect(out.map(r => r.id)).toEqual([rows[1].id, rows[2].id, rows[0].id, rows[3].id]);
+  });
+
+  it("prefers the better tier when nothing else separates two items", () => {
+    const mixed = [row("aaa", "a", { tier: "reassigned" }), row("bbb", "b", { tier: "approved" })];
+    const out = engine.selectionOrder(mixed, engine.makeLedger(), new Map());
+    expect(out[0].tier).toBe("approved");
+  });
+
+  it("but breadth beats tier — an unseen reassigned row outranks a seen approved one", () => {
+    const app = row("aaa", "a", { tier: "approved" });
+    const rea = row("bbb", "b", { tier: "reassigned" });
+    const out = engine.selectionOrder([app, rea], engine.makeLedger(), new Map([[app.id, 1]]));
+    expect(out[0].id).toBe(rea.id);
+  });
+
+  it("orders randomly when nothing separates the items", () => {
+    const many = Array.from({ length: 12 }, (_, i) => row(`w${i}`, `f${i}`));
+    const firsts = new Set();
+    for (let i = 0; i < 40; i++)
+      firsts.add(engine.selectionOrder(many, engine.makeLedger(), new Map())[0].id);
+    expect(firsts.size).toBeGreaterThan(1);
+  });
+
+  it("survives a null history and a null row list", () => {
+    expect(engine.selectionOrder(rows, engine.makeLedger(), null)).toHaveLength(4);
+    expect(engine.selectionOrder(null, engine.makeLedger(), null)).toEqual([]);
+  });
+});
+
+describe("repeat sessions cover new material", () => {
+  // 40 short rows: enough that one session cannot show them all.
+  const pool = Array.from({ length: 40 }, (_, i) => row(`mot${i}`, `mot ${i}`));
+
+  const playSessions = (n, useHistory) => {
+    const history = new Map();
+    const covered = new Set();
+    let clock = 1;
+    for (let s = 0; s < n; s++) {
+      for (const ex of engine.buildSession(pool, 3, 20, useHistory ? history : null))
+        for (const it of engine.screenItems(ex)) { covered.add(it.poolId); history.set(it.poolId, clock++); }
+    }
+    return covered.size;
+  };
+
+  it("a second session teaches items the first one did not", () => {
+    // The point of the feature: tapping S'entraîner again moves through the
+    // lesson rather than re-rolling the same 20 items.
+    expect(playSessions(2, true)).toBeGreaterThan(playSessions(1, true));
+  });
+
+  it("covers more of the pool than random selection does", () => {
+    const led = playSessions(3, true), random = playSessions(3, false);
+    expect(led).toBeGreaterThan(random);
+  });
+
+  it("does not stall — repeated sessions keep adding until the pool is spent", () => {
+    expect(playSessions(6, true)).toBe(pool.length);
   });
 });
 
