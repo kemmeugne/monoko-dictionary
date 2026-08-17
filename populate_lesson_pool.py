@@ -47,6 +47,24 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://haioiccujncsehadipzb.supa
 LANGUAGE_ID = 1
 CHUNK = 500
 
+# Lessons merged into another after the routing artifacts were written.
+#
+# The artifacts in artifacts/professor_ingest/ still name the lesson each row was
+# routed to, and those ids are frozen at the time the routing ran. When a lesson
+# is merged away, `level_of` has no entry for the old id, the row is counted as
+# skipped_no_level and DISAPPEARS from the pool — silently, because a skip is a
+# normal outcome for genuinely unplaceable rows.
+#
+#   375 -> 350  "Les nombres ordinaux" folded into "Les nombres" (2026-08-17,
+#               sql/merge_ordinals_into_numbers.sql). Three items could not build
+#               a session, so 80% of that lesson meant 3/3.
+LESSON_MERGES = {375: 350}
+
+
+def merged(lesson_id):
+    """The lesson a row belongs to today, following any merge."""
+    return LESSON_MERGES.get(lesson_id, lesson_id)
+
 
 def key() -> str:
     k = os.environ.get("SUPABASE_SERVICE_KEY")
@@ -91,13 +109,13 @@ def main() -> None:
     rows, skipped_no_level = [], 0
     for r in routing:
         if r["is_native"]:
-            lesson_id, tier = r["lesson_id"], "native"
+            lesson_id, tier = merged(r["lesson_id"]), "native"
         else:
             k = row_key(r)
             if verdicts.get(k) == "yes":
-                lesson_id, tier = r["lesson_id"], "approved"
+                lesson_id, tier = merged(r["lesson_id"]), "approved"
             elif reassign.get(k):
-                lesson_id, tier = reassign[k], "reassigned"
+                lesson_id, tier = merged(reassign[k]), "reassigned"
             else:
                 continue  # rejected and unplaceable — see the module docstring
 

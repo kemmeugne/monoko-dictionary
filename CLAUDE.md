@@ -82,6 +82,7 @@ sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match
 sql/pgvector_dictionary.sql       — SQL migration: embedding cols on senses+examples + match_examples/match_senses RPCs (applied 2026-08-07)
 sql/lesson_pool.sql               — SQL migration: lesson_pool, the exercise engine's material (applied 2026-08-10)
 sql/exercise_progress.sql         — SQL migration: exercise_attempts + lesson_stage_state, what a session leaves behind (applied 2026-08-17)
+sql/merge_ordinals_into_numbers.sql — SQL migration: folds L375 "Les nombres ordinaux" (3 items) into L350 "Les nombres" (written 2026-08-17, NOT YET APPLIED)
 populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
@@ -681,9 +682,17 @@ a violation. Run both. The audit is what found the `/` placeholder rows and the
   session.
 - Every exercise item must carry `poolId` (`lesson_pool.id`). Without it an
   attempt cannot be written, and the item silently vanishes from the gate.
-- **Thin lessons face a harsher gate**: 80% of a 3-question session is 3/3. Two
-  lessons are in that state today (Nombres ordinaux, Comparatifs et superlatifs);
-  Slice 6's extra formats are the planned fix.
+- **Thin lessons face a harsher gate**: 80% of a 3-question session is 3/3.
+  Slice 6's extra formats fixed most of it (43/50 lessons now build a full
+  20-question session). The last holdout, L375 "Les nombres ordinaux", is fixed
+  as **content**: `sql/merge_ordinals_into_numbers.sql` folds its 3 items into
+  L350 "Les nombres". **Not yet applied.** When a lesson cannot build a session,
+  check whether the engine is pointing at a content problem before changing the
+  engine.
+- **Merging a lesson has two silent failure modes** — see that migration's
+  header. Everything cascades from `lessons`, so the delete goes last; and
+  `populate_lesson_pool.py` silently *skips* rows whose lesson id no longer
+  exists, so it carries `LESSON_MERGES` to remap them.
 
 **Audio prefetch gotcha:** R2 sends no `Access-Control-Allow-Origin` and 403s the
 OPTIONS preflight, so `fetch()` cannot read audio clips from the browser — a blob

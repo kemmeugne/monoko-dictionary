@@ -638,9 +638,31 @@ both stay visible with ~82px to spare.
 Mix across one build per lesson: choose_audio 349 · word_order 207 ·
 fill_blank 207 · match_pairs 190 — no type dominating.
 
-**Nombres ordinaux is still stranded at 3 questions.** Its 3 native rows are too
-short for both word-order and fill-the-blank. Listen-and-type is the type that
-should finally reach it, since that one wants **short** items (≤2 tokens).
+**Nombres ordinaux was stranded at 3 questions — fixed as content, not code.**
+Its 3 native rows ("1er → Ya liboso") are too short for word-order and
+fill-the-blank, so 80% of its session meant 3/3, a strictly harder gate than any
+other lesson. Anthony's call on 2026-08-17: **three items is not a lesson, and
+ordinals belong with cardinals.** `sql/merge_ordinals_into_numbers.sql` folds
+L375 into L350 "Les nombres" (55 items → 58, pool 111 → 122).
+
+Simulated against the live pool before applying: the merged lesson still builds
+a full 20-question session with all four types, and **every lesson in the
+curriculum can then build at least 5 questions** — the 1–4 bucket empties.
+
+The lesson had no teaching reason to exist; it was an artefact of the July 2026
+restructure splitting mega-lessons. Worth remembering when a lesson looks
+unbuildable: the engine constraint was pointing at a content problem.
+
+Two traps that migration documents, because both fail silently:
+- `lesson_items`, `lesson_pool`, `exercise_attempts`, `user_progress` and
+  `lesson_stage_state` all cascade from `lessons`, so the delete must come last.
+  Attempts are **moved** (their pool items moved too, so the evidence is still
+  about L350); stage state and completion are **dropped**, because passing a
+  3-item lesson is not passing a 58-item one.
+- `populate_lesson_pool.py` reads lesson ids from artifacts frozen at routing
+  time. A merged-away id has no level, and a row with no level is *skipped* —
+  a normal outcome for unplaceable rows, so 11 rows would have vanished with no
+  error. The script now carries `LESSON_MERGES = {375: 350}`.
 
 ### Slice 6 constraints that are not negotiable
 
