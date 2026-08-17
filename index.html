@@ -506,12 +506,47 @@
     // ── End AlphabetPanel ─────────────────────────────────────────────────────
 
     // ── Exercise engine ───────────────────────────────────────────────────────
-    // One screen = one question, whatever the exercise type. Match-pairs shows 5
-    // pairs on that screen; a future fill-the-blank will show one gap. Keeping the
-    // screen as the unit is what lets a single session mix types without the
-    // progress bar meaning something different from one screen to the next.
-    const SESSION_MAX = 15;        // screens per session, material permitting
-    const PAIRS_PER_SCREEN = 5;
+    // A session is a budget of QUESTIONS, not of screens. Screens are unequal in
+    // time — a five-pair matching screen is five answers, a choose-the-audio
+    // screen is one — so counting screens made the progress bar mean something
+    // different from one screen to the next, and made a variable screen size
+    // expensive. Counting questions makes it free: a three-pair screen simply
+    // costs three, which is what lets thin lessons build a matching screen at all.
+    const SESSION_QUESTIONS = 20;  // questions per session, material permitting
+    const PAIRS_MIN = 3;           // below 3 the screen is solvable by elimination
+    const PAIRS_MAX = 5;           // above 5 the tiles stop fitting a 375px column
+
+    // How much of the budget each screen type spends.
+    const questionCount = (ex) => !ex ? 0 : ex.type === "match_pairs" ? ex.pairs.length : 1;
+    const countQuestions = (list) => (list || []).reduce((n, ex) => n + questionCount(ex), 0);
+
+    // Every pool row is identified the same way everywhere: by where it came
+    // from. `lesson_pool.id` would be shorter but the exercises carry provenance,
+    // not pool rows, and a re-populate reassigns pool ids.
+    const itemId = (r) => `${r.source_table}:${r.source_id}`;
+
+    // A thin lesson cannot fill 20 questions from distinct items — Météo has 6
+    // native rows against a budget of 20. Repeating an item in a DIFFERENT format
+    // is practice: matching it, then hearing it, then typing it are three
+    // different skills on the same vocabulary. Repeating it in the SAME format is
+    // a memory test of the screen before. So the ledger is keyed by (item,
+    // format), and capped at 3 formats per item so that no session becomes one
+    // word six ways.
+    const MAX_FORMATS_PER_ITEM = 3;
+
+    const makeLedger = () => {
+      const used = new Map();                    // item id -> Set(format)
+      return {
+        canUse: (id, format) => {
+          const formats = used.get(id);
+          return !formats || (!formats.has(format) && formats.size < MAX_FORMATS_PER_ITEM);
+        },
+        use: (id, format) => {
+          if (!used.has(id)) used.set(id, new Set());
+          used.get(id).add(format);
+        },
+      };
+    };
 
     // Precision measured per tier during the routing work: the professor's own
     // rows are correct by construction, the others were placed by a model.
@@ -651,36 +686,48 @@
     const buildMatchPairs = (rows) => ({
       type: "match_pairs",
       pairs: rows.map(r => ({
-        id: `${r.source_table}:${r.source_id}`,
+        id: itemId(r),
         fr: r.french.trim(),
         ln: r.lingala.trim(),
         audio: r.audio_url,
       })),
     });
 
-    // Sized to the material, not to a fixed target: no lesson currently holds
-    // enough short items for 15 match-pairs screens (the median supports 6), so
-    // asking for 15 would mean repeating terms inside one session.
-    // Each match-pairs screen is drawn from ONE bucket, so its five pairs share an
-    // orthography and a French shape. Buckets are taken largest-first so the
-    // session opens with the lesson's richest material.
-    const matchPairsScreens = (rows, level, cap) => {
+    // Sized to the material, not to a fixed target: short-on-both-sides items are
+    // the rarest shape in the pool (median 25 a lesson), so a screen takes what
+    // the bucket and the remaining budget allow, anywhere from PAIRS_MIN to
+    // PAIRS_MAX. A 3-pair screen costs 3 questions rather than 5 — which is what
+    // recovers the 12 lessons that could not build a 5-pair screen at all.
+    // Each screen is drawn from ONE bucket, so its pairs share an orthography and
+    // a French shape. Buckets are taken largest-first so the session opens with
+    // the lesson's richest material.
+    const matchPairsScreens = (items, level, budget, ledger) => {
       const out = [];
-      for (const bucket of pairsBuckets(rows, level)) {
-        const screens = Math.floor(bucket.length / PAIRS_PER_SCREEN);
-        const picked = shuffle(bucket).slice(0, screens * PAIRS_PER_SCREEN);
-        for (let i = 0; i < screens && out.length < cap; i++)
-          out.push(buildMatchPairs(picked.slice(i * PAIRS_PER_SCREEN, (i + 1) * PAIRS_PER_SCREEN)));
-        if (out.length >= cap) break;
+      let spent = 0;
+      for (const bucket of pairsBuckets(items, level)) {
+        if (budget - spent < PAIRS_MIN) break;
+        const avail = shuffle(bucket.filter(r => ledger.canUse(itemId(r), "match_pairs")));
+        let i = 0;
+        while (budget - spent >= PAIRS_MIN && avail.length - i >= PAIRS_MIN) {
+          const size = Math.min(PAIRS_MAX, budget - spent, avail.length - i);
+          const picked = avail.slice(i, i + size);
+          i += size;
+          picked.forEach(r => ledger.use(itemId(r), "match_pairs"));
+          out.push(buildMatchPairs(picked));
+          spent += size;
+        }
       }
       return out;
     };
 
-    const chooseAudioScreens = (rows, level, cap) => {
+    // One screen, one question — so the budget here is simply a screen count.
+    const chooseAudioScreens = (items, level, budget, ledger) => {
       const out = [];
-      for (const bucket of audioBuckets(rows, level)) {
+      for (const bucket of audioBuckets(items, level)) {
         for (const answer of shuffle(bucket)) {
-          if (out.length >= cap) return out;
+          if (out.length >= budget) return out;
+          if (!ledger.canUse(itemId(answer), "choose_audio")) continue;
+          ledger.use(itemId(answer), "choose_audio");
           out.push(buildChooseAudio(answer, bucket));
         }
       }
@@ -691,22 +738,39 @@
     // material either way, but a block of five identical screens reads as a drill
     // and a mixed queue reads as practice — and this is the shape every later
     // exercise type slots into.
-    const interleave = (a, b, max) => {
+    //
+    // A screen too big for what is left of the budget is skipped rather than
+    // ending the queue: a 5-pair screen may not fit in the last 2 questions where
+    // two choose-the-audio screens still do, and stopping there would hand back a
+    // short session with material still on the table.
+    const interleave = (a, b, budget) => {
       const out = [];
-      for (let i = 0; out.length < max && (i < a.length || i < b.length); i++) {
-        if (i < a.length && out.length < max) out.push(a[i]);
-        if (i < b.length && out.length < max) out.push(b[i]);
+      let spent = 0;
+      for (let i = 0; i < Math.max(a.length, b.length) && spent < budget; i++) {
+        for (const list of [a, b]) {
+          const ex = list[i];
+          if (!ex) continue;
+          const cost = questionCount(ex);
+          if (spent + cost > budget) continue;
+          out.push(ex);
+          spent += cost;
+        }
       }
       return out;
     };
 
-    const buildSession = (rows, level, max = SESSION_MAX) => {
+    // Takes a POOL, never a lesson id. Pratiquer passes native rows, Élargir
+    // passes corpus rows, and the topic hub, play button and placement session
+    // are all just different pools — the caller decides what the material is,
+    // this decides what to do with it.
+    const buildSession = (items, level, count = SESSION_QUESTIONS) => {
+      const ledger = makeLedger();
       // Match-pairs needs short items on BOTH sides, the rarest shape in the pool
       // (median 25 per lesson against 79 with audio), so it is capped at roughly
       // a third of the session and choose-the-audio carries the rest.
-      const pairs = matchPairsScreens(rows, level, Math.ceil(max / 3));
-      const audio = chooseAudioScreens(rows, level, max - pairs.length);
-      return interleave(pairs, audio, max);
+      const pairs = matchPairsScreens(items, level, Math.ceil(count / 3), ledger);
+      const audio = chooseAudioScreens(items, level, count - countQuestions(pairs), ledger);
+      return interleave(pairs, audio, count);
     };
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
@@ -833,11 +897,11 @@
       return {
         type: "choose_audio",
         answer: {
-          id: `${answer.source_table}:${answer.source_id}`,
+          id: itemId(answer),
           fr: answer.french.trim(), ln: answer.lingala.trim(), audio: answer.audio_url,
         },
         options: shuffle([answer, ...others].map(r => ({
-          id: `${r.source_table}:${r.source_id}`, fr: r.french.trim(),
+          id: itemId(r), fr: r.french.trim(),
         }))),
       };
     };
@@ -934,7 +998,11 @@
       const [missed, setMissed] = useState([]);      // pairs answered wrong, deduped
       const [done, setDone] = useState(false);
 
-      const total = queue.length;
+      // Both counted in questions, so the bar moves by five across a five-pair
+      // screen and by one across a choose-the-audio screen. `queue` grows when a
+      // retry screen is appended, so neither is fixed at mount.
+      const totalQuestions = countQuestions(queue);
+      const answered = countQuestions(queue.slice(0, idx));
       const current = queue[idx];
       const Screen = current && EXERCISE_SCREENS[current.type];
 
@@ -953,13 +1021,15 @@
       const noteMiss = (pair) => setMissed(m => m.some(x => x.id === pair.id) ? m : [...m, pair]);
 
       const advance = () => {
-        setXp(x => x + 10 * PAIRS_PER_SCREEN);
+        setXp(x => x + 10 * questionCount(current));   // 10 a question, not a screen
         // Anything missed comes back before the session can end, as a screen
-        // built from the missed pairs themselves.
+        // built from the missed pairs themselves. This one screen may fall below
+        // PAIRS_MIN: it is re-exposure, not assessment — the answer has already
+        // been shown, and retries never feed the first-try pass rate.
         if (idx + 1 >= queue.length) {
           const retry = missed.filter(m => !m.retried);
           if (retry.length >= 2) {
-            const batch = retry.slice(0, PAIRS_PER_SCREEN).map(p => ({ ...p, retried: true }));
+            const batch = retry.slice(0, PAIRS_MAX).map(p => ({ ...p, retried: true }));
             setMissed(m => m.map(x => batch.some(b => b.id === x.id) ? { ...x, retried: true } : x));
             setQueue(q => [...q, { type: "match_pairs", pairs: batch }]);
             setIdx(i => i + 1);
@@ -971,7 +1041,7 @@
         setIdx(i => i + 1);
       };
 
-      const pct = done ? 100 : Math.round(100 * idx / Math.max(1, total));
+      const pct = done ? 100 : Math.round(100 * answered / Math.max(1, totalQuestions));
 
       return (
         <div style={{
@@ -1010,7 +1080,7 @@
                           fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp} XP</p>
               <p style={{ color: "#9B8A6E", fontSize: 14, margin: 0 }}>{lesson.title}</p>
               <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
-                {[[total, "écrans"], [`${Math.max(0, Math.round(100 * (1 - missed.length / Math.max(1, total * PAIRS_PER_SCREEN))))}%`, "réussite"]].map(([v, l]) => (
+                {[[totalQuestions, "questions"], [`${Math.max(0, Math.round(100 * (1 - missed.length / Math.max(1, totalQuestions))))}%`, "réussite"]].map(([v, l]) => (
                   <div key={l} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14, padding: "13px 8px", background: "white" }}>
                     <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
                                 fontVariantNumeric: "tabular-nums" }}>{v}</b>
@@ -2001,17 +2071,18 @@
       };
 
 
-      // Builds a session from lesson_pool. Sized to the material: no lesson holds
-      // enough short items for 15 match-pairs screens today (the median supports
-      // 6), and asking for more would repeat terms inside one session.
+      // Chooses the material; `buildSession` decides what to do with it. Slice 5
+      // splits this query in two — `tier=eq.native` for Pratiquer,
+      // `tier=in.(approved,reassigned)` for Élargir. Until then it serves the
+      // whole pool, which includes corpus rows the lesson never taught.
       const startSession = async () => {
         if (!selectedLesson) return;
         setPoolLoading(true);
         try {
           const level = selectedCourse?.course_order || 1;
-          const rows = await supaFetch("lesson_pool",
+          const items = await supaFetch("lesson_pool",
             `lesson_id=eq.${selectedLesson.id}&select=*&limit=1000`);
-          const built = buildSession(rows, level);
+          const built = buildSession(items, level, SESSION_QUESTIONS);
           if (!built.length) {
             setSessionNote("Pas encore assez de contenu court dans cette leçon pour un exercice.");
             return;

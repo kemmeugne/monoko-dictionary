@@ -81,6 +81,7 @@ tts_space/README.md               — Space metadata: sdk=gradio 6.13.0, python=
 sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match_parallel_sentences RPC
 sql/pgvector_dictionary.sql       — SQL migration: embedding cols on senses+examples + match_examples/match_senses RPCs (applied 2026-08-07)
 sql/lesson_pool.sql               — SQL migration: lesson_pool, the exercise engine's material (applied 2026-08-10)
+sql/exercise_progress.sql         — SQL migration: exercise_attempts + lesson_stage_state, what a session leaves behind (written 2026-08-17, NOT YET APPLIED)
 populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
@@ -609,10 +610,23 @@ Non-obvious rules that fall out of it:
   Speaking is **record-and-compare** (no STT, so no WER dependency) and is excluded
   from the Pratiquer 80% gate because self-assessment cannot be scored.
 
-**Next action is Slice 4 — attempts table + refactoring `buildSession` to be
-pool-shaped.** `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**:
-the SQL to run, the exact `index.html` identifiers to change, and a
+- **Slice 4 is done (2026-08-17).** A session is now a budget of **20 questions**,
+  not 15 screens: `questionCount()` prices a screen (match-pairs costs
+  `pairs.length`, everything else 1), pair screens are **3–5**, XP is 10 a
+  question, and `buildSession(items, level, count)` takes a **pool** — never a
+  `lesson_id`. A per-session ledger keyed by **(item, format)** lets a thin lesson
+  reuse an item in a different format, capped at 3 formats per item.
+  `sql/exercise_progress.sql` adds `exercise_attempts` + `lesson_stage_state`.
+
+**Next action is Slice 5 — the stage split.** `EXERCISE_ENGINE_PLAN.md` **§4c is
+the executable task list**: the exact `index.html` identifiers to change and a
 definition-of-done per slice. Read it before touching engine code.
+
+**⚠️ `sql/exercise_progress.sql` has NOT been applied to Supabase yet** — run it
+by hand in the SQL editor before Slice 5, which is the first code that writes to
+those tables. `exercise_attempts.correct` stores **first-try** correctness only;
+retries are separate rows, or the 80% bar could be farmed by brute-forcing the
+retry.
 
 **Known bug the split fixes:** `startSession` queries `lesson_pool` by
 `lesson_id` with **no tier filter**, so practice already serves corpus items the

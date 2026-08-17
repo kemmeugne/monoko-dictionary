@@ -351,19 +351,38 @@ The stage model changes the remaining slices. **Slices 2 and 3 shipped before it
 was settled and now need modification** — see "What already-shipped code must
 change" below.
 
-### Slice 4 — foundations: attempts + pool-shaped builder  ⬜  ← NEXT
-The refactor is the point of this slice; the table is the small half.
+### Slice 4 — foundations: attempts + pool-shaped builder  ✅ DONE 2026-08-17
 
-- SQL migration: an attempts table (`user_id`, `pool_item_id`, `correct`,
-  `answered_at`, `format`) plus per-lesson stage state (Pratiquer passed?,
-  topic XP, best Élargir score). RLS mirroring `user_progress`.
-- Refactor `buildSession` to **`buildSession(items, level, count)`** — takes a
-  pool, never a `lesson_id`. Do this before anything else is built on top: the
-  topic hub, the play button and the placement session are all just different
-  pools, and baking `lesson_id` in now turns each into a rewrite.
-- Switch the session budget from **15 screens to 20 questions**.
+- `sql/exercise_progress.sql` — `exercise_attempts` + `lesson_stage_state`, RLS
+  mirroring `user_progress`. **Written but not yet applied**: nothing writes to
+  either table until Slice 5, which is where `stage` first has a meaning.
+  A second index (`user_id, pool_item_id`) was added for the SM-2 question,
+  which is a different shape from the 80%-bar question.
+- `buildSession(items, level, count)` takes a pool and never a `lesson_id`.
+  `startSession` now owns material selection, which is the single line Slice 5
+  splits in two.
+- Session budget is **20 questions**, not 15 screens. `questionCount()` prices a
+  screen: match-pairs costs `pairs.length`, everything else costs 1. XP is 10 a
+  **question** now (a full session is 200, was 750), and the progress bar and
+  the summary's success rate are both computed over questions.
+- Match-pairs screens are **3–5 pairs**, sized to the bucket and the remaining
+  budget. This is what a question budget buys: a 3-pair screen simply costs 3.
+- A per-session **ledger keyed by (item, format)**, capped at 3 formats per item.
+  An item may be matched and then heard; it may not be matched twice.
 
-### Slice 5 — stage split  ⬜
+**Measured over 200 builds per lesson, against the live pool:**
+
+| | pool | native only (what Slice 5 serves Pratiquer) |
+|---|---|---|
+| Météo (thin, 6 native) | 20 questions, 16 screens | 10 questions, one **4-pair** screen + 6 audio |
+| Salutations (29 native / 149 corpus) | 20 questions, 16 screens | 20 questions, 16 screens |
+
+The 4-pair screen is the point of the 3–5 rule: at a fixed 5 that lesson built no
+match-pairs screen at all. Météo reaching only 10 questions from native content is
+the thin-lesson case Slice 6's four extra formats exist to fill — the ledger
+already permits the reuse, there is simply nothing yet to reuse it *into*.
+
+### Slice 5 — stage split  ⬜  ← NEXT
 Pratiquer (native) / Élargir (corpus), the 80% gate and unlock, the
 "18/25 maîtrisés" mastery counter. Depends on Slice 4.
 
@@ -422,27 +441,30 @@ session · scored speaking, if WER is ever measured below ~15%.
 
 ---
 
-## 4c. Tomorrow's task list (written 2026-08-10)
+## 4c. The executable task list (written 2026-08-10, Slice 4 struck 2026-08-17)
 
 All engine code lives in `index.html` inside the `<script type="text/babel">`
-block. Line numbers are from commit `76482bd` and will drift — grep the
+block. Line numbers are from the Slice 4 commit and will drift — grep the
 identifier, do not trust the number.
 
-| What | Where (76482bd) |
+| What | Where |
 |---|---|
-| `SESSION_MAX = 15`, `PAIRS_PER_SCREEN = 5` | `index.html:513-514` |
-| `TIER_RANK`, `shapeBand` | `index.html:519`, `619` |
-| `buildMatchPairs`, `matchPairsScreens` | `index.html:651`, `667` |
-| `audioBuckets`, `buildChooseAudio`, `AUDIO_OPTIONS` | `index.html:808`, `828`, `806` |
-| `chooseAudioScreens`, `interleave`, `buildSession` | `index.html:679`, `694`, `703` |
-| `MatchPairsScreen`, `ChooseAudioScreen`, `EXERCISE_SCREENS` | `index.html:713`, `845`, `928` |
-| `SessionView` | `index.html:930` |
-| `startSession` — **the query with no tier filter** | `index.html:2007` |
+| `SESSION_QUESTIONS = 20`, `PAIRS_MIN/MAX = 3/5` | `index.html:515-517` |
+| `questionCount`, `countQuestions`, `itemId` | `index.html:520-526` |
+| `makeLedger`, `MAX_FORMATS_PER_ITEM` | `index.html:537`, `535` |
+| `TIER_RANK`, `shapeBand` | `index.html:554`, `654` |
+| `buildMatchPairs`, `matchPairsScreens` | `index.html:686`, `704` |
+| `audioBuckets`, `buildChooseAudio`, `AUDIO_OPTIONS` | `index.html:872`, `892`, `870` |
+| `chooseAudioScreens`, `interleave`, `buildSession` | `index.html:724`, `746`, `766` |
+| `MatchPairsScreen`, `ChooseAudioScreen`, `EXERCISE_SCREENS` | `index.html:777`, `909`, `992` |
+| `SessionView` | `index.html:994` |
+| `startSession` — **the query with no tier filter** | `index.html:2078` |
 
-### Slice 4 — do these in order
+### Slice 4 — ✅ done 2026-08-17, all five steps
 
-**1. SQL migration** → new file `sql/exercise_progress.sql`, applied by hand in
-the Supabase SQL editor like every other migration in `sql/`.
+**1. SQL migration** → `sql/exercise_progress.sql`. **Still to be applied by hand
+in the Supabase SQL editor**, like every other migration in `sql/`. Nothing reads
+or writes these tables until Slice 5, so the app is not waiting on it.
 
 ```sql
 -- one row per question answered; the substrate for SM-2, the 80% bar and streaks
@@ -485,25 +507,20 @@ Note `correct` stores **first-try** correctness — the 80% bar is computed from
 and storing retries in the same column would let the bar be farmed by
 brute-forcing the retry.
 
-**2. Refactor `buildSession` to take a pool** (`index.html:703`).
-Signature becomes `buildSession(items, level, count)`. It must not know what a
-lesson is. `startSession` (`index.html:2007`) does the filtering and passes the
-result in. This is the whole point of the slice: the topic hub, play button and
-placement session are all just different pools.
+**2–5. Shipped** — `buildSession(items, level, count)` takes a pool,
+`SESSION_QUESTIONS = 20` replaced `SESSION_MAX = 15`, pair screens are 3–5, and a
+(item, format) ledger replaced once-per-session dedupe. See the Slice 4 entry in
+§4b for the measured result.
 
-**3. Switch the budget from screens to questions.** Replace `SESSION_MAX = 15`
-with `SESSION_QUESTIONS = 20`; a match-pairs screen contributes `pairs.length`,
-every other type contributes 1. `matchPairsScreens` / `chooseAudioScreens` /
-`interleave` currently count screens and all need to count questions.
+Two things worth carrying forward:
 
-**4. Allow 3–5 pair screens** (`PAIRS_PER_SCREEN`). A 3-pair screen is simply 3
-questions against the budget, which is what makes this free — and it recovers
-most of the 12 lessons that currently cannot build a match-pairs screen at all.
-
-**5. Allow an item in up to 3 screens, in different formats.** `pairsPool`
-(`index.html`, `seenFr`/`seenLn` dedupe) enforces once-per-session today. Thin
-lessons need cross-format reuse — the same item as match-pairs, then listen &
-type, then speaking. Dedupe must become per-format, not per-session.
+- **`interleave` skips an oversized screen rather than stopping.** A 5-pair screen
+  will not fit in the last 2 questions of the budget where two choose-the-audio
+  screens still do; ending the queue there hands back a short session with
+  material still on the table.
+- **The retry screen is deliberately allowed below `PAIRS_MIN`.** It is
+  re-exposure, not assessment — the answer has already been shown, and retries
+  never feed the first-try pass rate that the 80% bar reads.
 
 ### Slice 5 — the stage split
 
