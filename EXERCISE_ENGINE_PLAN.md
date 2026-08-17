@@ -482,13 +482,68 @@ solve a problem no lesson currently has.
 and speaking were previously "build last", but the blockers on both turned out to be
 input-mechanism problems, not feasibility problems.
 
-1. **Tokenizer** — build and unit-test it first. It must handle Lingala spacing,
-   apostrophes and tone marks consistently; tap-words, fill-the-blank and
-   listen-and-type all depend on it.
+1. **Tokenizer** — ✅ **done 2026-08-17**, 25 unit tests in `tests/tokenizer.test.js`.
+   See "the tokenizer" below for what it decided and what it found.
 2. **Tap words in order** — French prompt, shuffled Lingala word tiles. 3–9 tokens.
 3. **Fill the blank** — one content word removed. ≥3 tokens.
 4. **Listen & type** — **character tiles, never a keyboard** (see §5).
 5. **Speaking** — **record-and-compare**, no STT (see §7).
+
+### The tokenizer (built 2026-08-17)
+
+`tokenize` / `tokenCount` / `characters` / `fold` / `sameWord` / `usableRow`, at
+the top of the babel block in `index.html`. Tested by `tests/tokenizer.test.js`,
+which slices the block out of `index.html` and evaluates it — so the tests run
+against the source the browser runs, with no copy to drift. **This is the first
+`npm test` coverage of engine code** (144 tests, up from 119).
+
+**Why it had to come first.** `lesson_pool.token_count` was computed by a bare
+whitespace split in `populate_lesson_pool.py`, and French typography puts a space
+before `?` and `!`. So `"Olingi kofanda ?"` is stored as 3 tokens and is really 2
+words plus a floating punctuation mark — which tap-words would have rendered as
+**a tile containing "?"**. **947 of 6,196 rows disagree** (254 native), and 60 of
+the 660 rows tap-words would have selected fall outside its 3–9 band once
+tokenised properly. The stored column is now a coarse index only; `longestSide`
+and both bucket filters count with the tokenizer, because that is what gets
+rendered.
+
+**What it decided.** Parenthesised glosses are editorial and dropped
+(`"Moteki (ba teki)"` → one word). An unspaced slash separates variants, never a
+word. Edge punctuation is stripped; hyphens and apostrophes stay inside a word.
+Everything normalises to NFC first, which keeps a toned vowel a single tile — the
+pool is all NFC today, but one NFD paste from a professor delivery would
+otherwise be invisible until the tiles looked broken.
+
+**Accent folding for fill-the-blank (decided 2026-08-17).** `fold` strips accents
+and maps `ɛ→e`, `ɔ→o` — those two need explicit rules because they are distinct
+letters, not accented vowels, so Unicode decomposition does not touch them.
+**17.7% of candidate blank-words carry a character no iPhone French keyboard can
+produce**, so without this one blank in six is unanswerable. The exercise shows
+the correctly accented form after the answer, which is what stops leniency from
+teaching that tone is optional.
+
+Folding merges 309 spelling groups: 303 are one word written untoned (dictionary)
+and toned (course). The other 6 differ only in accent *position* — `mídi/midí`,
+`ntóngo/ntɔngɔ`, `lisúkúlu/lisúkulu`, `ladió/ladíó`, `nsékwá/nsékwa`,
+`minutí/minúti` — and **Anthony ruled on 2026-08-17 that each pair is the same
+word**, so there are no false accepts left. This applies to fill-the-blank only:
+listen-and-type tests transcription, where accepting untoned input would delete
+the only thing being measured.
+
+**What it found: 9 unusable rows in `lesson_pool`.** The dictionary writes `/` or
+`?` where a translation is missing, and those leaked through — 7 rows whose
+Lingala is `"/"` (Xylophone ×4, Automne ×2, one sentence), one `"?"` (Air), and
+one **native** row whose Lingala is the bare gloss `"(Oyo)"`. A `.trim()` check
+passes all of them because `"/"` is not empty, so they were live material and a
+match-pairs tile could read `/`. `usableRow` now requires an actual word on both
+sides. **Worth fixing at the source too** — these came in from `senses` and one
+`lesson_items` row, so they are wrong in the dictionary, not just in the pool.
+
+**Tile-bank sizing for listen-and-type.** Build tiles from the *tokens*, not the
+raw string: on the raw string a "2-token" row like
+`"Malamu ? (= Eza malamu ? = Óndimi / Kitoko ?)"` needs 35 tiles. From tokens the
+native 1–2 token material is **median 6, p90 11, max 22 tiles, and 99.7% fits a
+16-tile bank** (659/661). Cap on tiles as well as tokens.
 
 ### Slice 6 constraints that are not negotiable
 

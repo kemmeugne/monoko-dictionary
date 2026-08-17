@@ -626,10 +626,31 @@ Non-obvious rules that fall out of it:
   into `corrections` with `correction_type = 'routing'`.
   `sql/exercise_progress.sql` **is applied**.
 
-**Next action is Slice 6 — the four remaining exercise types** (tokenizer first,
-unit-tested; then tap-words, fill-the-blank, listen-and-type on character tiles,
-and record-and-compare speaking). `EXERCISE_ENGINE_PLAN.md` **§4c is the
-executable task list**. Read it before touching engine code.
+- **The tokenizer is done (2026-08-17)**, the first piece of Slice 6:
+  `tokenize` / `tokenCount` / `characters` / `fold` / `sameWord` / `usableRow` at
+  the top of the babel block, with 25 tests in `tests/tokenizer.test.js` (which
+  slices the block out of `index.html` and evaluates it — the first `npm test`
+  coverage of engine code, 144 tests total).
+
+**Next action is Slice 6's exercise types** — tap-words, fill-the-blank,
+listen-and-type on character tiles, and record-and-compare speaking. Each is one
+entry in `EXERCISE_SCREENS` plus a builder. `EXERCISE_ENGINE_PLAN.md` **§4c is
+the executable task list**. Read it before touching engine code.
+
+**Tokenizer rules that other code must not re-invent:**
+- **Never count words with `lesson_pool.token_count`** — it came from a bare
+  whitespace split, and French puts a space before `?`, so `"Olingi kofanda ?"`
+  reads as 3 there and is 2 real words. 947 of 6,196 rows disagree. Use
+  `tokenCount()`; the column is a coarse index only.
+- **`fold()`/`sameWord()` are for fill-the-blank only.** They ignore accents and
+  map `ɛ→e`, `ɔ→o` (distinct letters, not accents — Unicode decomposition misses
+  them) because 17.7% of blank-words are untypeable on an iPhone French keyboard.
+  Listen-and-type must NOT use them: it tests transcription.
+- **`usableRow()` before showing any row.** The dictionary writes `/` or `?` for
+  a missing translation and 9 such rows are in the pool; `.trim()` lets them
+  through because `"/"` is not empty.
+- **Build listen-and-type tiles from tokens, not the raw string** — a "2-token"
+  row with a gloss needs 35 tiles from the raw string, 22 max from tokens.
 
 **Non-obvious rules the attempt log depends on:**
 - `exercise_attempts.correct` is **first-try only**. Retry screens carry

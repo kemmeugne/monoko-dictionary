@@ -17,6 +17,23 @@ stubbed `global.fetch` and a mocked `api/_rate-limit.js`, so tests run
 offline and don't touch OpenAI, Supabase, ElevenLabs, or the HuggingFace
 Space.
 
+## Testing code that lives inside `index.html`
+
+`tests/tokenizer.test.js` covers engine code, which has no module to import —
+the whole frontend is one `<script type="text/babel">` block. It slices the
+block between two marker comments out of `index.html` and evaluates it with
+`new Function`, so the tests run against **the exact source the browser runs**
+rather than a copy that can drift.
+
+The markers are comment banners (`// ── Tokenizer ─` … `// ── Exercise engine ─`).
+If you move or rename a section, the test throws with a clear message instead of
+silently testing nothing. Use the same pattern for any further engine tests.
+
+One gotcha worth knowing: a string literal containing an accented character can
+be composed or decomposed depending on the editor that saved the file, and the
+two look identical. Where the distinction is the point of the test, write the
+character as an explicit `\uXXXX` escape.
+
 ## Test Supabase project (Session 1)
 
 A dedicated Supabase project, `monoko-test` (ref `bdejouumyzovfirqxmdr`),

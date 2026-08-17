@@ -505,6 +505,93 @@
     };
     // ── End AlphabetPanel ─────────────────────────────────────────────────────
 
+    // ── Tokenizer ─────────────────────────────────────────────────────────────
+    // The single definition of what a "word" is. Tap-words builds a tile per
+    // token, fill-the-blank removes one and compares what is typed against it,
+    // and listen-and-type spells one out — so if these three disagree about
+    // where a word ends, they break in three different ways on the same row.
+    //
+    // It also has to disagree with `lesson_pool.token_count`, which was computed
+    // by a bare whitespace split in `populate_lesson_pool.py`. French typography
+    // puts a space before `?` and `!`, so "Olingi kofanda ?" counts as 3 there
+    // and is 2 words plus a floating punctuation mark here — 947 of 6,196 rows
+    // differ. The stored column stays as a coarse index; THIS is what decides
+    // exercise shape, because this is what gets rendered.
+
+    // A parenthesised gloss is editorial, not speech: "Moteki (ba teki)" is one
+    // spoken word plus a note about its plural. Tiling the note would ask the
+    // learner to build something nobody says.
+    const GLOSS_RE = /\([^)]*\)/g;
+    // Punctuation clinging to a word's edge is never part of it. Kept inside,
+    // though: "bangɔmbɛ-mwâsí" is one compound word, not two.
+    const EDGE_PUNCT_RE = /^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu;
+    // An unspaced slash means the professor read several variants into one cell
+    // (the "slash trap" in ROADMAP Phase 1). It separates alternatives, so it
+    // can never be a word character.
+    const TOKEN_SPLIT_RE = /[\s\/]+/;
+
+    const tokenize = (s) => (s || "")
+      .normalize("NFC")
+      .replace(GLOSS_RE, " ")
+      .split(TOKEN_SPLIT_RE)
+      .map(t => t.replace(EDGE_PUNCT_RE, ""))
+      .filter(Boolean);
+
+    const tokenCount = (s) => tokenize(s).length;
+
+    // Characters for the listen-and-type bank. Normalising to NFC first is what
+    // keeps a toned vowel a single tile: in NFD "ó" is o + U+0301, and a naive
+    // spread would offer the learner a bare accent to place. The pool is all NFC
+    // today, but professor content arrives continuously and one NFD paste would
+    // be invisible until the exercise looked broken.
+    const characters = (s) => [...(s || "").normalize("NFC")];
+
+    // Accent-insensitive comparison, for fill-the-blank only.
+    //
+    // 16 of the pool's 42 letters cannot be typed on an iPhone French keyboard,
+    // and 17.7% of candidate blank-words carry one — so without folding, one
+    // blank in six is unanswerable. The exercise shows the correctly accented
+    // form after the answer, which is what keeps this from teaching that tone is
+    // optional.
+    //
+    // `ɛ` and `ɔ` need explicit rules: they are distinct letters, not accented
+    // vowels, so Unicode decomposition does not touch them.
+    //
+    // Folding merges 309 spelling groups. 303 are one word written untoned (the
+    // dictionary) and toned (the course). The remaining 6 differ only in accent
+    // position — mídi/midí, ntóngo/ntɔngɔ, lisúkúlu/lisúkulu, ladió/ladíó,
+    // nsékwá/nsékwa, minutí/minúti — and Anthony confirmed on 2026-08-17 that
+    // each pair is the same word. There are no false accepts left to worry about.
+    //
+    // NOT for listen-and-type, which tests transcription: accepting untoned
+    // input there would delete the only thing that exercise measures.
+    const fold = (s) => (s || "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")     // strip combining accents
+      .toLowerCase()                        // Ɔ -> ɔ before the letter rules below
+      .replace(/ɔ/g, "o")
+      .replace(/ɛ/g, "e")
+      .replace(/[’ʼ]/g, "'")      // iOS smart quote -> plain apostrophe
+      .normalize("NFC")
+      .trim();
+
+    // A row the engine may put on screen at all.
+    //
+    // The dictionary writes "/" or "?" where a translation is missing, and 9 such
+    // rows reached `lesson_pool` — 7 spelled "/" (Xylophone ×4, Automne ×2), one
+    // "?" (Air) and one native row whose Lingala is the bare gloss "(Oyo)". A
+    // `.trim()` check passes all of them, because "/" is not empty; only asking
+    // for an actual word catches it. Without this a match-pairs tile can read "/".
+    const usableRow = (r) =>
+      !!r && tokenCount(r.lingala) > 0 && tokenCount(r.french) > 0;
+
+    // Is what the learner typed the word we asked for, ignoring accents?
+    const sameWord = (a, b) => {
+      const x = fold(String(a ?? "").replace(EDGE_PUNCT_RE, ""));
+      const y = fold(String(b ?? "").replace(EDGE_PUNCT_RE, ""));
+      return x !== "" && x === y;
+    };
+
     // ── Exercise engine ───────────────────────────────────────────────────────
     // A session is a budget of QUESTIONS, not of screens. Screens are unequal in
     // time — a five-pair matching screen is five answers, a choose-the-audio
@@ -703,8 +790,11 @@
     // answerable from length alone — "Ami" against "La famille est sacrée." needs
     // no Lingala at all. Both sides are measured, because the pool stores a token
     // count for the Lingala only and the French can be the longer of the two.
+    // Counted with the tokenizer, not with `token_count`: the stored column came
+    // from a bare whitespace split, so "Olingi kofanda ?" reads as 3 there and is
+    // 2 real words. Shape rules must measure what actually appears on the tile.
     const longestSide = (r) =>
-      Math.max((r.french || "").trim().split(/\s+/).length, r.token_count || 1);
+      Math.max(tokenCount(r.french), tokenCount(r.lingala));
 
     // Banding the FRENCH column alone is enough, and it is not a shortcut.
     // The shape exploit needs CORRELATION between the columns — you pair the long
@@ -725,7 +815,7 @@
       // sentences into "short" material, which is how "Ami" ended up facing
       // "La famille est sacrée." on the same screen.
       const ok = (rows || []).filter(r =>
-        r && (r.french || "").trim() && (r.lingala || "").trim() &&
+        usableRow(r) &&
         r.effective_level <= level &&
         longestSide(r) <= 3);
 
@@ -960,7 +1050,7 @@
 
     const audioBuckets = (rows, level) => {
       const ok = (rows || []).filter(r =>
-        r && r.audio_url && (r.french || "").trim() && (r.lingala || "").trim() &&
+        usableRow(r) && r.audio_url &&
         r.effective_level <= level);
       const buckets = {};
       for (const r of ok) (buckets[`${r.orthography}|${shapeBand(r)}`] ||= []).push(r);
