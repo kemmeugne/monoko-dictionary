@@ -632,7 +632,13 @@ Non-obvious rules that fall out of it:
   slices the block out of `index.html` and evaluates it — the first `npm test`
   coverage of engine code, 144 tests total).
 
-**Next action is Slice 6's exercise types** — tap-words, fill-the-blank,
+- **Tap-words-in-order shipped (2026-08-17)** — `word_order`, 3–9 tokens, one
+  entry in `EXERCISE_SCREENS` plus a builder, shell untouched. It needs **no
+  buckets**: only multi-item screens (match-pairs, choose-audio) must keep one
+  orthography and shape band per screen. Full Pratiquer sessions went from 35/50
+  lessons to **40/50**. 166 tests.
+
+**Next action is Slice 6's remaining types** — fill-the-blank (use `sameWord`),
 listen-and-type on character tiles, and record-and-compare speaking. Each is one
 entry in `EXERCISE_SCREENS` plus a builder. `EXERCISE_ENGINE_PLAN.md` **§4c is
 the executable task list**. Read it before touching engine code.

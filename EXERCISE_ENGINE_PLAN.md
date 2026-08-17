@@ -484,7 +484,8 @@ input-mechanism problems, not feasibility problems.
 
 1. **Tokenizer** — ✅ **done 2026-08-17**, 25 unit tests in `tests/tokenizer.test.js`.
    See "the tokenizer" below for what it decided and what it found.
-2. **Tap words in order** — French prompt, shuffled Lingala word tiles. 3–9 tokens.
+2. **Tap words in order** — ✅ **done 2026-08-17**. French prompt, shuffled
+   Lingala word tiles, 3–9 tokens. See "tap words in order" below.
 3. **Fill the blank** — one content word removed. ≥3 tokens.
 4. **Listen & type** — **character tiles, never a keyboard** (see §5).
 5. **Speaking** — **record-and-compare**, no STT (see §7).
@@ -544,6 +545,49 @@ raw string: on the raw string a "2-token" row like
 `"Malamu ? (= Eza malamu ? = Óndimi / Kitoko ?)"` needs 35 tiles. From tokens the
 native 1–2 token material is **median 6, p90 11, max 22 tiles, and 99.7% fits a
 16-tile bank** (659/661). Cap on tiles as well as tokens.
+
+### Tap words in order (built 2026-08-17)
+
+`wordOrderRows` / `buildWordOrder` / `wordOrderScreens` / `WordOrderScreen`, plus
+22 tests in `tests/exercise-builders.test.js`. It proved the Slice 2 design goal:
+a new type is one entry in `EXERCISE_SCREENS` and a builder, with the shell,
+progress, scoring, summary and Signaler untouched.
+
+**It needs no buckets, and that is the point.** Match-pairs and choose-the-audio
+put several items on one screen, so every item there must share an orthography
+and a shape band or the answer is readable off the tile lengths. Word-order shows
+**one** item and the tiles are its own words — there is nothing to mix, so the
+whole bucket apparatus drops away. Expect the same for fill-the-blank and
+listen-and-type; only the multi-item types need it.
+
+**Non-obvious decisions:**
+- **The answer is the tokenised sentence**, not the raw string. The learner is
+  never offered a `?` tile, so comparing against `"Olingi kofanda ?"` would fail
+  a correct answer on punctuation that was never on screen.
+- **Tiles are keyed by position, not by text.** `na` occurs twice in plenty of
+  Lingala sentences and the two tiles must stay distinct.
+- **A placed tile leaves a greyed gap in the bank** rather than the bank
+  reflowing, so a tile never moves out from under a finger mid-tap.
+- **A wrong answer clears back to the bank** after showing the correct sentence.
+  Rebuilding it is the practice; leaving the wrong order on screen is not.
+- **Auto-checks when the last tile lands** — no submit button, matching every
+  other screen in the app.
+- `interleave` now takes **N lists**, so the remaining types cost one line each.
+
+**Measured over all 50 lessons, 25 builds each — Pratiquer (native only):**
+
+| Questions available | Two types | **Three types** |
+|---|---:|---:|
+| 20 (full session) | 35 | **40** |
+| 10–19 | 12 | 8 |
+| 5–9 | 1 | 1 |
+| 1–4 | 2 | 1 |
+| 0 — gate unreachable | 0 | **0** |
+
+Météo goes from 10 questions to 14, Comparatifs from 4 to 7. **Nombres ordinaux
+stays at 3** — its 3 native rows are all too short to order, so it is the one
+lesson still facing a 3/3 gate. Six lessons have no word-order material at all,
+which is expected: their native rows are all under 3 or over 9 tokens.
 
 ### Slice 6 constraints that are not negotiable
 

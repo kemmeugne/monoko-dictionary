@@ -778,13 +778,15 @@
     const screenItems = (ex) =>
       !ex ? [] :
       ex.type === "match_pairs" ? ex.pairs :
-      ex.type === "choose_audio" ? [ex.answer] : [];
+      ex.type === "choose_audio" ? [ex.answer] :
+      ex.item ? [ex.item] : [];
 
     // Which clips a screen will need, so they can be fetched before it is shown.
     const exerciseClips = (ex) =>
       !ex ? [] :
       ex.type === "match_pairs" ? ex.pairs.map(p => p.audio) :
-      ex.type === "choose_audio" ? [ex.answer.audio] : [];
+      ex.type === "choose_audio" ? [ex.answer.audio] :
+      ex.item ? [ex.item.audio] : [];
 
     // Shape homogeneity is the hard rule. A single word beside a full sentence is
     // answerable from length alone — "Ami" against "La famille est sacrée." needs
@@ -889,6 +891,51 @@
       return out;
     };
 
+    // ── Tap words in order ────────────────────────────────────────────────────
+    // Below 3 tokens there is no order to get wrong; above 9 the tiles stop
+    // fitting a 375px column and the exercise becomes a memory test of the
+    // French rather than a test of Lingala word order.
+    const WORD_ORDER_MIN = 3;
+    const WORD_ORDER_MAX = 9;
+
+    // No buckets here. Match-pairs and choose-the-audio put several items on one
+    // screen, so they need every item on that screen to share an orthography and
+    // a shape — otherwise the answer is readable off the tile lengths. Word-order
+    // shows ONE item, and the tiles are its own words, so there is nothing to mix.
+    const wordOrderRows = (items, level) =>
+      (items || []).filter(r => {
+        if (!usableRow(r) || r.effective_level > level) return false;
+        const n = tokenCount(r.lingala);
+        return n >= WORD_ORDER_MIN && n <= WORD_ORDER_MAX;
+      });
+
+    const buildWordOrder = (r) => {
+      const tokens = tokenize(r.lingala);
+      return {
+        type: "word_order",
+        // The answer is the TOKENISED sentence, not the raw string: the learner
+        // builds "Olingi kofanda", never "Olingi kofanda ?", so comparing against
+        // the raw text would fail a correct answer on a punctuation mark that was
+        // never offered as a tile.
+        item: {
+          id: itemId(r), poolId: r.id,
+          fr: r.french.trim(), ln: tokens.join(" "), audio: r.audio_url,
+        },
+        tokens,
+      };
+    };
+
+    const wordOrderScreens = (items, level, budget, ledger) => {
+      const out = [];
+      for (const r of shuffleByTier(wordOrderRows(items, level))) {
+        if (out.length >= budget) break;
+        if (!ledger.canUse(itemId(r), "word_order")) continue;
+        ledger.use(itemId(r), "word_order");
+        out.push(buildWordOrder(r));
+      }
+      return out;
+    };
+
     // A session alternates types rather than running one then the other. Same
     // material either way, but a block of five identical screens reads as a drill
     // and a mixed queue reads as practice — and this is the shape every later
@@ -898,11 +945,13 @@
     // ending the queue: a 5-pair screen may not fit in the last 2 questions where
     // two choose-the-audio screens still do, and stopping there would hand back a
     // short session with material still on the table.
-    const interleave = (a, b, budget) => {
+    // Takes N lists so each new exercise type is one more entry, not a rewrite.
+    const interleave = (lists, budget) => {
       const out = [];
       let spent = 0;
-      for (let i = 0; i < Math.max(a.length, b.length) && spent < budget; i++) {
-        for (const list of [a, b]) {
+      const longest = Math.max(0, ...lists.map(l => l.length));
+      for (let i = 0; i < longest && spent < budget; i++) {
+        for (const list of lists) {
           const ex = list[i];
           if (!ex) continue;
           const cost = questionCount(ex);
@@ -920,12 +969,20 @@
     // this decides what to do with it.
     const buildSession = (items, level, count = SESSION_QUESTIONS) => {
       const ledger = makeLedger();
-      // Match-pairs needs short items on BOTH sides, the rarest shape in the pool
-      // (median 25 per lesson against 79 with audio), so it is capped at roughly
-      // a third of the session and choose-the-audio carries the rest.
+      // Match-pairs first and capped at roughly a third: it needs short items on
+      // BOTH sides, the rarest shape in the pool (median 25 a lesson against 79
+      // with audio), so letting it draw freely would spend the scarce material on
+      // one type. Word-order and choose-the-audio then split what is left — both
+      // cost one question a screen, so the split is even.
+      //
+      // Order matters: each builder claims items from the ledger as it goes, so
+      // the scarcest type must choose before the plentiful ones take its material.
       const pairs = matchPairsScreens(items, level, Math.ceil(count / 3), ledger);
-      const audio = chooseAudioScreens(items, level, count - countQuestions(pairs), ledger);
-      return interleave(pairs, audio, count);
+      let left = count - countQuestions(pairs);
+      const order = wordOrderScreens(items, level, Math.ceil(left / 2), ledger);
+      left -= countQuestions(order);
+      const audio = chooseAudioScreens(items, level, left, ledger);
+      return interleave([pairs, order, audio], count);
     };
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
@@ -1239,9 +1296,124 @@
       );
     };
 
+    // ── Tap words in order ────────────────────────────────────────────────────
+    const WordOrderScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
+      const [placed, setPlaced] = useState([]);   // bank entries, in tapped order
+      const [wrong, setWrong] = useState(false);
+      const [solved, setSolved] = useState(false);
+      const missedHere = React.useRef(false);
+
+      // Each tile carries its own key rather than being identified by its text.
+      // A sentence can use the same word twice ("na" is everywhere in Lingala),
+      // and two tiles reading "na" must stay two separate tiles.
+      const bank = React.useMemo(
+        () => shuffle(exercise.tokens.map((text, i) => ({ key: i, text }))),
+        [exercise]);
+
+      const remaining = bank.filter(t => !placed.some(p => p.key === t.key));
+
+      const check = (next) => {
+        if (next.map(t => t.text).join(" ") === exercise.tokens.join(" ")) {
+          setSolved(true);
+          if (!exercise.retry) onAnswer(exercise.item, !missedHere.current);
+          // Hear it once it is right — the same reward beat as a solved pair —
+          // and do not hand over until the clip has finished.
+          afterClip(playingClip(exercise.item.audio) || playClip(exercise.item.audio), onDone);
+        } else {
+          setWrong(true);
+          missedHere.current = true;
+          onMiss(exercise.item);
+          // Clear back to the bank rather than leaving a wrong sentence on
+          // screen: the learner rebuilds it, which is the practice.
+          setTimeout(() => { setPlaced([]); setWrong(false); }, 900);
+        }
+      };
+
+      const tapBank = (tile) => {
+        if (solved || wrong) return;
+        const next = [...placed, tile];
+        setPlaced(next);
+        if (next.length === exercise.tokens.length) check(next);
+      };
+
+      const tapPlaced = (tile) => {
+        if (solved || wrong) return;
+        setPlaced(placed.filter(p => p.key !== tile.key));
+      };
+
+      const Tile = ({ tile, onTap, muted }) => (
+        <button onClick={() => onTap(tile)} disabled={solved || wrong}
+          style={{
+            minHeight: 44, padding: "10px 14px", borderRadius: 12,
+            border: `1.5px solid ${muted ? "#EFE8DC" : "#E8E0D4"}`,
+            background: muted ? "#F7F2E9" : "white",
+            color: muted ? "transparent" : "#2D2118",
+            fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600,
+            cursor: solved || wrong ? "default" : "pointer",
+            transition: "border-color .15s, background .15s",
+          }}>{tile.text}</button>
+      );
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+          <p style={{ fontSize: 13, color: "#9B8A6E", margin: "0 0 6px",
+                      fontFamily: "'DM Mono', monospace", letterSpacing: ".06em",
+                      textTransform: "uppercase" }}>
+            Remettez les mots dans l'ordre
+          </p>
+          <p style={{ fontSize: 19, fontWeight: 600, margin: "0 0 18px", lineHeight: 1.35 }}>
+            {exercise.item.fr}
+          </p>
+
+          {/* Answer zone. Keeps a minimum height so the layout does not jump as
+              tiles move between the two areas. */}
+          <div style={{
+            display: "flex", flexWrap: "wrap", gap: 8, alignContent: "flex-start",
+            minHeight: 108, padding: 12, borderRadius: 14,
+            border: `1.5px solid ${wrong ? "#DC2626" : solved ? "#16A34A" : "#E8E0D4"}`,
+            background: wrong ? "#FDF0F0" : solved ? "#EAF7EE" : "white",
+            transition: "border-color .15s, background .15s",
+          }}>
+            {placed.map(t => <Tile key={t.key} tile={t} onTap={tapPlaced} />)}
+          </div>
+
+          <div style={{ height: 16 }} />
+
+          {/* Bank. Placed tiles leave a greyed gap rather than reflowing the
+              remaining ones, so a tile does not move under the finger. */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {bank.map(t => placed.some(p => p.key === t.key)
+              ? <Tile key={t.key} tile={t} onTap={() => {}} muted />
+              : <Tile key={t.key} tile={t} onTap={tapBank} />)}
+          </div>
+
+          <div style={{ flex: 1, minHeight: 12 }} />
+
+          {solved && (
+            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "#16A34A", fontWeight: 600 }}>
+                ✓ {exercise.item.ln}
+              </p>
+            </div>
+          )}
+          {wrong && (
+            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{exercise.item.ln}</b>
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
     // Renderer per exercise type. Adding fill-the-blank later means adding one
     // entry here — the shell, progress, scoring and summary stay untouched.
-    const EXERCISE_SCREENS = { match_pairs: MatchPairsScreen, choose_audio: ChooseAudioScreen };
+    const EXERCISE_SCREENS = {
+      match_pairs: MatchPairsScreen,
+      choose_audio: ChooseAudioScreen,
+      word_order: WordOrderScreen,
+    };
 
     // 80% of a session's questions, right the first time, passes Pratiquer and
     // unlocks Élargir. Failing costs nothing but the session — no lives, no
