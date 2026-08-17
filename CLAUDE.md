@@ -651,6 +651,15 @@ strand the session. This is what made the last match-pairs word play as
 Related rule: **a clip belongs to the match, not to the tap.** Playback tied to
 the Lingala tap meant a pair closed from the French tile played nothing at all.
 
+**Exercises play Lingala only — never French.** The French side of any exercise
+is text. This is a product rule, not an accident of the data: French is the
+prompt the learner already reads, and speaking it aloud would let a listening
+question be answered without hearing the Lingala. Verified 2026-08-17 — all
+4,668 clips reachable from `lesson_pool` sit under `Lingala/` on R2, and the
+only French TTS in the app (`SpeechSynthesisUtterance`, `lang = "fr-FR"`) lives
+in `LiveTranslationView` and must stay there. **Do not wire Web Speech into any
+exercise screen** — the temptation lands in Slice 6 (listen-and-type, speaking).
+
 ## Deprioritised: fine-tune TTS on professor's voice
 
 **Status**: unblocked 2026-08-04, **deprioritised 2026-08-07**. The professor's
