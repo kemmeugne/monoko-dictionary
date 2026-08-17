@@ -618,20 +618,33 @@ Non-obvious rules that fall out of it:
   reuse an item in a different format, capped at 3 formats per item.
   `sql/exercise_progress.sql` adds `exercise_attempts` + `lesson_stage_state`.
 
-**Next action is Slice 5 — the stage split.** `EXERCISE_ENGINE_PLAN.md` **§4c is
-the executable task list**: the exact `index.html` identifiers to change and a
-definition-of-done per slice. Read it before touching engine code.
+- **Slice 5 is done (2026-08-17).** `startSession(stage)` filters the pool by
+  tier — `native` for Pratiquer, `approved`+`reassigned` for Élargir — which
+  fixes practice serving corpus rows the lesson never taught. Two buttons on the
+  lesson screen, Élargir locked behind `pratiquer_passed`, 80% first-try to pass,
+  `18/25 maîtrisés` counter, and a ⚑ Signaler flag on Élargir items that files
+  into `corrections` with `correction_type = 'routing'`.
+  `sql/exercise_progress.sql` **is applied**.
 
-**⚠️ `sql/exercise_progress.sql` has NOT been applied to Supabase yet** — run it
-by hand in the SQL editor before Slice 5, which is the first code that writes to
-those tables. `exercise_attempts.correct` stores **first-try** correctness only;
-retries are separate rows, or the 80% bar could be farmed by brute-forcing the
-retry.
+**Next action is Slice 6 — the four remaining exercise types** (tokenizer first,
+unit-tested; then tap-words, fill-the-blank, listen-and-type on character tiles,
+and record-and-compare speaking). `EXERCISE_ENGINE_PLAN.md` **§4c is the
+executable task list**. Read it before touching engine code.
 
-**Known bug the split fixes:** `startSession` queries `lesson_pool` by
-`lesson_id` with **no tier filter**, so practice already serves corpus items the
-lesson never taught (178 items for Salutations where the professor wrote 29).
-Match-pairs and choose-the-audio both inherit this. Fixed in Slice 5.
+**Non-obvious rules the attempt log depends on:**
+- `exercise_attempts.correct` is **first-try only**. Retry screens carry
+  `retry: true` and record nothing — counting them would let the 80% gate be
+  farmed by failing and then clearing the retry.
+- Attempts batch into one insert at session end; an **abandoned** session still
+  flushes (the mastery counter reads items ever answered right) but never moves
+  the gate. Only a completed session can pass.
+- `pratiquer_passed` is a **one-way door** — never cleared by a later weaker
+  session.
+- Every exercise item must carry `poolId` (`lesson_pool.id`). Without it an
+  attempt cannot be written, and the item silently vanishes from the gate.
+- **Thin lessons face a harsher gate**: 80% of a 3-question session is 3/3. Two
+  lessons are in that state today (Nombres ordinaux, Comparatifs et superlatifs);
+  Slice 6's extra formats are the planned fix.
 
 **Audio prefetch gotcha:** R2 sends no `Access-Control-Allow-Origin` and 403s the
 OPTIONS preflight, so `fetch()` cannot read audio clips from the browser — a blob

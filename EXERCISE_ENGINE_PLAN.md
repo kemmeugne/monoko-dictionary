@@ -382,11 +382,57 @@ match-pairs screen at all. Météo reaching only 10 questions from native conten
 the thin-lesson case Slice 6's four extra formats exist to fill — the ledger
 already permits the reuse, there is simply nothing yet to reuse it *into*.
 
-### Slice 5 — stage split  ⬜  ← NEXT
-Pratiquer (native) / Élargir (corpus), the 80% gate and unlock, the
-"18/25 maîtrisés" mastery counter. Depends on Slice 4.
+### Slice 5 — stage split  ✅ DONE 2026-08-17
 
-### Slice 6 — the four remaining exercise types  ⬜
+`startSession(stage)` filters the pool — `tier=eq.native` for Pratiquer,
+`tier=in.(approved,reassigned)` for Élargir — which is the whole bug fix. Two
+buttons on the lesson screen; Élargir is locked behind `pratiquer_passed`, shows
+`18/25 maîtrisés` under Pratiquer, and 80% first-try passes.
+
+- **Attempts are written per question, first try only**, batched into one insert
+  at session end. An abandoned session still flushes its attempts (they feed the
+  mastery counter, which counts items ever answered right, not sessions
+  finished) but never moves the gate — only a completed session can pass.
+- **Retry screens record nothing.** Marked `retry: true`; counting them would
+  let the gate be farmed by failing and then clearing the retry.
+- **In match-pairs the French tile is the question** — "which Lingala goes with
+  this?" — so a mis-pairing is charged to it. The Lingala tile reached for was a
+  wrong answer, not a question failed.
+- `pratiquer_passed` is a **one-way door**: a later weaker session never takes
+  Élargir away from someone who has earned it.
+- **Élargir serves `approved` before `reassigned`** via `shuffleByTier` —
+  random within a tier, ordered between them, so the 96% material is spent
+  before the 90%. In Pratiquer everything is native, making it a plain shuffle.
+
+**Measured across all 50 lessons, 25 builds each:**
+
+| Pratiquer questions available | Lessons |
+|---|---|
+| 20 (full session) | 35 |
+| 10–19 | 12 |
+| 5–9 | 1 |
+| 1–4 | 2 |
+| **0 — gate unreachable** | **0** |
+
+Tier isolation holds everywhere (no stage ever served the other's material) and
+every served item carries a `poolId`, without which an attempt cannot be written.
+
+**Known consequence, not yet a problem.** The two thinnest lessons — Nombres
+ordinaux (3 native) and Comparatifs et superlatifs (6 native) — build 3- and
+4-question sessions, and 80% of 3 questions means **3/3**. The gate is strictly
+harder on a thin lesson than a fat one. Slice 6 is the fix already planned for
+it: with six formats instead of two, cross-format reuse fills these sessions out
+(the plan's own estimate is 47/50 lessons filling a full session from native
+content alone). Revisit only if Slice 6 leaves a lesson short.
+
+**Deliberately not done: bucketing Élargir on level band.** §4c asked for slices
+on (level band × orthography). Buckets remain keyed on (orthography × shape
+band) with the existing `effective_level <= level` filter on top. Adding level to
+the key fragments buckets, and match-pairs needs ≥3 in one bucket to build a
+screen at all — it would cost the thin lessons their only matching exercise to
+solve a problem no lesson currently has.
+
+### Slice 6 — the four remaining exercise types  ⬜  ← NEXT
 **All six types ship here** (decided 2026-08-10). Nothing is deferred: listen-and-type
 and speaking were previously "build last", but the blockers on both turned out to be
 input-mechanism problems, not feasibility problems.
@@ -522,22 +568,19 @@ Two things worth carrying forward:
   re-exposure, not assessment — the answer has already been shown, and retries
   never feed the first-try pass rate that the 80% bar reads.
 
-### Slice 5 — the stage split
+### Slice 5 — ✅ done 2026-08-17
 
-**The bug this fixes.** `startSession` queries
-`lesson_id=eq.<id>&select=*&limit=1000` with **no tier filter**, so practice
-already serves corpus items the lesson never taught — 178 items for Salutations
-where the professor wrote 29.
+Shipped: the tier filter, both entry buttons with the lock, the 80% gate,
+`shuffleByTier`, the mastery counter, and the Signaler flag (⚑ in the session
+header on Élargir only, listing the current screen's items — distractors
+excluded, since the routing verdict in question is the answer's). Reports land in
+`corrections` with `correction_type = 'routing'`, so the professor can tell a
+placement complaint from a translation fix in the admin queue.
 
-- Pratiquer → `tier=eq.native`; Élargir → `tier=in.(approved,reassigned)`
-- Two entry buttons on the lesson screen; Élargir locked until `pratiquer_passed`
-- 80% first-try = 16/20 → set `pratiquer_passed`, unlock Élargir
-- Failing → retry immediately, no lives, no lockout
-- Mastery counter "18/25 maîtrisés" from distinct native items with a correct attempt
-- Élargir: serve `approved` before `reassigned`; slice on **(level band × orthography)**
-- Élargir recycles with spacing once the pool is exhausted (median 10 sessions) —
-  build it as a recycling pool, never "draw unseen"
-- **"Signaler" button** on every Élargir item → existing `corrections` table
+**Still open from this slice:** Élargir does not yet recycle with spacing once
+its pool is exhausted (median 10 sessions away, so nothing is blocked). It must
+be built as a recycling pool, never "draw unseen" — that needs the per-item
+history in `exercise_attempts`, which now exists.
 
 ### Slice 6 — see the four types above
 

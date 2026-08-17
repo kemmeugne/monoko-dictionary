@@ -562,6 +562,19 @@
       return c;
     };
 
+    // Random within a tier, ordered between tiers. A plain shuffle would throw
+    // away what the routing work measured: `approved` was confirmed by a model at
+    // 96% precision and `reassigned` was moved by one at 90%, so a session should
+    // spend the better material first and reach for the rest only to fill up.
+    // In Pratiquer every row is native, which makes this a plain shuffle.
+    const shuffleByTier = (rows) => {
+      const byTier = {};
+      for (const r of rows || []) (byTier[r.tier] ||= []).push(r);
+      return Object.keys(byTier)
+        .sort((a, b) => (TIER_RANK[a] ?? 9) - (TIER_RANK[b] ?? 9))
+        .flatMap(t => shuffle(byTier[t]));
+    };
+
     // Clips are fetched ahead of the tap and played from memory.
     //
     // Measured: a clip on R2 takes ~340ms, and 330ms of that is time-to-first-byte
@@ -672,6 +685,14 @@
       nowPlaying = null;
     };
 
+    // The pool items a screen is actually testing — what a learner can flag as
+    // not belonging to the lesson. Distractors are excluded: they are wrong on
+    // purpose, and the routing verdict being questioned is the answer's.
+    const screenItems = (ex) =>
+      !ex ? [] :
+      ex.type === "match_pairs" ? ex.pairs :
+      ex.type === "choose_audio" ? [ex.answer] : [];
+
     // Which clips a screen will need, so they can be fetched before it is shown.
     const exerciseClips = (ex) =>
       !ex ? [] :
@@ -724,10 +745,13 @@
       }).sort((a, b) => b.length - a.length);
     };
 
+    // `poolId` is the `lesson_pool.id` an attempt row points at. `id` stays the
+    // provenance key, because that is what dedupes tiles within a screen.
     const buildMatchPairs = (rows) => ({
       type: "match_pairs",
       pairs: rows.map(r => ({
         id: itemId(r),
+        poolId: r.id,
         fr: r.french.trim(),
         ln: r.lingala.trim(),
         audio: r.audio_url,
@@ -747,7 +771,7 @@
       let spent = 0;
       for (const bucket of pairsBuckets(items, level)) {
         if (budget - spent < PAIRS_MIN) break;
-        const avail = shuffle(bucket.filter(r => ledger.canUse(itemId(r), "match_pairs")));
+        const avail = shuffleByTier(bucket.filter(r => ledger.canUse(itemId(r), "match_pairs")));
         let i = 0;
         while (budget - spent >= PAIRS_MIN && avail.length - i >= PAIRS_MIN) {
           const size = Math.min(PAIRS_MAX, budget - spent, avail.length - i);
@@ -765,7 +789,7 @@
     const chooseAudioScreens = (items, level, budget, ledger) => {
       const out = [];
       for (const bucket of audioBuckets(items, level)) {
-        for (const answer of shuffle(bucket)) {
+        for (const answer of shuffleByTier(bucket)) {
           if (out.length >= budget) return out;
           if (!ledger.canUse(itemId(answer), "choose_audio")) continue;
           ledger.use(itemId(answer), "choose_audio");
@@ -815,13 +839,19 @@
     };
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
-    const MatchPairsScreen = ({ exercise, onDone, onMiss }) => {
+    const MatchPairsScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
       const [solved, setSolved] = useState([]);     // pair ids cleared
       const [pickFr, setPickFr] = useState(null);
       const [pickLn, setPickLn] = useState(null);
       const [wrong, setWrong] = useState(null);      // {fr, truth}
       const [shakeIds, setShakeIds] = useState([]);
       const lnOrder = React.useMemo(() => shuffle(exercise.pairs), [exercise]);
+
+      // Which pairs have already been answered wrong on this screen. A pair is
+      // first-try correct only if it is not in here when it is finally matched —
+      // that is the number the 80% gate reads, so it is tracked in a ref rather
+      // than state: `choose` must see the value it just wrote, in the same tick.
+      const missedHere = React.useRef(new Set());
 
       const choose = (side, pair) => {
         if (solved.includes(pair.id)) return;
@@ -835,6 +865,11 @@
           const list = [...solved, nextFr.id];
           setSolved(list); setPickFr(null); setPickLn(null); setWrong(null);
 
+          // One pair = one question. A retry screen is re-exposure of what was
+          // already answered, so it reports nothing — counting it would let the
+          // 80% gate be farmed by failing, then clearing the retry.
+          if (!exercise.retry) onAnswer(nextFr, !missedHere.current.has(nextFr.id));
+
           // The clip belongs to the MATCH, not to the Lingala tap. A pair can be
           // closed from either tile, so tying playback to the tap meant a match
           // finished on the French side played nothing at all. `playingClip`
@@ -847,8 +882,12 @@
           // it with "Qu'est-ce que vous entendez ?". Wait for the clip instead.
           if (list.length === exercise.pairs.length) afterClip(clip, onDone);
         } else {
+          // The French tile is the question here — "which Lingala goes with this?"
+          // — so the mis-pairing is charged to it. The Lingala tile the learner
+          // reached for was a wrong answer, not a question they have failed.
           setWrong({ fr: nextFr.fr, truth: nextFr.ln });
           setShakeIds([nextFr.id, nextLn.id]);
+          missedHere.current.add(nextFr.id);
           onMiss(nextFr);
           setTimeout(() => { setShakeIds([]); setPickFr(null); setPickLn(null); }, 700);
         }
@@ -947,7 +986,7 @@
       return {
         type: "choose_audio",
         answer: {
-          id: itemId(answer),
+          id: itemId(answer), poolId: answer.id,
           fr: answer.french.trim(), ln: answer.lingala.trim(), audio: answer.audio_url,
         },
         options: shuffle([answer, ...others].map(r => ({
@@ -956,7 +995,7 @@
       };
     };
 
-    const ChooseAudioScreen = ({ exercise, onDone, onMiss }) => {
+    const ChooseAudioScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
       const [wrongIds, setWrongIds] = useState([]);
       const [solved, setSolved] = useState(false);
 
@@ -969,6 +1008,8 @@
         if (solved || wrongIds.includes(opt.id)) return;
         if (opt.id === exercise.answer.id) {
           setSolved(true);
+          // One screen, one question — first try means no wrong option yet.
+          if (!exercise.retry) onAnswer(exercise.answer, wrongIds.length === 0);
           setTimeout(onDone, 620);
         } else {
           setWrongIds(w => [...w, opt.id]);
@@ -1041,12 +1082,50 @@
     // entry here — the shell, progress, scoring and summary stay untouched.
     const EXERCISE_SCREENS = { match_pairs: MatchPairsScreen, choose_audio: ChooseAudioScreen };
 
-    const SessionView = ({ lesson, exercises, onExit, onSeeLesson }) => {
+    // 80% of a session's questions, right the first time, passes Pratiquer and
+    // unlocks Élargir. Failing costs nothing but the session — no lives, no
+    // lockout, retry immediately.
+    const PASS_PCT = 80;
+
+    const SessionView = ({ lesson, stage, exercises, onExit, onSeeLesson, onSessionEnd, onReport }) => {
       const [queue, setQueue] = useState(exercises);
       const [idx, setIdx] = useState(0);
       const [xp, setXp] = useState(0);
       const [missed, setMissed] = useState([]);      // pairs answered wrong, deduped
       const [done, setDone] = useState(false);
+      const [reporting, setReporting] = useState(false);
+      const [reported, setReported] = useState([]);  // item ids already flagged
+
+      // One row per question, first try only. Held in a ref because `advance`
+      // has to read the score in the same tick it decides the session is over.
+      const attempts = React.useRef([]);
+      const flushed = React.useRef(false);
+      const endRef = React.useRef(onSessionEnd);
+      endRef.current = onSessionEnd;
+
+      const recordAnswer = (item, correct) => {
+        if (item && item.poolId != null)
+          attempts.current.push({ pool_item_id: item.poolId, correct, format: current?.type || "unknown" });
+      };
+
+      const firstTryPct = () => {
+        const list = attempts.current;
+        return list.length ? Math.round(100 * list.filter(a => a.correct).length / list.length) : 0;
+      };
+
+      // The session is the unit of writing: one insert at the end beats 20 round
+      // trips landing inside the interaction. An abandoned session still flushes
+      // — its attempts feed the mastery counter, which counts items ever answered
+      // correctly, not sessions finished — but only a completed session may move
+      // the stage state, because only a completed session can pass the gate.
+      const flush = (completed, pct = 0, xpEarned = 0) => {
+        if (flushed.current) return;
+        flushed.current = true;
+        if (!completed && !attempts.current.length) return;
+        endRef.current?.({ completed, stage, attempts: attempts.current, pct, xp: xpEarned });
+      };
+
+      useEffect(() => () => flush(false), []);
 
       // Both counted in questions, so the bar moves by five across a five-pair
       // screen and by one across a choose-the-audio screen. `queue` grows when a
@@ -1071,7 +1150,8 @@
       const noteMiss = (pair) => setMissed(m => m.some(x => x.id === pair.id) ? m : [...m, pair]);
 
       const advance = () => {
-        setXp(x => x + 10 * questionCount(current));   // 10 a question, not a screen
+        const xpNow = xp + 10 * questionCount(current);   // 10 a question, not a screen
+        setXp(xpNow);
         // Anything missed comes back before the session can end, as a screen
         // built from the missed pairs themselves. This one screen may fall below
         // PAIRS_MIN: it is re-exposure, not assessment — the answer has already
@@ -1081,11 +1161,12 @@
           if (retry.length >= 2) {
             const batch = retry.slice(0, PAIRS_MAX).map(p => ({ ...p, retried: true }));
             setMissed(m => m.map(x => batch.some(b => b.id === x.id) ? { ...x, retried: true } : x));
-            setQueue(q => [...q, { type: "match_pairs", pairs: batch }]);
+            setQueue(q => [...q, { type: "match_pairs", pairs: batch, retry: true }]);
             setIdx(i => i + 1);
             return;
           }
           setDone(true);
+          flush(true, firstTryPct(), xpNow);
           return;
         }
         setIdx(i => i + 1);
@@ -1112,12 +1193,50 @@
                            fontVariantNumeric: "tabular-nums", minWidth: 46, textAlign: "right" }}>
               {xp} XP
             </span>
+            {/* Élargir is the routed corpus — 96% and 90% precision, so roughly
+                one item a session sits in the wrong lesson. The learner is the
+                only QA pass that scales to 4,849 routed rows. */}
+            {stage === "elargir" && !done && (
+              <button onClick={() => setReporting(r => !r)} aria-label="Signaler un problème"
+                style={{
+                  width: 44, height: 44, marginRight: -10, border: "none", background: "none",
+                  color: reporting ? "#DC2626" : "#9B8A6E", fontSize: 18, cursor: "pointer",
+                }}>⚑</button>
+            )}
           </div>
+
+          {reporting && !done && (
+            <div style={{ border: "1px solid #E8E0D4", borderRadius: 14, background: "white",
+                          marginBottom: 14, overflow: "hidden" }}>
+              <p style={{ margin: 0, padding: "11px 14px", borderBottom: "1px solid #E8E0D4",
+                          fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
+                          textTransform: "uppercase", color: "#9B8A6E" }}>
+                Ne va pas avec cette leçon&nbsp;?
+              </p>
+              {screenItems(current).map(it => {
+                const sent = reported.includes(it.id);
+                return (
+                  <button key={it.id} disabled={sent}
+                    onClick={() => { onReport(it); setReported(r => [...r, it.id]); }}
+                    style={{
+                      display: "flex", width: "100%", gap: 10, alignItems: "center", textAlign: "left",
+                      minHeight: 48, padding: "10px 14px", border: "none", borderBottom: "1px solid #F4EFE7",
+                      background: sent ? "#EAF7EE" : "white", cursor: sent ? "default" : "pointer",
+                      fontFamily: "'DM Sans', sans-serif", fontSize: 14,
+                    }}>
+                    <span style={{ flex: 1 }}>{it.fr}</span>
+                    <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: "#2C5F2D" }}>{it.ln}</span>
+                    <span style={{ fontSize: 12, color: sent ? "#16A34A" : "#9B8A6E" }}>{sent ? "✓ envoyé" : "Signaler"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {!done && (
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".12em",
                         textTransform: "uppercase", color: "#9B8A6E", margin: "0 0 6px" }}>
-              {lesson.title}
+              {stage === "elargir" ? "Élargir" : "Pratiquer"} · {lesson.title}
             </p>
           )}
 
@@ -1129,8 +1248,29 @@
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 46, fontWeight: 800, color: "#6B21A8",
                           fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp} XP</p>
               <p style={{ color: "#9B8A6E", fontSize: 14, margin: 0 }}>{lesson.title}</p>
+
+              {/* Pratiquer is the only stage with a bar to clear. Élargir is
+                  endless and replayable, so it reports a score and nothing else. */}
+              {stage === "pratiquer" && (
+                <div style={{
+                  marginTop: 18, padding: "13px 16px", borderRadius: 14,
+                  background: firstTryPct() >= PASS_PCT ? "#EAF7EE" : "#FDF6EC",
+                  border: `1.5px solid ${firstTryPct() >= PASS_PCT ? "#16A34A" : "#D4A843"}`,
+                }}>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700,
+                              color: firstTryPct() >= PASS_PCT ? "#16A34A" : "#8B6D47" }}>
+                    {firstTryPct() >= PASS_PCT ? "✓ Pratiquer validé — Élargir débloqué" : `${firstTryPct()}% — il en faut ${PASS_PCT}%`}
+                  </p>
+                  {firstTryPct() < PASS_PCT && (
+                    <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>
+                      Recommencez quand vous voulez, rien n'est perdu.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
-                {[[totalQuestions, "questions"], [`${Math.max(0, Math.round(100 * (1 - missed.length / Math.max(1, totalQuestions))))}%`, "réussite"]].map(([v, l]) => (
+                {[[totalQuestions, "questions"], [`${firstTryPct()}%`, "du premier coup"]].map(([v, l]) => (
                   <div key={l} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14, padding: "13px 8px", background: "white" }}>
                     <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
                                 fontVariantNumeric: "tabular-nums" }}>{v}</b>
@@ -1156,7 +1296,7 @@
               )}
             </div>
           ) : Screen ? (
-            <Screen key={idx} exercise={current} onDone={advance} onMiss={noteMiss} />
+            <Screen key={idx} exercise={current} onDone={advance} onMiss={noteMiss} onAnswer={recordAnswer} />
           ) : null}
 
           {done ? (
@@ -1970,8 +2110,13 @@
       const [selectedLesson, setSelectedLesson] = useState(null);
       const [lessonItems, setLessonItems] = useState([]);
       const [sessionExercises, setSessionExercises] = useState(null); // null = not in a session
+      const [sessionStage, setSessionStage] = useState("pratiquer");  // pratiquer | elargir
       const [poolLoading, setPoolLoading] = useState(false);
       const [sessionNote, setSessionNote] = useState("");
+      // Per-lesson stage state, loaded on open. `mastery` is the "18/25" counter:
+      // distinct native items this user has ever answered correctly.
+      const [stageState, setStageState] = useState(null);
+      const [mastery, setMastery] = useState({ done: 0, total: 0 });
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
       // Progress tracking
@@ -2121,29 +2266,128 @@
       };
 
 
-      // Chooses the material; `buildSession` decides what to do with it. Slice 5
-      // splits this query in two — `tier=eq.native` for Pratiquer,
-      // `tier=in.(approved,reassigned)` for Élargir. Until then it serves the
-      // whole pool, which includes corpus rows the lesson never taught.
-      const startSession = async () => {
+      // ── Exercise stages ───────────────────────────────────────────────────────
+      // Pratiquer draws on what the professor wrote into this lesson; Élargir on
+      // what the routing pass placed there. Two disjoint pools, one builder.
+      const STAGE_TIERS = {
+        pratiquer: "tier=eq.native",
+        elargir:   "tier=in.(approved,reassigned)",
+      };
+
+      const loadStageState = async (lessonId) => {
+        if (!currentUser || !lessonId) { setStageState(null); setMastery({ done: 0, total: 0 }); return; }
+        try {
+          const [{ data: state }, native, correct] = await Promise.all([
+            supabaseClient.from("lesson_stage_state").select("*")
+              .eq("user_id", currentUser.id).eq("lesson_id", lessonId).maybeSingle(),
+            supaFetch("lesson_pool", `lesson_id=eq.${lessonId}&tier=eq.native&select=id&limit=1000`),
+            supabaseClient.from("exercise_attempts").select("pool_item_id")
+              .eq("user_id", currentUser.id).eq("lesson_id", lessonId)
+              .eq("stage", "pratiquer").eq("correct", true),
+          ]);
+          setStageState(state || null);
+          // Distinct items, not attempts — answering the same word right in ten
+          // sessions is one item mastered, not ten.
+          const ids = new Set((correct.data || []).map(r => r.pool_item_id));
+          const nativeIds = new Set((native || []).map(r => r.id));
+          setMastery({
+            done: [...ids].filter(id => nativeIds.has(id)).length,
+            total: nativeIds.size,
+          });
+        } catch (e) {
+          console.error("loadStageState:", e);
+          setStageState(null); setMastery({ done: 0, total: 0 });
+        }
+      };
+
+      // Chooses the material; `buildSession` decides what to do with it. The tier
+      // filter is the whole stage split — without it practice served corpus rows
+      // the lesson never taught (178 items for Salutations against 29 written).
+      const startSession = async (stage) => {
         if (!selectedLesson) return;
         setPoolLoading(true);
         try {
           const level = selectedCourse?.course_order || 1;
           const items = await supaFetch("lesson_pool",
-            `lesson_id=eq.${selectedLesson.id}&select=*&limit=1000`);
+            `lesson_id=eq.${selectedLesson.id}&${STAGE_TIERS[stage]}&select=*&limit=1000`);
           const built = buildSession(items, level, SESSION_QUESTIONS);
           if (!built.length) {
-            setSessionNote("Pas encore assez de contenu court dans cette leçon pour un exercice.");
+            setSessionNote(stage === "pratiquer"
+              ? "Pas encore assez de contenu court dans cette leçon pour un exercice."
+              : "Pas encore assez de contenu supplémentaire pour cette leçon.");
             return;
           }
           setSessionNote("");
           primeClips(exerciseClips(built[0]));   // first screen is instant too
+          setSessionStage(stage);
           setSessionExercises(built);
         } catch (e) {
           console.error("startSession:", e);
           setSessionNote("Impossible de charger l'exercice. Réessayez.");
         } finally { setPoolLoading(false); }
+      };
+
+      // Called once per session, completed or abandoned. Attempts are written
+      // either way — they are the mastery counter's evidence — but only a
+      // completed session may move the gate.
+      const handleSessionEnd = async ({ completed, stage, attempts, pct, xp }) => {
+        if (!currentUser || !selectedLesson) return;
+        const lessonId = selectedLesson.id;
+        try {
+          if (attempts.length) {
+            await supabaseClient.from("exercise_attempts").insert(
+              attempts.map(a => ({
+                user_id: currentUser.id, pool_item_id: a.pool_item_id, lesson_id: lessonId,
+                stage, format: a.format, correct: a.correct,
+              })));
+          }
+          if (completed) {
+            const prev = stageState || {};
+            await supabaseClient.from("lesson_stage_state").upsert({
+              user_id: currentUser.id, lesson_id: lessonId, language_id: langId,
+              // Passing is a one-way door: a later weaker session must not take
+              // Élargir away from someone who has already earned it.
+              pratiquer_passed: prev.pratiquer_passed || (stage === "pratiquer" && pct >= PASS_PCT),
+              pratiquer_best: stage === "pratiquer" ? Math.max(prev.pratiquer_best || 0, pct) : (prev.pratiquer_best || 0),
+              elargir_best:   stage === "elargir"   ? Math.max(prev.elargir_best || 0, pct)   : (prev.elargir_best || 0),
+              elargir_xp:     (prev.elargir_xp || 0) + (stage === "elargir" ? xp : 0),
+              updated_at: new Date().toISOString(),
+            }, { onConflict: "user_id,lesson_id" });
+          }
+        } catch (e) {
+          console.error("handleSessionEnd:", e);
+        } finally {
+          loadStageState(lessonId);      // refresh the gate and the counter
+        }
+      };
+
+      // A learner flagging "this does not belong here" is the only QA pass that
+      // scales to 4,849 routed rows. It lands in the existing corrections queue,
+      // typed so the professor can tell a routing complaint from a translation
+      // fix — the pair itself is already verified; its placement is what is in
+      // question.
+      const reportPoolItem = async (item) => {
+        if (!item) return;
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/corrections`, {
+            method: "POST",
+            headers: {
+              apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
+              "Content-Type": "application/json", Prefer: "return=minimal",
+            },
+            body: JSON.stringify({
+              language_id: langId,
+              user_query: `Signalement d'exercice — ${selectedLesson?.title || ""}`,
+              ai_response: `${item.fr} → ${item.ln}`,
+              correction_type: "routing",
+              correct_french: item.fr,
+              correct_lingala: item.ln,
+              tester_name: testerName.trim() || null,
+              session_id: testerSessionId || null,
+              status: "pending",
+            }),
+          });
+        } catch (e) { console.error("reportPoolItem:", e); }
       };
 
       const markLessonComplete = async () => {
@@ -2262,6 +2506,11 @@
         if (currentUser && selectedLang) loadUserProgress(currentUser.id, selectedLang.id);
         else setUserProgress(new Set());
       }, [currentUser?.id, selectedLang?.id]);
+
+      // The gate and the mastery counter are per lesson, so they load with it.
+      useEffect(() => {
+        loadStageState(selectedLesson?.id);
+      }, [currentUser?.id, selectedLesson?.id]);
 
       const langId = selectedLang?.id;
       const langName = selectedLang?.name || "";
@@ -3195,9 +3444,12 @@
             {view === "lesson" && selectedLesson && sessionExercises && (
               <SessionView
                 lesson={selectedLesson}
+                stage={sessionStage}
                 exercises={sessionExercises}
                 onExit={() => setSessionExercises(null)}
                 onSeeLesson={() => setSessionExercises(null)}
+                onSessionEnd={handleSessionEnd}
+                onReport={reportPoolItem}
               />
             )}
 
@@ -3419,17 +3671,61 @@
                 {currentUser && (
                   <div style={{ marginTop:32, paddingBottom:28 }}>
                     {/* Practice comes before the completion button: doing the
-                        exercises is the point, marking it done is bookkeeping. */}
-                    <button onClick={startSession} disabled={poolLoading} style={{
+                        exercises is the point, marking it done is bookkeeping.
+
+                        Two stages over two disjoint pools. Pratiquer is what the
+                        professor wrote into this lesson — finite, and the thing
+                        the 80% bar certifies. Élargir is the routed corpus,
+                        endless, and stays locked until Pratiquer is passed:
+                        widening before the lesson itself is learned is how a
+                        learner ends up practising sentences they were never
+                        taught. */}
+                    <button onClick={() => startSession("pratiquer")} disabled={poolLoading} style={{
                       width:"100%", padding:"16px 20px", borderRadius:14, border:"none",
                       background: poolLoading ? "#E8E0D4" : "linear-gradient(135deg, #6B21A8, #9333EA)",
                       color: poolLoading ? "#9B8A6E" : "white", fontSize:15, fontWeight:700,
-                      cursor: poolLoading ? "default" : "pointer", marginBottom:12,
+                      cursor: poolLoading ? "default" : "pointer", marginBottom:10,
                       fontFamily:"'DM Sans', sans-serif",
                       boxShadow: poolLoading ? "none" : "0 4px 14px rgba(107,33,168,0.28)",
                     }}>
-                      {poolLoading ? "Préparation…" : "S'entraîner"}
+                      {poolLoading ? "Préparation…" : "Pratiquer"}
+                      {!poolLoading && mastery.total > 0 && (
+                        <span style={{ display:"block", fontSize:12, fontWeight:500, opacity:0.85, marginTop:3,
+                                       fontFamily:"'DM Mono', monospace" }}>
+                          {mastery.done}/{mastery.total} maîtrisés
+                          {stageState?.pratiquer_passed ? " · validé ✓" : ""}
+                        </span>
+                      )}
                     </button>
+
+                    {stageState?.pratiquer_passed ? (
+                      <button onClick={() => startSession("elargir")} disabled={poolLoading} style={{
+                        width:"100%", padding:"16px 20px", borderRadius:14,
+                        border:"1.5px solid #6B21A8", background:"white",
+                        color:"#6B21A8", fontSize:15, fontWeight:700,
+                        cursor: poolLoading ? "default" : "pointer", marginBottom:12,
+                        fontFamily:"'DM Sans', sans-serif",
+                      }}>
+                        Élargir
+                        <span style={{ display:"block", fontSize:12, fontWeight:500, opacity:0.75, marginTop:3,
+                                       fontFamily:"'DM Mono', monospace" }}>
+                          Aller plus loin{stageState?.elargir_best ? ` · record ${stageState.elargir_best}%` : ""}
+                        </span>
+                      </button>
+                    ) : (
+                      <div style={{
+                        width:"100%", padding:"16px 20px", borderRadius:14,
+                        border:"1.5px dashed #E8E0D4", background:"#FDFBF7",
+                        color:"#9B8A6E", fontSize:15, fontWeight:700, marginBottom:12,
+                        fontFamily:"'DM Sans', sans-serif", textAlign:"center",
+                      }}>
+                        🔒 Élargir
+                        <span style={{ display:"block", fontSize:12, fontWeight:500, marginTop:3,
+                                       fontFamily:"'DM Mono', monospace" }}>
+                          Réussissez Pratiquer à {PASS_PCT}% pour débloquer
+                        </span>
+                      </div>
+                    )}
                     {sessionNote && (
                       <p style={{ margin:"0 0 12px", fontSize:13, color:"#9B8A6E",
                                   textAlign:"center", fontFamily:"'DM Sans', sans-serif" }}>
