@@ -638,10 +638,22 @@ Non-obvious rules that fall out of it:
   orthography and shape band per screen. Full Pratiquer sessions went from 35/50
   lessons to **40/50**. 166 tests.
 
-**Next action is Slice 6's remaining types** — fill-the-blank (use `sameWord`),
-listen-and-type on character tiles, and record-and-compare speaking. Each is one
-entry in `EXERCISE_SCREENS` plus a builder. `EXERCISE_ENGINE_PLAN.md` **§4c is
-the executable task list**. Read it before touching engine code.
+- **Fill-the-blank shipped (2026-08-17)** — `fill_blank`. One word ≥4 chars and
+  unique in its sentence is replaced by an inline input; `sameWord` accepts it
+  typed without accents, then the feedback shows the accented spelling. Audio
+  plays only **after** the answer (the clip reads the missing word aloud). Full
+  Pratiquer sessions: **43/50** lessons. 181 tests.
+
+**Next action is Slice 6's last two types** — listen-and-type on character tiles
+and record-and-compare speaking. Each is one entry in `EXERCISE_SCREENS` plus a
+builder. `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**. Read it
+before touching engine code.
+
+**Verifying engine work:** `npm test` covers the builders on hand-made rows;
+**`node scripts/audit_exercise_types.mjs`** checks every shipped type against the
+live 6,196-row pool across all 50 lessons and both stages, and exits non-zero on
+a violation. Run both. The audit is what found the `/` placeholder rows and the
+947 rows whose stored `token_count` disagrees with the tokenizer.
 
 **Tokenizer rules that other code must not re-invent:**
 - **Never count words with `lesson_pool.token_count`** — it came from a bare

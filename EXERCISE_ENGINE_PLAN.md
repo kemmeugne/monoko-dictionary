@@ -486,7 +486,8 @@ input-mechanism problems, not feasibility problems.
    See "the tokenizer" below for what it decided and what it found.
 2. **Tap words in order** — ✅ **done 2026-08-17**. French prompt, shuffled
    Lingala word tiles, 3–9 tokens. See "tap words in order" below.
-3. **Fill the blank** — one content word removed. ≥3 tokens.
+3. **Fill the blank** — ✅ **done 2026-08-17**. One content word removed, typed
+   back, accents optional. See "fill the blank" below.
 4. **Listen & type** — **character tiles, never a keyboard** (see §5).
 5. **Speaking** — **record-and-compare**, no STT (see §7).
 
@@ -588,6 +589,58 @@ Météo goes from 10 questions to 14, Comparatifs from 4 to 7. **Nombres ordinau
 stays at 3** — its 3 native rows are all too short to order, so it is the one
 lesson still facing a 3/3 gate. Six lessons have no word-order material at all,
 which is expected: their native rows are all under 3 or over 9 tokens.
+
+### Fill the blank (built 2026-08-17)
+
+The French sentence is the prompt, the Lingala sentence is shown with one word
+replaced by an inline input, and the learner types it back. This is the exercise
+the tokenizer's `fold`/`sameWord` were built for.
+
+**Which word gets blanked — two rules, both measured.**
+- **≥4 characters.** The pool's most frequent tokens are all grammar: `na`
+  (3,478), `ya` (1,352), `te` (785), `ko` (669), `ba` (518). Blanking those tests
+  nothing. The rule keeps **99.8%** of ≥3-token rows viable.
+- **Unique within its sentence** (compared folded, so `mbula`/`mbúla` count as
+  one word). **27.4% of rows repeat a word**, and blanking one copy while the
+  other sits visible two words away is not a question.
+
+The word is drawn **at random** among the candidates rather than always taking
+the longest, so meeting the same row again in a later Élargir session does not
+ask the identical question.
+
+**Accents are optional, then shown.** `sameWord` accepts the answer without its
+accents — **8.2% of candidate blank-words carry a character no iPhone French
+keyboard can produce**, so strictness would make those unanswerable rather than
+hard. When the answer was right but spelled plainly, the feedback adds *"Avec les
+accents : **Mbúla**"*. That second half is not decoration: it is what keeps
+leniency from teaching that tone is optional, and it is the reason this exercise
+may fold while listen-and-type may not.
+
+**Audio plays only after the answer.** The clip is the professor reading the
+whole sentence, so playing it first would read the missing word aloud.
+
+**iOS input rules that are not optional:** `autoCorrect="off"` (autocorrect
+rewrites Lingala into French words), `autoCapitalize="none"`, `spellCheck=false`,
+and `fontSize: 16` (anything smaller makes iOS zoom the page on focus). Checked
+against a 375×667 screen with the keyboard up: the input and the Vérifier button
+both stay visible with ~82px to spare.
+
+**Measured over all 50 lessons — Pratiquer (native only):**
+
+| Questions available | 2 types | 3 types | **4 types** |
+|---|---:|---:|---:|
+| 20 (full session) | 35 | 40 | **43** |
+| 10–19 | 12 | 8 | 6 |
+| 5–9 | 1 | 1 | 0 |
+| 1–4 | 2 | 1 | 1 |
+| 0 — unreachable | 0 | 0 | **0** |
+
+Mix across one build per lesson: choose_audio 349 · word_order 207 ·
+fill_blank 207 · match_pairs 190 — no type dominating.
+
+**Nombres ordinaux is still stranded at 3 questions.** Its 3 native rows are too
+short for both word-order and fill-the-blank. Listen-and-type is the type that
+should finally reach it, since that one wants **short** items (≤2 tokens).
 
 ### Slice 6 constraints that are not negotiable
 
@@ -737,7 +790,11 @@ not change. That was the design goal of Slice 2 and it should hold.
 ### Definition of done for each slice
 
 - `npx esbuild` syntax check on the extracted babel block passes
-- `npm test` passes (119 tests)
+- `npm test` passes (181 tests as of Slice 6's fill-the-blank)
+- `node scripts/audit_exercise_types.mjs` exits 0 — every shipped type checked
+  against the **live** 6,196-row pool, all 50 lessons, both stages. Unit tests
+  prove the builders work on hand-made rows; this proves it on the real ones,
+  where the odd shapes live
 - Verified on a 375px viewport, and on a real iPhone via the Vercel URL
 - Verified against a **thin** lesson (Météo, 6 native) and a **fat** one
   (Salutations, 29 native / 149 corpus) — the thin case is where every

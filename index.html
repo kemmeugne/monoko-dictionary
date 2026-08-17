@@ -936,6 +936,60 @@
       return out;
     };
 
+    // ── Fill the blank ────────────────────────────────────────────────────────
+    // Four characters or more, because the pool's frequent short tokens are all
+    // grammar rather than content — na (3,478), ya (1,352), te (785), ko (669),
+    // ba (518) — and blanking those tests nothing anybody wants to learn.
+    //
+    // And unique within its sentence: 27.4% of rows repeat a word, and blanking
+    // one copy while the other sits visible two words away is not a question.
+    const FILL_BLANK_MIN_TOKENS = 3;
+    const BLANK_MIN_CHARS = 4;
+
+    const blankCandidates = (tokens) => {
+      const folded = tokens.map(fold);
+      return tokens
+        .map((word, i) => ({ word, i }))
+        .filter(({ word, i }) =>
+          [...word].length >= BLANK_MIN_CHARS &&
+          folded.indexOf(folded[i]) === folded.lastIndexOf(folded[i]));
+    };
+
+    const fillBlankRows = (items, level) =>
+      (items || []).filter(r => {
+        if (!usableRow(r) || r.effective_level > level) return false;
+        const t = tokenize(r.lingala);
+        return t.length >= FILL_BLANK_MIN_TOKENS && blankCandidates(t).length > 0;
+      });
+
+    const buildFillBlank = (r) => {
+      const tokens = tokenize(r.lingala);
+      // Drawn at random rather than always taking the longest word, so a row met
+      // again in a later Élargir session does not ask the identical question.
+      const pick = shuffle(blankCandidates(tokens))[0];
+      return {
+        type: "fill_blank",
+        item: {
+          id: itemId(r), poolId: r.id,
+          fr: r.french.trim(), ln: tokens.join(" "), audio: r.audio_url,
+        },
+        tokens,
+        blankIndex: pick.i,
+        answer: pick.word,
+      };
+    };
+
+    const fillBlankScreens = (items, level, budget, ledger) => {
+      const out = [];
+      for (const r of shuffleByTier(fillBlankRows(items, level))) {
+        if (out.length >= budget) break;
+        if (!ledger.canUse(itemId(r), "fill_blank")) continue;
+        ledger.use(itemId(r), "fill_blank");
+        out.push(buildFillBlank(r));
+      }
+      return out;
+    };
+
     // A session alternates types rather than running one then the other. Same
     // material either way, but a block of five identical screens reads as a drill
     // and a mixed queue reads as practice — and this is the shape every later
@@ -979,10 +1033,14 @@
       // the scarcest type must choose before the plentiful ones take its material.
       const pairs = matchPairsScreens(items, level, Math.ceil(count / 3), ledger);
       let left = count - countQuestions(pairs);
-      const order = wordOrderScreens(items, level, Math.ceil(left / 2), ledger);
+      // Each single-question type takes an even share of what remains, and the
+      // last one takes the rest — so a lesson short on one type still fills up.
+      const order = wordOrderScreens(items, level, Math.ceil(left / 3), ledger);
       left -= countQuestions(order);
+      const blank = fillBlankScreens(items, level, Math.ceil(left / 2), ledger);
+      left -= countQuestions(blank);
       const audio = chooseAudioScreens(items, level, left, ledger);
-      return interleave([pairs, order, audio], count);
+      return interleave([pairs, order, blank, audio], count);
     };
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
@@ -1407,12 +1465,131 @@
       );
     };
 
+    // ── Fill the blank ────────────────────────────────────────────────────────
+    const FillBlankScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
+      const [typed, setTyped] = useState("");
+      const [wrong, setWrong] = useState(false);
+      const [solved, setSolved] = useState(false);
+      const missedHere = React.useRef(false);
+
+      // True when the answer was right but spelled without its accents. This is
+      // the teaching moment the leniency is paid for with: accepting "mbula" and
+      // then showing "Mbúla" is what stops it teaching that tone is optional.
+      const [showedAccent, setShowedAccent] = useState(false);
+
+      const submit = () => {
+        if (solved || wrong || !typed.trim()) return;
+        if (sameWord(typed, exercise.answer)) {
+          setShowedAccent(typed.trim() !== exercise.answer);
+          setSolved(true);
+          if (!exercise.retry) onAnswer(exercise.item, !missedHere.current);
+          // Audio plays only AFTER the answer. The clip is the professor saying
+          // the whole sentence — playing it first would read the missing word
+          // aloud and hand over the answer.
+          afterClip(playClip(exercise.item.audio), onDone);
+        } else {
+          setWrong(true);
+          missedHere.current = true;
+          onMiss(exercise.item);
+          setTimeout(() => { setWrong(false); setTyped(""); }, 1400);
+        }
+      };
+
+      const border = wrong ? "#DC2626" : solved ? "#16A34A" : "#C9BCA6";
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+          <p style={{ fontSize: 13, color: "#9B8A6E", margin: "0 0 6px",
+                      fontFamily: "'DM Mono', monospace", letterSpacing: ".06em",
+                      textTransform: "uppercase" }}>
+            Complétez la phrase
+          </p>
+          <p style={{ fontSize: 19, fontWeight: 600, margin: "0 0 18px", lineHeight: 1.35 }}>
+            {exercise.item.fr}
+          </p>
+
+          {/* The sentence with the gap inline, so the missing word is read in
+              context rather than as a detached quiz prompt. */}
+          <div style={{
+            display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px 6px",
+            padding: 14, borderRadius: 14, border: "1px solid #E8E0D4", background: "white",
+            fontFamily: "'Playfair Display', serif", fontSize: 18, color: "#2D2118",
+          }}>
+            {exercise.tokens.map((t, i) => i === exercise.blankIndex ? (
+              solved ? (
+                <b key={i} style={{ color: "#16A34A" }}>{exercise.answer}</b>
+              ) : (
+                <input key={i} value={typed} onChange={e => setTyped(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
+                  autoFocus
+                  // iOS autocorrect rewrites Lingala into French words, and
+                  // autocapitalise would fight every lowercase answer. 16px is
+                  // the floor that stops iOS zooming the page on focus.
+                  autoCapitalize="none" autoCorrect="off" autoComplete="off"
+                  spellCheck={false} enterKeyHint="done"
+                  aria-label="Mot manquant"
+                  style={{
+                    width: `${Math.max(5, [...exercise.answer].length + 1)}ch`,
+                    minHeight: 44, fontSize: 16, padding: "4px 8px",
+                    fontFamily: "'DM Sans', sans-serif",
+                    border: "none", borderBottom: `2px solid ${border}`,
+                    background: wrong ? "#FDF0F0" : "transparent",
+                    color: "#2D2118", outline: "none", textAlign: "center",
+                    transition: "border-color .15s, background .15s",
+                  }} />
+              )
+            ) : (
+              <span key={i}>{t}</span>
+            ))}
+          </div>
+
+          {!solved && (
+            <button onClick={submit} disabled={!typed.trim() || wrong}
+              style={{
+                marginTop: 14, width: "100%", minHeight: 52, borderRadius: 14, border: "none",
+                background: !typed.trim() || wrong ? "#E8E0D4" : "linear-gradient(135deg, #6B21A8, #9333EA)",
+                color: !typed.trim() || wrong ? "#9B8A6E" : "white",
+                fontSize: 16, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
+                cursor: !typed.trim() || wrong ? "default" : "pointer",
+              }}>Vérifier</button>
+          )}
+
+          <div style={{ flex: 1, minHeight: 12 }} />
+
+          {solved && (
+            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "#16A34A", fontWeight: 600 }}>
+                ✓ {exercise.item.ln}
+              </p>
+              {showedAccent && (
+                <p style={{ margin: "6px 0 0", fontSize: 13, color: "#8B6D47" }}>
+                  Avec les accents&nbsp;:{" "}
+                  <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>
+                    {exercise.answer}
+                  </b>
+                </p>
+              )}
+            </div>
+          )}
+          {wrong && (
+            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{exercise.answer}</b>
+                {" — réessayez."}
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
     // Renderer per exercise type. Adding fill-the-blank later means adding one
     // entry here — the shell, progress, scoring and summary stay untouched.
     const EXERCISE_SCREENS = {
       match_pairs: MatchPairsScreen,
       choose_audio: ChooseAudioScreen,
       word_order: WordOrderScreen,
+      fill_blank: FillBlankScreen,
     };
 
     // 80% of a session's questions, right the first time, passes Pratiquer and

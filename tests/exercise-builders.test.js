@@ -27,8 +27,11 @@ const engine = new Function(
   slice("// ── Tokenizer ─", "// ── Exercise engine ─") +
   slice("// ── Exercise engine", "// ── Match-pairs screen") + `
   return { buildSession, buildWordOrder, wordOrderRows, wordOrderScreens,
+           buildFillBlank, fillBlankRows, fillBlankScreens, blankCandidates,
+           sameWord, tokenize, fold,
            interleave, questionCount, countQuestions, makeLedger, itemId,
-           usableRow, SESSION_QUESTIONS, WORD_ORDER_MIN, WORD_ORDER_MAX };`
+           usableRow, SESSION_QUESTIONS, WORD_ORDER_MIN, WORD_ORDER_MAX,
+           BLANK_MIN_CHARS, FILL_BLANK_MIN_TOKENS };`
 )();
 
 // A pool row shaped like lesson_pool's real columns.
@@ -148,6 +151,109 @@ describe("wordOrderScreens — budget and the ledger", () => {
     const one = [row("aa bb cc", "fr")];
     ledger.use(engine.itemId(one[0]), "match_pairs");
     expect(engine.wordOrderScreens(one, 3, 5, ledger)).toHaveLength(1);
+  });
+});
+
+describe("blankCandidates — which word gets removed", () => {
+  it("skips words shorter than the minimum, because those are grammar", () => {
+    // na / ya / te / ko / ba are the pool's most frequent tokens by a mile.
+    const got = engine.blankCandidates(["Nazali", "na", "ndako", "ya", "ngai"]);
+    expect(got.map(c => c.word)).toEqual(["Nazali", "ndako", "ngai"]);
+  });
+
+  it("skips a word that appears twice in the sentence", () => {
+    // Blanking one "ndako" while the other sits visible is not a question.
+    const got = engine.blankCandidates(["ndako", "monene", "na", "ndako"]);
+    expect(got.map(c => c.word)).toEqual(["monene"]);
+  });
+
+  it("treats accent variants of the same word as a repeat", () => {
+    // "mbula" and "mbúla" are one word; blanking either gives the answer away.
+    const got = engine.blankCandidates(["mbula", "eza", "mbúla", "malamu"]);
+    expect(got.map(c => c.word)).toEqual(["malamu"]);
+  });
+
+  it("reports the index, not just the word", () => {
+    const got = engine.blankCandidates(["na", "ndako", "monene"]);
+    expect(got).toEqual([{ word: "ndako", i: 1 }, { word: "monene", i: 2 }]);
+  });
+
+  it("returns nothing when every word is short or repeated", () => {
+    expect(engine.blankCandidates(["na", "ya", "te"])).toEqual([]);
+  });
+});
+
+describe("fillBlankRows / buildFillBlank", () => {
+  const level = 3;
+
+  it("needs at least 3 tokens and one blankable word", () => {
+    expect(engine.fillBlankRows([row("Nazali na ndako", "Je suis à la maison")], level)).toHaveLength(1);
+    expect(engine.fillBlankRows([row("na ya te", "grammaire")], level)).toEqual([]);
+    expect(engine.fillBlankRows([row("Nazali ndako", "deux mots")], level)).toEqual([]);
+  });
+
+  it("blanks a real word and keeps the rest of the sentence", () => {
+    const ex = engine.buildFillBlank(row("Nazali na ndako ya ngai", "Je suis dans ma maison"));
+    expect(ex.type).toBe("fill_blank");
+    expect(ex.tokens[ex.blankIndex]).toBe(ex.answer);
+    expect([...ex.answer].length).toBeGreaterThanOrEqual(engine.BLANK_MIN_CHARS);
+    expect(ex.tokens.join(" ")).toBe(ex.item.ln);
+  });
+
+  it("never blanks a word that is short or repeated, over many draws", () => {
+    const r = row("ndako monene na ndako ya biso", "la grande maison chez nous");
+    for (let i = 0; i < 60; i++) {
+      const ex = engine.buildFillBlank(r);
+      expect(["monene", "biso"]).toContain(ex.answer);   // never "ndako" or "na"/"ya"
+    }
+  });
+
+  it("varies which word it blanks across draws, so a replay differs", () => {
+    const r = row("Nazali kokende zando monene lelo", "Je vais au grand marché");
+    const seen = new Set();
+    for (let i = 0; i < 60; i++) seen.add(engine.buildFillBlank(r).answer);
+    expect(seen.size).toBeGreaterThan(1);
+  });
+
+  it("accepts the answer typed without its accents", () => {
+    const r = row("Nazali na mbúla monene", "Je suis dans la grande pluie");
+    for (let i = 0; i < 30; i++) {
+      const ex = engine.buildFillBlank(r);
+      expect(engine.sameWord(engine.fold(ex.answer), ex.answer)).toBe(true);
+    }
+  });
+
+  it("excludes placeholder rows and rows above the level", () => {
+    expect(engine.fillBlankRows([row("/", "Xylophone")], level)).toEqual([]);
+    expect(engine.fillBlankRows([row("Nazali na ndako", "fr", { effective_level: 6 })], 1)).toEqual([]);
+  });
+
+  it("survives an empty or null pool", () => {
+    expect(engine.fillBlankRows([], level)).toEqual([]);
+    expect(engine.fillBlankRows(null, level)).toEqual([]);
+  });
+});
+
+describe("fillBlankScreens — budget and ledger", () => {
+  const pool = Array.from({ length: 20 }, (_, i) => row(`aaa${i} bbbb${i} cccc${i}`, `fr ${i}`));
+
+  it("costs one question per screen and respects the budget", () => {
+    const screens = engine.fillBlankScreens(pool, 3, 4, engine.makeLedger());
+    expect(screens).toHaveLength(4);
+    expect(engine.countQuestions(screens)).toBe(4);
+  });
+
+  it("never repeats an item within the format", () => {
+    const screens = engine.fillBlankScreens(pool, 3, 20, engine.makeLedger());
+    const ids = screens.map(s => s.item.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("still allows an item already used in another format", () => {
+    const ledger = engine.makeLedger();
+    const one = [row("aaaa bbbb cccc", "fr")];
+    ledger.use(engine.itemId(one[0]), "word_order");
+    expect(engine.fillBlankScreens(one, 3, 5, ledger)).toHaveLength(1);
   });
 });
 
