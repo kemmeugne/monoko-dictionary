@@ -8,7 +8,7 @@ Last updated: 2026-08-17
 
 - Live app at https://monoko-dictionary.vercel.app
 - Lingala dictionary (public) with audio, professor-verified
-- 31-module CEFR-aligned curriculum (A1 → B2+), 50 lessons live — **content complete for Lingala**
+- 31-module CEFR-aligned curriculum (A1 → B2+), 49 lessons live — **content complete for Lingala**
   (100% audio, no missing translations) as of 2026-08-04
 - **Lesson structure reorganized & deduped (2026-07-27)** — mega-lessons split into
   focused ones, duplicates removed, pronouns consolidated. Full record in

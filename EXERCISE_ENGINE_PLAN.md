@@ -5,23 +5,28 @@ Written 2026-08-07, last updated 2026-08-17. **This file supersedes the Phase 3
 `Cours/MONOKO_CURRICULUM.md`.** Where they disagree with this file, this file is
 right.
 
-**Status: Slices 0–5 shipped. Slice 6 (the four remaining exercise types) is
-next.** A learner can open a lesson, run a 20-question Pratiquer session on the
-professor's own rows, pass it at 80% first-try, and unlock an endless Élargir
-session on the routed corpus. Attempts, the gate and the mastery counter persist.
-Two of six exercise types exist: match-pairs and choose-the-audio.
+**Status: Slices 0–5 shipped, Slice 6 half done.** A learner can open a lesson,
+run a 20-question Pratiquer session on the professor's own rows, pass it at 80%
+first-try, and unlock an endless Élargir session on the routed corpus. Attempts,
+the gate and the mastery counter persist. **Four of six exercise types exist**:
+match-pairs, choose-the-audio, tap-words-in-order and fill-the-blank.
+**All 49 lessons build ≥10 questions**, so the harshest gate anywhere is 8/10.
 
 | Slice | | |
 |---|---|---|
 | 0 · Routing QA | ✅ 2026-08-10 | cosine 77% → LLM judge 96% + reassignment 90% |
-| 1 · `lesson_pool` | ✅ 2026-08-10 | 6,196 rows, all 50 lessons |
+| 1 · `lesson_pool` | ✅ 2026-08-10 | 6,196 rows, every lesson |
 | 2 · Session shell + match-pairs | ✅ 2026-08-10 | |
 | 3 · Choose-the-audio | ✅ 2026-08-10 | reworked 2026-08-17 — play on request, waveform, line shown |
 | 4 · Attempts + pool-shaped builder | ✅ 2026-08-17 | 20 questions, 3–5 pair screens, (item, format) ledger |
 | 5 · Stage split | ✅ 2026-08-17 | tier filter, 80% gate, mastery counter, Signaler |
-| 6 · Four remaining types | ⬜ **NEXT** | tokenizer first, then all four |
+| 6 · The four remaining types | 🔶 **IN PROGRESS** | tokenizer ✅ · tap-words ✅ · fill-the-blank ✅ · **listen-and-type ⬜ · speaking ⬜** |
 | 7 · Progression + retention | ⬜ | XP, streaks, SM-2 (Pratiquer only) |
 | 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
+
+**Verify engine work with both:** `npm test` (181 tests, builders on hand-made
+rows) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
+live 6,196-row pool, all lessons, both stages; exits non-zero on a violation).
 
 ---
 
@@ -625,20 +630,24 @@ and `fontSize: 16` (anything smaller makes iOS zoom the page on focus). Checked
 against a 375×667 screen with the keyboard up: the input and the Vérifier button
 both stay visible with ~82px to spare.
 
-**Measured over all 50 lessons — Pratiquer (native only):**
+**Measured with `scripts/audit_exercise_types.mjs` — Pratiquer (native only):**
 
-| Questions available | 2 types | 3 types | **4 types** |
-|---|---:|---:|---:|
-| 20 (full session) | 35 | 40 | **43** |
-| 10–19 | 12 | 8 | 6 |
-| 5–9 | 1 | 1 | 0 |
-| 1–4 | 2 | 1 | 1 |
-| 0 — unreachable | 0 | 0 | **0** |
+| Questions a session can reach | 2 types | 3 types | 4 types | **+ the merge** |
+|---|---:|---:|---:|---:|
+| 20 — a full session | 35 | 40 | 43 | **43** |
+| 10–19 — short | 12 | 8 | 6 | **6** |
+| 5–9 — very short | 1 | 1 | 0 | **0** |
+| 1–4 — barely a session | 2 | 1 | 1 | **0** |
+| 0 — nothing buildable | 0 | 0 | 0 | **0** |
+| *lessons* | *50* | *50* | *50* | ***49*** |
 
-Mix across one build per lesson: choose_audio 349 · word_order 207 ·
-fill_blank 207 · match_pairs 190 — no type dominating.
+Both short buckets are empty. The weakest lesson in the curriculum is now
+Comparatifs et superlatifs at 10 questions, so **the harshest gate anywhere is
+8/10** rather than 3/3. Mix across one build per lesson: choose_audio 349 ·
+word_order 207 · fill_blank 207 · match_pairs 187 — no type dominating.
 
-**Nombres ordinaux was stranded at 3 questions — fixed as content, not code.**
+**Nombres ordinaux was stranded at 3 questions — fixed as content, not code
+(applied 2026-08-17).**
 Its 3 native rows ("1er → Ya liboso") are too short for word-order and
 fill-the-blank, so 80% of its session meant 3/3, a strictly harder gate than any
 other lesson. Anthony's call on 2026-08-17: **three items is not a lesson, and
