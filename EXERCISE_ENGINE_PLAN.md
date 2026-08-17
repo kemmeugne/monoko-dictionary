@@ -8,9 +8,10 @@ right.
 **Status: Slices 0–5 shipped, Slice 6 half done.** A learner can open a lesson,
 run a 20-question Pratiquer session on the professor's own rows, pass it at 80%
 first-try, and unlock an endless Élargir session on the routed corpus. Attempts,
-the gate and the mastery counter persist. **Four of six exercise types exist**:
-match-pairs, choose-the-audio, tap-words-in-order and fill-the-blank.
-**All 49 lessons build ≥10 questions**, so the harshest gate anywhere is 8/10.
+the gate and the mastery counter persist. **Five of six exercise types exist**:
+match-pairs, choose-the-audio, tap-words-in-order, fill-the-blank and
+listen-and-type. Only record-and-compare speaking is left.
+**46 of 49 lessons build a full 20-question session** and none falls below 13.
 
 | Slice | | |
 |---|---|---|
@@ -20,11 +21,11 @@ match-pairs, choose-the-audio, tap-words-in-order and fill-the-blank.
 | 3 · Choose-the-audio | ✅ 2026-08-10 | reworked 2026-08-17 — play on request, waveform, line shown |
 | 4 · Attempts + pool-shaped builder | ✅ 2026-08-17 | 20 questions, 3–5 pair screens, (item, format) ledger |
 | 5 · Stage split | ✅ 2026-08-17 | tier filter, 80% gate, mastery counter, Signaler |
-| 6 · The four remaining types | 🔶 **IN PROGRESS** | tokenizer ✅ · tap-words ✅ · fill-the-blank ✅ · **listen-and-type ⬜ · speaking ⬜** |
+| 6 · The four remaining types | 🔶 **IN PROGRESS** | tokenizer ✅ · tap-words ✅ · fill-the-blank ✅ · listen-and-type ✅ · **speaking ⬜** |
 | 7 · Progression + retention | ⬜ | XP, streaks, SM-2 (Pratiquer only) |
 | 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
 
-**Verify engine work with both:** `npm test` (181 tests, builders on hand-made
+**Verify engine work with both:** `npm test` (193 tests, builders on hand-made
 rows) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
 live 6,196-row pool, all lessons, both stages; exits non-zero on a violation).
 
@@ -493,7 +494,8 @@ input-mechanism problems, not feasibility problems.
    Lingala word tiles, 3–9 tokens. See "tap words in order" below.
 3. **Fill the blank** — ✅ **done 2026-08-17**. One content word removed, typed
    back, accents optional. See "fill the blank" below.
-4. **Listen & type** — **character tiles, never a keyboard** (see §5).
+4. **Listen & type** — ✅ **done 2026-08-17**. Character tiles, never a keyboard
+   (see §5). See "listen and type" below.
 5. **Speaking** — **record-and-compare**, no STT (see §7).
 
 ### The tokenizer (built 2026-08-17)
@@ -672,6 +674,47 @@ Two traps that migration documents, because both fail silently:
   time. A merged-away id has no level, and a row with no level is *skipped* —
   a normal outcome for unplaceable rows, so 11 rows would have vanished with no
   error. The script now carries `LESSON_MERGES = {375: 350}`.
+
+### Listen and type (built 2026-08-17)
+
+`listenTypeRows` / `listenDistractors` / `buildListenType` / `ListenTypeScreen`.
+Play the professor, spell what you hear from a bank of character tiles.
+
+**The distractors are the exercise.** They are drawn first from the **accent
+twins** of the letters the answer actually uses — offering a bare `o` beside the
+required `ó` is what makes this a test of tone rather than a letter-hunt. Only
+after those are exhausted does the bank fill from the pool's plain alphabet, so
+nothing on screen looks foreign to Lingala.
+
+**No folding here, unlike fill-the-blank.** This exercise *is* the spelling, so
+the answer is compared exactly. That is fair precisely because tiles are used:
+the learner can only build what is offered, so there is no keyboard to fight and
+no "accept the untoned variant" rule needed. Those two exercises make opposite
+choices about accents for the same reason — what each one measures.
+
+**A space is never a tile.** The answer area is one group of slots per word, so
+the gap between words is *drawn*. A `␣` key reads as a puzzle piece rather than
+as writing.
+
+**Sizing:** 1–2 tokens and ≤14 characters (97.4% of candidates; the worst case in
+the pool is 22), an 18-tile bank — 3 rows of 6 at 375px, with 141px of vertical
+slack. Slots wrap within a word too: 14 slots on one row is 476px against 339px
+of usable width, and no screen may scroll sideways.
+
+Also refactored the play button + waveform out of `ChooseAudioScreen` into a
+shared **`ClipPlayer`**, now used by both audio-prompted screens.
+
+**Measured — Pratiquer (native only):**
+
+| Questions a session can reach | 3 types | 4 types | **5 types** |
+|---|---:|---:|---:|
+| 20 — a full session | 40 | 43 | **46** |
+| 10–19 | 8 | 6 | **3** |
+| below 10 | 2 | 0 | **0** |
+
+Nothing in the curriculum now falls below **13** questions. Mix stays even:
+choose_audio 250 · listen_type 198 · match_pairs 187 · fill_blank 167 ·
+word_order 166.
 
 ### Slice 6 constraints that are not negotiable
 

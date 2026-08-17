@@ -23,15 +23,17 @@ const slice = (from, to) => {
 };
 
 const engine = new Function(
-  slice("const AUDIO_OPTIONS", "const ChooseAudioScreen") +
+  slice("const AUDIO_OPTIONS", "const ClipPlayer") +
   slice("// ── Tokenizer ─", "// ── Exercise engine ─") +
   slice("// ── Exercise engine", "// ── Match-pairs screen") + `
   return { buildSession, buildWordOrder, wordOrderRows, wordOrderScreens,
            buildFillBlank, fillBlankRows, fillBlankScreens, blankCandidates,
            sameWord, tokenize, fold,
+           buildListenType, listenTypeRows, listenTypeScreens, characters,
            interleave, questionCount, countQuestions, makeLedger, itemId,
            usableRow, SESSION_QUESTIONS, WORD_ORDER_MIN, WORD_ORDER_MAX,
-           BLANK_MIN_CHARS, FILL_BLANK_MIN_TOKENS };`
+           BLANK_MIN_CHARS, FILL_BLANK_MIN_TOKENS,
+           LISTEN_MAX_TOKENS, LISTEN_MAX_CHARS, LISTEN_TILES };`
 )();
 
 // A pool row shaped like lesson_pool's real columns.
@@ -254,6 +256,87 @@ describe("fillBlankScreens — budget and ledger", () => {
     const one = [row("aaaa bbbb cccc", "fr")];
     ledger.use(engine.itemId(one[0]), "word_order");
     expect(engine.fillBlankScreens(one, 3, 5, ledger)).toHaveLength(1);
+  });
+});
+
+describe("listenTypeRows / buildListenType", () => {
+  const level = 3;
+
+  it("takes 1 to 2 tokens and needs a recording", () => {
+    expect(engine.listenTypeRows([row("mbote", "bonjour")], level)).toHaveLength(1);
+    expect(engine.listenTypeRows([row("mbote na yo", "bonjour à toi")], level)).toEqual([]);
+    expect(engine.listenTypeRows([row("mbote", "bonjour", { audio_url: null })], level)).toEqual([]);
+  });
+
+  it("rejects a word too long for the tile bank", () => {
+    const long = "a".repeat(engine.LISTEN_MAX_CHARS + 1);
+    expect(engine.listenTypeRows([row(long, "trop long")], level)).toEqual([]);
+    expect(engine.listenTypeRows([row("a".repeat(engine.LISTEN_MAX_CHARS), "ok")], level)).toHaveLength(1);
+  });
+
+  it("counts characters, not bytes — ɛ and ɔ are one tile each", () => {
+    const ex = engine.buildListenType(row("bilɔkɔ", "les choses"));
+    expect(ex.words).toEqual([["b", "i", "l", "ɔ", "k", "ɔ"]]);
+  });
+
+  it("groups slots per word so a space is never a tile", () => {
+    const ex = engine.buildListenType(row("mbote yo", "bonjour toi"));
+    expect(ex.words).toEqual([["m", "b", "o", "t", "e"], ["y", "o"]]);
+    expect(ex.tiles.some(t => t.ch === " ")).toBe(false);
+  });
+
+  it("offers every character the answer needs", () => {
+    const ex = engine.buildListenType(row("mbóte", "bonjour"));
+    const bank = ex.tiles.map(t => t.ch);
+    for (const ch of ex.words.flat()) {
+      const need = ex.words.flat().filter(c => c === ch).length;
+      expect(bank.filter(c => c === ch).length).toBeGreaterThanOrEqual(need);
+    }
+  });
+
+  it("offers the bare vowel beside the toned one, so tone is actually tested", () => {
+    // "ó" required, "o" offered as a distractor — that is the whole point.
+    const ex = engine.buildListenType(row("mbóte", "bonjour"));
+    expect(ex.tiles.map(t => t.ch)).toContain("ó");
+    expect(ex.tiles.map(t => t.ch)).toContain("o");
+  });
+
+  it("fills the bank to LISTEN_TILES without duplicating tile keys", () => {
+    const ex = engine.buildListenType(row("mbote", "bonjour"));
+    expect(ex.tiles.length).toBe(engine.LISTEN_TILES);
+    expect(new Set(ex.tiles.map(t => t.key)).size).toBe(ex.tiles.length);
+  });
+
+  it("never offers fewer tiles than the answer needs, even at max length", () => {
+    const ex = engine.buildListenType(row("a".repeat(engine.LISTEN_MAX_CHARS), "long"));
+    expect(ex.tiles.length).toBeGreaterThanOrEqual(engine.LISTEN_MAX_CHARS);
+  });
+
+  it("carries poolId and the French for the reveal", () => {
+    const r = row("mbote", "bonjour");
+    const ex = engine.buildListenType(r);
+    expect(ex.item.poolId).toBe(r.id);
+    expect(ex.item.fr).toBe("bonjour");
+    expect(ex.item.ln).toBe("mbote");
+  });
+
+  it("excludes placeholder rows", () => {
+    expect(engine.listenTypeRows([row("/", "Xylophone")], level)).toEqual([]);
+  });
+});
+
+describe("listenTypeScreens — budget and ledger", () => {
+  const pool = Array.from({ length: 20 }, (_, i) => row(`mot${i}`, `fr ${i}`));
+
+  it("costs one question per screen and respects the budget", () => {
+    const screens = engine.listenTypeScreens(pool, 3, 3, engine.makeLedger());
+    expect(screens).toHaveLength(3);
+    expect(engine.countQuestions(screens)).toBe(3);
+  });
+
+  it("never repeats an item within the format", () => {
+    const screens = engine.listenTypeScreens(pool, 3, 20, engine.makeLedger());
+    expect(new Set(screens.map(s => s.item.id)).size).toBe(screens.length);
   });
 });
 

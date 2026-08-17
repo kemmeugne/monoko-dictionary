@@ -646,10 +646,18 @@ Non-obvious rules that fall out of it:
   Pratiquer sessions: **43 of 49** lessons, and every lesson builds ≥10
   questions. 181 tests.
 
-**Next action is Slice 6's last two types** — listen-and-type on character tiles
-and record-and-compare speaking. Each is one entry in `EXERCISE_SCREENS` plus a
-builder. `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**. Read it
-before touching engine code.
+- **Listen-and-type shipped (2026-08-17)** — `listen_type`, character tiles only.
+  Distractors come first from the **accent twins** of the answer's own letters
+  (a bare `o` beside the required `ó`), which is what makes it a test of tone.
+  Compared **exactly** — no `fold` here, unlike fill-the-blank: this exercise
+  *is* the spelling. A space is never a tile; slots are grouped per word.
+  46 of 49 lessons now build a full session, none below 13 questions. 193 tests.
+  The play button + waveform are now a shared **`ClipPlayer`**.
+
+**Next action is Slice 6's last type** — record-and-compare speaking (see §7 of
+the plan: no STT, self-graded, excluded from the 80% gate). Then Slice 7
+(XP/streaks/SM-2). `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**.
+Read it before touching engine code.
 
 **Verifying engine work:** `npm test` covers the builders on hand-made rows;
 **`node scripts/audit_exercise_types.mjs`** checks every shipped type against the

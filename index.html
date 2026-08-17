@@ -990,6 +990,84 @@
       return out;
     };
 
+    // ── Listen and type ───────────────────────────────────────────────────────
+    // Character TILES, never a keyboard, and this is not a preference. The pool
+    // needs 42 distinct letters and 16 of them cannot be produced on an iPhone
+    // French keyboard at all: à á â ç è é ë í î ó ô ú ē ǎ ɔ ɛ. A text input makes
+    // the exercise unanswerable rather than merely awkward.
+    //
+    // Tiles also dissolve the orthography problem instead of fudging it. The
+    // learner can only build what is offered, so there is no "accept the untoned
+    // spelling" rule here — unlike fill-the-blank, this exercise IS the spelling,
+    // and folding would delete the only thing it measures.
+    const LISTEN_MAX_TOKENS = 2;      // 1–2 tokens: 661 native rows, median 6 tiles
+    const LISTEN_MAX_CHARS = 14;      // covers 97.4% of them; 22 is the worst case
+    const LISTEN_TILES = 18;          // bank size — 3 rows of 6 at 375px
+
+    const listenTypeRows = (items, level) =>
+      (items || []).filter(r => {
+        if (!usableRow(r) || !r.audio_url || r.effective_level > level) return false;
+        const t = tokenize(r.lingala);
+        return t.length >= 1 && t.length <= LISTEN_MAX_TOKENS &&
+               characters(t.join("")).length <= LISTEN_MAX_CHARS;
+      });
+
+    // Distractors are drawn first from the ACCENT VARIANTS of the letters the
+    // answer actually uses — offering "o" beside the required "ó" is what turns
+    // this into a real test of tone rather than a letter-hunt. The rest come
+    // from the pool's own alphabet so nothing looks foreign.
+    const POOL_ALPHABET = "abcdefghijklmnopqrstuvwyz";
+    const ACCENT_TWINS = {
+      a: "àáâǎ", e: "èéëē", i: "íî", o: "óô", u: "ú", c: "ç",
+      "à": "a", "á": "a", "â": "a", "ǎ": "a", "è": "e", "é": "e", "ë": "e", "ē": "e",
+      "í": "i", "î": "i", "ó": "o", "ô": "o", "ú": "u", "ç": "c", "ɔ": "o", "ɛ": "e",
+    };
+
+    const listenDistractors = (answerChars, want) => {
+      const out = [];
+      const push = (c) => { if (c && !out.includes(c)) out.push(c); };
+      for (const ch of shuffle([...new Set(answerChars)])) {
+        for (const twin of (ACCENT_TWINS[ch.toLowerCase()] || "")) {
+          if (out.length >= want) break;
+          push(twin);
+        }
+      }
+      for (const ch of shuffle([...POOL_ALPHABET])) {
+        if (out.length >= want) break;
+        push(ch);
+      }
+      return out.slice(0, want);
+    };
+
+    const buildListenType = (r) => {
+      const tokens = tokenize(r.lingala);
+      // One slot group per word, so the space never has to be a tile — a "␣"
+      // key reads as a puzzle piece rather than as writing.
+      const words = tokens.map(w => characters(w));
+      const answerChars = words.flat();
+      const distractors = listenDistractors(answerChars, Math.max(0, LISTEN_TILES - answerChars.length));
+      return {
+        type: "listen_type",
+        item: {
+          id: itemId(r), poolId: r.id,
+          fr: r.french.trim(), ln: tokens.join(" "), audio: r.audio_url,
+        },
+        words,
+        tiles: shuffle([...answerChars, ...distractors].map((ch, i) => ({ key: i, ch }))),
+      };
+    };
+
+    const listenTypeScreens = (items, level, budget, ledger) => {
+      const out = [];
+      for (const r of shuffleByTier(listenTypeRows(items, level))) {
+        if (out.length >= budget) break;
+        if (!ledger.canUse(itemId(r), "listen_type")) continue;
+        ledger.use(itemId(r), "listen_type");
+        out.push(buildListenType(r));
+      }
+      return out;
+    };
+
     // A session alternates types rather than running one then the other. Same
     // material either way, but a block of five identical screens reads as a drill
     // and a mixed queue reads as practice — and this is the shape every later
@@ -1035,12 +1113,14 @@
       let left = count - countQuestions(pairs);
       // Each single-question type takes an even share of what remains, and the
       // last one takes the rest — so a lesson short on one type still fills up.
-      const order = wordOrderScreens(items, level, Math.ceil(left / 3), ledger);
+      const order = wordOrderScreens(items, level, Math.ceil(left / 4), ledger);
       left -= countQuestions(order);
-      const blank = fillBlankScreens(items, level, Math.ceil(left / 2), ledger);
+      const blank = fillBlankScreens(items, level, Math.ceil(left / 3), ledger);
       left -= countQuestions(blank);
+      const listen = listenTypeScreens(items, level, Math.ceil(left / 2), ledger);
+      left -= countQuestions(listen);
       const audio = chooseAudioScreens(items, level, left, ledger);
-      return interleave([pairs, order, blank, audio], count);
+      return interleave([pairs, order, blank, listen, audio], count);
     };
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
@@ -1216,21 +1296,20 @@
       });
     };
 
-    const ChooseAudioScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
-      const [wrongIds, setWrongIds] = useState([]);
-      const [solved, setSolved] = useState(false);
+    // The play button and waveform, shared by every screen whose prompt is a
+    // recording. Nothing plays until the learner asks for it — autoplay-on-mount
+    // used to fire the instant the previous screen handed over, which is how a
+    // match-pairs answer got talked over by the next question.
+    const ClipPlayer = ({ audio, seed }) => {
       const [playing, setPlaying] = useState(false);
       const [progress, setProgress] = useState(0);
       const audioRef = React.useRef(null);
       const rafRef = React.useRef(null);
 
-      const bars = React.useMemo(() => waveShape(exercise.answer.id), [exercise]);
+      const bars = React.useMemo(() => waveShape(seed), [seed]);
 
-      // Nothing plays until the learner asks for it. Autoplay-on-mount used to
-      // fire the moment the previous screen handed over, which is how a
-      // match-pairs answer got talked over by the next question.
       const play = () => {
-        const a = playClip(exercise.answer.audio);
+        const a = playClip(audio);
         audioRef.current = a;
         if (!a) return;
         setPlaying(true);
@@ -1247,6 +1326,43 @@
       };
 
       useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
+      return (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 14,
+          padding: "16px 18px", borderRadius: 18, background: "white",
+          border: "1px solid #E8E0D4",
+        }}>
+          <button onClick={play} aria-label={playing ? "En lecture" : "Écouter"}
+            style={{
+              flex: "0 0 auto", width: 64, height: 64, borderRadius: 32, border: "none",
+              background: "linear-gradient(135deg, #6B21A8, #9333EA)",
+              color: "white", fontSize: 24, cursor: "pointer",
+              boxShadow: "0 6px 18px rgba(107,33,168,0.28)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>{playing ? "❙❙" : "▶"}</button>
+
+          {/* Bars left of the playhead are lit, the rest are waiting. */}
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 3, height: 56 }}>
+            {bars.map((h, i) => {
+              const passed = playing && i / WAVE_BARS <= progress;
+              return (
+                <div key={i} style={{
+                  flex: 1, height: `${h * 100}%`, minWidth: 2, borderRadius: 2,
+                  background: passed ? "#6B21A8" : "#E8E0D4",
+                  transform: passed ? "scaleY(1)" : "scaleY(0.82)",
+                  transition: "background .12s linear, transform .12s linear",
+                }} />
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    const ChooseAudioScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
+      const [wrongIds, setWrongIds] = useState([]);
+      const [solved, setSolved] = useState(false);
 
       const choose = (opt) => {
         if (solved || wrongIds.includes(opt.id)) return;
@@ -1267,34 +1383,8 @@
             Qu'est-ce que vous entendez&nbsp;?
           </p>
 
-          <div style={{
-            display: "flex", alignItems: "center", gap: 14,
-            padding: "16px 18px", borderRadius: 18, background: "white",
-            border: "1px solid #E8E0D4", marginBottom: 12,
-          }}>
-            <button onClick={play} aria-label={playing ? "En lecture" : "Écouter"}
-              style={{
-                flex: "0 0 auto", width: 64, height: 64, borderRadius: 32, border: "none",
-                background: "linear-gradient(135deg, #6B21A8, #9333EA)",
-                color: "white", fontSize: 24, cursor: "pointer",
-                boxShadow: "0 6px 18px rgba(107,33,168,0.28)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>{playing ? "❙❙" : "▶"}</button>
-
-            {/* Bars left of the playhead are lit, the rest are waiting. */}
-            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 3, height: 56 }}>
-              {bars.map((h, i) => {
-                const passed = playing && i / WAVE_BARS <= progress;
-                return (
-                  <div key={i} style={{
-                    flex: 1, height: `${h * 100}%`, minWidth: 2, borderRadius: 2,
-                    background: passed ? "#6B21A8" : "#E8E0D4",
-                    transform: passed ? "scaleY(1)" : "scaleY(0.82)",
-                    transition: "background .12s linear, transform .12s linear",
-                  }} />
-                );
-              })}
-            </div>
+          <div style={{ marginBottom: 12 }}>
+            <ClipPlayer audio={exercise.answer.audio} seed={exercise.answer.id} />
           </div>
 
           {/* The line being played, so the sound can be matched to its spelling.
@@ -1583,6 +1673,133 @@
       );
     };
 
+    // ── Listen and type ───────────────────────────────────────────────────────
+    const ListenTypeScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
+      const [placed, setPlaced] = useState([]);   // tiles, in tapped order
+      const [wrong, setWrong] = useState(false);
+      const [solved, setSolved] = useState(false);
+      const missedHere = React.useRef(false);
+
+      const answer = exercise.words.map(w => w.join("")).join(" ");
+      const slots = exercise.words.reduce((n, w) => n + w.length, 0);
+
+      const check = (next) => {
+        // Compared EXACTLY. No folding: this exercise is the spelling, so
+        // accepting an untoned answer would delete what it measures. The bank
+        // only ever offers real characters, so this is a fair bar.
+        if (next.map(t => t.ch).join("") === exercise.words.flat().join("")) {
+          setSolved(true);
+          if (!exercise.retry) onAnswer(exercise.item, !missedHere.current);
+          afterClip(playingClip(exercise.item.audio) || playClip(exercise.item.audio), onDone);
+        } else {
+          setWrong(true);
+          missedHere.current = true;
+          onMiss(exercise.item);
+          setTimeout(() => { setPlaced([]); setWrong(false); }, 1400);
+        }
+      };
+
+      const tapTile = (tile) => {
+        if (solved || wrong || placed.length >= slots) return;
+        const next = [...placed, tile];
+        setPlaced(next);
+        if (next.length === slots) check(next);
+      };
+
+      const tapPlaced = (i) => {
+        if (solved || wrong) return;
+        setPlaced(placed.filter((_, j) => j !== i));
+      };
+
+      // Which slot each placed character lands in, word by word. The gap between
+      // words is drawn rather than typed, so the learner never hunts for a space.
+      let cursor = 0;
+      const rows = exercise.words.map((w, wi) => {
+        const start = cursor; cursor += w.length;
+        return { wi, start, length: w.length };
+      });
+
+      return (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+          <p style={{ fontSize: 13, color: "#9B8A6E", margin: "0 0 6px",
+                      fontFamily: "'DM Mono', monospace", letterSpacing: ".06em",
+                      textTransform: "uppercase" }}>
+            Écrivez ce que vous entendez
+          </p>
+
+          <div style={{ marginBottom: 16 }}>
+            <ClipPlayer audio={exercise.item.audio} seed={exercise.item.id} />
+          </div>
+
+          {/* One group of slots per word. */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center",
+                        minHeight: 56, marginBottom: 18 }}>
+            {rows.map(({ wi, start, length }) => (
+              // Wraps within the word too: at 14 characters a single row of
+              // slots is 476px against 339px of usable width, and the one thing
+              // no screen may do is scroll sideways.
+              <div key={wi} style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" }}>
+                {Array.from({ length }, (_, k) => {
+                  const tile = placed[start + k];
+                  return (
+                    <button key={k} onClick={() => tile && tapPlaced(start + k)}
+                      disabled={!tile || solved || wrong}
+                      style={{
+                        width: slots > 10 ? 26 : 30, height: 44, borderRadius: 8, border: "none",
+                        borderBottom: `2px solid ${wrong ? "#DC2626" : solved ? "#16A34A" : "#C9BCA6"}`,
+                        background: "transparent", cursor: tile && !solved ? "pointer" : "default",
+                        fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700,
+                        color: wrong ? "#DC2626" : solved ? "#16A34A" : "#2D2118",
+                        padding: 0, transition: "border-color .15s, color .15s",
+                      }}>{tile ? tile.ch : ""}</button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {/* The bank. A used tile greys out in place rather than vanishing, so
+              the letters never shuffle under a finger mid-word. */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+            {exercise.tiles.map(t => {
+              const used = placed.some(p => p.key === t.key);
+              return (
+                <button key={t.key} onClick={() => tapTile(t)} disabled={used || solved || wrong}
+                  style={{
+                    minWidth: 44, minHeight: 44, padding: "8px 10px", borderRadius: 10,
+                    border: `1.5px solid ${used ? "#EFE8DC" : "#E8E0D4"}`,
+                    background: used ? "#F7F2E9" : "white",
+                    color: used ? "transparent" : "#2D2118",
+                    fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 600,
+                    cursor: used || solved || wrong ? "default" : "pointer",
+                    transition: "background .15s, border-color .15s",
+                  }}>{t.ch}</button>
+              );
+            })}
+          </div>
+
+          <div style={{ flex: 1, minHeight: 12 }} />
+
+          {solved && (
+            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "#16A34A", fontWeight: 600 }}>
+                ✓ {answer}
+              </p>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>{exercise.item.fr}</p>
+            </div>
+          )}
+          {wrong && (
+            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{answer}</b>
+                {" — "}{exercise.item.fr}
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
     // Renderer per exercise type. Adding fill-the-blank later means adding one
     // entry here — the shell, progress, scoring and summary stay untouched.
     const EXERCISE_SCREENS = {
@@ -1590,6 +1807,7 @@
       choose_audio: ChooseAudioScreen,
       word_order: WordOrderScreen,
       fill_blank: FillBlankScreen,
+      listen_type: ListenTypeScreen,
     };
 
     // 80% of a session's questions, right the first time, passes Pratiquer and

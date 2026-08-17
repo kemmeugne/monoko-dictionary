@@ -1,5 +1,5 @@
 /**
- * Audits every shipped exercise type against the LIVE corpus — all 50 lessons,
+ * Audits every shipped exercise type against the LIVE corpus — every lesson,
  * both stages.   node scripts/audit_exercise_types.mjs
  *
  * Unit tests (tests/exercise-builders.test.js) prove the builders behave on
@@ -21,11 +21,12 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const src = fs.readFileSync(join(root, "index.html"), "utf8");
 const slice = (a, b) => src.slice(src.indexOf(a), src.indexOf(b));
 const E = new Function(
-  slice("const AUDIO_OPTIONS", "const ChooseAudioScreen") +
+  slice("const AUDIO_OPTIONS", "const ClipPlayer") +
   slice("// ── Tokenizer ─", "// ── Exercise engine ─") +
   slice("// ── Exercise engine", "// ── Match-pairs screen") + `
   return { buildSession, countQuestions, questionCount, screenItems, fold, sameWord,
-           wordOrderRows, fillBlankRows, tokenize, BLANK_MIN_CHARS,
+           wordOrderRows, fillBlankRows, listenTypeRows, tokenize, BLANK_MIN_CHARS,
+           LISTEN_MAX_CHARS, LISTEN_MAX_TOKENS, LISTEN_TILES,
            WORD_ORDER_MIN, WORD_ORDER_MAX, PAIRS_MIN, PAIRS_MAX, SESSION_QUESTIONS };`)();
 
 const api = async (t, q, r) => {
@@ -76,6 +77,23 @@ const audit = (ex, lesson) => {
     if (!ex.options.some(o => o.id === ex.answer.id)) P(`${lesson}: answer missing from options`);
     if (!ex.answer.audio) P(`${lesson}: choose_audio without a clip`);
   }
+  if (ex.type === "listen_type") {
+    const need = ex.words.flat();
+    if (!ex.item.audio) P(`${lesson}: listen_type without a clip — nothing to hear`);
+    if (need.length > E.LISTEN_MAX_CHARS) P(`${lesson}: listen_type of ${need.length} chars`);
+    if (ex.words.length > E.LISTEN_MAX_TOKENS) P(`${lesson}: listen_type of ${ex.words.length} words`);
+    if (need.join("") !== ex.item.ln.replace(/ /g, "")) P(`${lesson}: listen_type slots != answer`);
+    // Unbuildable is the failure that matters: if the bank is short even one
+    // copy of a repeated letter, the question cannot be answered at all.
+    const bank = ex.tiles.map(t => t.ch);
+    for (const ch of new Set(need)) {
+      if (bank.filter(c => c === ch).length < need.filter(c => c === ch).length)
+        P(`${lesson}: listen_type bank missing "${ch}" — unanswerable`);
+    }
+    if (ex.tiles.some(t => t.ch === " ")) P(`${lesson}: listen_type offers a space tile`);
+    if (new Set(ex.tiles.map(t => t.key)).size !== ex.tiles.length)
+      P(`${lesson}: listen_type duplicate tile key`);
+  }
 };
 
 const courses = await api("courses", "select=id,course_order&limit=50");
@@ -110,6 +128,7 @@ for (const [lid, all] of Object.entries(byLesson)) {
 
   rows.push({ lesson: lesson.title.slice(0, 30), native: native.length,
               fb: E.fillBlankRows(native, level).length,
+              lt: E.listenTypeRows(native, level).length,
               wo: E.wordOrderRows(native, level).length, prat: best });
 }
 
@@ -118,7 +137,7 @@ for (const r of rows) {
   if (r.prat === 0) b["0"]++; else if (r.prat < 5) b["1-4"]++;
   else if (r.prat < 10) b["5-9"]++; else if (r.prat < 20) b["10-19"]++; else b["20 (full)"]++;
 }
-console.log(`lessons: ${rows.length}\n\nPratiquer questions with FOUR types (best of 25 builds):`);
+console.log(`lessons: ${rows.length}\n\nPratiquer questions, all shipped types (best of 25 builds):`);
 for (const [k, v] of Object.entries(b)) console.log(`  ${String(v).padStart(3)}  ${k}`);
 console.log(`\nquestion mix (one build per lesson): ` +
   Object.entries(mix).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(" · "));
