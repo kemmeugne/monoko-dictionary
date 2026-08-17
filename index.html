@@ -1033,48 +1033,40 @@
       (items || []).filter(r => {
         if (!usableRow(r) || !r.audio_url || r.effective_level > level) return false;
         const t = tokenize(r.lingala);
-        return t.length >= 1 && t.length <= LISTEN_MAX_TOKENS &&
-               characters(t.join("")).length <= LISTEN_MAX_CHARS;
+        if (t.length < 1 || t.length > LISTEN_MAX_TOKENS) return false;
+        if (characters(t.join("")).length > LISTEN_MAX_CHARS) return false;
+        // Every tile has to be a letter the learner can get from the sound. A
+        // hyphen is inaudible — "Kili-kili" would demand a tile nobody can hear
+        // — so compound words sit this exercise out. It costs 1 native row of
+        // 644, which is a fair price for never asking an unanswerable question.
+        return characters(fold(t.join(""))).every(c => /[a-z]/.test(c));
       });
 
-    // Distractors are drawn first from the ACCENT VARIANTS of the letters the
-    // answer actually uses — offering "o" beside the required "ó" is what turns
-    // this into a real test of tone rather than a letter-hunt. The rest come
-    // from the pool's own alphabet so nothing looks foreign.
+    // Distractors are plain letters from the pool's own alphabet, so nothing on
+    // screen looks foreign to Lingala.
     const POOL_ALPHABET = "abcdefghijklmnopqrstuvwyz";
-    const ACCENT_TWINS = {
-      a: "àáâǎ", e: "èéëē", i: "íî", o: "óô", u: "ú", c: "ç",
-      "à": "a", "á": "a", "â": "a", "ǎ": "a", "è": "e", "é": "e", "ë": "e", "ē": "e",
-      "í": "i", "î": "i", "ó": "o", "ô": "o", "ú": "u", "ç": "c", "ɔ": "o", "ɛ": "e",
-    };
 
-    const listenDistractors = (answerChars, want) => {
-      const out = [];
-      const push = (c) => { if (c && !out.includes(c)) out.push(c); };
-      for (const ch of shuffle([...new Set(answerChars)])) {
-        for (const twin of (ACCENT_TWINS[ch.toLowerCase()] || "")) {
-          if (out.length >= want) break;
-          push(twin);
-        }
-      }
-      for (const ch of shuffle([...POOL_ALPHABET])) {
-        if (out.length >= want) break;
-        push(ch);
-      }
-      return out.slice(0, want);
-    };
+    const listenDistractors = (want) => shuffle([...POOL_ALPHABET]).slice(0, Math.max(0, want));
 
     const buildListenType = (r) => {
       const tokens = tokenize(r.lingala);
+      // The tiles are FOLDED — plain letters, no tones, no ɛ/ɔ, no capitals.
+      // Spelling a word you have only just heard is hard enough without also
+      // asking which of five e's it takes; the learner builds the skeleton, and
+      // the reveal then shows how it is really written. Folding is 1:1 per
+      // character, so the slot count still matches the real spelling exactly.
+      //
       // One slot group per word, so the space never has to be a tile — a "␣"
       // key reads as a puzzle piece rather than as writing.
-      const words = tokens.map(w => characters(w));
+      const words = tokens.map(w => characters(fold(w)));
       const answerChars = words.flat();
-      const distractors = listenDistractors(answerChars, Math.max(0, LISTEN_TILES - answerChars.length));
+      const distractors = listenDistractors(LISTEN_TILES - answerChars.length);
       return {
         type: "listen_type",
         item: {
           id: itemId(r), poolId: r.id,
+          // `ln` keeps the TRUE spelling, accents and all — it is what the
+          // reveal teaches, and what `words` deliberately is not.
           fr: r.french.trim(), ln: tokens.join(" "), audio: r.audio_url,
         },
         words,
@@ -1711,13 +1703,17 @@
       const [solved, setSolved] = useState(false);
       const missedHere = React.useRef(false);
 
-      const answer = exercise.words.map(w => w.join("")).join(" ");
+      const plain = exercise.words.map(w => w.join("")).join(" ");   // what the tiles spell
+      const real = exercise.item.ln;                                  // how it is really written
       const slots = exercise.words.reduce((n, w) => n + w.length, 0);
+      // True when the real spelling carries something the tiles did not offer —
+      // a tone, an ɛ or ɔ. That difference is the thing worth pointing at.
+      const accented = plain !== real.toLowerCase();
 
       const check = (next) => {
-        // Compared EXACTLY. No folding: this exercise is the spelling, so
-        // accepting an untoned answer would delete what it measures. The bank
-        // only ever offers real characters, so this is a fair bar.
+        // Compared against the FOLDED spelling, because that is what the tiles
+        // offer. The accents are taught in the reveal instead of being demanded
+        // from someone who has heard the word once.
         if (next.map(t => t.ch).join("") === exercise.words.flat().join("")) {
           setSolved(true);
           if (!exercise.retry) onAnswer(exercise.item, !missedHere.current);
@@ -1811,18 +1807,27 @@
 
           <div style={{ flex: 1, minHeight: 12 }} />
 
+          {/* The reveal is where the real orthography is taught: the learner
+              built plain letters, and this is how the word is actually written. */}
           {solved && (
             <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-              <p style={{ margin: 0, fontSize: 14, color: "#16A34A", fontWeight: 600 }}>
-                ✓ {answer}
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 700,
+                          fontFamily: "'Playfair Display', serif", color: "#16A34A" }}>
+                ✓ {real}
               </p>
               <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>{exercise.item.fr}</p>
+              {accented && (
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "#8B6D47" }}>
+                  Vous avez écrit <i>{plain}</i> — avec les tons, cela s'écrit{" "}
+                  <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{real}</b>
+                </p>
+              )}
             </div>
           )}
           {wrong && (
             <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
-                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{answer}</b>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{real}</b>
                 {" — "}{exercise.item.fr}
               </p>
             </div>
@@ -1846,7 +1851,30 @@
     // lockout, retry immediately.
     const PASS_PCT = 80;
 
-    const SessionView = ({ lesson, stage, exercises, onExit, onSeeLesson, onSessionEnd, onReport }) => {
+    // What each stage draws on, in the learner's words. Shown before the first
+    // question, because "Pratiquer" and "Élargir" do not explain themselves —
+    // one is the lesson the professor wrote, the other is everything else the
+    // course knows about the same topic.
+    const STAGE_BRIEF = {
+      pratiquer: {
+        label: "Pratiquer",
+        tag: "La leçon elle-même",
+        blurb: "Uniquement ce que le professeur a écrit dans cette leçon. C'est ce qui valide la leçon : 80% de bonnes réponses du premier coup.",
+        accent: "#6B21A8",
+        soft: "#F4EEFB",
+      },
+      elargir: {
+        label: "Élargir",
+        tag: "Au-delà de la leçon",
+        blurb: "Des phrases du corpus sur le même thème, que la leçon n'enseigne pas. Sans fin, rejouable — on va plus loin à chaque partie.",
+        accent: "#2C5F2D",
+        soft: "#EAF7EE",
+      },
+    };
+
+    const SessionView = ({ lesson, stage, exercises, poolSize, stats,
+                           onExit, onSeeLesson, onSessionEnd, onReport }) => {
+      const [started, setStarted] = useState(false);
       const [queue, setQueue] = useState(exercises);
       const [idx, setIdx] = useState(0);
       const [xp, setXp] = useState(0);
@@ -1932,6 +1960,115 @@
       };
 
       const pct = done ? 100 : Math.round(100 * answered / Math.max(1, totalQuestions));
+
+      const brief = STAGE_BRIEF[stage] || STAGE_BRIEF.pratiquer;
+
+      // A taste of what this session will actually ask, taken from the built
+      // queue rather than from the lesson — so it is a promise the session keeps.
+      const preview = React.useMemo(() => {
+        const seen = new Set(), out = [];
+        for (const ex of exercises) for (const it of screenItems(ex)) {
+          const k = (it.fr || "").trim().toLowerCase();
+          if (k && !seen.has(k)) { seen.add(k); out.push(it.fr.trim()); }
+        }
+        return out;
+      }, [exercises]);
+
+      if (!started) {
+        const runs = stats?.runs || 0, best = stats?.best || 0;
+        return (
+          <div style={{
+            minHeight: "100dvh", background: "#FDFBF7",
+            display: "flex", flexDirection: "column",
+            padding: "calc(env(safe-area-inset-top) + 14px) 18px calc(env(safe-area-inset-bottom) + 16px)",
+          }}>
+            <button onClick={onExit} aria-label="Quitter" style={{
+              width: 44, height: 44, marginLeft: -10, border: "none", background: "none",
+              color: "#9B8A6E", fontSize: 26, lineHeight: 1, cursor: "pointer", textAlign: "left",
+            }}>×</button>
+
+            {/* Scrolls rather than overflowing: badge + title + blurb + three
+                tiles + a best-score card + eight chips runs past 667px on an
+                iPhone SE, and the Commencer button must never be pushed off. */}
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto",
+                          display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <span style={{
+                alignSelf: "flex-start", background: brief.soft, color: brief.accent,
+                fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
+                textTransform: "uppercase", padding: "6px 12px", borderRadius: 20, marginBottom: 14,
+              }}>{brief.tag}</span>
+
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 800,
+                           margin: "0 0 6px", lineHeight: 1.2 }}>{brief.label}</h2>
+              <p style={{ margin: "0 0 16px", fontSize: 15, color: "#5C4A2E", fontWeight: 600 }}>
+                {lesson.title}
+              </p>
+              <p style={{ margin: "0 0 22px", fontSize: 15, lineHeight: 1.5, color: "#6B5B45" }}>
+                {brief.blurb}
+              </p>
+
+              {/* Three numbers, and each one is honest: the session's real
+                  length, how deep the material goes, how often you have played. */}
+              <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+                {[[totalQuestions, "questions"],
+                  [poolSize || "—", "expressions"],
+                  [runs, runs === 1 ? "partie" : "parties"]].map(([v, l]) => (
+                  <div key={l} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14,
+                                        padding: "13px 8px", background: "white", textAlign: "center" }}>
+                    <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
+                                fontVariantNumeric: "tabular-nums", color: brief.accent }}>{v}</b>
+                    <span style={{ fontSize: 11, color: "#9B8A6E", letterSpacing: ".05em",
+                                   textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>{l}</span>
+                  </div>
+                ))}
+              </div>
+
+              {best > 0 && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 10, marginBottom: 20,
+                  padding: "12px 16px", borderRadius: 14, background: brief.soft,
+                }}>
+                  <span style={{ fontSize: 18 }}>{best >= 100 ? "🏆" : best >= 80 ? "⭐" : "📈"}</span>
+                  <span style={{ fontSize: 14, color: "#5C4A2E" }}>
+                    Meilleur score&nbsp;: <b style={{ color: brief.accent }}>{best}%</b>
+                    {stage === "pratiquer" && stats?.passed ? " · leçon validée ✓" : ""}
+                  </span>
+                </div>
+              )}
+
+              {preview.length > 0 && (
+                <div style={{ marginBottom: 8 }}>
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
+                              textTransform: "uppercase", color: "#9B8A6E", margin: "0 0 10px" }}>
+                    Au programme
+                  </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {preview.slice(0, 8).map(fr => (
+                      <span key={fr} style={{
+                        border: "1px solid #E8E0D4", background: "white", borderRadius: 20,
+                        padding: "7px 13px", fontSize: 13, color: "#5C4A2E",
+                      }}>{fr}</span>
+                    ))}
+                    {preview.length > 8 && (
+                      <span style={{ padding: "7px 4px", fontSize: 13, color: "#9B8A6E" }}>
+                        +{preview.length - 8} autres
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => setStarted(true)} style={{
+              width: "100%", minHeight: 56, border: "none", borderRadius: 14,
+              background: `linear-gradient(135deg, ${brief.accent}, ${stage === "elargir" ? "#4A8B4C" : "#9333EA"})`,
+              color: "white", fontSize: 17, fontWeight: 700, cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif", marginTop: 18,
+              boxShadow: `0 6px 18px ${stage === "elargir" ? "rgba(44,95,45,.28)" : "rgba(107,33,168,.28)"}`,
+            }}>Commencer</button>
+          </div>
+        );
+      }
 
       return (
         <div style={{
@@ -2870,6 +3007,7 @@
       const [lessonItems, setLessonItems] = useState([]);
       const [sessionExercises, setSessionExercises] = useState(null); // null = not in a session
       const [sessionStage, setSessionStage] = useState("pratiquer");  // pratiquer | elargir
+      const [sessionPoolSize, setSessionPoolSize] = useState(0);      // how deep this stage goes
       const [poolLoading, setPoolLoading] = useState(false);
       const [sessionNote, setSessionNote] = useState("");
       // Per-lesson stage state, loaded on open. `mastery` is the "18/25" counter:
@@ -3106,6 +3244,7 @@
           }
           setSessionNote("");
           primeClips(exerciseClips(built[0]));   // first screen is instant too
+          setSessionPoolSize(items.length);
           setSessionStage(stage);
           setSessionExercises(built);
         } catch (e) {
@@ -3138,6 +3277,11 @@
               pratiquer_best: stage === "pratiquer" ? Math.max(prev.pratiquer_best || 0, pct) : (prev.pratiquer_best || 0),
               elargir_best:   stage === "elargir"   ? Math.max(prev.elargir_best || 0, pct)   : (prev.elargir_best || 0),
               elargir_xp:     (prev.elargir_xp || 0) + (stage === "elargir" ? xp : 0),
+              // Only completed sessions count as a play — quitting after two
+              // questions is not a game, and counting it would make the number
+              // dishonest to the person reading it.
+              pratiquer_runs: (prev.pratiquer_runs || 0) + (stage === "pratiquer" ? 1 : 0),
+              elargir_runs:   (prev.elargir_runs   || 0) + (stage === "elargir"   ? 1 : 0),
               updated_at: new Date().toISOString(),
             }, { onConflict: "user_id,lesson_id" });
           }
@@ -4233,6 +4377,11 @@
                 lesson={selectedLesson}
                 stage={sessionStage}
                 exercises={sessionExercises}
+                poolSize={sessionPoolSize}
+                stats={sessionStage === "elargir"
+                  ? { runs: stageState?.elargir_runs || 0, best: stageState?.elargir_best || 0 }
+                  : { runs: stageState?.pratiquer_runs || 0, best: stageState?.pratiquer_best || 0,
+                      passed: !!stageState?.pratiquer_passed }}
                 onExit={() => setSessionExercises(null)}
                 onSeeLesson={() => setSessionExercises(null)}
                 onSessionEnd={handleSessionEnd}

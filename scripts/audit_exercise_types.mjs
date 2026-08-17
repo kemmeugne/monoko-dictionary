@@ -82,7 +82,14 @@ const audit = (ex, lesson) => {
     if (!ex.item.audio) P(`${lesson}: listen_type without a clip — nothing to hear`);
     if (need.length > E.LISTEN_MAX_CHARS) P(`${lesson}: listen_type of ${need.length} chars`);
     if (ex.words.length > E.LISTEN_MAX_TOKENS) P(`${lesson}: listen_type of ${ex.words.length} words`);
-    if (need.join("") !== ex.item.ln.replace(/ /g, "")) P(`${lesson}: listen_type slots != answer`);
+    // Tiles carry the FOLDED spelling; `item.ln` keeps the real one for the
+    // reveal. Slot count must still match the real word exactly, or the tiles
+    // would lie about how long it is.
+    if (need.join("") !== E.fold(ex.item.ln).replace(/ /g, "")) P(`${lesson}: listen_type slots != folded answer`);
+    if (need.length !== [...ex.item.ln].filter(c => c !== " ").length)
+      P(`${lesson}: listen_type slot count != real spelling length`);
+    if (ex.tiles.some(t => !/[a-z']/.test(t.ch)))
+      P(`${lesson}: listen_type offers an untypeable tile "${ex.tiles.find(t => !/[a-z']/.test(t.ch)).ch}"`);
     // Unbuildable is the failure that matters: if the bank is short even one
     // copy of a repeated letter, the question cannot be answered at all.
     const bank = ex.tiles.map(t => t.ch);

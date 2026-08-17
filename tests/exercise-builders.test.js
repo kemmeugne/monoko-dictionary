@@ -275,9 +275,25 @@ describe("listenTypeRows / buildListenType", () => {
     expect(engine.listenTypeRows([row("a".repeat(engine.LISTEN_MAX_CHARS), "ok")], level)).toHaveLength(1);
   });
 
-  it("counts characters, not bytes — ɛ and ɔ are one tile each", () => {
+  it("folds ɛ and ɔ to plain letters, one tile each", () => {
+    // The learner spells the skeleton; the reveal teaches the real orthography.
     const ex = engine.buildListenType(row("bilɔkɔ", "les choses"));
-    expect(ex.words).toEqual([["b", "i", "l", "ɔ", "k", "ɔ"]]);
+    expect(ex.words).toEqual([["b", "i", "l", "o", "k", "o"]]);
+    expect(ex.item.ln).toBe("bilɔkɔ");        // the truth is kept for the reveal
+  });
+
+  it("folds tones and capitals out of the tiles", () => {
+    const ex = engine.buildListenType(row("Mbóte", "bonjour"));
+    expect(ex.words).toEqual([["m", "b", "o", "t", "e"]]);
+    expect(ex.item.ln).toBe("Mbóte");
+  });
+
+  it("keeps the slot count equal to the real spelling's length", () => {
+    // Folding is 1:1 per character, so the tiles never mislead about length.
+    for (const w of ["Mbóte", "bilɔkɔ", "kobɛla", "telefɔni"]) {
+      const ex = engine.buildListenType(row(w, "fr"));
+      expect(ex.words.flat().length).toBe([...w].length);
+    }
   });
 
   it("groups slots per word so a space is never a tile", () => {
@@ -295,11 +311,19 @@ describe("listenTypeRows / buildListenType", () => {
     }
   });
 
-  it("offers the bare vowel beside the toned one, so tone is actually tested", () => {
-    // "ó" required, "o" offered as a distractor — that is the whole point.
-    const ex = engine.buildListenType(row("mbóte", "bonjour"));
-    expect(ex.tiles.map(t => t.ch)).toContain("ó");
-    expect(ex.tiles.map(t => t.ch)).toContain("o");
+  it("never offers a tile the learner cannot be expected to place", () => {
+    // No tones, no ɛ/ɔ, no capitals in the bank: accents are taught in the
+    // reveal, not demanded from someone who has heard the word once.
+    for (const w of ["Mbóte", "bilɔkɔ", "kobɛla"]) {
+      const bank = engine.buildListenType(row(w, "fr")).tiles.map(t => t.ch);
+      expect(bank.every(c => /[a-z]/.test(c))).toBe(true);
+    }
+  });
+
+  it("skips compound words, whose hyphen cannot be heard", () => {
+    // "Kili-kili" would need a hyphen tile. Costs 1 native row of 644.
+    expect(engine.listenTypeRows([row("Kili-kili", "aisselle")], 3)).toEqual([]);
+    expect(engine.listenTypeRows([row("mbote", "bonjour")], 3)).toHaveLength(1);
   });
 
   it("fills the bank to LISTEN_TILES without duplicating tile keys", () => {
@@ -327,7 +351,10 @@ describe("listenTypeRows / buildListenType", () => {
 });
 
 describe("listenTypeScreens — budget and ledger", () => {
-  const pool = Array.from({ length: 20 }, (_, i) => row(`mot${i}`, `fr ${i}`));
+  // Letters only: the builder excludes anything whose folded spelling is not
+  // pure a-z, because a tile has to be something you can hear.
+  const abc = "abcdefghijklmnopqrst";
+  const pool = Array.from({ length: 20 }, (_, i) => row(`mot${abc[i]}`, `fr ${i}`));
 
   it("costs one question per screen and respects the budget", () => {
     const screens = engine.listenTypeScreens(pool, 3, 3, engine.makeLedger());
