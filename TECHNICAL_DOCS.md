@@ -305,11 +305,76 @@ One row per (user, lesson) pair. Tracks which modules a user has completed.
 | `lesson_id` | INT FK → lessons | ON DELETE CASCADE |
 | `language_id` | INT FK → languages | Denormalized for efficient per-language queries |
 | `completed_at` | TIMESTAMPTZ | When the user tapped "J'ai terminé" |
-| `exam_score` | NUMERIC | NULL until Phase 3 exam system ships |
+| `exam_score` | NUMERIC | Always NULL — exams were dropped 2026-08-07, column kept rather than migrated away |
 
 Unique constraint: `(user_id, lesson_id)` — one completion row per lesson per user.
 Index: `(user_id, language_id)` for fast per-user progress queries.
 RLS: users can only read/write their own rows.
+
+---
+
+### `lesson_pool`
+The exercise engine's material — **6,196 rows across all 50 lessons**, assembled
+from four source tables plus two LLM routing passes (`sql/lesson_pool.sql`,
+rebuilt by `populate_lesson_pool.py`). A table rather than a view because a view
+cannot express "a model approved this placement". See `EXERCISE_ENGINE_PLAN.md`
+Slice 1 for the column-by-column reasoning.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | BIGSERIAL PK | What `exercise_attempts.pool_item_id` points at |
+| `language_id` / `lesson_id` | BIGINT FK | |
+| `source_table` / `source_id` | TEXT / BIGINT | Provenance: `lesson_items`, `parallel_sentences`, `examples` or `senses` |
+| `french` / `lingala` / `audio_url` | TEXT | Denormalized so one query feeds a whole session |
+| `tier` | TEXT | `native` (professor wrote it here, 100%) · `approved` (LLM confirmed, 96%) · `reassigned` (LLM re-placed, 90%) |
+| `token_count` | SMALLINT | Lingala side |
+| `orthography` | TEXT | `toned` / `untoned` — a property of the SOURCE, never sniffed from the string |
+| `level` / `difficulty` / `effective_level` | SMALLINT | `effective_level = max(level, difficulty)`; difficulty only ever restricts |
+
+Unique `(source_table, source_id)` makes the populate script re-runnable.
+RLS: **public read** (the app reads it with the anon key), writes service-key only.
+
+---
+
+### `exercise_attempts`
+One row per question answered (`sql/exercise_progress.sql`, applied 2026-08-17).
+The substrate for the 80% gate, the mastery counter, and SM-2 in Slice 7.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | BIGSERIAL PK | |
+| `user_id` | UUID FK → auth.users | ON DELETE CASCADE |
+| `pool_item_id` | BIGINT FK → lesson_pool | ON DELETE CASCADE |
+| `lesson_id` | BIGINT FK → lessons | |
+| `stage` | TEXT | `pratiquer` \| `elargir` (CHECK) |
+| `format` | TEXT | `match_pairs`, `choose_audio`, … — deliberately unconstrained so Slice 6 adds types without a migration |
+| `correct` | BOOLEAN | **FIRST-TRY only.** Retry screens write nothing at all — counting them would let the gate be farmed by failing and then clearing the retry |
+| `answered_at` | TIMESTAMPTZ | |
+
+Indexes: `(user_id, lesson_id, answered_at DESC)` for the gate and counter;
+`(user_id, pool_item_id, answered_at DESC)` for SM-2's per-item history.
+Written in **one batched insert at session end**, not per question. An abandoned
+session still flushes; only a completed one may move the gate.
+
+---
+
+### `lesson_stage_state`
+One row per (user, lesson) — the stage state the lesson screen reads on render.
+A materialisation of `exercise_attempts`, kept because "is Élargir unlocked?" is
+asked on every render and must not aggregate an ever-growing attempt log.
+
+| Column | Type | Description |
+|---|---|---|
+| `user_id` / `lesson_id` | UUID / BIGINT | Composite PK |
+| `language_id` | BIGINT FK → languages | |
+| `pratiquer_passed` | BOOLEAN | **One-way door** — never cleared by a later weaker session |
+| `pratiquer_best` / `elargir_best` | INT | % first-try, best session |
+| `elargir_xp` | INT | Drives the topic level |
+| `updated_at` | TIMESTAMPTZ | |
+
+RLS on both tables mirrors `user_progress`: own rows only, read and write. They
+are written from the client with the user's session token, so the policy is the
+only thing between one learner's progress and another's.
 
 ---
 
@@ -319,6 +384,11 @@ RLS: users can only read/write their own rows.
 auth.users
   └── profiles (user_id)
   └── user_progress (user_id)
+        └── lessons (lesson_id)
+  └── exercise_attempts (user_id)
+        └── lesson_pool (pool_item_id)
+        └── lessons (lesson_id)
+  └── lesson_stage_state (user_id)
         └── lessons (lesson_id)
 
 languages
@@ -331,6 +401,8 @@ languages
         └── lessons (course_id)
               └── lesson_items (lesson_id)
   └── user_progress (language_id)
+  └── lesson_pool (language_id, lesson_id)   ← assembled FROM lesson_items,
+                                                parallel_sentences, examples, senses
 ```
 
 ---

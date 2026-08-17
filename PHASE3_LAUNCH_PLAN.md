@@ -21,10 +21,16 @@ than engagement, and it trapped speaking practice inside a once-per-level event.
 Replaced by continuous points on every exercise. **All levels are open** — the
 paywall below is the only gate.
 
+**Status 2026-08-17: the session engine, both first exercise types, and the
+stage split are live.** A session is 20 questions; Pratiquer (the professor's own
+rows) certifies a lesson at 80% first-try and unlocks Élargir (the routed
+corpus). Attempts, the gate and the mastery counter all persist. Remaining in
+this phase: the four other exercise types, then streaks/XP, then the session cap.
+
 **Build:**
-- **Session engine** — one question per screen, progress bar, live queue (wrong
+- ✅ **Session engine** — one question per screen, progress bar, live queue (wrong
   answers are re-asked in the same session), XP scoring, session summary
-- **Five exercise types**, generated client-side from a `lesson_pool` table:
+- **Six exercise types**, generated client-side from a `lesson_pool` table:
   match pairs, choose-the-audio, tap-words-in-order, fill-the-blank, and
   listen-and-type last. 3,500–6,500 usable items each.
 - **"Pourquoi ?"** — a wrong answer offers the rule behind the question. Points at
@@ -132,7 +138,7 @@ Upgrade from the Phase 3.5 generator-tool policy to a proper lawyer review (~$50
 
 | Phase | Focus | Blocking gate |
 |---|---|---|
-| 3 | Exam system + streaks + spaced repetition | None — can start once Phase 1 content lands |
+| 3 | Exercise engine + streaks + spaced repetition (exams dropped 2026-08-07) | None — Phase 1 content landed 2026-08-04. Engine, stage split and gate live 2026-08-17; four exercise types remain |
 | 3.5 | Stripe paywall, tiering, chat quota + rate limiting + spend cap | **Generator-tool ToS/privacy (Termly/iubenda) before checkout goes live** |
 | 4 | Soft launch, web only, organic only | Legal gate cleared |
 | 5 | Capacitor wrap, App Store/Play Store | Phase 4 pricing + retention validated, **plus lawyer-reviewed ToS/privacy before submission** |

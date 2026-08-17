@@ -1,6 +1,6 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-08-04
+Last updated: 2026-08-17
 
 ---
 
@@ -126,7 +126,7 @@ exercise type rather than an exam component. All levels are open; the paywall
 
 **Goal:** turn the finished content from a bilingual table into a practice loop.
 
-**Five exercise types**, generated client-side from a `lesson_pool` table with no
+**Six exercise types**, generated client-side from a `lesson_pool` table with no
 hand-authoring and no LLM at question time:
 
 | Exercise | Usable items |
@@ -172,11 +172,20 @@ medals, perfect-session bonus and the mastery counter. Speed bonuses,
 leaderboards and hearts were all rejected — see the plan for why.
 
 **Build order:** routing QA ✅ → `lesson_pool` ✅ → session shell + match-pairs ✅
-→ choose-the-audio ✅ → **attempts + pool-shaped `buildSession` ← NEXT** → stage
-split + 80% gate → **all four remaining exercise types** (tokenizer,
+→ choose-the-audio ✅ → attempts + pool-shaped `buildSession` ✅ → stage split +
+80% gate ✅ → **all four remaining exercise types ← NEXT** (tokenizer,
 tap-words-in-order, fill-the-blank, listen-and-type as character tiles, speaking
-as record-and-compare) → XP/streaks → session cap. Slices 2–3 shipped before the stage model was settled;
-`EXERCISE_ENGINE_PLAN.md` §4b lists what must change.
+as record-and-compare) → XP/streaks → session cap.
+
+**Shipped 2026-08-17 (Slices 4 + 5).** The session budget is 20 **questions**,
+not 15 screens; `buildSession(items, level, count)` takes a pool and never a
+`lesson_id`; match-pairs screens are 3–5 pairs; a (item, format) ledger lets a
+thin lesson reuse an item in a different format, capped at 3. `startSession(stage)`
+filters by tier, which was the whole bug — practice had been serving corpus rows
+the lesson never taught (178 items for Salutations against 29 written).
+`exercise_attempts` + `lesson_stage_state` are live (`sql/exercise_progress.sql`),
+first-try correctness only. Measured over all 50 lessons: **no lesson has an
+unreachable gate**, 35 build a full 20-question Pratiquer, 12 build 10–19, 3 fewer.
 
 **Spaced repetition (SM-2)** belongs **only to Pratiquer** — it needs a finite
 item set with per-item state, which native content (median 25 items) is and the

@@ -81,7 +81,7 @@ tts_space/README.md               — Space metadata: sdk=gradio 6.13.0, python=
 sql/pgvector_parallel_sentences.sql — SQL migration: add embedding col + match_parallel_sentences RPC
 sql/pgvector_dictionary.sql       — SQL migration: embedding cols on senses+examples + match_examples/match_senses RPCs (applied 2026-08-07)
 sql/lesson_pool.sql               — SQL migration: lesson_pool, the exercise engine's material (applied 2026-08-10)
-sql/exercise_progress.sql         — SQL migration: exercise_attempts + lesson_stage_state, what a session leaves behind (written 2026-08-17, NOT YET APPLIED)
+sql/exercise_progress.sql         — SQL migration: exercise_attempts + lesson_stage_state, what a session leaves behind (applied 2026-08-17)
 populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)

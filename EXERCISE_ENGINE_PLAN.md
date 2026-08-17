@@ -1,8 +1,27 @@
 # Monɔkɔ — Exercise Engine Plan
 
-Written 2026-08-07. **This file supersedes the Phase 3 "exam system" sections of
-`ROADMAP.md`, `PHASE3_LAUNCH_PLAN.md` and `Cours/MONOKO_CURRICULUM.md`.** Where
-they disagree with this file, this file is right.
+Written 2026-08-07, last updated 2026-08-17. **This file supersedes the Phase 3
+"exam system" sections of `ROADMAP.md`, `PHASE3_LAUNCH_PLAN.md` and
+`Cours/MONOKO_CURRICULUM.md`.** Where they disagree with this file, this file is
+right.
+
+**Status: Slices 0–5 shipped. Slice 6 (the four remaining exercise types) is
+next.** A learner can open a lesson, run a 20-question Pratiquer session on the
+professor's own rows, pass it at 80% first-try, and unlock an endless Élargir
+session on the routed corpus. Attempts, the gate and the mastery counter persist.
+Two of six exercise types exist: match-pairs and choose-the-audio.
+
+| Slice | | |
+|---|---|---|
+| 0 · Routing QA | ✅ 2026-08-10 | cosine 77% → LLM judge 96% + reassignment 90% |
+| 1 · `lesson_pool` | ✅ 2026-08-10 | 6,196 rows, all 50 lessons |
+| 2 · Session shell + match-pairs | ✅ 2026-08-10 | |
+| 3 · Choose-the-audio | ✅ 2026-08-10 | reworked 2026-08-17 — play on request, waveform, line shown |
+| 4 · Attempts + pool-shaped builder | ✅ 2026-08-17 | 20 questions, 3–5 pair screens, (item, format) ledger |
+| 5 · Stage split | ✅ 2026-08-17 | tier filter, 80% gate, mastery counter, Signaler |
+| 6 · Four remaining types | ⬜ **NEXT** | tokenizer first, then all four |
+| 7 · Progression + retention | ⬜ | XP, streaks, SM-2 (Pratiquer only) |
+| 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
 
 ---
 
@@ -343,6 +362,33 @@ cache fails *silently*, falling back to a network fetch on every tap. Media
 elements are exempt from CORS. Setting `Cache-Control` + CORS on the R2 bucket
 would fix this at the source and speed up dictionary audio too.
 
+#### Revised 2026-08-17 — the screen plays on request, and shows the line
+
+Three changes after the first real play-through on a phone:
+
+**Nothing autoplays.** The screen used to play its prompt on mount, which fired
+the instant the previous screen handed over — and since there is one shared
+`<audio>` element, `playClip` stopping the sounding clip meant a match-pairs
+answer got talked over by the next question. Sound now follows a tap, never a
+mount. This also sidesteps iOS, where a fresh element cannot play without a
+gesture anyway, so the old autoplay was unreliable there regardless.
+
+**A 64px play button beside a 32-bar waveform**, replacing the 108px circle. The
+bars are **drawn, not measured**, and this is forced rather than lazy: reading
+real amplitudes means routing the element through Web Audio, and R2 sends no
+`Access-Control-Allow-Origin`, so a cross-origin element in an audio graph
+outputs **silence** — measuring the wave would cost the sound. Heights are seeded
+from the item id so a clip always draws the same shape, and the fill tracks real
+playback position, which is the part that is honest.
+
+**The Lingala line is shown while it plays.** This is a deliberate product
+decision with a real cost: the options are French, so a learner who can read the
+orthography can answer *without listening*, which is not what a listening
+exercise is for. It was taken as reading support for beginners — mapping sound to
+spelling is exactly what lesson 1.1 teaches. **If it proves too generous, gate it
+behind the first wrong answer** — the text is already rendered, it needs only a
+`wrongIds.length > 0 &&` around it.
+
 ---
 
 ## 4b. Build order from here (revised 2026-08-10)
@@ -354,8 +400,7 @@ change" below.
 ### Slice 4 — foundations: attempts + pool-shaped builder  ✅ DONE 2026-08-17
 
 - `sql/exercise_progress.sql` — `exercise_attempts` + `lesson_stage_state`, RLS
-  mirroring `user_progress`. **Written but not yet applied**: nothing writes to
-  either table until Slice 5, which is where `stage` first has a meaning.
+  mirroring `user_progress`. **Applied 2026-08-17**; Slice 5 is what writes to it.
   A second index (`user_id, pool_item_id`) was added for the SM-2 question,
   which is a different shape from the 80%-bar question.
 - `buildSession(items, level, count)` takes a pool and never a `lesson_id`.
@@ -493,24 +538,26 @@ All engine code lives in `index.html` inside the `<script type="text/babel">`
 block. Line numbers are from the Slice 4 commit and will drift — grep the
 identifier, do not trust the number.
 
-| What | Where |
+| What | Where (after Slice 5) |
 |---|---|
 | `SESSION_QUESTIONS = 20`, `PAIRS_MIN/MAX = 3/5` | `index.html:515-517` |
 | `questionCount`, `countQuestions`, `itemId` | `index.html:520-526` |
 | `makeLedger`, `MAX_FORMATS_PER_ITEM` | `index.html:537`, `535` |
-| `TIER_RANK`, `shapeBand` | `index.html:554`, `654` |
-| `buildMatchPairs`, `matchPairsScreens` | `index.html:686`, `704` |
-| `audioBuckets`, `buildChooseAudio`, `AUDIO_OPTIONS` | `index.html:872`, `892`, `870` |
-| `chooseAudioScreens`, `interleave`, `buildSession` | `index.html:724`, `746`, `766` |
-| `MatchPairsScreen`, `ChooseAudioScreen`, `EXERCISE_SCREENS` | `index.html:777`, `909`, `992` |
-| `SessionView` | `index.html:994` |
-| `startSession` — **the query with no tier filter** | `index.html:2078` |
+| `TIER_RANK`, `shuffleByTier` | `index.html:554`, `570` |
+| `playingClip`, `afterClip` — **the screen-boundary audio rule** | `index.html:648`, `664` |
+| `screenItems`, `shapeBand` | `index.html:691`, `716` |
+| `buildMatchPairs`, `matchPairsScreens` | `index.html:750`, `769` |
+| `audioBuckets`, `buildChooseAudio`, `AUDIO_OPTIONS` | `index.html:961`, `981` |
+| `chooseAudioScreens`, `interleave`, `buildSession` | `index.html:789`, `811`, `831` |
+| `MatchPairsScreen`, `waveShape`, `ChooseAudioScreen` | `index.html:842`, `1005`, `1014` |
+| `EXERCISE_SCREENS`, `PASS_PCT`, `SessionView` | `index.html:1154`, `1159`, `1161` |
+| `STAGE_TIERS`, `loadStageState`, `startSession` | `index.html:2343`, `2348`, `2377` |
+| `handleSessionEnd`, `reportPoolItem` | `index.html:2404`, `2440` |
 
 ### Slice 4 — ✅ done 2026-08-17, all five steps
 
-**1. SQL migration** → `sql/exercise_progress.sql`. **Still to be applied by hand
-in the Supabase SQL editor**, like every other migration in `sql/`. Nothing reads
-or writes these tables until Slice 5, so the app is not waiting on it.
+**1. SQL migration** → `sql/exercise_progress.sql`, **applied 2026-08-17** by
+hand in the Supabase SQL editor, like every other migration in `sql/`.
 
 ```sql
 -- one row per question answered; the substrate for SM-2, the 80% bar and streaks
