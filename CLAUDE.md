@@ -639,6 +639,18 @@ cache fails *silently* and streams on every tap. Prefetch uses
 `<audio preload="auto">`, which is exempt from CORS. Setting `Cache-Control` +
 CORS on the bucket would fix this at the source for dictionary audio too.
 
+**Screen-boundary audio rule (fixed 2026-08-17).** There is **one** shared
+`<audio>` element, so `playClip` stops whatever is already sounding. Any screen
+that autoplays on mount — `ChooseAudioScreen` does — will therefore cut off the
+clip the previous screen was still playing. Never hand over to the next screen on
+a fixed timer after starting a clip: use **`afterClip(clip, onDone)`**, which
+waits for `ended` with a duration-derived ceiling so an unloadable clip cannot
+strand the session. This is what made the last match-pairs word play as
+"Qu'est-ce que vous entendez ?" instead of the professor's word.
+
+Related rule: **a clip belongs to the match, not to the tap.** Playback tied to
+the Lingala tap meant a pair closed from the French tile played nothing at all.
+
 ## Deprioritised: fine-tune TTS on professor's voice
 
 **Status**: unblocked 2026-08-04, **deprioritised 2026-08-07**. The professor's

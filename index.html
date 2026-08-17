@@ -612,17 +612,58 @@
 
     const primeClips = (urls) => (urls || []).filter(Boolean).forEach(primeClip);
 
+    // Returns the element it started, so a caller can wait for the clip to
+    // finish before doing something that would cut it off.
     const playClip = (url) => {
-      if (!url) return;
+      if (!url) return null;
       try {
         primeClip(url);                   // no-op when already pooled
         const a = clipPool.get(url);
-        if (!a) return;
+        if (!a) return null;
         if (nowPlaying && nowPlaying !== a) nowPlaying.pause();   // never two voices at once
         nowPlaying = a;
         a.currentTime = 0;
         a.play().catch(() => {});         // blocked before the first gesture — harmless
-      } catch (e) {}
+        return a;
+      } catch (e) { return null; }
+    };
+
+    // The element this URL is sounding on right now, or null. Lets a caller wait
+    // for a clip it did not start itself — restarting one mid-word stutters it.
+    // A clip that has already finished reports null, so the caller replays it
+    // rather than waiting for an `ended` event that has already been and gone.
+    const playingClip = (url) => {
+      if (!url || !nowPlaying) return null;
+      const a = clipPool.get(url);
+      return (a && a === nowPlaying && !a.paused && !a.ended) ? a : null;
+    };
+
+    // Runs `done` once `audio` has finished sounding. Needed at a screen
+    // boundary: the next screen autoplays its own prompt on mount and playClip
+    // stops whatever is already sounding, so handing over on a fixed timer
+    // truncates the clip the learner just earned.
+    //
+    // `ended` is the signal, the timer is the safety net — a clip that fails to
+    // load fires no event at all, and without a ceiling the session would sit on
+    // a solved screen forever.
+    const HANDOFF_MIN = 420;     // the beat that makes a solved screen readable
+    const HANDOFF_MAX = 4000;    // no clip in the pool runs longer than this
+    const afterClip = (audio, done) => {
+      let timer = null, fired = false;
+      const run = () => {
+        if (fired) return;
+        fired = true;
+        clearTimeout(timer);
+        if (audio) audio.removeEventListener("ended", onEnded);
+        done();
+      };
+      // A short beat after the voice, so the next prompt does not land on top of it.
+      const onEnded = () => { clearTimeout(timer); timer = setTimeout(run, 220); };
+      if (!audio) { timer = setTimeout(run, HANDOFF_MIN); return; }
+      audio.addEventListener("ended", onEnded);
+      const known = isFinite(audio.duration) && audio.duration > 0;
+      const left = known ? Math.max(0, audio.duration - (audio.currentTime || 0)) * 1000 : 0;
+      timer = setTimeout(run, known ? Math.min(HANDOFF_MAX, left + 700) : HANDOFF_MIN * 2);
     };
 
     const releaseClips = () => {
@@ -782,8 +823,6 @@
       const [shakeIds, setShakeIds] = useState([]);
       const lnOrder = React.useMemo(() => shuffle(exercise.pairs), [exercise]);
 
-      const finish = (list) => { if (list.length === exercise.pairs.length) setTimeout(onDone, 420); };
-
       const choose = (side, pair) => {
         if (solved.includes(pair.id)) return;
         if (side === "ln") playClip(pair.audio);       // hear it on every tap
@@ -795,7 +834,18 @@
         if (nextFr.id === nextLn.id) {
           const list = [...solved, nextFr.id];
           setSolved(list); setPickFr(null); setPickLn(null); setWrong(null);
-          finish(list);
+
+          // The clip belongs to the MATCH, not to the Lingala tap. A pair can be
+          // closed from either tile, so tying playback to the tap meant a match
+          // finished on the French side played nothing at all. `playingClip`
+          // keeps a clip already sounding from restarting mid-word.
+          const clip = playingClip(nextFr.audio) || playClip(nextFr.audio);
+
+          // The last match hands over to the next screen, which autoplays its own
+          // prompt on mount — and playClip stops whatever is sounding. Handing
+          // over on a 420ms timer cut off the final word every time and replaced
+          // it with "Qu'est-ce que vous entendez ?". Wait for the clip instead.
+          if (list.length === exercise.pairs.length) afterClip(clip, onDone);
         } else {
           setWrong({ fr: nextFr.fr, truth: nextFr.ln });
           setShakeIds([nextFr.id, nextLn.id]);
