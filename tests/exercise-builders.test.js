@@ -30,8 +30,9 @@ const engine = new Function(
            buildFillBlank, fillBlankRows, fillBlankScreens, blankCandidates,
            sameWord, tokenize, fold,
            buildListenType, listenTypeRows, listenTypeScreens, characters,
+           buildSpeaking, speakingRows, speakingScreens,
            selectionOrder, screenItems, plural, PROGRAMME_LABELS, programmeOf,
-           interleave, questionCount, countQuestions, makeLedger, itemId,
+           interleave, questionCount, countQuestions, scoreableAttempts, makeLedger, itemId,
            usableRow, SESSION_QUESTIONS, WORD_ORDER_MIN, WORD_ORDER_MAX,
            BLANK_MIN_CHARS, FILL_BLANK_MIN_TOKENS,
            LISTEN_MAX_TOKENS, LISTEN_MAX_CHARS, LISTEN_TILES };`
@@ -368,6 +369,39 @@ describe("listenTypeScreens — budget and ledger", () => {
   });
 });
 
+describe("record-and-compare speaking", () => {
+  it("needs professor audio and keeps prompts to eight tokens", () => {
+    expect(engine.speakingRows([row("mbote", "bonjour")], 3)).toHaveLength(1);
+    expect(engine.speakingRows([row("mbote", "bonjour", { audio_url: null })], 3)).toEqual([]);
+    expect(engine.speakingRows([row("a b c d e f g h i", "trop long")], 3)).toEqual([]);
+  });
+
+  it("carries the pool id, both texts, and the professor clip", () => {
+    const r = row("Mbote na yo", "Bonjour à toi");
+    const ex = engine.buildSpeaking(r);
+    expect(ex.type).toBe("speaking");
+    expect(ex.item).toMatchObject({ poolId: r.id, ln: "Mbote na yo", fr: "Bonjour à toi",
+                                   audio: r.audio_url });
+  });
+
+  it("never adds more than three speaking prompts to one session", () => {
+    const pool = Array.from({ length: 20 }, (_, i) => row(`mot${i}`, `mot ${i}`));
+    const screens = engine.speakingScreens(pool, 3, 20, engine.makeLedger());
+    expect(screens).toHaveLength(3);
+    expect(engine.countQuestions(screens)).toBe(3);
+  });
+
+  it("excludes self-ratings from objective scoring", () => {
+    const attempts = [
+      { format: "choose_audio", correct: true },
+      { format: "fill_blank", correct: false },
+      { format: "speaking", correct: true, scored: false },
+      { format: "speaking", correct: false, scored: false },
+    ];
+    expect(engine.scoreableAttempts(attempts)).toEqual(attempts.slice(0, 2));
+  });
+});
+
 describe("interleave — mixing N exercise types", () => {
   const q1 = (n) => ({ type: "choose_audio", answer: { id: `a${n}` } });
   const q5 = (n) => ({ type: "match_pairs", pairs: Array.from({ length: 5 }, (_, i) => ({ id: `p${n}${i}` })) });
@@ -549,6 +583,7 @@ describe("programmeOf — the briefing's Au programme list", () => {
     expect(engine.PROGRAMME_LABELS.choose_audio(2)).toBe("2\u00A0enregistrements à reconnaître");
     expect(engine.PROGRAMME_LABELS.word_order(3)).toBe("3\u00A0phrases à remettre dans l'ordre");
     expect(engine.PROGRAMME_LABELS.fill_blank(1)).toBe("1\u00A0phrase à compléter");
+    expect(engine.PROGRAMME_LABELS.speaking(3)).toBe("3\u00A0prononciations à comparer");
   });
 
   it("survives an empty or null queue", () => {
@@ -557,7 +592,7 @@ describe("programmeOf — the briefing's Au programme list", () => {
   });
 });
 
-describe("buildSession with three exercise types", () => {
+describe("buildSession with all exercise types", () => {
   // A pool rich enough for every type: short pairs, audio, and 3-9 token rows.
   const pool = [
     ...Array.from({ length: 12 }, (_, i) => row(`mot${i}`, `mot ${i}`)),

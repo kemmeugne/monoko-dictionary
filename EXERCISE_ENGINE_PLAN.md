@@ -1,17 +1,18 @@
 # Monɔkɔ — Exercise Engine Plan
 
-Written 2026-08-07, last updated 2026-08-17. **This file supersedes the Phase 3
+Written 2026-08-07, last updated 2026-08-18. **This file supersedes the Phase 3
 "exam system" sections of `ROADMAP.md`, `PHASE3_LAUNCH_PLAN.md` and
 `Cours/MONOKO_CURRICULUM.md`.** Where they disagree with this file, this file is
 right.
 
-**Status: Slices 0–5 shipped. Slice 6 is one exercise type from done.** A learner can open a lesson,
+**Status: Slices 0–6 shipped.** A learner can open a lesson,
 run a 20-question Pratiquer session on the professor's own rows, pass it at 80%
 first-try, and unlock an endless Élargir session on the routed corpus. Attempts,
-the gate and the mastery counter persist. **Five of six exercise types exist**:
+the gate and the mastery counter persist. **All six exercise types exist**:
 match-pairs, choose-the-audio, tap-words-in-order, fill-the-blank and
-listen-and-type. Only record-and-compare speaking is left.
-**46 of 49 lessons build a full 20-question session** and none falls below 13.
+listen-and-type, plus record-and-compare speaking.
+**47 of 49 lessons build a full 20-question session** and none falls below 16.
+A briefing screen now opens every session and lists what is in it (2026-08-18).
 
 | Slice | | |
 |---|---|---|
@@ -21,11 +22,12 @@ listen-and-type. Only record-and-compare speaking is left.
 | 3 · Choose-the-audio | ✅ 2026-08-10 | reworked 2026-08-17 — play on request, waveform, line shown |
 | 4 · Attempts + pool-shaped builder | ✅ 2026-08-17 | 20 questions, 3–5 pair screens, (item, format) ledger |
 | 5 · Stage split | ✅ 2026-08-17 | tier filter, 80% gate, mastery counter, Signaler |
-| 6 · The four remaining types | 🔶 **IN PROGRESS** | tokenizer ✅ · tap-words ✅ · fill-the-blank ✅ · listen-and-type ✅ · **speaking ⬜** |
+| 6 · The four remaining types | ✅ **2026-08-18** | tokenizer · tap-words · fill-the-blank · listen-and-type · speaking |
+| 6b · Briefing + conjugation material | 🔶 2026-08-18 | *Au programme* off the built queue ✅ · paradigm grid ✅ · mirrored into `lesson_pool` ⬜ (migration not applied) |
 | 7 · Progression + retention | ⬜ | XP, streaks, SM-2 (Pratiquer only) |
 | 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
 
-**Verify engine work with both:** `npm test` (213 tests, builders on hand-made
+**Verify engine work with both:** `npm test` (228 tests, builders on hand-made
 rows) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
 live 6,196-row pool, all lessons, both stages; exits non-zero on a violation).
 
@@ -488,7 +490,7 @@ the key fragments buckets, and match-pairs needs ≥3 in one bucket to build a
 screen at all — it would cost the thin lessons their only matching exercise to
 solve a problem no lesson currently has.
 
-### Slice 6 — the four remaining exercise types  🔶 IN PROGRESS
+### Slice 6 — the four remaining exercise types  ✅ DONE 2026-08-18
 **All six types ship here** (decided 2026-08-10). Nothing is deferred: listen-and-type
 and speaking were previously "build last", but the blockers on both turned out to be
 input-mechanism problems, not feasibility problems.
@@ -501,7 +503,8 @@ input-mechanism problems, not feasibility problems.
    back, accents optional. See "fill the blank" below.
 4. **Listen & type** — ✅ **done 2026-08-17**. Character tiles, never a keyboard
    (see §5). See "listen and type" below.
-5. **Speaking** — **record-and-compare**, no STT (see §7).
+5. **Speaking** — ✅ **done 2026-08-18**. At most three per session;
+   professor then learner playback, local recording only, no STT (see §7).
 
 ### The tokenizer (built 2026-08-17)
 
@@ -769,6 +772,116 @@ Les nombres is the case that matters: random selection plateaus around **87%** o
 the lesson and leaves the tail unseen for a long time, while history-led covers
 **all 58 items in four sessions**. Météo (6 items) is covered in one either way.
 
+### The briefing: what the learner is told before "Commencer" (2026-08-18)
+
+The pre-session screen had the eyebrow "La leçon elle-même" sitting directly
+above a stage called "Maîtriser la leçon" — the same sentence twice. The order is
+now **stage chip → lesson title (largest) → description → stats → Au programme →
+Commencer**. The learner came for the lesson, so the lesson is the biggest thing
+on the screen.
+
+**`Au programme` describes the session that was built, not the one that was
+budgeted.** It lists one line per exercise type actually in the queue — "5 paires
+à associer", "4 mots à écrire à l'oreille" — ordered by count, types absent
+simply omitted. Counts come from `questionCount()` over the **built** queue, so a
+match-pairs screen reads as the 5 questions it costs, and the briefing cannot
+drift from the session. Reading them off `SESSION_QUESTIONS` and the mix
+constants would have been the obvious shortcut and would lie on every thin lesson.
+
+`PROGRAMME_LABELS` lives in the **pure engine**, beside the builders, rather than
+in the screen that renders it. An unlabelled type would render a blank line, and
+no test of the builders would ever catch that — from the engine, both
+`tests/exercise-builders.test.js` and `scripts/audit_exercise_types.mjs` can
+assert that **every type `buildSession` can emit has a label**. A new exercise
+type that forgets its label now fails the suite.
+
+Three stats bugs went with it, all French-typography rather than logic:
+`plural(n, one, many)` is now the one place that knows **French takes the
+singular after both 0 and 1** ("1 partie", "0 partie", "2 parties"); it joins the
+number to its unit with a **non-break space**, which is what makes "20questions"
+impossible; and the play count is **hidden entirely at zero** — "0 partie" is
+noise, and it appears next to the best score only once there is something to say.
+
+### Conjugation paradigms: recovered, displayed, and then drilled (2026-08-18)
+
+The first professor's Cours 2 workbook held a complete conjugation table that
+never reached the app. It is a **matrix** — rows 259–264 are the six persons,
+columns B–F the five tenses — and the original migration read the sheet
+row-wise, so the entire grid fell out. One verb (*ko linga*), five tenses, six
+persons, **30 forms, no gaps**. It also draws a distinction the current lessons
+blur: *Na lingi* (présent) is not *Na zo linga* (présent progressif).
+
+**24 of the 30 forms have had his recording on R2 the whole time**, addressed by
+the workbook cell each clip was cut from — `2.C259.mp3` is column C, row 259,
+*Na lingaki*. All 24 verified reachable. The présent column was never recorded,
+so those six render without a play button rather than with a broken one.
+
+**Stored as a grid, not as `lesson_items`.** A paradigm is addressed by (verb,
+tense, person) and is unreadable flattened — flattening is precisely what lost it
+the first time. `lesson_conjugation_tables` pins a paradigm to a lesson, so one
+table can head every conjugation lesson without being stored five times.
+
+**The French glosses are generated from (tense, person), never copied.** The
+workbook's French column carries typos — "Tu aimess", "Ils aimes", "Nous avons
+aimés" — and labels the passé progressif as a present. There is one verb and its
+French is regular, so generating fixes all of it and cannot drift. **The Lingala
+is copied verbatim; it is his.**
+
+**A lesson shows only the tenses it teaches.** All five rendering everywhere
+meant the présent/passé lesson displayed the futur — that is a reference table,
+not a lesson.
+
+| Lesson | Shows | Forms |
+|---|---|---:|
+| L358 présent et passé | présent/passé composé, imparfait, présent progressif, passé progressif | 24 |
+| L359 futur | futur | 6 |
+| L393 futur proche | **nothing, deliberately** | 0 |
+
+L393 teaches futur *proche* ("je vais parler") and this paradigm has no futur
+proche column — the professor never wrote one. Showing it the futur simple would
+teach the wrong tense on that page, so it shows no table until those six forms
+exist. The populate script **detaches** any lesson it no longer serves rather
+than leaving a link to a table it was separated from.
+
+`tenses` is a `text[]` on the link row, not a row per tense: the unit the page
+renders is one verb's block, and splitting it fans the query out for nothing.
+**NULL means every tense**, which stays the right default for a lesson about
+conjugation in general. The loader `select`s `*` rather than naming the column,
+so a database where the migration has not run keeps working — naming it would
+400, and a 400 there takes the whole table off the lesson page.
+
+Rendered as **tense tabs**, not a 5×6 matrix: thirty cells do not fit a 375px
+column. The table sits **above** the lesson's own content — a learner who scrolls
+past thirty sentences before meeting the pattern has already lost it.
+
+**Why this is exercise material and not a reference panel.** A paradigm is the
+best match-pairs material the course has: six forms of one tense share an
+orthography, a shape band and a topic **by construction** — "tu aimais /
+Olingaki" beside "nous aimions / To lingaki" — which is exactly the homogeneity
+the bucket rules spend so much effort hunting for in ordinary sentences. The
+imparfait and futur sets are 1–2 tokens on both sides, the shape match-pairs is
+most starved of.
+
+The mirroring into `lesson_pool` is driven by `lesson_conjugation_tables` — **the
+same link rows that decide what a lesson displays** — rather than by a list in
+the script. So a lesson is never drilled on a tense it does not teach, and when
+the professor sends the next verb, attaching it to a lesson makes it exercise
+material with no code change. That matters now that the plan is **a table per
+verb per tense** rather than the single *ko linga* paradigm.
+
+Orthography is decided per **verb**, not per word: if any form of a verb carries
+a tone mark, the whole paradigm is toned. Sniffing individual forms would label
+every legitimately toneless word "untoned", which is the mistake `lesson_pool`'s
+own comments warn about. The script also guards the case where two lessons claim
+the same form — `lesson_pool` is unique on `(source_table, source_id)`, so one
+form belongs to exactly one lesson; today's tense split makes an overlap
+impossible, but a future one would silently drop a row.
+
+**Not done yet:** `sql/lesson_pool_conjugation_source.sql` is **not applied**, so
+`lesson_pool` holds **zero** conjugation rows. `lesson_pool`'s `source_table`
+CHECK predates `conjugation_forms` and rejects it until the migration runs; the
+forms and the links are live (30 forms, 2 link rows), the drilling is not.
+
 ### Slice 6 constraints that are not negotiable
 
 **Listen-and-type is a tile exercise.** The pool uses **42 distinct alphabetic
@@ -832,6 +945,8 @@ identifier, do not trust the number.
 | `EXERCISE_SCREENS`, `PASS_PCT`, `SessionView` | `index.html:1154`, `1159`, `1161` |
 | `STAGE_TIERS`, `loadStageState`, `startSession` | `index.html:2343`, `2348`, `2377` |
 | `handleSessionEnd`, `reportPoolItem` | `index.html:2404`, `2440` |
+| `plural`, `PROGRAMME_LABELS`, `programmeOf` — the briefing (2026-08-18) | `index.html:613`, `619`, `628` |
+| `ConjugationTable` + its loader — the paradigm grid (2026-08-18) | `index.html:2252`, `3564` |
 
 ### Slice 4 — ✅ done 2026-08-17, all five steps
 
@@ -917,7 +1032,7 @@ not change. That was the design goal of Slice 2 and it should hold.
 ### Definition of done for each slice
 
 - `npx esbuild` syntax check on the extracted babel block passes
-- `npm test` passes (213 tests as of 2026-08-17)
+- `npm test` passes (228 tests as of 2026-08-18)
 - `node scripts/audit_exercise_types.mjs` exits 0 — every shipped type checked
   against the **live** 6,196-row pool, all 50 lessons, both stages. Unit tests
   prove the builders work on hand-made rows; this proves it on the real ones,
@@ -992,6 +1107,15 @@ Coverage is not a constraint: 75% of the pool carries the professor's voice,
 49/50 lessons have ≥20 such items, none have zero. Because self-assessment
 cannot be objectively scored, speaking earns XP but is excluded from the
 Pratiquer 80% gate (see Slice 6).
+
+**Shipped 2026-08-18.** A speaking prompt is capped at eight tokens and a
+session contains at most three. `SpeakingScreen` requests the microphone only
+after a learner taps record, keeps the resulting Blob on-device, plays the
+professor and learner through one audio element, and revokes the Blob URL on
+re-record or exit. The learner chooses *À retravailler* or *Ça va* after hearing
+the comparison. The attempt is persisted as `format = 'speaking'` so breadth
+history works, but `scoreableAttempts()` and the mastery query exclude that
+format. No database migration was needed.
 
 The original framing, kept because the STT reasoning still governs any future
 scored version:

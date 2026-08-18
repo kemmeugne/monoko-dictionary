@@ -1,6 +1,6 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-08-17
+Last updated: 2026-08-18
 
 ---
 
@@ -22,6 +22,11 @@ Last updated: 2026-08-17
 - Supabase Auth — dictionary public, courses + chat require login
 - Admin panel for professor corrections at `/admin.html`
 - User progress tracking — lesson completion, per-level progress bars, "Continuer" home shortcut
+- **Content that was in the database but not on screen was surfaced 2026-08-18** —
+  181 example sentences across 9 lessons, 179 of them already carrying the
+  professor's audio (two rendering bugs, nothing added), plus the first professor's complete *ko linga* conjugation
+  paradigm, 30 forms with 24 of his clips, lost in the original row-wise import
+  of a workbook that was a matrix. See Phase 3 below.
 
 ---
 
@@ -174,14 +179,19 @@ leaderboards and hearts were all rejected — see the plan for why.
 **Build order:** routing QA ✅ → `lesson_pool` ✅ → session shell + match-pairs ✅
 → choose-the-audio ✅ → attempts + pool-shaped `buildSession` ✅ → stage split +
 80% gate ✅ → tokenizer ✅ → tap-words ✅ → fill-the-blank ✅ →
-listen-and-type ✅ → **record-and-compare speaking ← NEXT** → XP/streaks →
+listen-and-type ✅ → record-and-compare speaking ✅ → **XP/streaks ← NEXT** →
 session cap.
 
 **Shipped 2026-08-17 — the practice loop is playable end to end.** A learner
 opens a lesson, runs a 20-question **Pratiquer** session on the professor's own
 rows, passes it at 80% first-try, and unlocks endless **Élargir** on the routed
-corpus. Five of the six exercise types exist: match-pairs, choose-the-audio,
-tap-words-in-order, fill-the-blank and listen-and-type. Only speaking is left.
+corpus. All six exercise types exist: match-pairs, choose-the-audio,
+tap-words-in-order, fill-the-blank, listen-and-type and speaking.
+
+- **Speaking shipped 2026-08-18:** at most three prompts per session, recordings
+  stay on-device, professor and learner play back-to-back, and the learner
+  self-rates. Speaking earns XP and coverage but is excluded from the objective
+  80% gate. No STT and no database migration.
 
 - The budget is 20 **questions**, not 15 screens; `buildSession(items, level,
   count, history)` takes a pool, never a `lesson_id`.
@@ -198,10 +208,38 @@ tap-words-in-order, fill-the-blank and listen-and-type. Only speaking is left.
   "Les nombres ordinaux" was folded into "Les nombres"
   (`sql/merge_ordinals_into_numbers.sql`), leaving **49 lessons**.
 
-**Measured across every lesson:** 46 build a full 20-question Pratiquer session,
-3 build 13–19, and **none falls below 13** — so the harshest gate in the
+**Measured across every lesson:** 47 build a full 20-question Pratiquer session,
+2 build 16–19, and **none falls below 16** — so the harshest gate in the
 curriculum is 8/10 rather than the 3/3 one lesson demanded that morning.
-Verified by `npm test` (213) and `node scripts/audit_exercise_types.mjs`.
+Verified by `npm test` (228) and `node scripts/audit_exercise_types.mjs` across
+all 49 lessons and both stages.
+
+**2026-08-18 — a briefing, and conjugation tables that are also exercises.**
+
+- Every session now opens on a briefing that runs **stage → lesson title →
+  description → stats → Au programme → Commencer**, and *Au programme* lists one
+  line per exercise type **actually in the built queue** ("5 paires à associer"),
+  counted off the queue rather than the budget so it cannot describe a session
+  the learner is not about to get.
+- The first professor's **complete conjugation paradigm** now heads the
+  conjugation lessons — *ko linga*, 5 tenses × 6 persons, 24 of the 30 forms
+  carrying his recording. It had been lost since the original import read a
+  workbook matrix row-wise. Stored as a **grid**, French glosses generated (his
+  workbook French has typos; his Lingala is copied verbatim), rendered as tense
+  tabs above the lesson, and **each lesson shows only the tenses it teaches** —
+  L393 futur proche deliberately shows nothing, because this paradigm has no
+  futur proche column and the futur simple would teach the wrong tense there.
+- Those forms are the **best match-pairs material the course has** — six forms of
+  one tense share an orthography, a shape band and a topic by construction. The
+  mirroring into `lesson_pool` is written and driven by the same link rows that
+  decide what a lesson displays, so the professor's next verb becomes exercise
+  material with no code change. **`sql/lesson_pool_conjugation_source.sql` is not
+  yet applied**, so the pool holds no conjugation rows yet.
+- **181 example sentences became visible**, none of them new: a "these values
+  repeat, so they must be section headers" heuristic was turning 131 real
+  sentences into headings across 4 lessons, and every niveau-1 lesson took an
+  earlier "Série 1 / Série 2" branch that had no example row at all (50 more
+  sentences, 48 recorded).
 
 **Spaced repetition (SM-2)** belongs **only to Pratiquer** — it needs a finite
 item set with per-item state, which native content (median 25 items) is and the

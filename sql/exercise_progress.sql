@@ -30,6 +30,10 @@ create table if not exists exercise_attempts (
   -- storing retries here would let the bar be farmed by brute-forcing the
   -- retry — a wrong answer followed by a right one would read as a pass.
   -- Retries are their own rows; distinguish them by answered_at order.
+  -- For objective formats this is actual correctness. For `speaking`, which is
+  -- record-and-compare rather than speech recognition, it stores the learner's
+  -- self-rating (`true` = ça va, `false` = à retravailler). Any score or mastery
+  -- query must therefore exclude format = 'speaking'.
   correct      boolean not null,
 
   answered_at  timestamptz not null default now()

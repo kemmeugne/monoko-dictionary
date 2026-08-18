@@ -606,6 +606,8 @@
     // How much of the budget each screen type spends.
     const questionCount = (ex) => !ex ? 0 : ex.type === "match_pairs" ? ex.pairs.length : 1;
     const countQuestions = (list) => (list || []).reduce((n, ex) => n + questionCount(ex), 0);
+    const scoreableAttempts = (list) => (list || []).filter(a =>
+      a.scored !== false && a.format !== "speaking");
 
     // French takes the singular after 0 and 1, plural only from 2 — "1 partie",
     // "2 parties". Getting this wrong is the kind of thing a French speaker reads
@@ -622,6 +624,7 @@
       word_order:   (n) => plural(n, "phrase à remettre dans l'ordre", "phrases à remettre dans l'ordre"),
       fill_blank:   (n) => plural(n, "phrase à compléter", "phrases à compléter"),
       listen_type:  (n) => plural(n, "mot à écrire à l'oreille", "mots à écrire à l'oreille"),
+      speaking:     (n) => plural(n, "prononciation à comparer", "prononciations à comparer"),
     };
 
     // One line per exercise type actually in the queue, biggest first. Counted
@@ -1113,6 +1116,39 @@
       return out;
     };
 
+    // ── Record and compare ───────────────────────────────────────────────────
+    // Speaking is deliberately not speech recognition. The learner hears the
+    // professor, records locally, then hears both voices back to back and
+    // self-rates. No recording leaves the device, and the self-rating never
+    // contributes to the objective 80% Pratiquer gate.
+    const SPEAKING_MAX_TOKENS = 8;
+    const SPEAKING_MAX_PER_SESSION = 3;
+
+    const speakingRows = (items, level) =>
+      (items || []).filter(r =>
+        usableRow(r) && r.audio_url && r.effective_level <= level &&
+        tokenCount(r.lingala) <= SPEAKING_MAX_TOKENS);
+
+    const buildSpeaking = (r) => ({
+      type: "speaking",
+      item: {
+        id: itemId(r), poolId: r.id,
+        fr: r.french.trim(), ln: r.lingala.trim(), audio: r.audio_url,
+      },
+    });
+
+    const speakingScreens = (items, level, budget, ledger, history) => {
+      const out = [];
+      const cap = Math.min(SPEAKING_MAX_PER_SESSION, budget);
+      for (const r of selectionOrder(speakingRows(items, level), ledger, history)) {
+        if (out.length >= cap) break;
+        if (!ledger.canUse(itemId(r), "speaking")) continue;
+        ledger.use(itemId(r), "speaking");
+        out.push(buildSpeaking(r));
+      }
+      return out;
+    };
+
     // A session alternates types rather than running one then the other. Same
     // material either way, but a block of five identical screens reads as a drill
     // and a mixed queue reads as practice — and this is the shape every later
@@ -1161,14 +1197,16 @@
       let left = count - countQuestions(pairs);
       // Each single-question type takes an even share of what remains, and the
       // last one takes the rest — so a lesson short on one type still fills up.
-      const order = wordOrderScreens(items, level, Math.ceil(left / 4), ledger, history);
+      const order = wordOrderScreens(items, level, Math.ceil(left / 5), ledger, history);
       left -= countQuestions(order);
-      const blank = fillBlankScreens(items, level, Math.ceil(left / 3), ledger, history);
+      const blank = fillBlankScreens(items, level, Math.ceil(left / 4), ledger, history);
       left -= countQuestions(blank);
-      const listen = listenTypeScreens(items, level, Math.ceil(left / 2), ledger, history);
+      const listen = listenTypeScreens(items, level, Math.ceil(left / 3), ledger, history);
       left -= countQuestions(listen);
+      const speaking = speakingScreens(items, level, Math.ceil(left / 2), ledger, history);
+      left -= countQuestions(speaking);
       const audio = chooseAudioScreens(items, level, left, ledger, history);
-      return interleave([pairs, order, blank, listen, audio], count);
+      return interleave([pairs, order, blank, listen, speaking, audio], count);
     };
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
@@ -1864,14 +1902,296 @@
       );
     };
 
-    // Renderer per exercise type. Adding fill-the-blank later means adding one
-    // entry here — the shell, progress, scoring and summary stay untouched.
+    const SpeakingScreen = ({ exercise, onDone, onAnswer }) => {
+      const [phase, setPhase] = useState("ready");
+      const [seconds, setSeconds] = useState(0);
+      const [error, setError] = useState("");
+      const [hasCompared, setHasCompared] = useState(false);
+      const recorderRef = useRef(null);
+      const streamRef = useRef(null);
+      const chunksRef = useRef([]);
+      const recordingUrlRef = useRef(null);
+      const compareAudioRef = useRef(null);
+      const timerRef = useRef(null);
+      const startedAtRef = useRef(0);
+      const MAX_RECORDING_MS = 12000;
+
+      const stopTimer = () => {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      };
+
+      const stopTracks = () => {
+        (streamRef.current?.getTracks() || []).forEach(track => track.stop());
+        streamRef.current = null;
+      };
+
+      const resetComparisonAudio = () => {
+        const audio = compareAudioRef.current;
+        if (!audio) return;
+        audio.pause();
+        audio.onended = null;
+        audio.onerror = null;
+        audio.src = exercise.item.audio;
+        audio.load();
+      };
+
+      const revokeRecording = () => {
+        if (recordingUrlRef.current) URL.revokeObjectURL(recordingUrlRef.current);
+        recordingUrlRef.current = null;
+      };
+
+      const stopRecording = () => {
+        stopTimer();
+        const recorder = recorderRef.current;
+        if (recorder && recorder.state !== "inactive") {
+          try { recorder.stop(); } catch (e) { stopTracks(); }
+        } else {
+          stopTracks();
+        }
+      };
+
+      useEffect(() => {
+        const audio = new Audio();
+        audio.preload = "auto";
+        audio.src = exercise.item.audio;
+        audio.load();
+        compareAudioRef.current = audio;
+        return () => {
+          stopTimer();
+          const recorder = recorderRef.current;
+          if (recorder && recorder.state !== "inactive") {
+            recorder.ondataavailable = null;
+            recorder.onstop = null;
+            try { recorder.stop(); } catch (e) {}
+          }
+          stopTracks();
+          audio.pause();
+          audio.removeAttribute("src");
+          audio.load();
+          revokeRecording();
+        };
+      }, []);
+
+      const startRecording = async () => {
+        setError("");
+        setHasCompared(false);
+        resetComparisonAudio();
+        revokeRecording();
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+          setError("L'enregistrement vocal n'est pas disponible dans ce navigateur.");
+          setPhase("error");
+          return;
+        }
+        setPhase("requesting");
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          });
+          streamRef.current = stream;
+          const candidates = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
+          const mimeType = candidates.find(type => MediaRecorder.isTypeSupported(type)) || "";
+          const options = mimeType
+            ? { mimeType, audioBitsPerSecond: 64000 }
+            : { audioBitsPerSecond: 64000 };
+          const recorder = new MediaRecorder(stream, options);
+          chunksRef.current = [];
+          recorderRef.current = recorder;
+          recorder.ondataavailable = event => {
+            if (event.data?.size) chunksRef.current.push(event.data);
+          };
+          recorder.onstop = () => {
+            stopTimer();
+            stopTracks();
+            const type = recorder.mimeType || mimeType || "audio/mp4";
+            const blob = new Blob(chunksRef.current, { type });
+            chunksRef.current = [];
+            if (blob.size < 200) {
+              setError("Aucun son n'a été enregistré. Réessayez près du microphone.");
+              setPhase("error");
+              return;
+            }
+            recordingUrlRef.current = URL.createObjectURL(blob);
+            setPhase("recorded");
+          };
+          recorder.start(250);
+          startedAtRef.current = Date.now();
+          setSeconds(0);
+          setPhase("recording");
+          timerRef.current = setInterval(() => {
+            const elapsed = Date.now() - startedAtRef.current;
+            setSeconds(Math.min(12, Math.ceil(elapsed / 1000)));
+            if (elapsed >= MAX_RECORDING_MS) stopRecording();
+          }, 200);
+        } catch (e) {
+          stopTracks();
+          setError(e.name === "NotAllowedError"
+            ? "Accès au microphone refusé. Autorisez-le dans les réglages du navigateur."
+            : `Impossible d'utiliser le microphone : ${e.message}`);
+          setPhase("error");
+        }
+      };
+
+      const playProfessor = () => {
+        resetComparisonAudio();
+        const audio = compareAudioRef.current;
+        if (!audio) return;
+        audio.play().catch(() => setError("Impossible de lire l'enregistrement du professeur."));
+      };
+
+      const playComparison = () => {
+        const audio = compareAudioRef.current;
+        const learnerUrl = recordingUrlRef.current;
+        if (!audio || !learnerUrl) return;
+        setError("");
+        setPhase("comparing");
+        let learnerTurn = false;
+        const finish = () => {
+          audio.onended = null;
+          audio.onerror = null;
+          audio.src = exercise.item.audio;
+          audio.load();
+          setHasCompared(true);
+          setPhase("recorded");
+        };
+        const playLearner = () => {
+          if (learnerTurn) { finish(); return; }
+          learnerTurn = true;
+          audio.src = learnerUrl;
+          audio.load();
+          audio.play().catch(() => {
+            finish();
+            setError("Touchez à nouveau « Comparer les deux voix » pour écouter votre voix.");
+          });
+        };
+        audio.pause();
+        audio.src = exercise.item.audio;
+        audio.currentTime = 0;
+        audio.load();
+        audio.onended = playLearner;
+        audio.onerror = () => learnerTurn ? finish() : playLearner();
+        audio.play().catch(() => {
+          setPhase("recorded");
+          setError("Impossible de démarrer la comparaison audio.");
+        });
+      };
+
+      const rate = (good) => {
+        resetComparisonAudio();
+        // `correct` stores the learner's own judgement for speaking history.
+        // `scored:false` keeps it out of the objective 80% mastery calculation.
+        onAnswer(exercise.item, good, { scored: false });
+        onDone();
+      };
+
+      const recorded = phase === "recorded" || phase === "comparing";
+
+      return (
+        <div style={{ minHeight: "calc(100dvh - 172px)", display: "flex", flexDirection: "column",
+                      textAlign: "center", padding: "10px 0 0" }}>
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
+                      textTransform: "uppercase", color: "#9B8A6E", marginBottom: 10 }}>
+            Comparez votre prononciation
+          </p>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, lineHeight: 1.2,
+                      fontWeight: 700, color: "#2D2118", margin: "0 10px 6px" }}>
+            {exercise.item.ln}
+          </p>
+          <p style={{ fontSize: 14, color: "#9B8A6E", marginBottom: 22 }}>{exercise.item.fr}</p>
+
+          <button onClick={playProfessor} disabled={phase === "requesting" || phase === "recording" || phase === "comparing"}
+            style={{ alignSelf: "center", minHeight: 48, padding: "10px 18px", borderRadius: 12,
+                     border: "1.5px solid #D8CCBA", background: "white", color: "#2C5F2D",
+                     fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+            ▶ Écouter le professeur
+          </button>
+
+          <div style={{ flex: 1, minHeight: 22 }} />
+
+          {phase === "recording" ? (
+            <div>
+              <button onClick={stopRecording} aria-label="Arrêter l'enregistrement" style={{
+                width: 88, height: 88, borderRadius: "50%", border: "none", background: "#DC2626",
+                color: "white", fontSize: 29, cursor: "pointer", boxShadow: "0 8px 24px rgba(220,38,38,.25)",
+              }}>■</button>
+              <p style={{ marginTop: 12, fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                Enregistrement · {seconds} s
+              </p>
+            </div>
+          ) : (
+            <button onClick={startRecording} aria-label={recorded ? "Réenregistrer" : "Commencer l'enregistrement"}
+              disabled={phase === "requesting" || phase === "comparing"} style={{
+                alignSelf: "center", width: 88, height: 88, borderRadius: "50%",
+                border: "8px solid #F4EEFB", background: "#6B21A8", color: "white",
+                fontSize: 32, cursor: (phase === "requesting" || phase === "comparing") ? "default" : "pointer",
+                boxShadow: "0 8px 24px rgba(107,33,168,.22)",
+              }}>●</button>
+          )}
+          <p style={{ margin: "12px 0 16px", minHeight: 21, fontSize: 14, color: "#8B6D47" }}>
+            {phase === "ready" ? "Enregistrez votre voix" :
+             phase === "requesting" ? "Ouverture du microphone…" :
+             phase === "recording" ? "Touchez le carré lorsque vous avez terminé" :
+             recorded ? "Votre voix est prête" : "Réessayez ou passez à la suite"}
+          </p>
+
+          {error && (
+            <div role="alert" style={{ background: "#FDF0F0", color: "#B91C1C", borderRadius: 12,
+                                       padding: "11px 13px", fontSize: 13, lineHeight: 1.4, marginBottom: 12 }}>
+              {error}
+              {recorded && (
+                <button onClick={() => rate(false)} style={{ display: "block", margin: "8px auto 0",
+                  minHeight: 44, padding: "8px 12px", border: "none", background: "transparent",
+                  color: "#8B6D47", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                  Passer cette question
+                </button>
+              )}
+            </div>
+          )}
+
+          {recorded && (
+            <div style={{ display: "grid", gap: 10 }}>
+              <button onClick={playComparison} disabled={phase === "comparing"} style={{
+                minHeight: 52, borderRadius: 12, border: "none", background: "#2D2118", color: "white",
+                fontSize: 16, fontWeight: 700, cursor: "pointer",
+              }}>{phase === "comparing" ? "Écoute en cours…" : "▶ Comparer les deux voix"}</button>
+              <button onClick={startRecording} disabled={phase === "comparing"} style={{
+                minHeight: 48, borderRadius: 12, border: "1.5px solid #D8CCBA", background: "white",
+                color: "#6B21A8", fontSize: 15, fontWeight: 700,
+                cursor: phase === "comparing" ? "default" : "pointer",
+              }}>↻ Réessayer</button>
+              {hasCompared && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <button onClick={() => rate(false)} disabled={phase === "comparing"} style={{
+                    minHeight: 52, borderRadius: 12, border: "1.5px solid #D8CCBA", background: "white",
+                    color: "#8B6D47", fontSize: 15, fontWeight: 700, cursor: "pointer",
+                  }}>À retravailler</button>
+                  <button onClick={() => rate(true)} disabled={phase === "comparing"} style={{
+                    minHeight: 52, borderRadius: 12, border: "none", background: "#2C5F2D",
+                    color: "white", fontSize: 15, fontWeight: 700, cursor: "pointer",
+                  }}>Ça va</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {phase === "error" && (
+            <button onClick={() => rate(false)} style={{ minHeight: 48, border: "none", background: "none",
+                                                        color: "#8B6D47", fontSize: 14, fontWeight: 700,
+                                                        cursor: "pointer" }}>Passer</button>
+          )}
+        </div>
+      );
+    };
+
+    // Renderer per exercise type. The shell, progress, scoring and summary stay
+    // untouched when a new screen joins this map.
     const EXERCISE_SCREENS = {
       match_pairs: MatchPairsScreen,
       choose_audio: ChooseAudioScreen,
       word_order: WordOrderScreen,
       fill_blank: FillBlankScreen,
       listen_type: ListenTypeScreen,
+      speaking: SpeakingScreen,
     };
 
     // 80% of a session's questions, right the first time, passes Pratiquer and
@@ -1922,13 +2242,17 @@
       const endRef = React.useRef(onSessionEnd);
       endRef.current = onSessionEnd;
 
-      const recordAnswer = (item, correct) => {
+      const recordAnswer = (item, correct, { scored = true } = {}) => {
         if (item && item.poolId != null)
-          attempts.current.push({ pool_item_id: item.poolId, correct, format: current?.type || "unknown" });
+          attempts.current.push({ pool_item_id: item.poolId, correct, scored,
+                                  format: current?.type || "unknown" });
       };
 
       const firstTryPct = () => {
-        const list = attempts.current;
+        // Record-and-compare speaking is a self-rating, not an objective grade.
+        // It earns XP and is persisted for coverage, but cannot raise or lower
+        // the 80% gate until a Lingala pronunciation model is trustworthy.
+        const list = scoreableAttempts(attempts.current);
         return list.length ? Math.round(100 * list.filter(a => a.correct).length / list.length) : 0;
       };
 
@@ -3287,7 +3611,7 @@
             supaFetch("lesson_pool", `lesson_id=eq.${lessonId}&tier=eq.native&select=id&limit=1000`),
             supabaseClient.from("exercise_attempts").select("pool_item_id")
               .eq("user_id", currentUser.id).eq("lesson_id", lessonId)
-              .eq("stage", "pratiquer").eq("correct", true),
+              .eq("stage", "pratiquer").eq("correct", true).neq("format", "speaking"),
           ]);
           setStageState(state || null);
           // Distinct items, not attempts — answering the same word right in ten

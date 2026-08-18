@@ -25,7 +25,7 @@ const E = new Function(
   slice("// ── Tokenizer ─", "// ── Exercise engine ─") +
   slice("// ── Exercise engine", "// ── Match-pairs screen") + `
   return { buildSession, countQuestions, questionCount, screenItems, fold, sameWord,
-           wordOrderRows, fillBlankRows, listenTypeRows, tokenize, BLANK_MIN_CHARS,
+           wordOrderRows, fillBlankRows, listenTypeRows, speakingRows, tokenize, BLANK_MIN_CHARS,
            LISTEN_MAX_CHARS, LISTEN_MAX_TOKENS, LISTEN_TILES,
            WORD_ORDER_MIN, WORD_ORDER_MAX, PAIRS_MIN, PAIRS_MAX, SESSION_QUESTIONS,
            PROGRAMME_LABELS, programmeOf };`)();
@@ -106,6 +106,10 @@ const audit = (ex, lesson) => {
     if (new Set(ex.tiles.map(t => t.key)).size !== ex.tiles.length)
       P(`${lesson}: listen_type duplicate tile key`);
   }
+  if (ex.type === "speaking") {
+    if (!ex.item.audio) P(`${lesson}: speaking without a professor clip`);
+    if (E.tokenize(ex.item.ln).length > 8) P(`${lesson}: speaking prompt longer than 8 tokens`);
+  }
 };
 
 const courses = await api("courses", "select=id,course_order&limit=50");
@@ -141,6 +145,7 @@ for (const [lid, all] of Object.entries(byLesson)) {
   rows.push({ lesson: lesson.title.slice(0, 30), native: native.length,
               fb: E.fillBlankRows(native, level).length,
               lt: E.listenTypeRows(native, level).length,
+              sp: E.speakingRows(native, level).length,
               wo: E.wordOrderRows(native, level).length, prat: best });
 }
 

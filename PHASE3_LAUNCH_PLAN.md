@@ -1,6 +1,6 @@
 # Monɔkɔ — Phase 3 → Launch Sequence
 
-Last updated: 2026-07-06
+Last updated: 2026-08-18
 
 Scope: what happens after Phase 1 (content) and Phase 2 (progress tracking ✅) — exam system, monetization, soft launch, and mobile wrap. Supersedes the high-level Phase 3/4/5 sketch in `ROADMAP.md`; read this file for the detailed sequence.
 
@@ -21,15 +21,24 @@ than engagement, and it trapped speaking practice inside a once-per-level event.
 Replaced by continuous points on every exercise. **All levels are open** — the
 paywall below is the only gate.
 
-**Status 2026-08-17: the practice loop is playable end to end.** A session is 20
+**Status 2026-08-18: the practice loop is playable end to end.** A session is 20
 questions; Pratiquer (the professor's own rows) certifies a lesson at 80%
 first-try and unlocks Élargir (the routed corpus). Attempts, the gate and the
 mastery counter persist, and repeat sessions sweep forward through unseen
-material rather than re-rolling. **Five of the six exercise types exist** —
+material rather than re-rolling. **All six exercise types exist** —
 match-pairs, choose-the-audio, tap-words-in-order, fill-the-blank,
-listen-and-type — and 46 of 49 lessons build a full session, none below 13
-questions. Remaining in this phase: **record-and-compare speaking**, then
-streaks/XP, then the session cap.
+listen-and-type and record-and-compare speaking — and 47 of 49 lessons build a
+full session, none below 16 questions. Speaking is capped at three prompts,
+keeps recordings on-device and does not affect the objective 80% gate.
+Remaining in this phase: **streaks/XP**, then the session cap.
+
+**2026-08-18:** every session now opens on a briefing that names the lesson first
+and lists what is actually in the queue ("5 paires à associer"), and the first
+professor's complete *ko linga* conjugation paradigm — lost in the original
+import, 24 of its 30 forms already recorded — now heads the conjugation lessons.
+Those forms are also the course's best match-pairs material; the mirroring into
+`lesson_pool` is written but its migration is not yet applied. Two rendering bugs
+were hiding **181 example sentences** that were in the database all along.
 
 **Build:**
 - ✅ **Session engine** — one question per screen, progress bar, live queue (wrong

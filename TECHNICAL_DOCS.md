@@ -378,6 +378,64 @@ only thing between one learner's progress and another's.
 
 ---
 
+### `conjugation_forms`  (added 2026-08-18)
+One verb's paradigm stored as a **grid**, not as lesson rows.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | BIGSERIAL | PK |
+| `language_id` | BIGINT FK → languages | |
+| `verb` / `verb_fr` | TEXT | Infinitive and its gloss — `ko linga` / `aimer` |
+| `tense` / `person` | TEXT | `present`, `imparfait`, `futur`, `present_prog`, `passe_prog` × `je tu il nous vous ils` |
+| `tense_label` / `tense_order` / `person_order` | TEXT / SMALLINT / SMALLINT | Display order, so the client never hardcodes a sort |
+| `french` | TEXT | **Generated** from (tense, person) — the source workbook's French has typos and mislabels the passé progressif |
+| `lingala` | TEXT | **Copied verbatim** from the professor |
+| `audio_url` | TEXT | NULL where he never recorded the form |
+| `source_cell` | TEXT | Provenance: `2.C259` = column C, row 259 |
+
+**Unique on `(language_id, verb, tense, person)`.** That constraint has to be
+**named in the upsert** — the table also has a bigserial PK, and PostgREST will
+not guess which one an upsert means; without the name it answers **409**.
+
+30 rows today: *ko linga*, 5 tenses × 6 persons, **24 with audio** (the présent
+column was never recorded, so those six render with no play button).
+
+Why a grid: a paradigm is addressed by (verb, tense, person) and is unreadable
+flattened. The original migration read the workbook **row-wise** when it is a
+matrix (rows 259–264 = persons, columns B–F = tenses), and lost the whole table.
+
+---
+
+### `lesson_conjugation_tables`  (added 2026-08-18)
+Pins a paradigm to a lesson, so one table can head several lessons without being
+stored several times.
+
+| Column | Type | Description |
+|---|---|---|
+| `lesson_id` / `verb` | BIGINT FK → lessons (ON DELETE CASCADE) / TEXT | **Composite PK** — name it in the upsert, same 409 as above |
+| `language_id` | BIGINT FK → languages | |
+| `tenses` | TEXT[] | Which tenses this lesson displays. **NULL means all** |
+| `sort_order` | INT | |
+
+`tenses` is an array on the link row rather than a row per tense because the unit
+the page renders is one verb's block; splitting it fans the query out for
+nothing. Current rows: **L358** four tenses (24 forms), **L359** `futur` (6
+forms). **L393 futur proche has no row at all** — this paradigm has no futur
+proche column, and showing it the futur simple would teach the wrong tense.
+
+The frontend loader `select`s `*` rather than naming `tenses`: naming a column a
+database has not migrated yet returns **400**, and a 400 there takes the whole
+table off the lesson page. Undefined `tenses` reads as "all", which is the
+pre-migration behaviour.
+
+These rows also drive what gets **mirrored into `lesson_pool`** as exercise
+material, so a lesson is never drilled on a tense it does not teach.
+`sql/lesson_pool_conjugation_source.sql` widens `lesson_pool`'s `source_table`
+CHECK to admit `conjugation_forms` — **not yet applied**, so the pool holds no
+conjugation rows.
+
+---
+
 ### Entity relationships
 
 ```
@@ -402,7 +460,11 @@ languages
               └── lesson_items (lesson_id)
   └── user_progress (language_id)
   └── lesson_pool (language_id, lesson_id)   ← assembled FROM lesson_items,
-                                                parallel_sentences, examples, senses
+                                                parallel_sentences, examples, senses,
+                                                and (pending migration) conjugation_forms
+  └── conjugation_forms (language_id)
+        └── lesson_conjugation_tables (lesson_id, verb)  ← also decides which
+                                                            forms enter lesson_pool
 ```
 
 ---
@@ -410,6 +472,14 @@ languages
 ### SQL migrations
 
 **`sql/progress_tracking.sql`** (2026-04-14) — `profiles` + `user_progress` tables with RLS. Run once in Supabase SQL editor. Idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`).
+
+**`sql/conjugation_tables.sql`** (applied 2026-08-18) — `conjugation_forms` + `lesson_conjugation_tables`.
+
+**`sql/conjugation_lesson_tenses.sql`** (applied 2026-08-18) — adds `lesson_conjugation_tables.tenses text[]`.
+
+**`sql/lesson_pool_conjugation_source.sql`** (written 2026-08-18, **NOT YET APPLIED**) — widens `lesson_pool.source_table`'s CHECK to admit `conjugation_forms`. Until it runs, `populate_conjugation_forms.py` cannot write pool rows.
+
+The full list of migration files, with what each one is for, lives in `CLAUDE.md` under "Key files in this repo".
 
 **Legacy one-off migrations** (run directly in Supabase SQL editor, not tracked as files):
 
@@ -615,7 +685,7 @@ State-based routing with a `view` variable:
 
 ---
 
-### The exercise engine (added 2026-08-10 → 2026-08-17)
+### The exercise engine (added 2026-08-10 → 2026-08-18)
 
 The practice loop lives in the same `<script type="text/babel">` block as the
 rest of the frontend. **`EXERCISE_ENGINE_PLAN.md` is the authority**; this is the
@@ -643,10 +713,13 @@ session are the same function with a different pool.
 | `EXERCISE_SCREENS` | Type → component. A new type is one entry plus a builder |
 | `ClipPlayer` | Shared play button + waveform (drawn, not measured — R2 sends no CORS, so Web Audio would output silence) |
 | `afterClip` | Holds the screen until the clip finishes. **Never hand over on a bare timer** |
+| `programmeOf` / `PROGRAMME_LABELS` / `plural` | The briefing's *Au programme* list, counted off the **built** queue with `questionCount()` — never off the budget constants. Labels live in the engine so the unit tests and the audit can both assert every emittable type has one |
 
-Six exercise types, five built: `match_pairs`, `choose_audio`, `word_order`,
-`fill_blank`, `listen_type`, and `speaking` (not yet — record-and-compare, no
-STT, excluded from the 80% gate because a self-grade cannot be scored).
+All six exercise types are built: `match_pairs`, `choose_audio`, `word_order`,
+`fill_blank`, `listen_type`, and `speaking`. Speaking is record-and-compare with
+at most three prompts per session: the recording remains a local Blob, the
+professor and learner play back-to-back, and the self-rating is persisted for
+history but excluded from the 80% gate and objective mastery.
 
 Two rules that look inconsistent and are not: **fill-the-blank folds accents**
 (17.7% of its answers need a character no iPhone French keyboard can produce, and
@@ -657,6 +730,43 @@ is offered).
 Writes land in `exercise_attempts` (one row per question, **first-try only**,
 batched at session end) and `lesson_stage_state` (the gate the lesson screen
 reads). Verified by `npm test` and `node scripts/audit_exercise_types.mjs`.
+
+---
+
+### The lesson page (what `example_french` means)  (2026-08-18)
+
+`lesson_items.example_french` carries **two different things**, and telling them
+apart is a heuristic, not a column:
+
+1. the **example sentence** for that row — the normal case, and what every
+   current lesson holds;
+2. in a few pre-July lessons, a **section label** like "Présent", repeated across
+   the rows it heads.
+
+The original rule was "any value repeated ⇒ labels", which is far too eager: two
+pronouns sharing one example sentence flipped an entire lesson into grouped mode
+and rendered its 29 example sentences as headings. A label is now required to be
+**short (≤24 characters), free of terminal punctuation, and shared by ≥2 rows**.
+Under that rule **no current lesson is grouped** — the heuristic was written for
+a lesson shape the July restructure removed, and since then had only produced
+false positives.
+
+Separately, **every niveau-1 lesson takes an earlier branch** — the "Phrases —
+Série 1 / Série 2" split table — which rendered French and dialect only and had
+no example row at all, so the grouping fix could not reach it. It now renders the
+same example row (French italic left, Lingala + play button right, on a dashed
+divider) that the default table has. The branch keys off `course_order === 1`
+rather than the lesson's shape, so it also catches vocabulary lessons where
+"Série 1 / Série 2" is an arbitrary cut down a word list — left alone as
+cosmetic, since changing it moves every niveau-1 lesson.
+
+Between the two fixes, **181 example sentences across 9 lessons became visible**,
+179 of them with audio the professor had already recorded. Nothing was added.
+
+**Conjugation tables** render above the lesson's own rows, as **tense tabs**
+(thirty cells do not fit a 375px column), from `lesson_conjugation_tables` +
+`conjugation_forms`. The loader `select`s `*`, catches its own failure and
+renders nothing, so a database missing the migration leaves the page unaffected.
 
 ---
 

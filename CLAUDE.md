@@ -83,8 +83,10 @@ sql/pgvector_dictionary.sql       — SQL migration: embedding cols on senses+ex
 sql/lesson_pool.sql               — SQL migration: lesson_pool, the exercise engine's material (applied 2026-08-10)
 sql/exercise_progress.sql         — SQL migration: exercise_attempts + lesson_stage_state, what a session leaves behind (applied 2026-08-17)
 sql/merge_ordinals_into_numbers.sql — SQL migration: folds L375 "Les nombres ordinaux" (3 items) into L350 "Les nombres" (applied 2026-08-17)
-sql/conjugation_tables.sql        — SQL migration: conjugation_forms + lesson_conjugation_tables, a paradigm stored as a GRID (written 2026-08-18, NOT YET APPLIED)
-populate_conjugation_forms.py     — loads the FIRST professor's ko linga paradigm (5 tenses x 6 persons, 24 clips already on R2) from the original Cours 2 workbook matrix
+sql/conjugation_tables.sql        — SQL migration: conjugation_forms + lesson_conjugation_tables, a paradigm stored as a GRID (applied 2026-08-18)
+sql/conjugation_lesson_tenses.sql — SQL migration: adds lesson_conjugation_tables.tenses text[] — a lesson shows only the tenses it teaches; NULL means all (applied 2026-08-18)
+sql/lesson_pool_conjugation_source.sql — SQL migration: widens lesson_pool's source_table CHECK to admit conjugation_forms (written 2026-08-18, NOT YET APPLIED)
+populate_conjugation_forms.py     — loads the FIRST professor's ko linga paradigm (5 tenses x 6 persons, 24 clips already on R2) from the original Cours 2 workbook matrix, attaches it to the lessons that teach those tenses, and mirrors the forms into lesson_pool as exercise material
 populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
@@ -135,6 +137,8 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
 - `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell` — Lingala course example audio links (added 2026-03-16)
 - `lesson_items.embedding vector(384)` — OpenAI text-embedding-3-small embeddings for pgvector search (added 2026-03-21, 1,740 rows embedded on old structure; new structure needs re-embedding via `embed_lesson_items.py`)
+- `conjugation_forms` — one verb's paradigm as a **grid**: `(language_id, verb, tense, person)` unique, plus `french`, `lingala`, `audio_url`, sort orders. 30 rows = *ko linga* × 5 tenses × 6 persons, 24 of them with the professor's clip (added 2026-08-18)
+- `lesson_conjugation_tables` — pins a paradigm to a lesson: `(lesson_id, verb)` unique, plus `tenses text[]`. **NULL `tenses` means every tense**; a list restricts the lesson to what it teaches. Two rows today: L358 gets four tenses, L359 gets `futur`, L393 (futur proche) is deliberately attached to nothing (added 2026-08-18)
 - `profiles` — one row per auth user: `display_name`, `preferred_language_id` (added 2026-04-14)
 - `user_progress` — lesson completion tracking: `user_id`, `lesson_id`, `language_id`, `completed_at`, `exam_score` (null until Phase 3); RLS ensures users only access their own rows (added 2026-04-14)
 
@@ -240,7 +244,7 @@ both hard-refuse to run unless pointed at that exact test project ref.
 
 - Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
   and fill in real values, or ask for them.
-- `npm test` — Vitest, **213 tests, no network calls, fully mocked**. Covers
+- `npm test` — Vitest, **228 tests, no network calls, fully mocked**. Covers
   every `api/*.js` handler plus the exercise engine: the tokenizer, the
   exercise builders, and the audio hand-off. Engine tests slice the code out of
   `index.html` and evaluate it, so they run against the source the browser runs.
@@ -662,7 +666,7 @@ Non-obvious rules that fall out of it:
   (a bare `o` beside the required `ó`), which is what makes it a test of tone.
   Compared **exactly** — no `fold` here, unlike fill-the-blank: this exercise
   *is* the spelling. A space is never a tile; slots are grouped per word.
-  46 of 49 lessons now build a full session, none below 13 questions. 193 tests.
+  47 of 49 lessons now build a full session, none below 16 questions. 228 tests.
   The play button + waveform are now a shared **`ClipPlayer`**.
 
 - **Selection is breadth-first (2026-08-17).** `selectionOrder` is the order
@@ -674,9 +678,84 @@ Non-obvious rules that fall out of it:
   100% in four sessions. Note breadth **outranks tier** — an unseen `reassigned`
   row goes before a seen `approved` one.
 
-**Next action is Slice 6's last type** — record-and-compare speaking (see §7 of
-the plan: no STT, self-graded, excluded from the 80% gate). Then Slice 7
-(XP/streaks/SM-2). `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**.
+- **The briefing screen was rebuilt (2026-08-18).** Order on the screen is now
+  stage chip → lesson title (largest) → description → stats → *Au programme* →
+  Commencer: the learner came for the lesson, so the lesson is the biggest thing
+  on it. **`Au programme` lists one line per exercise type actually in the built
+  queue** — "5 paires à associer", "4 mots à écrire à l'oreille" — counted with
+  `questionCount()` over the **built** queue, never from the budget constants, so
+  a match-pairs screen reads as the 5 questions it is. Types absent are omitted.
+  `PROGRAMME_LABELS` lives in the pure engine next to `plural()` precisely so a
+  unit test and the corpus audit can both assert **every type `buildSession` can
+  emit has a label** — an unlabelled type renders a blank line and no builder
+  test would catch it. `plural(n, one, many)` is the single place that knows
+  **French takes the singular after both 0 and 1**, and it joins number to unit
+  with a non-break space, which is what stops "20questions" recurring.
+
+- **Conjugation paradigms are back (2026-08-18), stored as a grid.** The first
+  professor's Cours 2 workbook held a complete *ko linga* table — 5 tenses × 6
+  persons — that never reached the app: it is a **matrix** (rows 259–264 are the
+  persons, columns B–F the tenses) and the original migration read the sheet
+  row-wise, so the whole grid fell out. 24 of the 30 forms have had his recording
+  on R2 the whole time, addressed by the workbook cell they were cut from
+  (`2.C259.mp3` = column C, row 259 = *Na lingaki*); the présent column was never
+  recorded, so those six render with no play button.
+
+  Rules that fall out of it, and that the next verb must respect:
+  - **Store it as a grid, never as `lesson_items`.** A paradigm is addressed by
+    (verb, tense, person) and flattening is exactly what lost it the first time.
+  - **The French glosses are GENERATED from (tense, person), not copied.** The
+    workbook's French has typos (`Tu aimess`, `Ils aimes`) and mislabels the
+    passé progressif as a present. One regular verb, so generating cannot drift.
+    **The Lingala is copied verbatim — it is his, and not ours to fix.**
+  - **A lesson shows only the tenses it teaches** (`lesson_conjugation_tables.tenses`).
+    L358 gets four, L359 gets `futur`, and **L393 futur proche gets nothing at
+    all** — this paradigm has no futur proche column, and showing it the futur
+    simple would teach the wrong tense on that page.
+  - **The loader `select`s `*`, never the new column by name.** Naming a column a
+    database has not migrated yet 400s, and a 400 there takes the table off the
+    lesson page entirely. Undefined `tenses` reads as "all".
+  - Rendered as **tense tabs**, not a 5×6 matrix — thirty cells do not fit 375px —
+    and the table sits **above** the lesson's own rows.
+
+- **A paradigm is match-pairs material (2026-08-18).** Six forms of one tense
+  share an orthography, a shape band and a topic *by construction*, which is the
+  homogeneity the bucket rules hunt for in ordinary sentences; the imparfait and
+  futur sets are 1–2 tokens, the shape match-pairs is most starved of. The
+  mirroring into `lesson_pool` is driven by **`lesson_conjugation_tables`** — the
+  same link rows that decide what a lesson displays — so a lesson is never
+  drilled on a tense it does not teach, and attaching the professor's next verb
+  makes it exercise material with **no code change**. Orthography is decided per
+  **verb**, not per form: one toned form makes the whole paradigm toned, because
+  sniffing individual forms would label every legitimately toneless word
+  "untoned". **`sql/lesson_pool_conjugation_source.sql` is not yet applied**, so
+  no conjugation row is in the pool yet — `lesson_pool`'s `source_table` CHECK
+  predates `conjugation_forms` and rejects it until then.
+
+- **Two bugs were hiding 181 example sentences the professor had already
+  recorded (2026-08-18).** Nothing was added; they simply became visible.
+  - `example_french` carries **two different things**: the row's example
+    sentence, and — in a few older lessons — a section label like "Présent"
+    repeated across the rows it heads. The rule telling them apart was "is any
+    value repeated?", so two pronouns sharing one sentence flipped a whole lesson
+    into grouped mode and turned its 29 examples into headings. A real label is
+    now **short (≤24 chars), free of terminal punctuation, and heads ≥2 rows**.
+    Four lessons changed, all four false positives; **no current lesson is
+    grouped**, because the heuristic was written for a lesson shape the July
+    restructure removed.
+  - **Every niveau-1 lesson takes an earlier branch** — the "Phrases — Série 1 /
+    Série 2" split — which rendered French and dialect only and had no example
+    row at all, so the grouping fix never reached it. That branch keys off
+    `course_order === 1`, not off the lesson's shape, so it also catches
+    vocabulary lessons where the split is an arbitrary cut down a word list. It
+    now renders the same example row the default table has. **50 sentences across
+    5 lessons, 48 of them recorded.** The Série split itself is left alone —
+    cosmetic, and changing it moves every niveau-1 lesson.
+
+**Slice 6 is complete.** Record-and-compare speaking shipped 2026-08-18: no STT,
+at most three prompts per session, recordings stay on-device, and self-ratings
+are excluded from the 80% gate. **Next action is Slice 7** (XP/streaks/SM-2).
+`EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**.
 Read it before touching engine code.
 
 **Verifying engine work:** `npm test` covers the builders on hand-made rows;
