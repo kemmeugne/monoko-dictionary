@@ -144,14 +144,17 @@ def main() -> None:
         print("\n--dry-run: nothing written")
         return
 
-    post("conjugation_forms", forms,
+    # on_conflict must name the composite unique explicitly: with both a
+    # bigserial PK and unique(language_id, verb, tense, person), PostgREST
+    # cannot infer which one an upsert targets and answers 409.
+    post("conjugation_forms?on_conflict=language_id,verb,tense,person", forms,
          "resolution=merge-duplicates,return=minimal")
     # A lesson that no longer shows a table must lose its link, or it keeps
     # rendering the paradigm it was detached from.
     keep = ",".join(str(l) for l in CONJUGATION_LESSONS)
     delete(f"lesson_conjugation_tables?language_id=eq.{LANGUAGE_ID}&lesson_id=not.in.({keep})")
 
-    post("lesson_conjugation_tables",
+    post("lesson_conjugation_tables?on_conflict=lesson_id,verb",
          [{"lesson_id": lid, "language_id": LANGUAGE_ID, "verb": "ko linga",
            "sort_order": 0, "tenses": tenses}
           for lid, tenses in CONJUGATION_LESSONS.items()],
