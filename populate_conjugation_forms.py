@@ -95,6 +95,71 @@ def post(path: str, rows: list, prefer: str) -> None:
     urllib.request.urlopen(req).read()
 
 
+def get(path: str) -> list:
+    req = urllib.request.Request(
+        f"{SUPABASE_URL}/rest/v1/{path}",
+        headers={"apikey": key(), "Authorization": f"Bearer {key()}"})
+    return json.load(urllib.request.urlopen(req))
+
+
+def tokens(s: str) -> int:
+    """Same rule the engine tokenises with: whitespace or slash, punctuation off
+    the edges, parenthesised glosses dropped."""
+    import re
+    s = re.sub(r"\([^)]*\)", " ", s or "")
+    parts = [re.sub(r"^[^\w]+|[^\w]+$", "", t) for t in re.split(r"[\s/]+", s)]
+    return len([t for t in parts if t])
+
+
+TONE_MARKS = "àáâǎèéëēíîóôúɔɛ"
+
+
+def pool_rows(forms_in_db: list, links: list, levels: dict) -> list:
+    """Turn conjugation forms into exercise material.
+
+    A paradigm is the best match-pairs material the course has: six forms of one
+    tense share an orthography, a shape and a topic BY CONSTRUCTION, which is the
+    homogeneity the bucket rules work so hard to find in ordinary sentences.
+
+    Rows are assigned by the SAME link table that decides what each lesson
+    displays, so a lesson is never drilled on a tense it does not teach, and a
+    newly added verb becomes exercise material the moment it is attached to a
+    lesson -- no code change, no list to maintain here.
+    """
+    rows = []
+    for link in links:
+        lesson_id = link["lesson_id"]
+        tenses = link.get("tenses")
+        level = levels.get(lesson_id, 1)
+        for f in forms_in_db:
+            if f["verb"] != link["verb"]:
+                continue
+            if tenses and f["tense"] not in tenses:
+                continue
+            # Orthography is a property of the SOURCE, decided per verb rather
+            # than per word: sniffing an individual form would call every
+            # legitimately toneless word "untoned". If any form of this verb
+            # carries a tone mark, the whole paradigm is toned.
+            verb_forms = [x["lingala"] for x in forms_in_db if x["verb"] == f["verb"]]
+            toned = any(any(c in TONE_MARKS for c in v) for v in verb_forms)
+            rows.append({
+                "language_id": LANGUAGE_ID,
+                "lesson_id": lesson_id,
+                "source_table": "conjugation_forms",
+                "source_id": f["id"],
+                "french": f["french"],
+                "lingala": f["lingala"],
+                "audio_url": f["audio_url"],
+                "tier": "native",              # the professor wrote it into this lesson
+                "token_count": tokens(f["lingala"]),
+                "orthography": "toned" if toned else "untoned",
+                "level": level,
+                "difficulty": None,
+                "effective_level": level,
+            })
+    return rows
+
+
 def build() -> list:
     import openpyxl
     ws = openpyxl.load_workbook(XLSX, data_only=True).worksheets[0]
@@ -159,9 +224,38 @@ def main() -> None:
            "sort_order": 0, "tenses": tenses}
           for lid, tenses in CONJUGATION_LESSONS.items()],
          "resolution=merge-duplicates,return=minimal")
+    # Read the forms back for their ids, then mirror them into lesson_pool so
+    # the exercise engine can draw on them.
+    in_db = get(f"conjugation_forms?language_id=eq.{LANGUAGE_ID}&select=id,verb,tense,french,lingala,audio_url")
+    links = get("lesson_conjugation_tables?select=lesson_id,verb,tenses")
+    lessons = get("lessons?select=id,course_id")
+    courses = get(f"courses?language_id=eq.{LANGUAGE_ID}&select=id,course_order")
+    order = {c["id"]: c["course_order"] for c in courses}
+    levels = {l["id"]: order.get(l["course_id"], 1) for l in lessons}
+
+    rows = pool_rows(in_db, links, levels)
+
+    # lesson_pool is unique on (source_table, source_id), so one form can belong
+    # to exactly one lesson. Today L358 and L359 carry disjoint tenses so this
+    # cannot bite -- but two lessons sharing a tense would silently drop one,
+    # and silently is the part that matters.
+    seen = {}
+    for r in rows:
+        prev = seen.get(r["source_id"])
+        if prev and prev != r["lesson_id"]:
+            print(f"   ! form {r['source_id']} is claimed by lessons {prev} and "
+                  f"{r['lesson_id']}; keeping {prev}. Split the tenses between them.")
+        seen.setdefault(r["source_id"], r["lesson_id"])
+    rows = [r for r in rows if seen[r["source_id"]] == r["lesson_id"]]
+
+    if rows:
+        post("lesson_pool?on_conflict=source_table,source_id", rows,
+             "resolution=merge-duplicates,return=minimal")
+
     print("\nwritten.")
     for lid, tenses in CONJUGATION_LESSONS.items():
-        print(f"   L{lid} shows: {', '.join(tenses)}")
+        n = sum(1 for r in rows if r["lesson_id"] == lid)
+        print(f"   L{lid} shows: {', '.join(tenses)}  ({n} rows added to lesson_pool)")
 
 
 if __name__ == "__main__":
