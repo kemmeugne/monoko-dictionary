@@ -3558,16 +3558,22 @@
         let cancelled = false;
         (async () => {
           try {
+            // select=* on purpose: naming `tenses` would 400 on a database
+            // where that migration has not run yet, and a 400 here would take
+            // the whole table off the lesson page. Undefined simply means "all".
             const links = await supaFetch("lesson_conjugation_tables",
-              `lesson_id=eq.${id}&select=verb,sort_order&order=sort_order`);
+              `lesson_id=eq.${id}&select=*&order=sort_order`);
             if (!links.length) { if (!cancelled) setConjTables([]); return; }
             const verbs = links.map(l => `"${l.verb}"`).join(",");
             const forms = await supaFetch("conjugation_forms",
               `verb=in.(${verbs})&language_id=eq.${langId}&select=*&order=tense_order,person_order`);
+            // A lesson shows the tenses it teaches. `tenses` null means all of
+            // them — the sensible default for a general conjugation lesson.
             const byVerb = links.map(l => ({
               verb: l.verb,
               verbFr: (forms.find(f => f.verb === l.verb) || {}).verb_fr || "",
-              forms: forms.filter(f => f.verb === l.verb),
+              forms: forms.filter(f => f.verb === l.verb &&
+                                       (!l.tenses || !l.tenses.length || l.tenses.includes(f.tense))),
             })).filter(t => t.forms.length);
             if (!cancelled) setConjTables(byVerb);
           } catch (e) { console.error("conjugation tables:", e); if (!cancelled) setConjTables([]); }

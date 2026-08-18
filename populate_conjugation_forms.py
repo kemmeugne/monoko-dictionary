@@ -56,8 +56,17 @@ FRENCH = {
                   "ils":"Ils/elles étaient en train d'aimer"},
 }
 
-# Every conjugation lesson shows this table at the top.
-CONJUGATION_LESSONS = [358, 359, 393]
+# Which lesson shows which tenses. A lesson displays what it teaches: the
+# présent/passé lesson has no business showing the futur.
+#
+# L393 is futur PROCHE ("je vais parler") and gets nothing, because this
+# paradigm has no futur proche column -- the first professor never wrote one.
+# Showing it the futur simple would teach the wrong tense on that page, so it
+# shows no table until someone writes the missing six forms.
+CONJUGATION_LESSONS = {
+    358: ["present", "imparfait", "present_prog", "passe_prog"],   # présent et passé
+    359: ["futur"],                                                # futur simple
+}
 
 
 def key() -> str:
@@ -65,6 +74,15 @@ def key() -> str:
     if not k:
         sys.exit("SUPABASE_SERVICE_KEY not set")
     return k
+
+
+def delete(path: str) -> None:
+    req = urllib.request.Request(
+        f"{SUPABASE_URL}/rest/v1/{path}",
+        headers={"apikey": key(), "Authorization": f"Bearer {key()}",
+                 "Prefer": "return=minimal"},
+        method="DELETE")
+    urllib.request.urlopen(req).read()
 
 
 def post(path: str, rows: list, prefer: str) -> None:
@@ -117,17 +135,30 @@ def main() -> None:
     for f in forms[:3]:
         print(f"   {f['french']:34} {f['lingala']:22} {f['source_cell']}")
 
+    print()
+    for lid, tenses in CONJUGATION_LESSONS.items():
+        n = sum(1 for f in forms if f["tense"] in tenses)
+        print(f"   L{lid} -> {n} forms ({', '.join(tenses)})")
+
     if args.dry_run:
         print("\n--dry-run: nothing written")
         return
 
     post("conjugation_forms", forms,
          "resolution=merge-duplicates,return=minimal")
+    # A lesson that no longer shows a table must lose its link, or it keeps
+    # rendering the paradigm it was detached from.
+    keep = ",".join(str(l) for l in CONJUGATION_LESSONS)
+    delete(f"lesson_conjugation_tables?language_id=eq.{LANGUAGE_ID}&lesson_id=not.in.({keep})")
+
     post("lesson_conjugation_tables",
-         [{"lesson_id": lid, "language_id": LANGUAGE_ID, "verb": "ko linga", "sort_order": 0}
-          for lid in CONJUGATION_LESSONS],
+         [{"lesson_id": lid, "language_id": LANGUAGE_ID, "verb": "ko linga",
+           "sort_order": 0, "tenses": tenses}
+          for lid, tenses in CONJUGATION_LESSONS.items()],
          "resolution=merge-duplicates,return=minimal")
-    print(f"\nwritten. Table attached to lessons {CONJUGATION_LESSONS}.")
+    print("\nwritten.")
+    for lid, tenses in CONJUGATION_LESSONS.items():
+        print(f"   L{lid} shows: {', '.join(tenses)}")
 
 
 if __name__ == "__main__":
