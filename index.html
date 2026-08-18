@@ -607,6 +607,34 @@
     const questionCount = (ex) => !ex ? 0 : ex.type === "match_pairs" ? ex.pairs.length : 1;
     const countQuestions = (list) => (list || []).reduce((n, ex) => n + questionCount(ex), 0);
 
+    // French takes the singular after 0 and 1, plural only from 2 — "1 partie",
+    // "2 parties". Getting this wrong is the kind of thing a French speaker reads
+    // as broken software, so it lives in one helper rather than in each caller.
+    const plural = (n, one, many) => `${n}\u00A0${n > 1 ? many : one}`;
+
+    // What the pre-session briefing calls each exercise type. Defined here, in
+    // the pure engine, so a test and the corpus audit can both assert that every
+    // type `buildSession` can emit has a label — an unlabelled type would render
+    // a blank line in "Au programme" and nobody would notice.
+    const PROGRAMME_LABELS = {
+      match_pairs:  (n) => plural(n, "paire à associer", "paires à associer"),
+      choose_audio: (n) => plural(n, "enregistrement à reconnaître", "enregistrements à reconnaître"),
+      word_order:   (n) => plural(n, "phrase à remettre dans l'ordre", "phrases à remettre dans l'ordre"),
+      fill_blank:   (n) => plural(n, "phrase à compléter", "phrases à compléter"),
+      listen_type:  (n) => plural(n, "mot à écrire à l'oreille", "mots à écrire à l'oreille"),
+    };
+
+    // One line per exercise type actually in the queue, biggest first. Counted
+    // with questionCount() off the BUILT session, never from the budget
+    // constants — the briefing has to describe the session the learner gets.
+    const programmeOf = (queue) => {
+      const byType = {};
+      for (const ex of queue || []) byType[ex.type] = (byType[ex.type] || 0) + questionCount(ex);
+      return Object.entries(byType)
+        .sort((a, b) => b[1] - a[1])
+        .map(([type, n]) => ({ type, n, label: PROGRAMME_LABELS[type] ? PROGRAMME_LABELS[type](n) : null }));
+    };
+
     // Every pool row is identified the same way everywhere: by where it came
     // from. `lesson_pool.id` would be shorter but the exercises carry provenance,
     // not pool rows, and a re-populate reassigns pool ids.
@@ -1863,16 +1891,14 @@
       pratiquer: {
         label: "Maîtriser la leçon",
         short: "Maîtriser",
-        tag: "La leçon elle-même",
-        blurb: "Uniquement ce que le professeur a écrit dans cette leçon. C'est ce qui valide la leçon : 80% de bonnes réponses du premier coup.",
+        blurb: "À vous de jouer. 20 questions tirées de cette leçon, et rien d'autre. Obtenez 80\u202F% de bonnes réponses du premier coup, et vous débloquerez le prochain niveau",
         accent: "#6B21A8",
         soft: "#F4EEFB",
       },
       elargir: {
         label: "Aller plus loin",
         short: "Aller plus loin",
-        tag: "Au-delà de la leçon",
-        blurb: "Des phrases du corpus sur le même thème, que la leçon n'enseigne pas. Sans fin, rejouable — on va plus loin à chaque partie.",
+        blurb: "Mbote ! On va voir si tu maitrise le lingala ! 20 questions sur le même thème, tirées du corpus et non enseignées dans cette leçon. Evalue ton niveau par rapports aux autres participants !",
         accent: "#2C5F2D",
         soft: "#EAF7EE",
       },
@@ -1969,16 +1995,9 @@
 
       const brief = STAGE_BRIEF[stage] || STAGE_BRIEF.pratiquer;
 
-      // A taste of what this session will actually ask, taken from the built
-      // queue rather than from the lesson — so it is a promise the session keeps.
-      const preview = React.useMemo(() => {
-        const seen = new Set(), out = [];
-        for (const ex of exercises) for (const it of screenItems(ex)) {
-          const k = (it.fr || "").trim().toLowerCase();
-          if (k && !seen.has(k)) { seen.add(k); out.push(it.fr.trim()); }
-        }
-        return out;
-      }, [exercises]);
+      // What this session will actually ask, per exercise type, straight off the
+      // built queue — so the briefing is a promise the session keeps.
+      const programme = React.useMemo(() => programmeOf(exercises), [exercises]);
 
       if (!started) {
         const runs = stats?.runs || 0, best = stats?.best || 0;
@@ -1993,40 +2012,47 @@
               color: "#9B8A6E", fontSize: 26, lineHeight: 1, cursor: "pointer", textAlign: "left",
             }}>×</button>
 
-            {/* Scrolls rather than overflowing: badge + title + blurb + three
-                tiles + a best-score card + eight chips runs past 667px on an
-                iPhone SE, and the Commencer button must never be pushed off. */}
+            {/* Scrolls rather than overflowing: title + blurb + tiles + best score
+                + a programme line per type runs past 667px on an iPhone SE, and
+                the Commencer button must never be pushed off. */}
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto",
                           display: "flex", flexDirection: "column", justifyContent: "center" }}>
+
+              {/* The stage names the exercise; the LESSON is what the learner
+                  came for, so it is the biggest thing on the screen. */}
               <span style={{
                 alignSelf: "flex-start", background: brief.soft, color: brief.accent,
                 fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
                 textTransform: "uppercase", padding: "6px 12px", borderRadius: 20, marginBottom: 14,
-              }}>{brief.tag}</span>
+              }}>{brief.label}</span>
 
               <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 800,
-                           margin: "0 0 6px", lineHeight: 1.2 }}>{brief.label}</h2>
-              <p style={{ margin: "0 0 16px", fontSize: 15, color: "#5C4A2E", fontWeight: 600 }}>
-                {lesson.title}
-              </p>
-              <p style={{ margin: "0 0 22px", fontSize: 15, lineHeight: 1.5, color: "#6B5B45" }}>
+                           margin: "0 0 14px", lineHeight: 1.2 }}>{lesson.title}</h2>
+
+              <p style={{ margin: "0 0 22px", fontSize: 15, lineHeight: 1.55, color: "#6B5B45" }}>
                 {brief.blurb}
               </p>
 
-              {/* Three numbers, and each one is honest: the session's real
-                  length, how deep the material goes, how often you have played. */}
+              {/* Counters are singular after 0 and 1. The play count is hidden
+                  until there is one — "0 partie" is noise, not information. */}
               <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-                {[[totalQuestions, "questions"],
-                  [poolSize || "—", "expressions"],
-                  [runs, runs === 1 ? "partie" : "parties"]].map(([v, l]) => (
-                  <div key={l} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14,
-                                        padding: "13px 8px", background: "white", textAlign: "center" }}>
-                    <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
-                                fontVariantNumeric: "tabular-nums", color: brief.accent }}>{v}</b>
-                    <span style={{ fontSize: 11, color: "#9B8A6E", letterSpacing: ".05em",
-                                   textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>{l}</span>
-                  </div>
-                ))}
+                {[[plural(totalQuestions, "question", "questions"), true],
+                  [plural(poolSize || 0, "expression", "expressions"), (poolSize || 0) > 0],
+                  [plural(runs, "partie", "parties"), runs > 0]]
+                  .filter(([, show]) => show)
+                  .map(([text]) => {
+                    const [n, ...rest] = text.split("\u00A0");
+                    return (
+                      <div key={text} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14,
+                                               padding: "13px 8px", background: "white", textAlign: "center" }}>
+                        <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
+                                    fontVariantNumeric: "tabular-nums", color: brief.accent }}>{n}</b>
+                        <span style={{ display: "block", marginTop: 3, fontSize: 11, color: "#9B8A6E",
+                                       letterSpacing: ".05em", textTransform: "uppercase",
+                                       fontFamily: "'DM Mono', monospace" }}>{rest.join(" ")}</span>
+                      </div>
+                    );
+                  })}
               </div>
 
               {best > 0 && (
@@ -2042,24 +2068,25 @@
                 </div>
               )}
 
-              {preview.length > 0 && (
-                <div style={{ marginBottom: 8 }}>
+              {programme.length > 0 && (
+                <div>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
                               textTransform: "uppercase", color: "#9B8A6E", margin: "0 0 10px" }}>
                     Au programme
                   </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {preview.slice(0, 8).map(fr => (
-                      <span key={fr} style={{
-                        border: "1px solid #E8E0D4", background: "white", borderRadius: 20,
-                        padding: "7px 13px", fontSize: 13, color: "#5C4A2E",
-                      }}>{fr}</span>
+                  <div style={{ border: "1px solid #E8E0D4", borderRadius: 14, background: "white",
+                                overflow: "hidden" }}>
+                    {programme.filter(row => row.label).map((row, i) => (
+                      <div key={row.type} style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "12px 14px", fontSize: 14, color: "#5C4A2E",
+                        borderTop: i === 0 ? "none" : "1px solid #F4EFE7",
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: 3, background: brief.accent,
+                                       flex: "0 0 auto" }} />
+                        {row.label}
+                      </div>
                     ))}
-                    {preview.length > 8 && (
-                      <span style={{ padding: "7px 4px", fontSize: 13, color: "#9B8A6E" }}>
-                        +{preview.length - 8} autres
-                      </span>
-                    )}
                   </div>
                 </div>
               )}

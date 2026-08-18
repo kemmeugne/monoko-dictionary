@@ -30,7 +30,7 @@ const engine = new Function(
            buildFillBlank, fillBlankRows, fillBlankScreens, blankCandidates,
            sameWord, tokenize, fold,
            buildListenType, listenTypeRows, listenTypeScreens, characters,
-           selectionOrder, screenItems,
+           selectionOrder, screenItems, plural, PROGRAMME_LABELS, programmeOf,
            interleave, questionCount, countQuestions, makeLedger, itemId,
            usableRow, SESSION_QUESTIONS, WORD_ORDER_MIN, WORD_ORDER_MAX,
            BLANK_MIN_CHARS, FILL_BLANK_MIN_TOKENS,
@@ -480,6 +480,80 @@ describe("repeat sessions cover new material", () => {
 
   it("does not stall — repeated sessions keep adding until the pool is spent", () => {
     expect(playSessions(6, true)).toBe(pool.length);
+  });
+});
+
+describe("plural — French counts", () => {
+  it("stays singular after 0 and 1, plural only from 2", () => {
+    expect(engine.plural(0, "partie", "parties")).toBe("0\u00A0partie");
+    expect(engine.plural(1, "partie", "parties")).toBe("1\u00A0partie");
+    expect(engine.plural(2, "partie", "parties")).toBe("2\u00A0parties");
+  });
+
+  it("joins with a non-breaking space, so the number never wraps off its unit", () => {
+    expect(engine.plural(20, "question", "questions")).toContain("\u00A0");
+    expect(engine.plural(20, "question", "questions")).not.toContain(" ");
+  });
+});
+
+describe("programmeOf — the briefing's Au programme list", () => {
+  const pool = [
+    ...Array.from({ length: 12 }, (_, i) => row(`mot${"abcdefghijkl"[i]}`, `mot ${i}`)),
+    ...Array.from({ length: 12 }, (_, i) => row(`aaa${i} bbbb${i} cccc${i} dddd${i}`, `phrase ${i} de test`)),
+  ];
+
+  it("EVERY type buildSession can emit has a label", () => {
+    // Without this, a sixth exercise type would render a blank line in the
+    // briefing and nobody would notice until a learner mentioned it.
+    const seen = new Set();
+    for (let i = 0; i < 60; i++)
+      for (const ex of engine.buildSession(pool, 3)) seen.add(ex.type);
+    expect(seen.size).toBeGreaterThan(1);
+    for (const type of seen) {
+      expect(engine.PROGRAMME_LABELS[type], `no Au programme label for "${type}"`).toBeDefined();
+      expect(typeof engine.PROGRAMME_LABELS[type](3)).toBe("string");
+    }
+  });
+
+  it("counts questions off the built queue, not screens", () => {
+    // A match-pairs screen is 5 questions; the briefing must say 5, not 1.
+    const queue = [
+      { type: "match_pairs", pairs: [1, 2, 3, 4, 5].map(i => ({ id: i })) },
+      { type: "choose_audio", answer: { id: "a" } },
+    ];
+    const rows = engine.programmeOf(queue);
+    expect(rows.find(r => r.type === "match_pairs").n).toBe(5);
+    expect(rows.find(r => r.type === "choose_audio").n).toBe(1);
+  });
+
+  it("orders by count, biggest first", () => {
+    const queue = [
+      { type: "choose_audio", answer: { id: "a" } },
+      { type: "match_pairs", pairs: [1, 2, 3].map(i => ({ id: i })) },
+      { type: "word_order", tokens: ["a", "b", "c"], item: { id: "w" } },
+    ];
+    expect(engine.programmeOf(queue).map(r => r.n)).toEqual([3, 1, 1]);
+  });
+
+  it("omits types the session does not contain", () => {
+    const rows = engine.programmeOf([{ type: "fill_blank", item: { id: "f" } }]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].type).toBe("fill_blank");
+  });
+
+  it("labels read as French, singular at 1", () => {
+    expect(engine.PROGRAMME_LABELS.match_pairs(1)).toBe("1\u00A0paire à associer");
+    expect(engine.PROGRAMME_LABELS.match_pairs(5)).toBe("5\u00A0paires à associer");
+    expect(engine.PROGRAMME_LABELS.listen_type(1)).toBe("1\u00A0mot à écrire à l'oreille");
+    expect(engine.PROGRAMME_LABELS.listen_type(4)).toBe("4\u00A0mots à écrire à l'oreille");
+    expect(engine.PROGRAMME_LABELS.choose_audio(2)).toBe("2\u00A0enregistrements à reconnaître");
+    expect(engine.PROGRAMME_LABELS.word_order(3)).toBe("3\u00A0phrases à remettre dans l'ordre");
+    expect(engine.PROGRAMME_LABELS.fill_blank(1)).toBe("1\u00A0phrase à compléter");
+  });
+
+  it("survives an empty or null queue", () => {
+    expect(engine.programmeOf([])).toEqual([]);
+    expect(engine.programmeOf(null)).toEqual([]);
   });
 });
 

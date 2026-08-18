@@ -27,7 +27,8 @@ const E = new Function(
   return { buildSession, countQuestions, questionCount, screenItems, fold, sameWord,
            wordOrderRows, fillBlankRows, listenTypeRows, tokenize, BLANK_MIN_CHARS,
            LISTEN_MAX_CHARS, LISTEN_MAX_TOKENS, LISTEN_TILES,
-           WORD_ORDER_MIN, WORD_ORDER_MAX, PAIRS_MIN, PAIRS_MAX, SESSION_QUESTIONS };`)();
+           WORD_ORDER_MIN, WORD_ORDER_MAX, PAIRS_MIN, PAIRS_MAX, SESSION_QUESTIONS,
+           PROGRAMME_LABELS, programmeOf };`)();
 
 const api = async (t, q, r) => {
   const res = await fetch(`${U}/rest/v1/${t}?${q}`, {
@@ -45,6 +46,10 @@ const problems = new Set();
 const P = (m) => problems.add(m);
 
 const audit = (ex, lesson) => {
+  // An exercise type with no "Au programme" label renders a blank line in the
+  // pre-session briefing, which no test of the builders would ever catch.
+  if (!E.PROGRAMME_LABELS[ex.type]) P(`${lesson}: "${ex.type}" has no Au programme label`);
+
   for (const it of E.screenItems(ex)) {
     if (it.poolId == null) P(`${lesson}: ${ex.type} item without poolId`);
     if (!it.fr || !it.fr.trim()) P(`${lesson}: ${ex.type} item without a French prompt`);
