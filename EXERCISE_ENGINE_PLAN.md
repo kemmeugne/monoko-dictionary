@@ -74,11 +74,16 @@ The course has something Duolingo does not: a professor-authored lesson behind
 every game. That asset is wasted if the game draws on the same undifferentiated
 pool the lesson does. So a lesson is **three stages over two disjoint pools**.
 
-| Stage | Material | Shape |
-|---|---|---|
-| **Apprendre** | the lesson page (exists today) | the teach beat |
-| **Pratiquer** | `tier = native` only — 100% precision | **finite**, 80% to pass, unlocks Élargir |
-| **Élargir** | `tier IN (approved, reassigned)` | **endless**, replayable for best score |
+| Stage (key) | Shown to the learner as | Material | Shape |
+|---|---|---|---|
+| Apprendre | *(the lesson page)* | the lesson page (exists today) | the teach beat |
+| **`pratiquer`** | **Maîtriser la leçon** | `tier = native` only — 100% precision | **finite**, 80% to pass, unlocks the next |
+| **`elargir`** | **Aller plus loin** | `tier IN (approved, reassigned)` | **endless**, replayable for best score |
+
+**The keys never change** — `pratiquer` / `elargir` sit in a CHECK constraint and
+in every `exercise_attempts` row already written. Only labels changed
+(2026-08-17), and they live in one place, `STAGE_BRIEF`. This file keeps using
+the keys, since they are what the code says.
 
 The stages never share material. Élargir is everything routed to that topic that
 the lesson itself never taught.

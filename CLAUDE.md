@@ -582,6 +582,12 @@ measured data, and the build slices. Short version:
 
 ### The stage model (settled 2026-08-10) — read §2 of the plan
 
+**Stage keys vs labels.** The code and DB say `pratiquer` / `elargir` — those
+are in a CHECK constraint and in every `exercise_attempts` row already written,
+so they never change. The learner sees **"Maîtriser la leçon"** and **"Aller
+plus loin"** (renamed 2026-08-17). Labels live in one place, `STAGE_BRIEF`;
+never hardcode a stage name in a screen.
+
 A lesson is **three stages over two disjoint pools**:
 
 | Stage | Material | Shape |

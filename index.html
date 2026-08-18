@@ -1855,16 +1855,22 @@
     // question, because "Pratiquer" and "Élargir" do not explain themselves —
     // one is the lesson the professor wrote, the other is everything else the
     // course knows about the same topic.
+    // The learner never sees the words "pratiquer" or "elargir" — those stay as
+    // the DB values, where they sit in a CHECK constraint and in every attempt
+    // row already written. These are the labels, defined once so the lesson
+    // screen, the briefing and the session header cannot drift apart.
     const STAGE_BRIEF = {
       pratiquer: {
-        label: "Pratiquer",
+        label: "Maîtriser la leçon",
+        short: "Maîtriser",
         tag: "La leçon elle-même",
         blurb: "Uniquement ce que le professeur a écrit dans cette leçon. C'est ce qui valide la leçon : 80% de bonnes réponses du premier coup.",
         accent: "#6B21A8",
         soft: "#F4EEFB",
       },
       elargir: {
-        label: "Élargir",
+        label: "Aller plus loin",
+        short: "Aller plus loin",
         tag: "Au-delà de la leçon",
         blurb: "Des phrases du corpus sur le même thème, que la leçon n'enseigne pas. Sans fin, rejouable — on va plus loin à chaque partie.",
         accent: "#2C5F2D",
@@ -2132,7 +2138,7 @@
           {!done && (
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".12em",
                         textTransform: "uppercase", color: "#9B8A6E", margin: "0 0 6px" }}>
-              {stage === "elargir" ? "Élargir" : "Pratiquer"} · {lesson.title}
+              {brief.short} · {lesson.title}
             </p>
           )}
 
@@ -2155,7 +2161,7 @@
                 }}>
                   <p style={{ margin: 0, fontSize: 15, fontWeight: 700,
                               color: firstTryPct() >= PASS_PCT ? "#16A34A" : "#8B6D47" }}>
-                    {firstTryPct() >= PASS_PCT ? "✓ Pratiquer validé — Élargir débloqué" : `${firstTryPct()}% — il en faut ${PASS_PCT}%`}
+                    {firstTryPct() >= PASS_PCT ? "✓ Leçon maîtrisée — « Aller plus loin » débloqué" : `${firstTryPct()}% — il en faut ${PASS_PCT}%`}
                   </p>
                   {firstTryPct() < PASS_PCT && (
                     <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>
@@ -3239,7 +3245,7 @@
           if (!built.length) {
             setSessionNote(stage === "pratiquer"
               ? "Pas encore assez de contenu court dans cette leçon pour un exercice."
-              : "Pas encore assez de contenu supplémentaire pour cette leçon.");
+              : "Pas encore assez de contenu au-delà de la leçon pour un exercice.");
             return;
           }
           setSessionNote("");
@@ -4609,13 +4615,18 @@
                     {/* Practice comes before the completion button: doing the
                         exercises is the point, marking it done is bookkeeping.
 
-                        Two stages over two disjoint pools. Pratiquer is what the
-                        professor wrote into this lesson — finite, and the thing
-                        the 80% bar certifies. Élargir is the routed corpus,
-                        endless, and stays locked until Pratiquer is passed:
-                        widening before the lesson itself is learned is how a
-                        learner ends up practising sentences they were never
-                        taught. */}
+                        Two stages over two disjoint pools. `pratiquer` — shown
+                        as "Maîtriser la leçon" — is what the professor wrote
+                        into this lesson: finite, and the thing the 80% bar
+                        certifies. `elargir` — "Aller plus loin" — is the routed
+                        corpus, endless, and stays locked until the first is
+                        passed: widening before the lesson itself is learned is
+                        how a learner ends up practising sentences they were
+                        never taught.
+
+                        The stage KEYS stay `pratiquer`/`elargir` everywhere —
+                        they are in a CHECK constraint and in every attempt row
+                        already written. Only the labels changed. */}
                     <button onClick={() => startSession("pratiquer")} disabled={poolLoading} style={{
                       width:"100%", padding:"16px 20px", borderRadius:14, border:"none",
                       background: poolLoading ? "#E8E0D4" : "linear-gradient(135deg, #6B21A8, #9333EA)",
@@ -4624,7 +4635,7 @@
                       fontFamily:"'DM Sans', sans-serif",
                       boxShadow: poolLoading ? "none" : "0 4px 14px rgba(107,33,168,0.28)",
                     }}>
-                      {poolLoading ? "Préparation…" : "Pratiquer"}
+                      {poolLoading ? "Préparation…" : STAGE_BRIEF.pratiquer.label}
                       {!poolLoading && mastery.total > 0 && (
                         <span style={{ display:"block", fontSize:12, fontWeight:500, opacity:0.85, marginTop:3,
                                        fontFamily:"'DM Mono', monospace" }}>
@@ -4642,10 +4653,10 @@
                         cursor: poolLoading ? "default" : "pointer", marginBottom:12,
                         fontFamily:"'DM Sans', sans-serif",
                       }}>
-                        Élargir
+                        {STAGE_BRIEF.elargir.label}
                         <span style={{ display:"block", fontSize:12, fontWeight:500, opacity:0.75, marginTop:3,
                                        fontFamily:"'DM Mono', monospace" }}>
-                          Aller plus loin{stageState?.elargir_best ? ` · record ${stageState.elargir_best}%` : ""}
+                          Au-delà de la leçon{stageState?.elargir_best ? ` · record ${stageState.elargir_best}%` : ""}
                         </span>
                       </button>
                     ) : (
@@ -4655,10 +4666,10 @@
                         color:"#9B8A6E", fontSize:15, fontWeight:700, marginBottom:12,
                         fontFamily:"'DM Sans', sans-serif", textAlign:"center",
                       }}>
-                        🔒 Élargir
+                        🔒 {STAGE_BRIEF.elargir.label}
                         <span style={{ display:"block", fontSize:12, fontWeight:500, marginTop:3,
                                        fontFamily:"'DM Mono', monospace" }}>
-                          Réussissez Pratiquer à {PASS_PCT}% pour débloquer
+                          Terminez « {STAGE_BRIEF.pratiquer.label} » à {PASS_PCT}%
                         </span>
                       </div>
                     )}
