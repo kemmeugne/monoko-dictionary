@@ -4620,14 +4620,28 @@
                   }
 
                   // Default: table view for all other courses
-                  // Check if items have groups (example_french used as section title, e.g. "Présent", "Passé")
-                  const hasGroups = lessonItems.some(it => it.example_french) &&
-                    (() => {
-                      // It's grouped if multiple items share the same example_french value
-                      const labels = lessonItems.filter(it => it.example_french).map(it => it.example_french);
-                      const unique = [...new Set(labels)];
-                      return unique.length > 0 && unique.length < labels.length;
-                    })();
+                  //
+                  // `example_french` carries two different things in this data: the
+                  // example SENTENCE for its row, and — in a few older lessons — a
+                  // section LABEL like "Présent" repeated across the rows it heads.
+                  //
+                  // Telling them apart by "is any value repeated?" was far too eager.
+                  // Two pronouns happening to share "Tout le monde vous aime" was
+                  // enough to turn all 29 example sentences on that page into section
+                  // headers, which is why the pronoun lessons looked like they had no
+                  // examples at all. A real label is SHORT, carries no sentence
+                  // punctuation, and heads SEVERAL rows.
+                  const GROUP_MIN_PER_LABEL = 2;    // a heading with one row under it is not a heading
+                  const GROUP_MAX_LABEL_LEN = 24;
+                  const hasGroups = (() => {
+                    const labels = lessonItems
+                      .filter(it => it.example_french && it.example_french.trim())
+                      .map(it => it.example_french.trim());
+                    if (!labels.length) return false;
+                    const unique = [...new Set(labels)];
+                    return labels.length / unique.length >= GROUP_MIN_PER_LABEL &&
+                           unique.every(l => l.length <= GROUP_MAX_LABEL_LEN && !/[.?!]$/.test(l));
+                  })();
 
                   if (hasGroups) {
                     // Group items by example_french (verb name or tense label)
