@@ -83,6 +83,8 @@ sql/pgvector_dictionary.sql       — SQL migration: embedding cols on senses+ex
 sql/lesson_pool.sql               — SQL migration: lesson_pool, the exercise engine's material (applied 2026-08-10)
 sql/exercise_progress.sql         — SQL migration: exercise_attempts + lesson_stage_state, what a session leaves behind (applied 2026-08-17)
 sql/merge_ordinals_into_numbers.sql — SQL migration: folds L375 "Les nombres ordinaux" (3 items) into L350 "Les nombres" (applied 2026-08-17)
+sql/conjugation_tables.sql        — SQL migration: conjugation_forms + lesson_conjugation_tables, a paradigm stored as a GRID (written 2026-08-18, NOT YET APPLIED)
+populate_conjugation_forms.py     — loads the FIRST professor's ko linga paradigm (5 tenses x 6 persons, 24 clips already on R2) from the original Cours 2 workbook matrix
 populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)

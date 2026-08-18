@@ -2244,6 +2244,79 @@
     };
 
 
+    // ── Conjugation table ─────────────────────────────────────────────────────
+    // A paradigm is a grid, and a grid is the whole point: what a learner needs
+    // to see is that the stem never moves and only the prefix does. Rendered as
+    // tense tabs rather than a 5x6 matrix, because thirty cells will not fit a
+    // 375px column without becoming unreadable.
+    const ConjugationTable = ({ verb, verbFr, forms }) => {
+      const tenses = React.useMemo(() => {
+        const by = new Map();
+        for (const f of forms) {
+          if (!by.has(f.tense)) by.set(f.tense, { key: f.tense, label: f.tense_label, order: f.tense_order, rows: [] });
+          by.get(f.tense).rows.push(f);
+        }
+        return [...by.values()]
+          .sort((a, b) => a.order - b.order)
+          .map(t => ({ ...t, rows: t.rows.sort((a, b) => a.person_order - b.person_order) }));
+      }, [forms]);
+
+      const [active, setActive] = useState(0);
+      const tense = tenses[active];
+      if (!tense) return null;
+
+      return (
+        <div style={{ border: "1px solid #E8E0D4", borderRadius: 18, background: "white",
+                      overflow: "hidden", marginBottom: 20 }}>
+          <div style={{ padding: "16px 18px 12px", borderBottom: "1px solid #F4EFE7" }}>
+            <p style={{ margin: 0, fontFamily: "'DM Mono', monospace", fontSize: 11,
+                        letterSpacing: ".1em", textTransform: "uppercase", color: "#9B8A6E" }}>
+              Conjugaison
+            </p>
+            <h3 style={{ margin: "6px 0 0", fontFamily: "'Playfair Display', serif",
+                         fontSize: 22, fontWeight: 800, color: "#2C5F2D" }}>
+              {verb} <span style={{ color: "#9B8A6E", fontWeight: 500, fontSize: 16 }}>— {verbFr}</span>
+            </h3>
+          </div>
+
+          {/* Tense tabs. Scroll sideways INSIDE this strip only — the page itself
+              must never scroll horizontally. */}
+          <div style={{ display: "flex", gap: 6, padding: "12px 14px", overflowX: "auto",
+                        borderBottom: "1px solid #F4EFE7", WebkitOverflowScrolling: "touch" }}>
+            {tenses.map((t, i) => (
+              <button key={t.key} onClick={() => setActive(i)}
+                style={{
+                  flex: "0 0 auto", minHeight: 36, padding: "8px 14px", borderRadius: 18,
+                  border: i === active ? "none" : "1px solid #E8E0D4",
+                  background: i === active ? "#2C5F2D" : "white",
+                  color: i === active ? "white" : "#5C4A2E",
+                  fontFamily: "'DM Sans', sans-serif", fontSize: 13,
+                  fontWeight: i === active ? 700 : 500, cursor: "pointer", whiteSpace: "nowrap",
+                }}>{t.label}</button>
+            ))}
+          </div>
+
+          <div>
+            {tense.rows.map((f, i) => (
+              <div key={f.person} style={{
+                display: "flex", alignItems: "center", gap: 12, padding: "11px 16px",
+                borderTop: i === 0 ? "none" : "1px solid #F4EFE7",
+              }}>
+                <span style={{ flex: 1, fontSize: 13, color: "#9B8A6E", lineHeight: 1.35 }}>{f.french}</span>
+                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700,
+                               color: "#2C5F2D", textAlign: "right" }}>{f.lingala}</span>
+                {/* The présent column was never recorded, so a third of the grid
+                    has no clip. An empty slot keeps the rows aligned. */}
+                {f.audio_url
+                  ? <AudioButton src={f.audio_url} title={`Écouter ${f.lingala}`} />
+                  : <span style={{ width: 36, flex: "0 0 auto" }} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
     const LessonAudioText = ({ text, audioUrl, title, color = "#2C5F2D", fontSize = 14, fontWeight = 500, italic = false }) => (
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
         <div style={{ flex:1, fontSize, color, fontWeight, fontStyle: italic ? "italic" : "normal", lineHeight:1.5 }}>
@@ -3041,6 +3114,7 @@
       const [sessionExercises, setSessionExercises] = useState(null); // null = not in a session
       const [sessionStage, setSessionStage] = useState("pratiquer");  // pratiquer | elargir
       const [sessionPoolSize, setSessionPoolSize] = useState(0);      // how deep this stage goes
+      const [conjTables, setConjTables] = useState([]);               // paradigms shown atop this lesson
       const [poolLoading, setPoolLoading] = useState(false);
       const [sessionNote, setSessionNote] = useState("");
       // Per-lesson stage state, loaded on open. `mastery` is the "18/25" counter:
@@ -3475,6 +3549,31 @@
       useEffect(() => {
         loadStageState(selectedLesson?.id);
       }, [currentUser?.id, selectedLesson?.id]);
+
+      // Conjugation paradigms pinned to this lesson. Public read, so this works
+      // logged out as well — the table is reference material, not progress.
+      useEffect(() => {
+        const id = selectedLesson?.id;
+        if (!id) { setConjTables([]); return; }
+        let cancelled = false;
+        (async () => {
+          try {
+            const links = await supaFetch("lesson_conjugation_tables",
+              `lesson_id=eq.${id}&select=verb,sort_order&order=sort_order`);
+            if (!links.length) { if (!cancelled) setConjTables([]); return; }
+            const verbs = links.map(l => `"${l.verb}"`).join(",");
+            const forms = await supaFetch("conjugation_forms",
+              `verb=in.(${verbs})&language_id=eq.${langId}&select=*&order=tense_order,person_order`);
+            const byVerb = links.map(l => ({
+              verb: l.verb,
+              verbFr: (forms.find(f => f.verb === l.verb) || {}).verb_fr || "",
+              forms: forms.filter(f => f.verb === l.verb),
+            })).filter(t => t.forms.length);
+            if (!cancelled) setConjTables(byVerb);
+          } catch (e) { console.error("conjugation tables:", e); if (!cancelled) setConjTables([]); }
+        })();
+        return () => { cancelled = true; };
+      }, [selectedLesson?.id, langId]);
 
       const langId = selectedLang?.id;
       const langName = selectedLang?.name || "";
@@ -4443,6 +4542,13 @@
                     {lessonItems.length} expressions
                   </p>
                 </div>
+
+                {/* The paradigm comes FIRST. The rest of the lesson is examples
+                    of it, and a learner who scrolls past thirty sentences before
+                    meeting the pattern has already lost the pattern. */}
+                {conjTables.map(t => (
+                  <ConjugationTable key={t.verb} verb={t.verb} verbFr={t.verbFr} forms={t.forms} />
+                ))}
 
                 {loading ? <Spinner /> : (() => {
                   // Sons et alphabet — special tile view
