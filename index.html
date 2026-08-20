@@ -4137,6 +4137,13 @@
             });
           }
 
+          // The module is granted by the same condition that opens the gate, so
+          // the two can never disagree. Isolated like the others: failing to
+          // record completion must not stop the gate itself being written.
+          if (completed && stage === "pratiquer" && pct >= PASS_PCT) {
+            await step("complete", () => markLessonComplete(lessonId));
+          }
+
           if (completed) {
             const prev = stageState || {};
             await supabaseClient.from("lesson_stage_state").upsert({
@@ -4193,14 +4200,26 @@
         } catch (e) { console.error("reportPoolItem:", e); }
       };
 
-      const markLessonComplete = async () => {
-        if (!currentUser || !selectedLesson || userProgress.has(selectedLesson.id)) return;
+      // A module is COMPLETED BY PASSING PRATIQUER, never by declaring it.
+      // This used to be a "J'ai terminé ce module" button, so the checkmark, the
+      // level progress bars and the "Continuer" card all reported what a learner
+      // had *tapped* rather than what they had learned. Now the 80% first-try
+      // gate is the single thing that grants it, which makes the progress bar
+      // mean the same as the gate.
+      //
+      // Still stored in `user_progress` rather than read from
+      // `lesson_stage_state.pratiquer_passed`: the level cards need completion
+      // for EVERY lesson at once, and stage state is loaded one lesson at a
+      // time. This is the materialisation of the gate, the same way stage state
+      // is the materialisation of the attempt log.
+      const markLessonComplete = async (lessonId) => {
+        if (!currentUser || !lessonId || userProgress.has(lessonId)) return;
         try {
           const { error } = await supabaseClient.from("user_progress").upsert(
-            { user_id: currentUser.id, lesson_id: selectedLesson.id, language_id: langId },
+            { user_id: currentUser.id, lesson_id: lessonId, language_id: langId },
             { onConflict: "user_id,lesson_id" }
           );
-          if (!error) setUserProgress(prev => new Set([...prev, selectedLesson.id]));
+          if (!error) setUserProgress(prev => new Set([...prev, lessonId]));
         } catch(e) { console.error("markLessonComplete:", e); }
       };
 
@@ -5679,17 +5698,21 @@
                         <span style={{ fontSize:14, fontWeight:700, color:"#2C5F2D", fontFamily:"'DM Sans', sans-serif" }}>Module terminé</span>
                       </div>
                     ) : (
-                      <button onClick={markLessonComplete} style={{
-                        width:"100%", padding:"16px 20px", borderRadius:14, border:"none",
-                        background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
-                        color:"white", fontSize:15, fontWeight:700, cursor:"pointer",
-                        fontFamily:"'DM Sans', sans-serif",
-                        boxShadow:"0 4px 14px rgba(44,95,45,0.3)", transition:"all 0.2s",
-                      }}
-                      onMouseOver={e => e.currentTarget.style.transform="translateY(-1px)"}
-                      onMouseOut={e => e.currentTarget.style.transform="translateY(0)"}>
-                        ✓ J'ai terminé ce module
-                      </button>
+                      /* Not a button. Completion is earned by passing Pratiquer
+                         at 80%, and the button that starts it is directly above
+                         — a second control here would either duplicate it or
+                         look disabled for no visible reason. This just says what
+                         the mark costs. */
+                      <p style={{
+                        margin:0, padding:"14px 18px", borderRadius:14,
+                        background:"#FDFBF7", border:"1px dashed #E8E0D4",
+                        color:"#9B8A6E", fontSize:13, textAlign:"center",
+                        fontFamily:"'DM Sans', sans-serif", lineHeight:1.5,
+                      }}>
+                        Ce module sera validé automatiquement lorsque vous réussirez
+                        «&nbsp;{STAGE_BRIEF.pratiquer.label}&nbsp;» à {PASS_PCT}&nbsp;%
+                        du premier coup.
+                      </p>
                     )}
                   </div>
                 )}

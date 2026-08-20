@@ -116,7 +116,7 @@ weights to the HF Space).
 **Delivered:**
 - `profiles` and `user_progress` Supabase tables with RLS (`sql/progress_tracking.sql`)
 - `user_progress` has `UNIQUE(user_id, lesson_id)` and a `(user_id, language_id)` index; `exam_score` column is `null` until Phase 3
-- "✓ J'ai terminé ce module" button at the bottom of every lesson
+- Lesson completion — originally a "✓ J'ai terminé ce module" button; **since 2026-08-20 a module is validated only by passing Pratiquer at 80% first-try**, so the checkmark means the same thing as the gate
 - Checkmarks on completed lesson rows in the course detail view
 - Per-level progress bar (X/Y modules) on every level card
 - "Continuer ▶" shortcut card on home screen — drops the user directly back into their last lesson
