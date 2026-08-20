@@ -1,0 +1,786 @@
+{
+  "lesson_id": 346,
+  "updated": [
+    {
+      "id": 313,
+      "french": "Consonne L — Noix de cola",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_l_noix_de_cola_e12_phrase.mp3"
+    },
+    {
+      "id": 315,
+      "french": "Son composé GB — Pont",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_gb_pont_e22_phrase.mp3"
+    },
+    {
+      "id": 316,
+      "french": "Son composé TS — Grammaire",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ts_grammaire_e37_phrase.mp3"
+    },
+    {
+      "id": 378,
+      "french": "Son composé NGW — Brillant",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ngw_brillant_e39_phrase.mp3"
+    },
+    {
+      "id": 759,
+      "french": "Voyelle U — Âge / pluie",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_u_deformer_e4_phrase.mp3"
+    },
+    {
+      "id": 770,
+      "french": "Ton montant (caron ˇ) — Femme",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_montant_caron_femme_e44_phrase.mp3"
+    },
+    {
+      "id": 774,
+      "french": "Ton descendant (accent circonflexe ^) — Énigme",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_descendant_accent_circonflexe_enigme_e43_phrase.mp3"
+    },
+    {
+      "id": 775,
+      "french": "Ton haut (accent aigu ´) — Père",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_haut_accent_aigu_pere_e42_phrase.mp3"
+    },
+    {
+      "id": 778,
+      "french": "Son composé TSH — Tchad",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_tsh_tchad_e40_phrase.mp3"
+    },
+    {
+      "id": 779,
+      "french": "Son composé NGB — Hachette",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ngb_hachette_e38_phrase.mp3"
+    },
+    {
+      "id": 782,
+      "french": "Son composé NZ — Buffle",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nz_buffle_e36_phrase.mp3"
+    },
+    {
+      "id": 783,
+      "french": "Son composé NY — Animal",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ny_animal_e35_phrase.mp3"
+    },
+    {
+      "id": 784,
+      "french": "Son composé NT — Chèvre",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nt_chevre_e34_phrase.mp3"
+    },
+    {
+      "id": 787,
+      "french": "Son composé NK — Cent",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nk_cent_e32_phrase.mp3"
+    },
+    {
+      "id": 789,
+      "french": "Son composé NG — Cochon",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ng_cochon_e31_phrase.mp3"
+    },
+    {
+      "id": 790,
+      "french": "Son composé MV — Frange",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mv_frange_e28_phrase.mp3"
+    },
+    {
+      "id": 794,
+      "french": "Son composé MP — Souffle",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mp_souffle_e27_phrase.mp3"
+    },
+    {
+      "id": 796,
+      "french": "Son composé MF — Taxe",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mf_taxe_e26_phrase.mp3"
+    },
+    {
+      "id": 797,
+      "french": "Son composé KW — Vénus",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_kw_venus_e24_phrase.mp3"
+    },
+    {
+      "id": 798,
+      "french": "Consonne Z — Nid",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_z_nid_e21_phrase.mp3"
+    },
+    {
+      "id": 800,
+      "french": "Consonne Y — Cela, Ça",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_y_cela_ca_e20_phrase.mp3"
+    },
+    {
+      "id": 801,
+      "french": "Consonne V — Vin",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_v_vin_e18_phrase.mp3"
+    },
+    {
+      "id": 804,
+      "french": "Consonne S — Lune",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_s_lune_e16_phrase.mp3"
+    },
+    {
+      "id": 807,
+      "french": "Consonne P — Lumière",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_p_lumiere_e15_phrase.mp3"
+    },
+    {
+      "id": 808,
+      "french": "Consonne N — Python",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_n_python_e14_phrase.mp3"
+    },
+    {
+      "id": 810,
+      "french": "Consonne M — Pluie",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_m_pluie_e13_phrase.mp3"
+    },
+    {
+      "id": 812,
+      "french": "Consonne K — Pouvoir",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_k_pouvoir_e11_phrase.mp3"
+    },
+    {
+      "id": 815,
+      "french": "Consonne G — Saison sèche",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_g_saison_seche_e10_phrase.mp3"
+    },
+    {
+      "id": 817,
+      "french": "Consonne F — Poubelle",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_f_poubelle_e9_phrase.mp3"
+    },
+    {
+      "id": 819,
+      "french": "Consonne W — Sésame",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_w_sesame_e19_phrase.mp3"
+    },
+    {
+      "id": 822,
+      "french": "Consonne D — Panier",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_d_panier_e8_phrase.mp3"
+    },
+    {
+      "id": 823,
+      "french": "Voyelle Ɔ — Pour",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_pour_e6_phrase.mp3"
+    },
+    {
+      "id": 825,
+      "french": "Voyelle Ɛ — Timbre",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_timbre_e5_phrase.mp3"
+    },
+    {
+      "id": 829,
+      "french": "Voyelle O — Sueur",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_o_sueur_e3_phrase.mp3"
+    },
+    {
+      "id": 833,
+      "french": "Voyelle I — Discours",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_i_discours_e2_phrase.mp3"
+    },
+    {
+      "id": 837,
+      "french": "Voyelle E — Saison",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_e_genre_e1_phrase_v2.mp3"
+    },
+    {
+      "id": 840,
+      "french": "Voyelle E — Cuillère",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_e_genre_e1_phrase_v1.mp3"
+    },
+    {
+      "id": 849,
+      "french": "Voyelle A — Décision",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_a_decision_e0_phrase.mp3"
+    },
+    {
+      "id": 853,
+      "french": "Consonne B — Maladie",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_b_maladie_e7_phrase.mp3"
+    },
+    {
+      "id": 854,
+      "french": "Son composé MW — Huit",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mw_huit_e29_phrase.mp3"
+    },
+    {
+      "id": 924,
+      "french": "Ton bas (aucun accent) — Donner",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_bas_aucun_accent_donner_e41_phrase.mp3"
+    },
+    {
+      "id": 988,
+      "french": "Son composé ND — Maison",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nd_maison_e30_phrase.mp3"
+    },
+    {
+      "id": 994,
+      "french": "Son composé KP — Entrepôt",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_kp_entrepot_e23_phrase.mp3"
+    },
+    {
+      "id": 1009,
+      "french": "Consonne T — Conseil",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_t_conseil_e17_phrase.mp3"
+    },
+    {
+      "id": 1013,
+      "french": "Son composé NS — Fil",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ns_fil_e33_phrase.mp3"
+    },
+    {
+      "id": 1052,
+      "french": "Son composé MB — Récompense",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mb_recompense_e25_phrase.mp3"
+    }
+  ],
+  "deleted": [
+    {
+      "id": 2675,
+      "tier": "approved",
+      "french": "Musicien",
+      "lingala": "Moyembi",
+      "audio_url": null,
+      "source_table": "parallel_sentences",
+      "source_id": 3503
+    },
+    {
+      "id": 3606,
+      "tier": "reassigned",
+      "french": "Un mot est composé de plusieurs lettres",
+      "lingala": "Liloba moko eza na bikomeli ebele.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/examples/M/M.D146.mp3",
+      "source_table": "examples",
+      "source_id": 1399
+    },
+    {
+      "id": 4589,
+      "tier": "reassigned",
+      "french": "Cette meuf est joviale",
+      "lingala": "Mwasi oyo aza na esengo.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/examples/M/M.D106.mp3",
+      "source_table": "examples",
+      "source_id": 1353
+    },
+    {
+      "id": 4591,
+      "tier": "approved",
+      "french": "La lettre A est la première de l'alphabet",
+      "lingala": "Eza « a » mokanda ya liboso ya alphabet.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/examples/L/L.G34.mp3",
+      "source_table": "examples",
+      "source_id": 1182
+    },
+    {
+      "id": 4669,
+      "tier": "reassigned",
+      "french": "Je vois net quand je porte mes lunettes.",
+      "lingala": "Na monaka malamu tango na lataka maneti na ngai.",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/examples/N/N.D19.mp3",
+      "source_table": "examples",
+      "source_id": 1439
+    },
+    {
+      "id": 5178,
+      "tier": "approved",
+      "french": "Argent",
+      "lingala": "Mbongo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.C110.mp3",
+      "source_table": "senses",
+      "source_id": 2617
+    },
+    {
+      "id": 5212,
+      "tier": "approved",
+      "french": "Nid",
+      "lingala": "Zala",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/N/N.C25.mp3",
+      "source_table": "senses",
+      "source_id": 1446
+    },
+    {
+      "id": 5217,
+      "tier": "approved",
+      "french": "Pont",
+      "lingala": "Gbagba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/P/P.C168.mp3",
+      "source_table": "senses",
+      "source_id": 1736
+    },
+    {
+      "id": 5250,
+      "tier": "reassigned",
+      "french": "Accent",
+      "lingala": "Elobeli",
+      "audio_url": null,
+      "source_table": "senses",
+      "source_id": 14
+    },
+    {
+      "id": 5251,
+      "tier": "reassigned",
+      "french": "Accent",
+      "lingala": "Mingi",
+      "audio_url": null,
+      "source_table": "senses",
+      "source_id": 13
+    },
+    {
+      "id": 5285,
+      "tier": "approved",
+      "french": "Coco (noix de)",
+      "lingala": "Mbuma koko",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.C120.mp3",
+      "source_table": "senses",
+      "source_id": 281
+    },
+    {
+      "id": 5301,
+      "tier": "approved",
+      "french": "Couronne",
+      "lingala": "Ekoti",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.C211.mp3",
+      "source_table": "senses",
+      "source_id": 384
+    },
+    {
+      "id": 5315,
+      "tier": "approved",
+      "french": "Doux",
+      "lingala": "Pete",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/D/D.C132.mp3",
+      "source_table": "senses",
+      "source_id": 585
+    },
+    {
+      "id": 5343,
+      "tier": "approved",
+      "french": "Fil",
+      "lingala": "Singa",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/F/F.C47.mp3",
+      "source_table": "senses",
+      "source_id": 817
+    },
+    {
+      "id": 5345,
+      "tier": "approved",
+      "french": "Fâché",
+      "lingala": "Kanda",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/F/F.C5.mp3",
+      "source_table": "senses",
+      "source_id": 768
+    },
+    {
+      "id": 5361,
+      "tier": "approved",
+      "french": "Fourchette",
+      "lingala": "Furcheti",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/F/F.C92.mp3",
+      "source_table": "senses",
+      "source_id": 867
+    },
+    {
+      "id": 5398,
+      "tier": "reassigned",
+      "french": "Kola",
+      "lingala": "Likaso (makaso)",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/K/K.C4.mp3",
+      "source_table": "senses",
+      "source_id": 1144
+    },
+    {
+      "id": 5405,
+      "tier": "approved",
+      "french": "Malade",
+      "lingala": "Bokono",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/M/M.C27.mp3",
+      "source_table": "senses",
+      "source_id": 1257
+    },
+    {
+      "id": 5418,
+      "tier": "approved",
+      "french": "Noix",
+      "lingala": "Nzika",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/N/N.C31.mp3",
+      "source_table": "senses",
+      "source_id": 1452
+    },
+    {
+      "id": 5428,
+      "tier": "approved",
+      "french": "Noyer",
+      "lingala": "Ko zinda",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/N/N.C49.mp3",
+      "source_table": "senses",
+      "source_id": 1474
+    },
+    {
+      "id": 5429,
+      "tier": "reassigned",
+      "french": "Nœud",
+      "lingala": "Lizita",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/N/N.C29.mp3",
+      "source_table": "senses",
+      "source_id": 1450
+    },
+    {
+      "id": 5496,
+      "tier": "approved",
+      "french": "Souple",
+      "lingala": "Pete",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/S/S.C129.mp3",
+      "source_table": "senses",
+      "source_id": 2178
+    },
+    {
+      "id": 5505,
+      "tier": "reassigned",
+      "french": "Sourd",
+      "lingala": "Ko kufa matoyi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/S/S.C132.mp3",
+      "source_table": "senses",
+      "source_id": 2181
+    },
+    {
+      "id": 5541,
+      "tier": "approved",
+      "french": "Vœu",
+      "lingala": "Posa",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/V/V.C58.mp3",
+      "source_table": "senses",
+      "source_id": 2456
+    },
+    {
+      "id": 5543,
+      "tier": "approved",
+      "french": "Vin",
+      "lingala": "Vino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/V/V.C48.mp3",
+      "source_table": "senses",
+      "source_id": 2443
+    },
+    {
+      "id": 5564,
+      "tier": "approved",
+      "french": "An",
+      "lingala": "Mbula / Mvula",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.C77.mp3",
+      "source_table": "senses",
+      "source_id": 2581
+    },
+    {
+      "id": 5580,
+      "tier": "approved",
+      "french": "Pays",
+      "lingala": "Mboka",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/P/P.C58.mp3",
+      "source_table": "senses",
+      "source_id": 1613
+    },
+    {
+      "id": 5595,
+      "tier": "approved",
+      "french": "Atelier",
+      "lingala": "Ekpangba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.C132.mp3",
+      "source_table": "senses",
+      "source_id": 2644
+    },
+    {
+      "id": 5603,
+      "tier": "approved",
+      "french": "Âge",
+      "lingala": "Mbula / Mvula",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.C43.mp3",
+      "source_table": "senses",
+      "source_id": 2538
+    },
+    {
+      "id": 5610,
+      "tier": "approved",
+      "french": "Aiguille",
+      "lingala": "Tonga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.C51.mp3",
+      "source_table": "senses",
+      "source_id": 2546
+    },
+    {
+      "id": 5622,
+      "tier": "approved",
+      "french": "Ange",
+      "lingala": "Anzelu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.C81.mp3",
+      "source_table": "senses",
+      "source_id": 2585
+    },
+    {
+      "id": 5626,
+      "tier": "reassigned",
+      "french": "Accent",
+      "lingala": "Elobeli",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.F13.mp3",
+      "source_table": "senses",
+      "source_id": 2503
+    },
+    {
+      "id": 5651,
+      "tier": "approved",
+      "french": "Briller / Brillant",
+      "lingala": "Ko ngenga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/B/B.F88.mp3",
+      "source_table": "senses",
+      "source_id": 129
+    },
+    {
+      "id": 5654,
+      "tier": "approved",
+      "french": "Briller / Brillant",
+      "lingala": "Ko ngenga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/B/B.C88.mp3",
+      "source_table": "senses",
+      "source_id": 128
+    },
+    {
+      "id": 5661,
+      "tier": "approved",
+      "french": "Clé",
+      "lingala": "Fungola",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.C115.mp3",
+      "source_table": "senses",
+      "source_id": 276
+    },
+    {
+      "id": 5666,
+      "tier": "approved",
+      "french": "Cochon",
+      "lingala": "Ngulu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.C119.mp3",
+      "source_table": "senses",
+      "source_id": 280
+    },
+    {
+      "id": 5671,
+      "tier": "approved",
+      "french": "Con",
+      "lingala": "Zoba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.C151.mp3",
+      "source_table": "senses",
+      "source_id": 317
+    },
+    {
+      "id": 5676,
+      "tier": "approved",
+      "french": "Conseil(ler)",
+      "lingala": "Toli",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.C167.mp3",
+      "source_table": "senses",
+      "source_id": 334
+    },
+    {
+      "id": 5709,
+      "tier": "reassigned",
+      "french": "Ça",
+      "lingala": "Oyo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.C3.mp3",
+      "source_table": "senses",
+      "source_id": 141
+    },
+    {
+      "id": 5719,
+      "tier": "approved",
+      "french": "Coque / coquille",
+      "lingala": "Poso",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.F183.mp3",
+      "source_table": "senses",
+      "source_id": 351
+    },
+    {
+      "id": 5722,
+      "tier": "approved",
+      "french": "Chaîne",
+      "lingala": "Bilili",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/C/C.F54.mp3",
+      "source_table": "senses",
+      "source_id": 206
+    },
+    {
+      "id": 5788,
+      "tier": "approved",
+      "french": "Flèche",
+      "lingala": "Likonga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/F/F.C60.mp3",
+      "source_table": "senses",
+      "source_id": 833
+    },
+    {
+      "id": 5793,
+      "tier": "approved",
+      "french": "Forêt",
+      "lingala": "Zamba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/F/F.C79.mp3",
+      "source_table": "senses",
+      "source_id": 854
+    },
+    {
+      "id": 5806,
+      "tier": "approved",
+      "french": "Fosse",
+      "lingala": "Libulu",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/F/F.C83.mp3",
+      "source_table": "senses",
+      "source_id": 858
+    },
+    {
+      "id": 5841,
+      "tier": "approved",
+      "french": "Huit",
+      "lingala": "Mwambe",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/H/H.C41.mp3",
+      "source_table": "senses",
+      "source_id": 1016
+    },
+    {
+      "id": 5867,
+      "tier": "approved",
+      "french": "Jeu",
+      "lingala": "Lisano",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/J/J.C13.mp3",
+      "source_table": "senses",
+      "source_id": 1114
+    },
+    {
+      "id": 5874,
+      "tier": "approved",
+      "french": "La",
+      "lingala": "Ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/L/L.C3.mp3",
+      "source_table": "senses",
+      "source_id": 1145
+    },
+    {
+      "id": 5888,
+      "tier": "approved",
+      "french": "Ligne",
+      "lingala": "Mondelo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/L/L.C48.mp3",
+      "source_table": "senses",
+      "source_id": 1199
+    },
+    {
+      "id": 5890,
+      "tier": "approved",
+      "french": "Le",
+      "lingala": "Ye",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/L/L.F24.mp3",
+      "source_table": "senses",
+      "source_id": 1169
+    },
+    {
+      "id": 5894,
+      "tier": "approved",
+      "french": "Lourd",
+      "lingala": "Kilo",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/L/L.C68.mp3",
+      "source_table": "senses",
+      "source_id": 1220
+    },
+    {
+      "id": 5903,
+      "tier": "reassigned",
+      "french": "Mouvement",
+      "lingala": "Ko ningana",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/M/M.C156.mp3",
+      "source_table": "senses",
+      "source_id": 1410
+    },
+    {
+      "id": 5907,
+      "tier": "reassigned",
+      "french": "Mou",
+      "lingala": "Pete",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/M/M.C148.mp3",
+      "source_table": "senses",
+      "source_id": 1401
+    },
+    {
+      "id": 5915,
+      "tier": "approved",
+      "french": "Maladie",
+      "lingala": "Bokono",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/M/M.C28.mp3",
+      "source_table": "senses",
+      "source_id": 1258
+    },
+    {
+      "id": 5940,
+      "tier": "approved",
+      "french": "Naïf",
+      "lingala": "Zoba",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/N/N.C4.mp3",
+      "source_table": "senses",
+      "source_id": 1424
+    },
+    {
+      "id": 5964,
+      "tier": "approved",
+      "french": "Panier",
+      "lingala": "Kitunga",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/P/P.C12.mp3",
+      "source_table": "senses",
+      "source_id": 1556
+    },
+    {
+      "id": 5968,
+      "tier": "approved",
+      "french": "Pleuvoir",
+      "lingala": "Mbula",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/P/P.C137.mp3",
+      "source_table": "senses",
+      "source_id": 1701
+    },
+    {
+      "id": 5977,
+      "tier": "approved",
+      "french": "Pointu",
+      "lingala": "Songe",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/P/P.C157.mp3",
+      "source_table": "senses",
+      "source_id": 1724
+    },
+    {
+      "id": 6020,
+      "tier": "approved",
+      "french": "Palais",
+      "lingala": "Ndako",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/P/P.C9.mp3",
+      "source_table": "senses",
+      "source_id": 1553
+    },
+    {
+      "id": 6125,
+      "tier": "approved",
+      "french": "Taxe",
+      "lingala": "Mpako",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/T/T.C23.mp3",
+      "source_table": "senses",
+      "source_id": 2250
+    },
+    {
+      "id": 6139,
+      "tier": "approved",
+      "french": "Tranchant",
+      "lingala": "Ko zala na mino",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/T/T.C93.mp3",
+      "source_table": "senses",
+      "source_id": 2334
+    },
+    {
+      "id": 6163,
+      "tier": "reassigned",
+      "french": "Accent",
+      "lingala": "Mingi",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/senses/A/A.C13.mp3",
+      "source_table": "senses",
+      "source_id": 2502
+    }
+  ]
+}

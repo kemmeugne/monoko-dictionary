@@ -32,6 +32,7 @@ const engine = new Function(
            buildListenType, listenTypeRows, listenTypeScreens, characters,
            buildSpeaking, speakingRows, speakingScreens,
            selectionOrder, screenItems, plural, PROGRAMME_LABELS, programmeOf,
+           listenTypeRows,
            interleave, questionCount, countQuestions, scoreableAttempts, makeLedger, itemId,
            usableRow, SESSION_QUESTIONS, WORD_ORDER_MIN, WORD_ORDER_MAX,
            BLANK_MIN_CHARS, FILL_BLANK_MIN_TOKENS,
@@ -621,5 +622,127 @@ describe("buildSession with all exercise types", () => {
   it("returns nothing rather than throwing on an empty pool", () => {
     expect(engine.buildSession([], 3)).toEqual([]);
     expect(engine.buildSession(null, 3)).toEqual([]);
+  });
+});
+
+// ── Slice 7 ─────────────────────────────────────────────────────────────────
+
+describe("selectionOrder — SM-2 due items (Slice 7)", () => {
+  const rows = [row("aaa", "a"), row("bbb", "b"), row("ccc", "c"), row("ddd", "d")];
+
+  it("serves due items before other seen items", () => {
+    // All four already met, so breadth cannot separate them. Two are due.
+    const seen = new Map(rows.map(r => [r.id, 100]));
+    const due = new Set([rows[2].id, rows[3].id]);
+    const out = engine.selectionOrder(rows, engine.makeLedger(), seen, due);
+    expect([...due]).toContain(out[0].id);
+    expect([...due]).toContain(out[1].id);
+  });
+
+  it("but breadth still wins — an unseen item outranks a due one", () => {
+    // An unseen item has no schedule row and cannot be due, so this is the
+    // ordering that decides whether SM-2 quietly undoes breadth-first coverage.
+    const seen = new Map([[rows[0].id, 100]]);
+    const due = new Set([rows[0].id]);
+    const out = engine.selectionOrder(rows, engine.makeLedger(), seen, due);
+    expect(out[0].id).not.toBe(rows[0].id);
+  });
+
+  it("falls back to stalest-first among items that are equally due", () => {
+    const seen = new Map([[rows[0].id, 300], [rows[1].id, 100], [rows[2].id, 200], [rows[3].id, 400]]);
+    const due = new Set(rows.map(r => r.id));
+    const out = engine.selectionOrder(rows, engine.makeLedger(), seen, due);
+    expect(out.map(r => r.id)).toEqual([rows[1].id, rows[2].id, rows[0].id, rows[3].id]);
+  });
+
+  it("is unchanged when no schedule is passed — Élargir and signed-out learners", () => {
+    const seen = new Map([[rows[0].id, 300], [rows[1].id, 100], [rows[2].id, 200], [rows[3].id, 400]]);
+    const withNull = engine.selectionOrder(rows, engine.makeLedger(), seen, null).map(r => r.id);
+    const without = engine.selectionOrder(rows, engine.makeLedger(), seen).map(r => r.id);
+    expect(withNull).toEqual(without);
+  });
+
+  it("an empty due set changes nothing", () => {
+    const seen = new Map(rows.map((r, i) => [r.id, i * 100]));
+    const a = engine.selectionOrder(rows, engine.makeLedger(), seen, new Set()).map(r => r.id);
+    const b = engine.selectionOrder(rows, engine.makeLedger(), seen).map(r => r.id);
+    expect(a).toEqual(b);
+  });
+});
+
+describe("buildSession — production bias (Slice 7)", () => {
+  const pool = [
+    ...Array.from({ length: 14 }, (_, i) => row(`mot${i}`, `mot ${i}`)),
+    ...Array.from({ length: 14 }, (_, i) => row(`a${i} b${i} c${i} d${i}`, `phrase ${i} de test`)),
+  ];
+  const RECOGNITION = new Set(["match_pairs", "choose_audio"]);
+  const share = (built) => {
+    const rec = built.filter(e => RECOGNITION.has(e.type)).reduce((n, e) => n + engine.questionCount(e), 0);
+    return rec / Math.max(1, engine.countQuestions(built));
+  };
+  // The builders shuffle, so a single build proves nothing. Compare medians.
+  const medianShare = (production) => {
+    const xs = Array.from({ length: 41 }, () =>
+      share(engine.buildSession(pool, 3, engine.SESSION_QUESTIONS, null, { production }))).sort((a, b) => a - b);
+    return xs[Math.floor(xs.length / 2)];
+  };
+
+  it("defaults to the shipped mix — omitting the argument changes nothing", () => {
+    // The guarantee that matters: every Pratiquer session and Élargir level 1
+    // must build exactly as they did in Slice 6, so the measured per-lesson
+    // session sizes in the plan stay true.
+    const a = engine.buildSession(pool, 3, engine.SESSION_QUESTIONS, null, { production: 0 });
+    const b = engine.buildSession(pool, 3, engine.SESSION_QUESTIONS);
+    expect(engine.countQuestions(a)).toBe(engine.countQuestions(b));
+  });
+
+  it("shifts the mix away from recognition as the bias rises", () => {
+    expect(medianShare(1)).toBeLessThan(medianShare(0));
+  });
+
+  it("still fills the budget at full production bias", () => {
+    for (let i = 0; i < 20; i++) {
+      const built = engine.buildSession(pool, 3, engine.SESSION_QUESTIONS, null, { production: 1 });
+      expect(engine.countQuestions(built)).toBeGreaterThan(0);
+      expect(engine.countQuestions(built)).toBeLessThanOrEqual(engine.SESSION_QUESTIONS);
+    }
+  });
+
+  it("never drops match-pairs below the minimum playable screen", () => {
+    // The cap is floored at PAIRS_MIN: a 1- or 2-pair screen is solvable by
+    // elimination, so shrinking the cap must never produce one.
+    for (let i = 0; i < 20; i++) {
+      for (const ex of engine.buildSession(pool, 3, engine.SESSION_QUESTIONS, null, { production: 1 })) {
+        if (ex.type === "match_pairs") expect(ex.pairs.length).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it("clamps a bias outside 0..1 rather than inverting the mix", () => {
+    for (const bad of [-5, 99, NaN]) {
+      const built = engine.buildSession(pool, 3, engine.SESSION_QUESTIONS, null, { production: bad });
+      expect(engine.countQuestions(built)).toBeGreaterThan(0);
+      for (const ex of built) {
+        if (ex.type === "match_pairs") expect(ex.pairs.length).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+});
+
+describe("listen-and-type — the clip must spell the answer", () => {
+  it("skips rows whose parenthesised text the tokenizer drops", () => {
+    // The professor reads "(Eleko ya) Gálá" in full; the tiles would ask for
+    // "Gálá" alone. Unanswerable as heard.
+    const rows = [row("(Eleko ya) Gálá", "saison sèche"), row("(M)péma", "souffle"), row("(N)singa", "fil")];
+    expect(engine.listenTypeRows(rows, 6)).toHaveLength(0);
+  });
+
+  it("skips comma-separated alternatives, where only one would be accepted", () => {
+    expect(engine.listenTypeRows([row("Lisakolí, lisúkúlu", "discours")], 6)).toHaveLength(0);
+  });
+
+  it("still accepts ordinary rows, including edge punctuation that is not spoken", () => {
+    const fine = [row("Tólí", "conseil"), row("Mokáno", "décision"), row("Ngúlu", "cochon")];
+    expect(engine.listenTypeRows(fine, 6)).toHaveLength(3);
   });
 });

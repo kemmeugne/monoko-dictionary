@@ -695,21 +695,33 @@
     //   2. Not yet used in THIS session, in any format. An item may still come
     //      back in a second format — that is what fills a thin lesson — but only
     //      once everything else has had a turn.
-    //   3. Better tier. `approved` was confirmed by a model at 96% precision and
+    //   3. Due for review (Slice 7, Pratiquer only). Among items already met,
+    //      the ones SM-2 says are owed today come before the ones that are not.
+    //      This sits BELOW breadth on purpose: an item never seen has no
+    //      schedule row and cannot be "due", and covering the lesson was
+    //      measured to matter more than revisiting the part already covered.
+    //      `due` is absent for Élargir and for a signed-out learner, and the
+    //      rule then never fires.
+    //   4. Better tier. `approved` was confirmed by a model at 96% precision and
     //      `reassigned` was moved by one at 90%, so spend the better first.
     //      In Pratiquer every row is native, so this rule never fires.
-    //   4. Longest ago. Among items already met, the stalest comes back first,
-    //      which is spacing in its crudest form until SM-2 lands in Slice 7.
+    //   5. Longest ago. Among items equally due, the stalest comes back first.
+    //      Before SM-2 this rule did the spacing on its own.
     //
     // Shuffled BEFORE sorting, and Array#sort is stable, so ties stay random —
     // two sessions over the same material never run in the same order.
-    const selectionOrder = (rows, ledger, history) => {
+    const selectionOrder = (rows, ledger, history, due) => {
       const seen = history || new Map();         // lesson_pool.id -> last answered (ms)
+      const owed = due || null;                  // Set<lesson_pool.id> due today, or null
       return shuffle(rows || []).sort((a, b) => {
         const sa = seen.has(a.id) ? 1 : 0, sb = seen.has(b.id) ? 1 : 0;
         if (sa !== sb) return sa - sb;
         const ua = ledger.usedAny(itemId(a)) ? 1 : 0, ub = ledger.usedAny(itemId(b)) ? 1 : 0;
         if (ua !== ub) return ua - ub;
+        if (owed) {
+          const da = owed.has(a.id) ? 0 : 1, db = owed.has(b.id) ? 0 : 1;
+          if (da !== db) return da - db;
+        }
         const ta = TIER_RANK[a.tier] ?? 9, tb = TIER_RANK[b.tier] ?? 9;
         if (ta !== tb) return ta - tb;
         return (seen.get(a.id) || 0) - (seen.get(b.id) || 0);
@@ -914,12 +926,12 @@
     // Each screen is drawn from ONE bucket, so its pairs share an orthography and
     // a French shape. Buckets are taken largest-first so the session opens with
     // the lesson's richest material.
-    const matchPairsScreens = (items, level, budget, ledger, history) => {
+    const matchPairsScreens = (items, level, budget, ledger, history, due) => {
       const out = [];
       let spent = 0;
       for (const bucket of pairsBuckets(items, level)) {
         if (budget - spent < PAIRS_MIN) break;
-        const avail = selectionOrder(bucket.filter(r => ledger.canUse(itemId(r), "match_pairs")), ledger, history);
+        const avail = selectionOrder(bucket.filter(r => ledger.canUse(itemId(r), "match_pairs")), ledger, history, due);
         let i = 0;
         while (budget - spent >= PAIRS_MIN && avail.length - i >= PAIRS_MIN) {
           const size = Math.min(PAIRS_MAX, budget - spent, avail.length - i);
@@ -934,10 +946,10 @@
     };
 
     // One screen, one question — so the budget here is simply a screen count.
-    const chooseAudioScreens = (items, level, budget, ledger, history) => {
+    const chooseAudioScreens = (items, level, budget, ledger, history, due) => {
       const out = [];
       for (const bucket of audioBuckets(items, level)) {
-        for (const answer of selectionOrder(bucket, ledger, history)) {
+        for (const answer of selectionOrder(bucket, ledger, history, due)) {
           if (out.length >= budget) return out;
           if (!ledger.canUse(itemId(answer), "choose_audio")) continue;
           ledger.use(itemId(answer), "choose_audio");
@@ -981,9 +993,9 @@
       };
     };
 
-    const wordOrderScreens = (items, level, budget, ledger, history) => {
+    const wordOrderScreens = (items, level, budget, ledger, history, due) => {
       const out = [];
-      for (const r of selectionOrder(wordOrderRows(items, level), ledger, history)) {
+      for (const r of selectionOrder(wordOrderRows(items, level), ledger, history, due)) {
         if (out.length >= budget) break;
         if (!ledger.canUse(itemId(r), "word_order")) continue;
         ledger.use(itemId(r), "word_order");
@@ -1035,9 +1047,9 @@
       };
     };
 
-    const fillBlankScreens = (items, level, budget, ledger, history) => {
+    const fillBlankScreens = (items, level, budget, ledger, history, due) => {
       const out = [];
-      for (const r of selectionOrder(fillBlankRows(items, level), ledger, history)) {
+      for (const r of selectionOrder(fillBlankRows(items, level), ledger, history, due)) {
         if (out.length >= budget) break;
         if (!ledger.canUse(itemId(r), "fill_blank")) continue;
         ledger.use(itemId(r), "fill_blank");
@@ -1063,6 +1075,15 @@
     const listenTypeRows = (items, level) =>
       (items || []).filter(r => {
         if (!usableRow(r) || !r.audio_url || r.effective_level > level) return false;
+        // THE CLIP IS THE ANSWER KEY, so the tiles must spell what the professor
+        // actually says. `tokenize` drops parenthesised text and breaks on a
+        // comma, and both mean the recording and the slots stop agreeing:
+        // "(Eleko ya) Gálá" is read in full and would ask for "Gálá" alone,
+        // "(M)péma" is read "mpéma" and would ask for "péma", and
+        // "Lisakolí, lisúkúlu" is two words of which only one is accepted.
+        // Unanswerable as heard, not merely hard — so the row sits this
+        // exercise out and stays available to every other type.
+        if (/[(),]/.test(r.lingala)) return false;
         const t = tokenize(r.lingala);
         if (t.length < 1 || t.length > LISTEN_MAX_TOKENS) return false;
         if (characters(t.join("")).length > LISTEN_MAX_CHARS) return false;
@@ -1105,9 +1126,9 @@
       };
     };
 
-    const listenTypeScreens = (items, level, budget, ledger, history) => {
+    const listenTypeScreens = (items, level, budget, ledger, history, due) => {
       const out = [];
-      for (const r of selectionOrder(listenTypeRows(items, level), ledger, history)) {
+      for (const r of selectionOrder(listenTypeRows(items, level), ledger, history, due)) {
         if (out.length >= budget) break;
         if (!ledger.canUse(itemId(r), "listen_type")) continue;
         ledger.use(itemId(r), "listen_type");
@@ -1137,10 +1158,10 @@
       },
     });
 
-    const speakingScreens = (items, level, budget, ledger, history) => {
+    const speakingScreens = (items, level, budget, ledger, history, due) => {
       const out = [];
       const cap = Math.min(SPEAKING_MAX_PER_SESSION, budget);
-      for (const r of selectionOrder(speakingRows(items, level), ledger, history)) {
+      for (const r of selectionOrder(speakingRows(items, level), ledger, history, due)) {
         if (out.length >= cap) break;
         if (!ledger.canUse(itemId(r), "speaking")) continue;
         ledger.use(itemId(r), "speaking");
@@ -1183,7 +1204,28 @@
     // `history` maps `lesson_pool.id` → when this learner last answered it, so a
     // repeated "S'entraîner" sweeps forward through the lesson instead of
     // re-rolling the same items. Omit it and the session is simply random.
-    const buildSession = (items, level, count = SESSION_QUESTIONS, history = null) => {
+    // `production` (0–1) shifts the mix from recognition toward production, and
+    // is what an Élargir topic level spends itself on. At 0 — every Pratiquer
+    // session, and Élargir level 1 — the arithmetic is exactly what shipped in
+    // Slice 6, so the measured per-lesson session sizes do not move.
+    //
+    // It is spent entirely on the match-pairs cap, because that one number
+    // drives the rest: match-pairs and choose-the-audio are the two recognition
+    // types, choose-the-audio takes whatever is left at the end, and every
+    // production type in between takes a share of the remainder. Shrinking the
+    // pairs cap therefore widens the four production types and narrows the two
+    // recognition ones in a single move, with no second knob to keep in sync.
+    // `production` (0–1) shifts the mix from recognition toward production, and
+    // is what an Élargir topic level spends itself on. At 0 — every Pratiquer
+    // session, and Élargir level 1 — the arithmetic is exactly what shipped in
+    // Slice 6, so the measured per-lesson session sizes do not move.
+    //
+    // It is spent entirely on the match-pairs cap, because that one number
+    // drives the rest: match-pairs and choose-the-audio are the two recognition
+    // types, choose-the-audio takes whatever is left at the end, and every
+    // production type in between takes a share of the remainder.
+    const buildSession = (items, level, count = SESSION_QUESTIONS, history = null, opts = {}) => {
+      const { production = 0, due = null } = opts;
       const ledger = makeLedger();
       // Match-pairs first and capped at roughly a third: it needs short items on
       // BOTH sides, the rarest shape in the pool (median 25 a lesson against 79
@@ -1193,21 +1235,193 @@
       //
       // Order matters: each builder claims items from the ledger as it goes, so
       // the scarcest type must choose before the plentiful ones take its material.
-      const pairs = matchPairsScreens(items, level, Math.ceil(count / 3), ledger, history);
+      const bias = Math.min(1, Math.max(0, production || 0));
+      const pairsCap = Math.max(PAIRS_MIN, Math.ceil((count / 3) * (1 - 0.6 * bias)));
+      const pairs = matchPairsScreens(items, level, pairsCap, ledger, history, due);
       let left = count - countQuestions(pairs);
       // Each single-question type takes an even share of what remains, and the
       // last one takes the rest — so a lesson short on one type still fills up.
-      const order = wordOrderScreens(items, level, Math.ceil(left / 5), ledger, history);
+      const order = wordOrderScreens(items, level, Math.ceil(left / 5), ledger, history, due);
       left -= countQuestions(order);
-      const blank = fillBlankScreens(items, level, Math.ceil(left / 4), ledger, history);
+      const blank = fillBlankScreens(items, level, Math.ceil(left / 4), ledger, history, due);
       left -= countQuestions(blank);
-      const listen = listenTypeScreens(items, level, Math.ceil(left / 3), ledger, history);
+      const listen = listenTypeScreens(items, level, Math.ceil(left / 3), ledger, history, due);
       left -= countQuestions(listen);
-      const speaking = speakingScreens(items, level, Math.ceil(left / 2), ledger, history);
+      const speaking = speakingScreens(items, level, Math.ceil(left / 2), ledger, history, due);
       left -= countQuestions(speaking);
-      const audio = chooseAudioScreens(items, level, left, ledger, history);
+      const audio = chooseAudioScreens(items, level, left, ledger, history, due);
       return interleave([pairs, order, blank, listen, speaking, audio], count);
     };
+
+    // ── Progression ───────────────────────────────────────────────────────────
+    // Slice 7. Everything here is pure: dates in, numbers out, no React and no
+    // Supabase. That is what lets `tests/progression.test.js` slice this block
+    // out of the page and run the real scheduler rather than a copy of it.
+
+    // DAYS ARE THE LEARNER'S LOCAL DAYS, NEVER UTC.
+    // A learner in Montreal finishing at 20:00 EST is already tomorrow in UTC.
+    // Using toISOString() here would hand them a second streak day for one
+    // evening, and then break the streak when they practise at the same hour
+    // the next day. So the day string is built from the LOCAL getters.
+    const localDay = (d = new Date()) => {
+      const p = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    };
+
+    // Both sides are pinned to UTC midnight before subtracting, which makes the
+    // difference exact across a daylight-saving boundary — parsed as local time,
+    // the 25-hour day at the end of October reads as 1.04 days.
+    const dayDiff = (from, to) =>
+      Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000);
+
+    const addDays = (day, n) => {
+      const d = new Date(Date.parse(`${day}T00:00:00Z`) + n * 86400000);
+      const p = (x) => String(x).padStart(2, "0");
+      return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())}`;
+    };
+
+    // ── SM-2 ──
+    // Pratiquer only. Spaced repetition needs a finite item set with per-item
+    // state: native content is finite (median 25 rows a lesson), the 6,196-row
+    // routed corpus is not. Élargir draws at random and writes no schedule.
+    const SM2_START_EASE = 2.5;   // canonical SM-2 starting easiness
+    const SM2_MIN_EASE   = 1.3;   // canonical floor; below it an item crowds out the lesson
+    const SM2_MAX_EASE   = 3.0;   // OUR cap, not SM-2's — see below
+
+    // Classic SM-2 grades an answer 0–5 on how easily it was recalled. An
+    // exercise screen only knows right or wrong, so the quality signal is one
+    // bit and the ease adjustment has to be correspondingly modest: +0.1 for a
+    // hit, −0.2 for a miss. The upper cap is ours rather than SM-2's — with a
+    // binary signal there is no evidence fine enough to justify the runaway
+    // intervals an uncapped ease produces after a handful of lucky sessions.
+    //
+    // A miss sends interval_days to 0, which means due today, which means the
+    // item returns in the very next session. That is the intended behaviour for
+    // a lapse: sessions are the unit of practice here, not hours.
+    const round2 = (n) => Math.round(n * 100) / 100;
+
+    const sm2 = (prev, correct) => {
+      const ease = prev?.ease ?? SM2_START_EASE;
+      const reps = prev?.reps ?? 0;
+      const interval = prev?.interval_days ?? 0;
+
+      if (!correct) {
+        return { ease: Math.max(SM2_MIN_EASE, round2(ease - 0.2)), interval_days: 0, reps: 0 };
+      }
+      const nextReps = reps + 1;
+      // 1 day, then 6, then ease-multiplied — the canonical SM-2 ladder. The
+      // Math.max(1, …) floor matters: a lapsed item has interval 0, so without
+      // it the third correct answer in a row would multiply 0 and schedule the
+      // item for today forever.
+      const nextInterval =
+        nextReps === 1 ? 1 :
+        nextReps === 2 ? 6 :
+        Math.max(1, Math.round(interval * ease));
+      return {
+        ease: Math.min(SM2_MAX_EASE, round2(ease + 0.1)),
+        interval_days: nextInterval,
+        reps: nextReps,
+      };
+    };
+
+    // One schedule row per item answered, folded over the session's attempts.
+    // FIRST-TRY ONLY and never `speaking`, for the same reason the 80% gate
+    // excludes them: a retry is re-exposure of a known answer, and a speaking
+    // "correct" is the learner's own opinion of their pronunciation. Scheduling
+    // on either would teach the scheduler that the learner knows things they do
+    // not.
+    const scheduleUpdates = (attempts, existing, today) => {
+      const prior = existing || new Map();
+      const out = new Map();
+      for (const a of scoreableAttempts(attempts)) {
+        if (a.pool_item_id == null) continue;
+        // An item can be asked twice in one session in two different formats.
+        // The first answer is the one the scheduler believes — it is the only
+        // one taken cold.
+        if (out.has(a.pool_item_id)) continue;
+        const next = sm2(prior.get(a.pool_item_id), a.correct);
+        out.set(a.pool_item_id, { ...next, due_on: addDays(today, next.interval_days) });
+      }
+      return out;
+    };
+
+    // What this learner owes on this lesson today. `due_on <= today` rather than
+    // `=== today`: a learner who skips four days must still be shown what came
+    // due while they were away, not have it silently pass.
+    const dueItems = (schedule, today) => {
+      const due = new Set();
+      for (const [id, row] of schedule || new Map()) {
+        if (!row?.due_on || dayDiff(row.due_on, today) >= 0) due.add(id);
+      }
+      return due;
+    };
+
+    // ── Streak ──
+    // One streak per learner, not per language and not per lesson: it answers
+    // "did you show up today", which is a fact about the person. Keying it by
+    // language would break the streak of someone who does Lingala on Monday and
+    // Yoruba on Tuesday — punishing exactly the behaviour the app wants.
+    const streakNext = (prev, today) => {
+      const last = prev?.last_day || null;
+      const current = prev?.current_streak || 0;
+      const longest = prev?.longest_streak || 0;
+
+      if (!last) return { current_streak: 1, longest_streak: Math.max(1, longest), last_day: today };
+
+      const gap = dayDiff(last, today);
+      // gap <= 0 covers both the second session of the same day and a clock that
+      // has moved backwards — a flight west, or a device correcting its time.
+      // Neither is a new day, and neither may break a streak the learner kept.
+      if (gap <= 0) return { current_streak: current, longest_streak: longest, last_day: last };
+
+      const next = gap === 1 ? current + 1 : 1;
+      return { current_streak: next, longest_streak: Math.max(longest, next), last_day: today };
+    };
+
+    // A streak the learner has already broken should read as broken on the home
+    // screen, without waiting for them to finish another session to find out.
+    const streakDisplay = (row, today) => {
+      if (!row?.last_day) return 0;
+      const gap = dayDiff(row.last_day, today);
+      return gap <= 1 ? (row.current_streak || 0) : 0;
+    };
+
+    // ── Medals ──
+    // Best score, not last score: a medal is a high-water mark, so a bad session
+    // can never take one away. 80 is the Pratiquer pass bar, so bronze and
+    // "lesson certified" are deliberately the same moment.
+    const MEDAL_TIERS = [
+      { key: "or",      pct: 100, icon: "🏆", label: "Sans faute" },
+      { key: "argent",  pct: 90,  icon: "🥈", label: "Argent" },
+      { key: "bronze",  pct: 80,  icon: "🥉", label: "Bronze" },
+    ];
+    const medalFor = (pct) => MEDAL_TIERS.find((m) => (pct || 0) >= m.pct) || null;
+
+    // ── Bonuses and levels ──
+    // A perfect session is worth a flat bonus rather than a multiplier: 100%
+    // first-try on 20 questions is the same achievement whether the lesson is
+    // long or short, and a multiplier would quietly pay more for the lessons
+    // that happen to build longer sessions.
+    const PERFECT_BONUS_XP = 50;
+    const perfectBonus = (pct) => ((pct || 0) >= 100 ? PERFECT_BONUS_XP : 0);
+
+    // Élargir levels up on topic XP. A full session is 200 XP, so a level is
+    // roughly three sessions.
+    const ELARGIR_XP_PER_LEVEL = 600;
+    const ELARGIR_MAX_LEVEL = 5;
+    const elargirLevel = (xp) =>
+      Math.min(ELARGIR_MAX_LEVEL, 1 + Math.floor(Math.max(0, xp || 0) / ELARGIR_XP_PER_LEVEL));
+    const elargirLevelProgress = (xp) => {
+      const into = Math.max(0, xp || 0) % ELARGIR_XP_PER_LEVEL;
+      return elargirLevel(xp) >= ELARGIR_MAX_LEVEL
+        ? { into: ELARGIR_XP_PER_LEVEL, of: ELARGIR_XP_PER_LEVEL, pct: 100 }
+        : { into, of: ELARGIR_XP_PER_LEVEL, pct: Math.round(100 * into / ELARGIR_XP_PER_LEVEL) };
+    };
+
+    // 0 at level 1 (the shipped mix, unchanged), 1 at the top level. Passed to
+    // buildSession, which spends it on the recognition/production balance.
+    const productionBias = (level) =>
+      Math.min(1, Math.max(0, ((level || 1) - 1) / (ELARGIR_MAX_LEVEL - 1)));
 
     // ── Match-pairs screen ────────────────────────────────────────────────────
     const MatchPairsScreen = ({ exercise, onDone, onMiss, onAnswer }) => {
@@ -2224,7 +2438,7 @@
       },
     };
 
-    const SessionView = ({ lesson, stage, exercises, poolSize, stats,
+    const SessionView = ({ lesson, stage, exercises, poolSize, stats, streak = 0, bonus = 0,
                            onExit, onSeeLesson, onSessionEnd, onReport }) => {
       const [started, setStarted] = useState(false);
       const [queue, setQueue] = useState(exercises);
@@ -2234,6 +2448,13 @@
       const [done, setDone] = useState(false);
       const [reporting, setReporting] = useState(false);
       const [reported, setReported] = useState([]);  // item ids already flagged
+
+      // The best score as it stood BEFORE this session, captured once at mount.
+      // It cannot be read from `stats` at render time: handleSessionEnd's
+      // `finally` re-runs loadStageState, so by the time the summary is on
+      // screen `stats.best` has already become this session's score — and
+      // "nouveau record" would appear for a frame and then delete itself.
+      const bestAtStart = React.useRef(stats?.best || 0);
 
       // One row per question, first try only. Held in a ref because `advance`
       // has to read the score in the same tick it decides the session is over.
@@ -2338,9 +2559,23 @@
 
             {/* Scrolls rather than overflowing: title + blurb + tiles + best score
                 + a programme line per type runs past 667px on an iPhone SE, and
-                the Commencer button must never be pushed off. */}
+                the Commencer button must never be pushed off.
+
+                CENTRED WITH `margin: auto`, NEVER `justify-content: center`.
+                They look identical until the content is taller than the box,
+                and then they differ completely: `justify-content: center`
+                overflows a scroll container in BOTH directions and browsers
+                will not scroll above the origin, so the stage chip and the
+                lesson title become unreachable — the two things this screen
+                exists to show. Auto margins collapse to 0 when space runs out,
+                so the content simply starts at the top and scrolls normally.
+                Slice 7 made this reachable in practice: a learner with a
+                streak, items due and a topic level is exactly the engaged user
+                who overflows the screen. */}
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto",
-                          display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                          display: "flex", flexDirection: "column" }}>
+             <div style={{ margin: "auto 0", width: "100%",
+                           display: "flex", flexDirection: "column" }}>
 
               {/* The stage names the exercise; the LESSON is what the learner
                   came for, so it is the biggest thing on the screen. */}
@@ -2379,18 +2614,56 @@
                   })}
               </div>
 
+              {/* The best score keeps a full-width card — it carries the medal
+                  and the "leçon validée" mark, and it is the line the learner
+                  is trying to beat. */}
               {best > 0 && (
                 <div style={{
-                  display: "flex", alignItems: "center", gap: 10, marginBottom: 20,
+                  display: "flex", alignItems: "center", gap: 10, marginBottom: 10,
                   padding: "12px 16px", borderRadius: 14, background: brief.soft,
                 }}>
-                  <span style={{ fontSize: 18 }}>{best >= 100 ? "🏆" : best >= 80 ? "⭐" : "📈"}</span>
+                  <span style={{ fontSize: 18 }}>{medalFor(best)?.icon || "📈"}</span>
                   <span style={{ fontSize: 14, color: "#5C4A2E" }}>
                     Meilleur score&nbsp;: <b style={{ color: brief.accent }}>{best}%</b>
+                    {medalFor(best) ? ` · ${medalFor(best).label}` : ""}
                     {stage === "pratiquer" && stats?.passed ? " · leçon validée ✓" : ""}
                   </span>
                 </div>
               )}
+
+              {/* Streak, review count and topic level are one-fact signals, so
+                  they are chips on a wrapping line rather than three more
+                  full-width cards. Stacked, they pushed "Au programme" and the
+                  Commencer button off an iPhone SE for exactly the engaged
+                  learner who has all three. Each hides itself when it has
+                  nothing to say rather than showing a zero. */}
+              {(() => {
+                const chips = [
+                  streak > 0 && { key: "streak", icon: "🔥", text: `${plural(streak, "jour", "jours")} d'affilée`,
+                                  fg: "#B45309", bg: "#FFF4E5" },
+                  stage === "pratiquer" && (stats?.due || 0) > 0 &&
+                    { key: "due", icon: "🔁", text: `${plural(stats.due, "à revoir", "à revoir")}`,
+                      fg: brief.accent, bg: brief.soft },
+                  stage === "elargir" && (stats?.level || 1) > 1 &&
+                    { key: "level", icon: "📈", text: `Niveau ${stats.level}`,
+                      fg: brief.accent, bg: brief.soft },
+                ].filter(Boolean);
+                if (!chips.length) return null;
+                return (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+                    {chips.map(c => (
+                      <span key={c.key} style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        padding: "8px 12px", borderRadius: 20, background: c.bg,
+                        fontSize: 13, color: "#5C4A2E", whiteSpace: "nowrap",
+                      }}>
+                        <span style={{ fontSize: 14 }}>{c.icon}</span>
+                        <b style={{ color: c.fg, fontWeight: 700 }}>{c.text}</b>
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {programme.length > 0 && (
                 <div>
@@ -2414,6 +2687,7 @@
                   </div>
                 </div>
               )}
+             </div>
             </div>
 
             <button onClick={() => setStarted(true)} style={{
@@ -2499,8 +2773,28 @@
                 Session terminée
               </h2>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 46, fontWeight: 800, color: "#6B21A8",
-                          fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp} XP</p>
+                          fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp + bonus} XP</p>
+              {/* The bonus is shown as its own line, not folded into the total:
+                  a number the learner cannot account for reads as a bug. */}
+              {bonus > 0 && (
+                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 700, color: "#B45309" }}>
+                  ✨ Sans faute — bonus de {bonus} XP
+                </p>
+              )}
               <p style={{ color: "#9B8A6E", fontSize: 14, margin: 0 }}>{lesson.title}</p>
+
+              {/* A medal is a high-water mark, so it is announced only when this
+                  session actually beat the previous best. */}
+              {medalFor(firstTryPct()) && firstTryPct() > bestAtStart.current && (
+                <p style={{ margin: "10px 0 0", fontSize: 15, fontWeight: 700, color: "#5C4A2E" }}>
+                  {medalFor(firstTryPct()).icon} {medalFor(firstTryPct()).label} — nouveau record
+                </p>
+              )}
+              {streak > 0 && (
+                <p style={{ margin: "6px 0 0", fontSize: 14, color: "#B45309", fontWeight: 700 }}>
+                  🔥 {plural(streak, "jour", "jours")} d'affilée
+                </p>
+              )}
 
               {/* Pratiquer is the only stage with a bar to clear. Élargir is
                   endless and replayable, so it reports a score and nothing else. */}
@@ -3445,6 +3739,18 @@
       // distinct native items this user has ever answered correctly.
       const [stageState, setStageState] = useState(null);
       const [mastery, setMastery] = useState({ done: 0, total: 0 });
+      // Whether this lesson has ANY routed material. Élargir means "everything
+      // else the course knows about this topic", so a lesson with no topic —
+      // Sons et alphabet is about the writing system — has nothing to widen
+      // into, and the stage is hidden rather than unlocked-then-empty.
+      const [hasElargir, setHasElargir] = useState(true);
+      // Slice 7. The streak is per USER, not per lesson, so it is loaded with
+      // the session rather than with the lesson — it survives navigating away.
+      const [streak, setStreak] = useState(null);
+      // XP earned on the session that just finished, so the summary can show the
+      // perfect-session bonus as a separate line rather than folding it into a
+      // total the learner cannot account for.
+      const [lastBonus, setLastBonus] = useState(0);
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
       // Progress tracking
@@ -3603,17 +3909,27 @@
       };
 
       const loadStageState = async (lessonId) => {
-        if (!currentUser || !lessonId) { setStageState(null); setMastery({ done: 0, total: 0 }); return; }
+        const empty = { done: 0, total: 0, dueCount: 0 };
+        if (!currentUser || !lessonId) { setStageState(null); setMastery(empty); setHasElargir(true); return; }
         try {
-          const [{ data: state }, native, correct] = await Promise.all([
+          // Four independent reads, so they go out together. The schedule is one
+          // of them rather than a follow-up await: serialising it would put a
+          // second round trip in front of the lesson screen.
+          const [{ data: state }, native, correct, schedule, routed] = await Promise.all([
             supabaseClient.from("lesson_stage_state").select("*")
               .eq("user_id", currentUser.id).eq("lesson_id", lessonId).maybeSingle(),
             supaFetch("lesson_pool", `lesson_id=eq.${lessonId}&tier=eq.native&select=id&limit=1000`),
             supabaseClient.from("exercise_attempts").select("pool_item_id")
               .eq("user_id", currentUser.id).eq("lesson_id", lessonId)
               .eq("stage", "pratiquer").eq("correct", true).neq("format", "speaking"),
+            loadSchedule(lessonId),
+            // Only "is there any?", never a count — one row is enough to answer
+            // it, so this stays a single-row read however deep the pool goes.
+            supaFetch("lesson_pool",
+              `lesson_id=eq.${lessonId}&tier=in.(approved,reassigned)&select=id&limit=1`),
           ]);
           setStageState(state || null);
+          setHasElargir((routed || []).length > 0);
           // Distinct items, not attempts — answering the same word right in ten
           // sessions is one item mastered, not ten.
           const ids = new Set((correct.data || []).map(r => r.pool_item_id));
@@ -3621,11 +3937,42 @@
           setMastery({
             done: [...ids].filter(id => nativeIds.has(id)).length,
             total: nativeIds.size,
+            // Counted against the native set so a schedule row left behind by a
+            // re-populate — whose pool id no longer exists — cannot inflate it.
+            dueCount: [...dueItems(schedule, localDay())].filter(id => nativeIds.has(id)).length,
           });
         } catch (e) {
           console.error("loadStageState:", e);
-          setStageState(null); setMastery({ done: 0, total: 0 });
+          // Fail towards showing the stage: a dropped request must not make a
+          // lesson look as though it has no second half.
+          setStageState(null); setMastery(empty); setHasElargir(true);
         }
+      };
+
+      // The streak belongs to the learner, not to any lesson, so it is loaded
+      // once on login rather than on every lesson open. A missing row is not an
+      // error — it is a learner who has not finished a session yet.
+      const loadStreak = async (user) => {
+        if (!user) { setStreak(null); return; }
+        try {
+          const { data } = await supabaseClient.from("user_streak").select("*")
+            .eq("user_id", user.id).maybeSingle();
+          setStreak(data || null);
+        } catch (e) { console.error("loadStreak:", e); setStreak(null); }
+      };
+
+      // SM-2 scheduler state for one lesson, keyed by `lesson_pool.id`.
+      // Pratiquer only: Élargir writes no schedule rows, so asking for them
+      // would be a round trip that can only ever come back empty.
+      const loadSchedule = async (lessonId) => {
+        if (!currentUser || !lessonId) return new Map();
+        try {
+          const { data } = await supabaseClient.from("review_schedule")
+            .select("pool_item_id, ease, interval_days, reps, due_on")
+            .eq("user_id", currentUser.id).eq("lesson_id", lessonId)
+            .limit(2000);
+          return new Map((data || []).map(r => [r.pool_item_id, r]));
+        } catch (e) { console.error("loadSchedule:", e); return new Map(); }
       };
 
       // What this learner has already been asked in this lesson and stage, so a
@@ -3660,13 +4007,27 @@
         if (!selectedLesson) return;
         setPoolLoading(true);
         try {
-          const level = selectedCourse?.course_order || 1;
-          const [items, seen] = await Promise.all([
+          const courseLevel = selectedCourse?.course_order || 1;
+          const [items, seen, schedule] = await Promise.all([
             supaFetch("lesson_pool",
               `lesson_id=eq.${selectedLesson.id}&${STAGE_TIERS[stage]}&select=*&limit=1000`),
             loadSeenItems(selectedLesson.id, stage),
+            stage === "pratiquer" ? loadSchedule(selectedLesson.id) : Promise.resolve(new Map()),
           ]);
-          const built = buildSession(items, level, SESSION_QUESTIONS, seen);
+
+          // Élargir levels up on topic XP, and the level is spent twice over:
+          // it WIDENS the pool (a higher `level` admits longer, harder rows
+          // through every builder's `effective_level <= level` filter) and it
+          // SHIFTS THE MIX from recognition toward production. Pratiquer does
+          // neither — it is a fixed, finite set the learner is being certified
+          // on, so moving its difficulty would move the 80% bar with it.
+          const topicLevel = stage === "elargir" ? elargirLevel(stageState?.elargir_xp) : 1;
+          const level = stage === "elargir" ? courseLevel + topicLevel - 1 : courseLevel;
+
+          const built = buildSession(items, level, SESSION_QUESTIONS, seen, {
+            production: stage === "elargir" ? productionBias(topicLevel) : 0,
+            due: stage === "pratiquer" ? dueItems(schedule, localDay()) : null,
+          });
           if (!built.length) {
             setSessionNote(stage === "pratiquer"
               ? "Pas encore assez de contenu court dans cette leçon pour un exercice."
@@ -3690,14 +4051,75 @@
       const handleSessionEnd = async ({ completed, stage, attempts, pct, xp }) => {
         if (!currentUser || !selectedLesson) return;
         const lessonId = selectedLesson.id;
+        const today = localDay();
+        // A perfect session pays a flat bonus on top of the 10-a-question XP.
+        // Computed here rather than inside SessionView so the number written to
+        // the database and the number shown on the summary cannot diverge.
+        const bonus = completed ? perfectBonus(pct) : 0;
+        setLastBonus(bonus);
+
+        // EACH WRITE IS ISOLATED, AND THAT IS THE POINT.
+        // These four writes were one try block until Slice 7, which is fine
+        // while they all target tables that exist. The moment a new one does
+        // not — a migration not yet run in the SQL editor, which is how every
+        // migration in this repo lands — a throw from the new write skips every
+        // write after it. That would have meant an unapplied sql/progression.sql
+        // silently stopping the 80% gate from ever recording again: the feature
+        // failing is acceptable, the gate failing is not.
+        //
+        // So progression writes may fail alone, and the attempt log and the gate
+        // are ordered so that neither depends on them.
+        const step = async (what, fn) => {
+          try { await fn(); } catch (e) { console.error(`handleSessionEnd/${what}:`, e); }
+        };
+
         try {
           if (attempts.length) {
-            await supabaseClient.from("exercise_attempts").insert(
-              attempts.map(a => ({
-                user_id: currentUser.id, pool_item_id: a.pool_item_id, lesson_id: lessonId,
-                stage, format: a.format, correct: a.correct,
-              })));
+            await step("attempts", () =>
+              supabaseClient.from("exercise_attempts").insert(
+                attempts.map(a => ({
+                  user_id: currentUser.id, pool_item_id: a.pool_item_id, lesson_id: lessonId,
+                  stage, format: a.format, correct: a.correct,
+                }))));
           }
+
+          // ── SM-2 ──
+          // Pratiquer only, and written even for an ABANDONED session: the eight
+          // questions someone answered before quitting are still evidence about
+          // what they know, and throwing them away would mean a learner who
+          // never finishes is never scheduled. Only the GATE requires
+          // completion, not the scheduler.
+          if (stage === "pratiquer" && attempts.length) {
+            await step("sm2", async () => {
+              const prior = await loadSchedule(lessonId);
+              const updates = scheduleUpdates(attempts, prior, today);
+              if (!updates.size) return;
+              await supabaseClient.from("review_schedule").upsert(
+                [...updates].map(([poolItemId, row]) => ({
+                  user_id: currentUser.id, pool_item_id: poolItemId, lesson_id: lessonId,
+                  ease: row.ease, interval_days: row.interval_days, reps: row.reps,
+                  due_on: row.due_on, updated_at: new Date().toISOString(),
+                })), { onConflict: "user_id,pool_item_id" });
+            });
+          }
+
+          // ── Streak ──
+          // Completed sessions only. A streak is a claim that the learner
+          // practised today, and two abandoned questions is not practice.
+          if (completed) {
+            await step("streak", async () => {
+              const next = streakNext(streak, today);
+              // Same-day repeat sessions leave the row untouched; skipping the
+              // write keeps the day's second session from costing a round trip.
+              if (streak && next.last_day === streak.last_day
+                         && next.current_streak === streak.current_streak) return;
+              await supabaseClient.from("user_streak").upsert({
+                user_id: currentUser.id, ...next, updated_at: new Date().toISOString(),
+              }, { onConflict: "user_id" });
+              setStreak({ user_id: currentUser.id, ...next });
+            });
+          }
+
           if (completed) {
             const prev = stageState || {};
             await supabaseClient.from("lesson_stage_state").upsert({
@@ -3707,7 +4129,9 @@
               pratiquer_passed: prev.pratiquer_passed || (stage === "pratiquer" && pct >= PASS_PCT),
               pratiquer_best: stage === "pratiquer" ? Math.max(prev.pratiquer_best || 0, pct) : (prev.pratiquer_best || 0),
               elargir_best:   stage === "elargir"   ? Math.max(prev.elargir_best || 0, pct)   : (prev.elargir_best || 0),
-              elargir_xp:     (prev.elargir_xp || 0) + (stage === "elargir" ? xp : 0),
+              // The perfect-session bonus counts toward the topic level, which
+              // is the only thing Élargir XP drives.
+              elargir_xp:     (prev.elargir_xp || 0) + (stage === "elargir" ? xp + bonus : 0),
               // Only completed sessions count as a play — quitting after two
               // questions is not a game, and counting it would make the number
               // dishonest to the person reading it.
@@ -3873,6 +4297,10 @@
       useEffect(() => {
         loadStageState(selectedLesson?.id);
       }, [currentUser?.id, selectedLesson?.id]);
+
+      // The streak is per user and spans every language, so it loads with the
+      // account and NOT with the lesson or the language.
+      useEffect(() => { loadStreak(currentUser); }, [currentUser?.id]);
 
       // Conjugation paradigms pinned to this lesson. Public read, so this works
       // logged out as well — the table is reference material, not progress.
@@ -4494,6 +4922,37 @@
                 </div>
 
                 {/* Continuer — last visited lesson shortcut */}
+                {/* The streak is the retention lever, so it sits above
+                    "Continuer" — the first thing a returning learner sees.
+                    `streakDisplay` reports 0 once the chain is actually broken,
+                    so a stale number never sits here claiming otherwise, and at
+                    0 the card hides rather than announcing the failure. */}
+                {currentUser && streakDisplay(streak, localDay()) > 0 && (
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:14, width:"100%",
+                    background:"linear-gradient(135deg, #7C2D12, #B45309)",
+                    borderRadius:18, padding:"16px 22px", marginBottom:12,
+                    boxShadow:"0 4px 16px rgba(180,83,9,0.2)",
+                  }}>
+                    <div style={{
+                      width:44, height:44, borderRadius:12, background:"rgba(255,255,255,0.14)",
+                      display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:22,
+                    }}>🔥</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", fontWeight:700, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>Série en cours</div>
+                      <div style={{ fontSize:18, fontWeight:800, color:"white", fontFamily:"'DM Mono', monospace", fontVariantNumeric:"tabular-nums", marginTop:2 }}>
+                        {plural(streakDisplay(streak, localDay()), "jour", "jours")}
+                      </div>
+                    </div>
+                    {(streak?.longest_streak || 0) > streakDisplay(streak, localDay()) && (
+                      <div style={{ textAlign:"right", flexShrink:0 }}>
+                        <div style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontFamily:"'DM Mono', monospace", letterSpacing:"0.08em", textTransform:"uppercase" }}>Record</div>
+                        <div style={{ fontSize:14, fontWeight:700, color:"rgba(255,255,255,0.9)", fontFamily:"'DM Mono', monospace" }}>{streak.longest_streak}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {currentUser && lastLesson && lastLesson.langId === langId && (
                   <button onClick={resumeLesson} style={{
                     display:"flex", alignItems:"center", gap:14, width:"100%",
@@ -4841,9 +5300,14 @@
                 exercises={sessionExercises}
                 poolSize={sessionPoolSize}
                 stats={sessionStage === "elargir"
-                  ? { runs: stageState?.elargir_runs || 0, best: stageState?.elargir_best || 0 }
+                  ? { runs: stageState?.elargir_runs || 0, best: stageState?.elargir_best || 0,
+                      level: elargirLevel(stageState?.elargir_xp),
+                      levelProgress: elargirLevelProgress(stageState?.elargir_xp) }
                   : { runs: stageState?.pratiquer_runs || 0, best: stageState?.pratiquer_best || 0,
-                      passed: !!stageState?.pratiquer_passed }}
+                      passed: !!stageState?.pratiquer_passed,
+                      due: mastery.dueCount || 0 }}
+                streak={streakDisplay(streak, localDay())}
+                bonus={lastBonus}
                 onExit={() => setSessionExercises(null)}
                 onSeeLesson={() => setSessionExercises(null)}
                 onSessionEnd={handleSessionEnd}
@@ -5149,7 +5613,11 @@
                       )}
                     </button>
 
-                    {stageState?.pratiquer_passed ? (
+                    {/* A lesson with no routed material has no second half, and
+                        saying so by omission beats unlocking a stage that dead-ends
+                        on "pas assez de contenu" — which is what a learner would
+                        otherwise be handed as the reward for passing. */}
+                    {!hasElargir ? null : stageState?.pratiquer_passed ? (
                       <button onClick={() => startSession("elargir")} disabled={poolLoading} style={{
                         width:"100%", padding:"16px 20px", borderRadius:14,
                         border:"1.5px solid #6B21A8", background:"white",

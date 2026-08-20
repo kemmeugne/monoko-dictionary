@@ -5,8 +5,10 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:syntax": "node scripts/check_syntax.mjs",
     "db:sync-test-schema": "node scripts/sync_test_schema.js",
-    "db:seed-test": "node scripts/seed_test_data.js"
+    "db:seed-test": "node scripts/seed_test_data.js",
+    "verify:progression": "node scripts/verify_progression.mjs"
   },
   "devDependencies": {
     "vitest": "^4.1.10"

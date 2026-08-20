@@ -64,6 +64,13 @@ create table if not exists lesson_stage_state (
   elargir_best      int         not null default 0,   -- % first-try, best session
   elargir_xp        int         not null default 0,   -- drives the topic level
 
+  -- Completed sessions only. Quitting after two questions is not a play, and
+  -- counting it would make the briefing's "parties" tile dishonest.
+  -- Added to production by hand and backfilled into this file 2026-08-18; see
+  -- sql/progression.sql §1, which brings an already-applied database in line.
+  pratiquer_runs    int         not null default 0,
+  elargir_runs      int         not null default 0,
+
   updated_at        timestamptz not null default now(),
   primary key (user_id, lesson_id)
 );

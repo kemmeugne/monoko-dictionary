@@ -28,6 +28,15 @@ rather than a copy that can drift.
 The markers are comment banners (`// ── Tokenizer ─` … `// ── Exercise engine ─`).
 If you move or rename a section, the test throws with a clear message instead of
 silently testing nothing. Use the same pattern for any further engine tests.
+`tests/exercise-builders.test.js` and `tests/progression.test.js` both slice
+several sections and concatenate them, which is how a block that depends on an
+earlier helper (`scheduleUpdates` needs `scoreableAttempts`) still evaluates.
+
+**Slicing is not a syntax check.** These tests only evaluate the sections they
+name, so a syntax error anywhere in the ~4,000 lines of React that no test slices
+passes the whole suite and ships a blank page — there is no build step to catch
+it. `npm run check:syntax` parses the entire babel block with oxc and is the only
+thing that does. Run it before every deploy.
 
 One gotcha worth knowing: a string literal containing an accented character can
 be composed or decomposed depending on the editor that saved the file, and the
