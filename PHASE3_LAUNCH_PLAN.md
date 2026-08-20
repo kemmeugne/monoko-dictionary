@@ -28,17 +28,23 @@ mastery counter persist, and repeat sessions sweep forward through unseen
 material rather than re-rolling. **All six exercise types exist** —
 match-pairs, choose-the-audio, tap-words-in-order, fill-the-blank,
 listen-and-type and record-and-compare speaking — and 47 of 49 lessons build a
-full session, none below 16 questions. Speaking is capped at three prompts,
+full session, none below 15 questions. Speaking is capped at three prompts,
 keeps recordings on-device and does not affect the objective 80% gate.
-Remaining in this phase: **streaks/XP**, then the session cap.
+
+**Slice 7 built 2026-08-18 — XP, medals (80/90/100), streaks, SM-2 and Élargir
+topic levels.** The streak is one row per learner spanning every language, the
+scheduler is Pratiquer-only, and a perfect session pays a flat 50 XP bonus.
+`sql/progression.sql` is applied. Remaining in this phase: **the session cap**,
+which is the paywall.
 
 **2026-08-18:** every session now opens on a briefing that names the lesson first
 and lists what is actually in the queue ("5 paires à associer"), and the first
 professor's complete *ko linga* conjugation paradigm — lost in the original
 import, 24 of its 30 forms already recorded — now heads the conjugation lessons.
-Those forms are also the course's best match-pairs material; the mirroring into
-`lesson_pool` is written but its migration is not yet applied. Two rendering bugs
-were hiding **181 example sentences** that were in the database all along.
+Those forms are also the course's best match-pairs material, and as of the same
+day they **are** exercise material: the migration is applied and 30 forms are in
+`lesson_pool`, which gave L358 the match-pairs bucket it never had. Two rendering
+bugs were hiding **181 example sentences** that were in the database all along.
 
 **Build:**
 - ✅ **Session engine** — one question per screen, progress bar, live queue (wrong

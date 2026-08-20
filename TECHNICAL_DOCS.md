@@ -370,11 +370,74 @@ asked on every render and must not aggregate an ever-growing attempt log.
 | `pratiquer_passed` | BOOLEAN | **One-way door** — never cleared by a later weaker session |
 | `pratiquer_best` / `elargir_best` | INT | % first-try, best session |
 | `elargir_xp` | INT | Drives the topic level |
+| `pratiquer_runs` / `elargir_runs` | INT | Completed sessions only. **Existed in production from Slice 5 but in no `sql/` file until 2026-08-18** — the app wrote them and the briefing read them while every migration file said they did not exist. Only a rebuilt environment would have noticed, and it would have failed the whole upsert on an unknown column, taking `pratiquer_passed` and the scores with it. |
 | `updated_at` | TIMESTAMPTZ | |
 
 RLS on both tables mirrors `user_progress`: own rows only, read and write. They
 are written from the client with the user's session token, so the policy is the
 only thing between one learner's progress and another's.
+
+---
+
+### `user_streak`  (added 2026-08-18, `sql/progression.sql`)
+One row per **user** — not per language and not per lesson. A streak answers
+"did you show up today", which is a fact about the person; keying it by language
+would break the streak of a learner doing Lingala on Monday and Yoruba on
+Tuesday, punishing exactly the behaviour the app wants.
+
+| Column | Type | Description |
+|---|---|---|
+| `user_id` | UUID PK FK → auth.users | |
+| `current_streak` | INT | Consecutive days |
+| `longest_streak` | INT | Never decreases — the trophy, not the counter |
+| `last_day` | DATE | **Learner-local day, supplied by the client** |
+| `updated_at` | TIMESTAMPTZ | |
+
+`last_day` is a `date` and is never defaulted to `now()::date`, which Postgres
+evaluates in **UTC**. A learner in Montreal finishing at 20:00 EST is already
+tomorrow in UTC, so a server-side day boundary would award two streak days for
+one evening and then break a streak they had kept. The client sends its own
+`YYYY-MM-DD` and all arithmetic is done against that.
+
+Screens render `streakDisplay(row, today)`, not the stored `current_streak`, so
+a streak that has already lapsed reads as 0 immediately rather than showing a
+stale number until the learner's next session.
+
+---
+
+### `review_schedule`  (added 2026-08-18, `sql/progression.sql`)
+SM-2 scheduler state, one row per (user, pool item). **Pratiquer only** — spaced
+repetition needs a finite item set with per-item state, which native content is
+(median 25 rows a lesson) and the 6,196-row routed corpus is not. Élargir draws
+at random and writes nothing here. Nothing in the schema enforces that; the
+client simply never writes an `elargir` row.
+
+| Column | Type | Description |
+|---|---|---|
+| `user_id` / `pool_item_id` | UUID / BIGINT | Composite PK |
+| `lesson_id` | BIGINT FK → lessons | |
+| `ease` | REAL | SM-2 easiness. Starts 2.5, floor 1.3, **ceiling 3.0 (ours, not SM-2's)** |
+| `interval_days` | INT | 0 = due today, i.e. returns next session |
+| `reps` | INT | Consecutive correct; reset to 0 on a miss |
+| `due_on` | DATE | Learner-local day, as `user_streak.last_day` |
+| `updated_at` | TIMESTAMPTZ | |
+
+Index `(user_id, lesson_id, due_on)` — the session-start question is "what does
+this learner owe on this lesson today".
+
+This is deliberately **not** folded into `exercise_attempts`. That table is an
+append-only event log (one row per question, first-try only); putting ease and
+interval in it would mean recomputing every item's whole history on every
+session start.
+
+Classic SM-2 grades recall 0–5, but an exercise screen knows only right or
+wrong, so the quality signal is one bit and the ease adjustment is modest:
+**+0.1 on a hit, −0.2 on a miss**. The 3.0 ceiling exists because a binary
+signal cannot justify the runaway intervals an uncapped ease produces. A miss
+sets `interval_days = 0`; the ladder (1 → 6 → ×ease) floors at 1 day so that
+`0 × ease` cannot strand a lapsed item as due-forever.
+
+Verified end to end by `npm run verify:progression` against monoko-test.
 
 ---
 
@@ -431,8 +494,8 @@ pre-migration behaviour.
 These rows also drive what gets **mirrored into `lesson_pool`** as exercise
 material, so a lesson is never drilled on a tense it does not teach.
 `sql/lesson_pool_conjugation_source.sql` widens `lesson_pool`'s `source_table`
-CHECK to admit `conjugation_forms` — **not yet applied**, so the pool holds no
-conjugation rows.
+CHECK to admit `conjugation_forms` — **applied 2026-08-18**. The pool now holds
+**30 conjugation rows** (24 on L358, 6 on L359, all `tier = native`).
 
 ---
 
@@ -477,7 +540,7 @@ languages
 
 **`sql/conjugation_lesson_tenses.sql`** (applied 2026-08-18) — adds `lesson_conjugation_tables.tenses text[]`.
 
-**`sql/lesson_pool_conjugation_source.sql`** (written 2026-08-18, **NOT YET APPLIED**) — widens `lesson_pool.source_table`'s CHECK to admit `conjugation_forms`. Until it runs, `populate_conjugation_forms.py` cannot write pool rows.
+**`sql/lesson_pool_conjugation_source.sql`** (applied 2026-08-18) — widens `lesson_pool.source_table`'s CHECK to admit `conjugation_forms`. Before it ran, `populate_conjugation_forms.py` could not write pool rows at all; the insert failed the CHECK.
 
 The full list of migration files, with what each one is for, lives in `CLAUDE.md` under "Key files in this repo".
 

@@ -17,6 +17,46 @@ verified. Sessions 3–5 (Playwright smoke tests, guardrail lints, CI) not
 started. See Sections 4 and 5 for what actually shipped, including two
 deviations from the original plan.
 
+**Update 2026-08-18 — the test project had drifted a full phase behind.**
+`sql/test_schema.sql` held only the 12 base tables; every table added since
+Slice 1 (`lesson_pool`, `exercise_attempts`, `lesson_stage_state`, the
+conjugation grid, `user_streak`, `review_schedule`) was missing, so the test
+project could not exercise any of the exercise engine.
+
+`scripts/sync_test_schema.js` now applies `test_schema.sql` **and then the real
+migration files** — the same files run against production — rather than a copy
+of their DDL. Copying would fork the schema, and a forked schema drifts
+silently: that is precisely how `lesson_stage_state.pratiquer_runs` lived in
+production for a month while every file in the repo said otherwise. Data and
+pgvector migrations are deliberately excluded.
+
+**Resolved 2026-08-18.** The `TEST_SUPABASE_DB_URL` password had gone stale
+(`psql` exit 2, FATAL password authentication failed — note that is a
+*connection* error, not a SQL one, and the script now says so). Refreshed in
+`.env.test`; all seven files apply clean and the test project is schema-
+identical to production for every exercise-engine table.
+
+One detail worth keeping: `progression.sql`'s drift-repair block reported
+`column "pratiquer_runs" ... already exists, skipping`, because the corrected
+`exercise_progress.sql` had just created it. That is the repair working — the
+two files agree, and whichever runs first wins harmlessly.
+
+**New: `npm run verify:progression`** (`scripts/verify_progression.mjs`) — an
+end-to-end check of the Slice 7 progression path, run **as the test user with a
+real session token** rather than the service key, so it exercises RLS instead
+of bypassing it. It covers what unit tests structurally cannot: that a column
+the code writes exists, that the `on_conflict` targets resolve, that `real` and
+`date` round-trip, and that one learner can neither read nor forge another's
+progress. It creates its own fixtures, deletes them, and refuses any project
+but monoko-test. Exits 2 if the schema is not synced.
+
+**18/18 green (2026-08-18)**, run twice, leaving zero rows behind. It proved
+the whole Slice 7 path against a real database: all four session-end writes
+succeed as a signed-in learner, both `on_conflict` targets resolve, `real` and
+`date` round-trip, and RLS rejects a cross-user read **and a cross-user write**
+(403 — the `WITH CHECK` half of the policy, which a `USING`-only policy would
+have let through).
+
 ---
 
 ## 1. Purpose
@@ -61,9 +101,9 @@ is what Stripe webhooks and rate-limiting code will be tested with.
 
 | # | Session | Depends on | Status |
 |---|---------|------------|--------|
-| 1 | Test Supabase + seed script | User has created the project (see 4.1) | ✅ Done |
+| 1 | Test Supabase + seed script | User has created the project (see 4.1) | ✅ Done · schema brought current 2026-08-18 |
 | 2 | Unit tests for `api/*.js` | Nothing (mocks only) | ✅ Done |
-| 3 | Playwright smoke tests | Sessions 1 (data) | Pending |
+| 3 | Playwright smoke tests | Sessions 1 (data) | **Pending — now also gates splitting `index.html`, see BUILD_AND_SPLIT_PLAN.md** |
 | 4 | Guardrail lint script | Nothing | Pending |
 | 5 | GitHub Actions CI + prompt-regression gate | Sessions 1–4 | Pending |
 

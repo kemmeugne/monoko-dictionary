@@ -22,6 +22,11 @@ Last updated: 2026-08-18
 - Supabase Auth — dictionary public, courses + chat require login
 - Admin panel for professor corrections at `/admin.html`
 - User progress tracking — lesson completion, per-level progress bars, "Continuer" home shortcut
+- **The practice loop is complete (2026-08-18)** — all six exercise types, plus
+  XP, medals, streaks, SM-2 review scheduling and Élargir topic levels. Only the
+  daily session cap (the paywall) is left in Phase 3.
+- **A build step is now a Phase 4 prerequisite** — `index.html` is 6,109 lines
+  transpiled in the browser on every load. See `BUILD_AND_SPLIT_PLAN.md`.
 - **Content that was in the database but not on screen was surfaced 2026-08-18** —
   181 example sentences across 9 lessons, 179 of them already carrying the
   professor's audio (two rendering bugs, nothing added), plus the first professor's complete *ko linga* conjugation
@@ -179,8 +184,8 @@ leaderboards and hearts were all rejected — see the plan for why.
 **Build order:** routing QA ✅ → `lesson_pool` ✅ → session shell + match-pairs ✅
 → choose-the-audio ✅ → attempts + pool-shaped `buildSession` ✅ → stage split +
 80% gate ✅ → tokenizer ✅ → tap-words ✅ → fill-the-blank ✅ →
-listen-and-type ✅ → record-and-compare speaking ✅ → **XP/streaks ← NEXT** →
-session cap.
+listen-and-type ✅ → record-and-compare speaking ✅ → XP/streaks/SM-2 ✅ →
+**session cap ← NEXT**.
 
 **Shipped 2026-08-17 — the practice loop is playable end to end.** A learner
 opens a lesson, runs a 20-question **Pratiquer** session on the professor's own
@@ -208,11 +213,15 @@ tap-words-in-order, fill-the-blank, listen-and-type and speaking.
   "Les nombres ordinaux" was folded into "Les nombres"
   (`sql/merge_ordinals_into_numbers.sql`), leaving **49 lessons**.
 
-**Measured across every lesson:** 47 build a full 20-question Pratiquer session,
-2 build 16–19, and **none falls below 16** — so the harshest gate in the
-curriculum is 8/10 rather than the 3/3 one lesson demanded that morning.
-Verified by `npm test` (228) and `node scripts/audit_exercise_types.mjs` across
-all 49 lessons and both stages.
+**Measured across every lesson:** 47 build a full 20-question Pratiquer session
+and 2 build 15–19 — so the harshest gate in the curriculum is 8/10 rather than
+the 3/3 one lesson demanded that morning. Verified by `npm test` (228) and
+`node scripts/audit_exercise_types.mjs` across all 49 lessons and both stages.
+
+**The audit is a best-of-25 randomised build, so its floor moves.** *Comparatifs
+et superlatifs* comes out at 15 or 16 depending on the draw (three consecutive
+runs: 16, 16, 15). Quote the floor as **15**, not 16, and treat a one-question
+change in the thinnest lesson as noise rather than a regression.
 
 **2026-08-18 — a briefing, and conjugation tables that are also exercises.**
 
@@ -233,17 +242,43 @@ all 49 lessons and both stages.
   one tense share an orthography, a shape band and a topic by construction. The
   mirroring into `lesson_pool` is written and driven by the same link rows that
   decide what a lesson displays, so the professor's next verb becomes exercise
-  material with no code change. **`sql/lesson_pool_conjugation_source.sql` is not
-  yet applied**, so the pool holds no conjugation rows yet.
+  material with no code change. **`sql/lesson_pool_conjugation_source.sql` was
+  applied 2026-08-18** and the pool now holds **30 conjugation rows** (24 on
+  L358, 6 on L359). Only the imparfait and futur sets reach match-pairs — the
+  progressives and most of the présent are too long for the `longestSide <= 3`
+  cap — but that was enough to take **L358 from zero viable match-pairs buckets
+  to one**, and L359 from one to two.
 - **181 example sentences became visible**, none of them new: a "these values
   repeat, so they must be section headers" heuristic was turning 131 real
   sentences into headings across 4 lessons, and every niveau-1 lesson took an
   earlier "Série 1 / Série 2" branch that had no example row at all (50 more
   sentences, 48 recorded).
 
+**2026-08-18 — Slice 7 shipped: progression and retention.** XP (with a flat
+50-XP perfect-session bonus), medals at 80/90/100, a streak, SM-2 scheduling and
+Élargir topic levels. `sql/progression.sql` applied — `user_streak` (one row per
+**learner**, spanning every language, keyed on the learner's **local** day) and
+`review_schedule` (SM-2 state, Pratiquer only).
+
 **Spaced repetition (SM-2)** belongs **only to Pratiquer** — it needs a finite
 item set with per-item state, which native content (median 25 items) is and the
 6,196-row corpus is not. Élargir draws at random with no per-item state.
+Because a screen only knows right or wrong, the quality signal is one bit:
+ease moves +0.1/−0.2 under a **3.0 ceiling that is ours, not SM-2's**.
+Due items are served **below** breadth in `selectionOrder` — an unseen item has
+no schedule row and cannot be due, so scheduling first would have undone the
+breadth-first coverage Slice 6 measured.
+
+**Verification grew with it.** `npm test` is **279** (was 228);
+**`npm run check:syntax`** parses the whole babel block, which nothing else did
+— a stray bracket in the React no unit test slices used to pass every gate and
+ship a blank page; and **`npm run verify:progression`** exercises the write path
+against monoko-test **as a signed-in learner**, catching what pure-function
+tests structurally cannot (a column the schema lacks, an unresolvable
+`on_conflict`, a type that will not round-trip, a policy missing its
+`WITH CHECK`). **The test project had drifted a whole phase behind** — it held
+only the 12 base tables — and `db:sync-test-schema` now applies the real
+migration files rather than a copy of their DDL.
 
 **Dropped:** `exam_results` table, pass thresholds, level locking. `user_progress`
 keeps its unused `exam_score` column for now.
@@ -263,7 +298,16 @@ Rationale:
 - Can ship in weeks vs months compared to React Native rewrite
 - Upgrade path: migrate specific screens to native later if needed
 
+**Prerequisite — a build step, before anything here.** `index.html` is 6,109
+lines transpiled in the browser by Babel standalone: ~700 KB gzipped for the
+compiler plus 350–650 ms of transpile on a phone, on every cold load, before
+first paint. Wrapping that in Capacitor pays it again on every app launch, on
+top of the slower WebView startup — and undoing it afterwards means another
+store review. **See `BUILD_AND_SPLIT_PLAN.md`**, which also explains why adding
+the bundler and splitting the file are separate changes with different risk.
+
 **Steps:**
+0. **Build step** (`BUILD_AND_SPLIT_PLAN.md` Stage A) — hard gate
 1. Make `index.html` fully responsive / touch-friendly (large tap targets, no hover dependencies)
 2. Install Capacitor, wrap the web app
 3. Add native microphone plugin for speaking exercises

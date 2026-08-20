@@ -10,6 +10,31 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 The frontend is a mobile-first responsive web app that will be wrapped with Capacitor and shipped to the App Store and Play Store. All UI work must follow the mobile-first rules below.
 
 ---
+## How to write to Anthony
+
+**Write in a straightforward and clear way that is structured and gets to the
+point.**
+
+This is a standing instruction, not a style preference. Earlier sessions were
+hard to follow and confusing to read.
+
+What that means in practice:
+
+- **Lead with the answer.** State what happened or what you recommend in the
+  first line. Do not build up to it.
+- **Structure it.** Short sections with headings, or a table. Not long prose.
+- **Cut the commentary.** No narrating your reasoning, no restating the question,
+  no explaining what you are about to say before you say it.
+- **One idea per paragraph.** Two or three sentences, then stop.
+- **Say what needs doing.** If there is an action for Anthony, put it at the top
+  or under its own heading, not buried in the middle.
+- **Plain words.** If a term needs defining ("gloss"), either define it in the
+  same sentence or use a simpler word.
+
+Length is not the measure — clarity is. A long answer that is well structured and
+scannable is fine. A short one that rambles is not.
+
+---
 ## Mobile-first design (Capacitor-bound)
 
 This app will be wrapped with Capacitor and shipped to the App Store and Play Store. Every new feature must be designed mobile-first.
@@ -24,6 +49,14 @@ This app will be wrapped with Capacitor and shipped to the App Store and Play St
 - No `position: fixed` for primary UI (mobile Safari + virtual keyboard bugs)
 - Bottom navigation, not top
 - No horizontal scroll
+- **Centre a scrollable box with `margin: auto`, never `justify-content: center`.**
+  They are identical until the content is taller than the box, and then a
+  centred flex container overflows in *both* directions — browsers will not
+  scroll above the origin, so the top of the content becomes unreachable. Auto
+  margins collapse to 0 when space runs out and the content scrolls normally.
+  This bit the session briefing in Slice 7: the learner with a streak, items due
+  and a topic level is precisely the one with enough content to overflow, and
+  what they lost was the lesson title and the stage chip.
 
 **Test before merging**
 - Chrome DevTools mobile emulation (iPhone SE, iPhone 14 Pro, Pixel 5)
@@ -57,7 +90,9 @@ This app will be wrapped with Capacitor and shipped to the App Store and Play St
 ## Key files in this repo
 
 ```
-index.html                        — entire frontend (React, ~3200 lines). Module 1.1 has a
+index.html                        — entire frontend (React, 6,109 lines — a build step is now
+                                    a Phase 4 prerequisite, see BUILD_AND_SPLIT_PLAN.md).
+                                    Module 1.1 has a
                                     special tile view (AlphabetPanel); it reads every tile from
                                     lesson_items, so DB fixes reach the screen. It used to render
                                     from a hardcoded ALPHABET_DATA table that had drifted from the
@@ -85,10 +120,15 @@ sql/exercise_progress.sql         — SQL migration: exercise_attempts + lesson_
 sql/merge_ordinals_into_numbers.sql — SQL migration: folds L375 "Les nombres ordinaux" (3 items) into L350 "Les nombres" (applied 2026-08-17)
 sql/conjugation_tables.sql        — SQL migration: conjugation_forms + lesson_conjugation_tables, a paradigm stored as a GRID (applied 2026-08-18)
 sql/conjugation_lesson_tenses.sql — SQL migration: adds lesson_conjugation_tables.tenses text[] — a lesson shows only the tenses it teaches; NULL means all (applied 2026-08-18)
-sql/lesson_pool_conjugation_source.sql — SQL migration: widens lesson_pool's source_table CHECK to admit conjugation_forms (written 2026-08-18, NOT YET APPLIED)
+sql/lesson_pool_conjugation_source.sql — SQL migration: widens lesson_pool's source_table CHECK to admit conjugation_forms (applied 2026-08-18)
+sql/progression.sql               — SQL migration: user_streak + review_schedule (SM-2), and the pratiquer_runs/elargir_runs drift repair (applied 2026-08-18)
+sql/lesson_exercise_policy.sql    — SQL migration: per-lesson exercise-type ALLOW-list. Only L346 has a row (written 2026-08-18, NOT YET APPLIED to production)
+scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~4,000 lines of React that no unit test slices
+populate_alphabet_pool.py         — makes L346 'Sons et alphabet' usable as exercise material: trims the teaching label off lesson_pool.french ('Consonne B — Maladie' -> 'Maladie'), swaps in the DICTIONARY's clean word audio where the word exists there (21/46), and deletes the lesson's mis-routed Élargir rows. Rollback JSON first; lesson_items untouched
 populate_conjugation_forms.py     — loads the FIRST professor's ko linga paradigm (5 tenses x 6 persons, 24 clips already on R2) from the original Cours 2 workbook matrix, attaches it to the lessons that teach those tenses, and mirrors the forms into lesson_pool as exercise material
 populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
+BUILD_AND_SPLIT_PLAN.md           — why index.html gets a bundler BEFORE Capacitor, and why splitting the file is a SEPARATE, later change gated on Playwright. Measured load-time numbers and the target module boundaries
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
@@ -137,10 +177,13 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
 - `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell` — Lingala course example audio links (added 2026-03-16)
 - `lesson_items.embedding vector(384)` — OpenAI text-embedding-3-small embeddings for pgvector search (added 2026-03-21, 1,740 rows embedded on old structure; new structure needs re-embedding via `embed_lesson_items.py`)
+- `lesson_exercise_policy` — `(lesson_id PK, allow_types text[], reason)`. **A lesson with no row serves every type**, which is every lesson but one. The engine picks exercise types from the *shape* of a lesson's rows, and shape cannot see what a lesson is *for*: L346 "Sons et alphabet" has `french = 'Consonne T — Conseil'`, a teaching label rather than a translation, so match-pairs is solvable by first letter in **30 of its 46 rows** and choose-the-audio is given away by the clip pronouncing the letter before the word. It serves `listen_type` + `speaking` only. **Allow-list, not deny-list** — a seventh exercise type must not silently opt a curated lesson back in. Add a row only when a type is *wrong* for a lesson, never to tune difficulty (added 2026-08-18)
 - `conjugation_forms` — one verb's paradigm as a **grid**: `(language_id, verb, tense, person)` unique, plus `french`, `lingala`, `audio_url`, sort orders. 30 rows = *ko linga* × 5 tenses × 6 persons, 24 of them with the professor's clip (added 2026-08-18)
 - `lesson_conjugation_tables` — pins a paradigm to a lesson: `(lesson_id, verb)` unique, plus `tenses text[]`. **NULL `tenses` means every tense**; a list restricts the lesson to what it teaches. Two rows today: L358 gets four tenses, L359 gets `futur`, L393 (futur proche) is deliberately attached to nothing (added 2026-08-18)
 - `profiles` — one row per auth user: `display_name`, `preferred_language_id` (added 2026-04-14)
 - `user_progress` — lesson completion tracking: `user_id`, `lesson_id`, `language_id`, `completed_at`, `exam_score` (null until Phase 3); RLS ensures users only access their own rows (added 2026-04-14)
+- `user_streak` — **one row per USER, not per language and not per lesson**: `current_streak`, `longest_streak`, `last_day`. A streak answers "did you show up today", which is a fact about the person; keying it by language would break the streak of someone doing Lingala on Monday and Yoruba on Tuesday. `last_day` is a **date in the learner's local day**, sent by the client — never `now()::date`, which is UTC (added 2026-08-18, `sql/progression.sql`)
+- `review_schedule` — SM-2 scheduler state, **Pratiquer only**: `(user_id, pool_item_id)` unique, plus `ease`, `interval_days`, `reps`, `due_on`. Distinct from `exercise_attempts`, which is an append-only event log — squeezing ease/interval into it would mean recomputing the whole history on every session start. Élargir writes nothing here (added 2026-08-18)
 
 ---
 
@@ -244,11 +287,29 @@ both hard-refuse to run unless pointed at that exact test project ref.
 
 - Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
   and fill in real values, or ask for them.
-- `npm test` — Vitest, **228 tests, no network calls, fully mocked**. Covers
+- `npm test` — Vitest, **279 tests, no network calls, fully mocked**. Covers
   every `api/*.js` handler plus the exercise engine: the tokenizer, the
-  exercise builders, and the audio hand-off. Engine tests slice the code out of
+  exercise builders, the audio hand-off and the progression maths (SM-2,
+  streaks, medals, levels). Engine tests slice the code out of
   `index.html` and evaluate it, so they run against the source the browser runs.
   See `tests/README.md`.
+- `npm run check:syntax` — parses the whole babel block and fails on a syntax
+  error. **Run it before every deploy.** There is no build step, so a stray
+  bracket in the ~4,000 lines of React that no unit test slices is caught by
+  nothing else — it passes every gate and ships a blank page.
+- `npm run verify:progression` — the Slice 7 write path end to end against
+  monoko-test, **as the test user with a real session token**, so it exercises
+  RLS rather than bypassing it with the service key. Catches what unit tests
+  structurally cannot: a column the code writes that the schema lacks (one
+  unknown column makes PostgREST reject the whole row), an `on_conflict` target
+  it cannot infer (409), a type that will not round-trip, and a policy missing
+  its `WITH CHECK`. Creates and deletes its own fixtures. 18/18 as of
+  2026-08-18.
+- **`npm run db:sync-test-schema` applies `sql/test_schema.sql` and then the
+  real migration files**, the same ones run against production — never a copy
+  of their DDL, which would fork and then drift. Add any new structural
+  migration to that script's `FILES` list. Data and pgvector migrations are
+  deliberately excluded.
 - `npm run db:sync-test-schema` / `npm run db:seed-test` — set up or reset
   the test project's schema and data. Both are safe to re-run any time.
 - Full spec and session-by-session status: `HARNESS_SPRINT.md`. This runs
@@ -666,7 +727,8 @@ Non-obvious rules that fall out of it:
   (a bare `o` beside the required `ó`), which is what makes it a test of tone.
   Compared **exactly** — no `fold` here, unlike fill-the-blank: this exercise
   *is* the spelling. A space is never a tile; slots are grouped per word.
-  47 of 49 lessons now build a full session, none below 16 questions. 228 tests.
+  47 of 49 lessons now build a full session, none below 15 questions (the audit
+  randomises, so the thinnest lesson draws 15–16). 228 tests.
   The play button + waveform are now a shared **`ClipPlayer`**.
 
 - **Selection is breadth-first (2026-08-17).** `selectionOrder` is the order
@@ -728,9 +790,21 @@ Non-obvious rules that fall out of it:
   makes it exercise material with **no code change**. Orthography is decided per
   **verb**, not per form: one toned form makes the whole paradigm toned, because
   sniffing individual forms would label every legitimately toneless word
-  "untoned". **`sql/lesson_pool_conjugation_source.sql` is not yet applied**, so
-  no conjugation row is in the pool yet — `lesson_pool`'s `source_table` CHECK
-  predates `conjugation_forms` and rejects it until then.
+  "untoned". **`sql/lesson_pool_conjugation_source.sql` was applied 2026-08-18**
+  — `lesson_pool`'s `source_table` CHECK predated `conjugation_forms` and
+  rejected it outright (a 23514 violation, not a silent skip) — and
+  `populate_conjugation_forms.py` then wrote **30 pool rows**, 24 to L358 and 6
+  to L359, all `tier = native`, 24 of them with audio.
+
+  **Only the imparfait and futur sets reach match-pairs**, and the reason is a
+  cap on the *French* side: `pairsBuckets` filters `longestSide(r) <= 3`, so
+  "Je suis en train d'aimer" and the other progressives are excluded, as is most
+  of the présent ("J'aime / j'ai aimé"). They still feed the other five types.
+  The effect where it counts: **L358 had zero viable match-pairs buckets before
+  this and now has one** (every native row there that clears the cap is a
+  conjugation form), and L359 went from one bucket sitting exactly at
+  `PAIRS_MIN` to two. That is the shape the plan predicted these forms would
+  fill.
 
 - **Two bugs were hiding 181 example sentences the professor had already
   recorded (2026-08-18).** Nothing was added; they simply became visible.
@@ -754,14 +828,40 @@ Non-obvious rules that fall out of it:
 
 **Slice 6 is complete.** Record-and-compare speaking shipped 2026-08-18: no STT,
 at most three prompts per session, recordings stay on-device, and self-ratings
-are excluded from the 80% gate. **Next action is Slice 7** (XP/streaks/SM-2).
+are excluded from the 80% gate.
+
+**Slice 7 is built (2026-08-18) — XP, medals, streaks, SM-2 and Élargir topic
+levels.** `sql/progression.sql` **applied 2026-08-18**, RLS verified on both new
+tables with the client's publishable key (rejected `42501`). Rules that matter:
+- **SM-2 is Pratiquer-only.** It needs a finite item set with per-item state,
+  which native content is and the 6,196-row corpus is not. The grading signal
+  is one bit, so ease moves +0.1/−0.2 with a **3.0 ceiling that is ours, not
+  SM-2's** — a binary signal cannot justify runaway intervals. A miss sets
+  `interval_days = 0`; the ladder floors at 1 day so `0 × ease` cannot strand
+  a lapsed item as due-forever.
+- **Due sits BELOW breadth in `selectionOrder`** (unseen → unused → due → tier
+  → stalest). An unseen item has no schedule row and cannot be due, so putting
+  SM-2 first would quietly undo the breadth-first coverage Slice 6 measured.
+- **`buildSession`'s `production` argument is 0 for every Pratiquer session and
+  for Élargir level 1**, and at 0 the arithmetic is exactly Slice 6's — that is
+  what keeps the measured per-lesson session sizes true. Verify with the audit,
+  not by eye.
+- **Session-end writes are individually isolated.** They were one `try` block;
+  a throw from a new write skipped every write after it, so an unapplied
+  migration would have silently stopped the 80% gate from recording. Keep them
+  isolated when adding a seventh write.
+- **Days are the learner's local days.** `last_day` and `due_on` are dates and
+  the client sends its own `YYYY-MM-DD`. `now()::date` is UTC and would award a
+  Montreal learner two streak days for one evening.
+
 `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**.
 Read it before touching engine code.
 
-**Verifying engine work:** `npm test` covers the builders on hand-made rows;
+**Verifying engine work:** `npm run check:syntax` proves the page still parses;
+`npm test` covers the builders on hand-made rows;
 **`node scripts/audit_exercise_types.mjs`** checks every shipped type against the
 live 6,196-row pool across all 50 lessons and both stages, and exits non-zero on
-a violation. Run both. The audit is what found the `/` placeholder rows and the
+a violation. Run all three. The audit is what found the `/` placeholder rows and the
 947 rows whose stored `token_count` disagrees with the tokenizer.
 
 **Tokenizer rules that other code must not re-invent:**
@@ -827,6 +927,29 @@ new exercise types in Slice 6 need both:
 
 Related rule: **a clip belongs to the match, not to the tap.** Playback tied to
 the Lingala tap meant a pair closed from the French tile played nothing at all.
+
+**A lesson's exercise material may differ from its lesson page, and sometimes
+must.** `lesson_items` is the teaching surface; `lesson_pool` is the exercise
+surface. L346 "Sons et alphabet" is the case that proved it: its rows are a
+teaching label plus a gloss (`'Consonne B — Maladie'`) and its clips read the
+letter before the word, so **30 of 46 match-pairs were solvable by first letter
+with no Lingala**, and choose-the-audio was given away by the clip. The lesson
+page still shows the label and the letter-first clip; the pool now holds the
+gloss and, where the dictionary has the word, its clean recording
+(`populate_alphabet_pool.py`). **Only audio comes from the dictionary — never
+the French**, which is often a different sense (`Mwǎsi` is *Femme* here and
+*Fiancé(e)* there), and never `lingala`, because the dictionary is untoned and
+this is the lesson that teaches tone.
+
+**Élargir needs a topic.** It means "everything else the course knows about this
+topic", so a lesson that is not *about* a subject has nothing to widen into —
+routing gave L346 *Musicien, Fourchette, "Cette meuf est joviale"*, plus seven
+of its own words with the tone marks stripped (`Tólí` → `Toli`). Those rows are
+deleted, and **the lesson screen hides Élargir when a lesson has no routed
+material at all** rather than unlocking a stage that dead-ends on "pas assez de
+contenu". The probe is a single-row read and fails towards showing the stage.
+Note the toned/untoned rule is enforced *within a screen* by the orthography
+bucket — nothing enforces it *across stages*, which is how this surfaced.
 
 **Exercises play Lingala only — never French.** The French side of any exercise
 is text. This is a product rule, not an accident of the data: French is the

@@ -11,7 +11,8 @@ first-try, and unlock an endless Élargir session on the routed corpus. Attempts
 the gate and the mastery counter persist. **All six exercise types exist**:
 match-pairs, choose-the-audio, tap-words-in-order, fill-the-blank and
 listen-and-type, plus record-and-compare speaking.
-**47 of 49 lessons build a full 20-question session** and none falls below 16.
+**47 of 49 lessons build a full 20-question session** and none falls below 15
+(the audit is a best-of-25 randomised build; its thinnest lesson draws 15–16).
 A briefing screen now opens every session and lists what is in it (2026-08-18).
 
 | Slice | | |
@@ -23,12 +24,13 @@ A briefing screen now opens every session and lists what is in it (2026-08-18).
 | 4 · Attempts + pool-shaped builder | ✅ 2026-08-17 | 20 questions, 3–5 pair screens, (item, format) ledger |
 | 5 · Stage split | ✅ 2026-08-17 | tier filter, 80% gate, mastery counter, Signaler |
 | 6 · The four remaining types | ✅ **2026-08-18** | tokenizer · tap-words · fill-the-blank · listen-and-type · speaking |
-| 6b · Briefing + conjugation material | 🔶 2026-08-18 | *Au programme* off the built queue ✅ · paradigm grid ✅ · mirrored into `lesson_pool` ⬜ (migration not applied) |
-| 7 · Progression + retention | ⬜ | XP, streaks, SM-2 (Pratiquer only) |
+| 6b · Briefing + conjugation material | ✅ 2026-08-18 | *Au programme* off the built queue ✅ · paradigm grid ✅ · 30 forms mirrored into `lesson_pool` ✅ (L358 gains its first match-pairs bucket) |
+| 7 · Progression + retention | ✅ 2026-08-18 | XP, streaks, medals, SM-2 (Pratiquer only), Élargir topic levels · `sql/progression.sql` applied |
 | 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
 
-**Verify engine work with both:** `npm test` (228 tests, builders on hand-made
-rows) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
+**Verify engine work with all three:** `npm run check:syntax` (the babel block
+parses — no build step means a stray bracket is otherwise caught by nothing),
+`npm test` (279 tests, builders on hand-made rows) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
 live 6,196-row pool, all lessons, both stages; exits non-zero on a violation).
 
 ---
@@ -877,10 +879,31 @@ the same form — `lesson_pool` is unique on `(source_table, source_id)`, so one
 form belongs to exactly one lesson; today's tense split makes an overlap
 impossible, but a future one would silently drop a row.
 
-**Not done yet:** `sql/lesson_pool_conjugation_source.sql` is **not applied**, so
-`lesson_pool` holds **zero** conjugation rows. `lesson_pool`'s `source_table`
-CHECK predates `conjugation_forms` and rejects it until the migration runs; the
-forms and the links are live (30 forms, 2 link rows), the drilling is not.
+**Done 2026-08-18:** `sql/lesson_pool_conjugation_source.sql` is applied and
+`populate_conjugation_forms.py` re-run. `lesson_pool` holds **30 conjugation
+rows** — 24 on L358, 6 on L359, all `tier = native`, 24 with audio. (Before it
+ran, the insert failed `lesson_pool`'s `source_table` CHECK outright — a 23514
+violation, not a silent skip, which is the good failure mode here.)
+
+**The prediction above held, but through a narrower gate than expected.**
+`pairsBuckets` caps `longestSide(r) <= 3` and `shapeBand` reads the **French**
+side, so of the 30 forms only the **imparfait** (L358) and **futur** (L359) sets
+reach match-pairs at all: "Je suis en train d'aimer" and the other progressives
+are far past the cap, and so is most of the présent ("J'aime / j'ai aimé", 3
+tokens once the `/` splits). The excluded forms still feed the other five types.
+
+Measured effect, which is larger than the row count suggests:
+
+| Lesson | Viable match-pairs buckets before | After |
+|---|---|---|
+| L358 *présent et passé* | **0** | 1 (`untoned\|phrase`, 6 pairs) |
+| L359 *futur et impératif* | 1 (`toned\|phrase`, exactly at `PAIRS_MIN`) | 2 (+`untoned\|phrase`, 5 pairs) |
+
+**Every native row in L358 that clears the cap is a conjugation form.** The
+lesson had no match-pairs material whatsoever before this, and L359's single
+bucket sat exactly on `PAIRS_MIN` — one dedupe away from collapsing. This is the
+clearest evidence yet for the "a table per verb per tense" plan: the next verb
+the professor records widens the same two buckets with no code change.
 
 ### Slice 6 constraints that are not negotiable
 
@@ -908,11 +931,230 @@ pass calculation** — certifying a lesson on an unscoreable question would make
 the bar meaningless. If WER is later measured below ~15% on sentences, scored
 speaking can replace the self-grade and rejoin the gate.
 
-### Slice 7 — progression and retention  ⬜
-XP, best score, medals, streak. Thin once sessions and attempts exist.
-SM-2 scheduling belongs **only to Pratiquer** — spaced repetition needs a finite
-item set with per-item state, which native content (median 25) is and the
-6,196-row corpus is not. Élargir draws at random with no per-item state.
+### Slice 7 — progression and retention  ✅ BUILT 2026-08-18
+XP, best score, medals, streak, SM-2, Élargir topic levels and the
+perfect-session bonus. **`sql/progression.sql` applied 2026-08-18**; RLS on
+`user_streak` and `review_schedule` verified against the live database with the
+client's own publishable key, which is rejected `42501` on both.
+
+**SM-2 is Pratiquer-only**, as planned: spaced repetition needs a finite item set
+with per-item state, which native content (median 25) is and the 6,196-row corpus
+is not. Élargir draws at random and writes no schedule rows.
+
+**What SM-2 actually looks like here.** Classic SM-2 grades recall 0–5; an
+exercise screen knows only right or wrong. So the quality signal is one bit and
+the ease adjustment is correspondingly modest — **+0.1 on a hit, −0.2 on a miss,
+floor 1.3, and a 3.0 ceiling that is ours rather than SM-2's**: with a binary
+signal there is no evidence fine enough to justify the runaway intervals an
+uncapped ease produces. Intervals follow the canonical 1 → 6 → ×ease ladder.
+
+A miss sets `interval_days = 0`, which means due today, which means **the item
+returns in the very next session** — sessions are the unit of practice here, not
+hours. That zero is also the classic implementation trap: `0 × ease` is 0
+forever, so the ladder floors at 1 day and `tests/progression.test.js` walks a
+lapsed item all the way back up.
+
+**Ordering.** `selectionOrder` gained a fifth rule, and its position is the
+design: **unseen → unused this session → DUE → tier → longest ago**. Due sits
+*below* breadth deliberately. An item never seen has no schedule row and cannot
+be due, so putting SM-2 first would have quietly undone the breadth-first
+coverage measured in Slice 6 (Les nombres: 87% → 100%). `due` is absent for
+Élargir and for signed-out learners, and the rule then never fires.
+
+**Élargir topic levels** spend `elargir_xp` twice over: the level **widens the
+pool** (a higher `level` admits longer rows through every builder's
+`effective_level <= level` filter) and **shifts the mix** from recognition toward
+production via `buildSession`'s new `production` argument. That argument is spent
+entirely on the match-pairs cap, because that one number drives the rest —
+choose-the-audio takes what is left at the end, so shrinking pairs widens the
+four production types and narrows both recognition types in a single move.
+**At `production = 0` the arithmetic is exactly what shipped in Slice 6**, which
+is what keeps the measured per-lesson session sizes true; Pratiquer always passes
+0, and so does Élargir level 1.
+
+**Days are the learner's local days, never UTC.** `last_day` and `due_on` are
+`date` columns and the client sends its own `YYYY-MM-DD`. A learner in Montreal
+finishing at 20:00 EST is already tomorrow in UTC, so a server-side `now()::date`
+would award two streak days for one evening and then break the streak they kept.
+`dayDiff` pins both sides to UTC midnight before subtracting, which is what makes
+it survive a 23- or 25-hour daylight-saving day.
+
+**Failure isolation (the bug this slice nearly shipped).** The four session-end
+writes were one `try` block. Adding two writes to tables that do not exist until
+a migration is run by hand — which is how every migration in this repo lands —
+would have meant a throw from the new write skipping every write after it, and
+therefore **an unapplied `sql/progression.sql` silently stopping the 80% gate
+from recording**. Each write now fails alone. The feature degrading is
+acceptable; the gate degrading is not.
+
+**Also fixed:** `pratiquer_runs` / `elargir_runs` existed in production but not in
+`sql/exercise_progress.sql`. Only a rebuilt environment (monoko-test, a fresh
+project) would have hit it, and it would have failed the whole stage-state upsert
+on an unknown column. Both files are now in line.
+
+**Where the new signals appear.** The best score keeps its full-width card on the
+briefing — it carries the medal and the "leçon validée" mark, and it is the
+number the learner is trying to beat. Streak, items-due and topic level are
+one-fact signals, so they are **chips on a wrapping line**, not three more cards:
+stacked, they pushed *Au programme* and the Commencer button off an iPhone SE for
+exactly the engaged learner who has all three. The home screen carries the streak
+above "Continuer", the first thing a returning learner sees, and hides it at 0
+rather than announcing a broken chain. `streakDisplay` — not the stored
+`current_streak` — is what any screen renders, so a streak that lapsed reads as
+broken without waiting for the learner to finish another session to find out.
+
+**Two UI bugs this slice found, both of the appear-then-vanish kind:**
+- The briefing's scroll box was centred with `justify-content: center`, which
+  makes overflowing content unreachable above the scroll origin. It was already
+  latent; three more cards is what would have made it bite. Now `margin: auto`.
+  Promoted to a hard rule in CLAUDE.md → Mobile-first design.
+- "Nouveau record" on the summary compared against `stats.best`, but
+  `handleSessionEnd`'s `finally` re-runs `loadStageState`, so `stats.best`
+  becomes *this* session's score while the summary is still on screen — the line
+  would render for a frame and then delete itself. The pre-session best is now
+  captured in a ref at mount (`bestAtStart`). **Any "you beat your record"
+  message must snapshot the thing it is comparing against**, because the refresh
+  that follows a session is what moves it.
+
+### Per-lesson exercise policy (2026-08-18)
+
+**Shape decides which exercises a lesson can build; it cannot decide which it
+*should*.** That gap has exactly one instance today, and it is instructive.
+
+L346 "Sons et alphabet" stores its rows as:
+
+    french = 'Consonne T — Conseil'      lingala = 'Tólí'
+    french = 'Son composé GB — Pont'     lingala = 'Gbagba'
+
+The French side is a **teaching label**, not a translation — the sound, then a
+word containing it. Every builder sees a well-formed short row and happily uses
+it, and two of them produce questions that test nothing:
+
+- **match-pairs** pairs "Consonne T" with the word beginning in T. **30 of the
+  46 native rows are solvable that way with no Lingala at all.**
+- **choose-the-audio** shows the French, which names the letter, and the
+  professor's clip opens by pronouncing that letter. A worse giveaway than
+  match-pairs, and it survives every generic rule the engine has.
+
+Tap-words and fill-the-blank were never in this lesson: every row is one token.
+So `lesson_exercise_policy` gives L346 `listen_type` + `speaking` — spell what
+you hear, then say it back, which is what a pronunciation lesson is for.
+
+Measured on the real pool, 25 builds: before, 7 choose-audio / 5 pairs / 5
+listen / 3 speaking. After, **17 listen-and-type + 3 speaking, still a full 20**.
+
+**It is an allow-list, not a deny-list.** When a seventh exercise type ships, a
+lesson that needed curation must not silently start serving it. Add a row only
+when a type is *wrong* for a lesson — difficulty is what `effective_level` and
+the topic level are for.
+
+**Two engine changes fell out of it, both of which outlive the one lesson:**
+
+- **Excluded types no longer strand their budget.** The old cascade divided by a
+  hard-coded 5 / 4 / 3 / 2 / rest. That is just "divide by how many are still to
+  come", so it now reads that way and skipping a type redistributes its share.
+  With every type allowed the arithmetic is identical, which is what keeps the
+  measured per-lesson sizes true.
+- **A top-up pass, because some builders have a ceiling of their own.** Speaking
+  is 3 a session, so an even split between two allowed types yields 10 + 3 and
+  **stops at 13 of 20** however much material exists. The remainder now goes
+  back round until nobody can take more. Match-pairs stays out of it: its cap
+  protects scarce material, and topping up from it would defeat the cap.
+
+**A bug the top-up introduced and a test caught:** `SPEAKING_MAX_PER_SESSION`
+was enforced *per call*, so asking a second time handed out 3 more. "At most
+three prompts a session" is a product rule, so it is now enforced in
+`buildSession` against what the session has already built (`SESSION_CAPS`),
+not inside one builder invocation.
+
+**Also fixed — listen-and-type rows where the clip and the tiles disagree.**
+`tokenize` drops parenthesised text and breaks on commas, so `(Eleko ya) Gálá`
+is read in full and would ask for `Gálá` alone, `(M)péma` is read *mpéma* and
+would ask for *péma*, and `Lisakolí, lisúkúlu` is two words of which one is
+accepted. **The clip is the answer key**, so those rows sit listen-and-type out
+and stay available to every other type. Four rows in L346, which is where it
+would first have been noticed — that lesson is now mostly listen-and-type.
+
+### "Sons et alphabet": when the material is the bug (2026-08-18)
+
+L346 produced well-formed exercises that taught nothing, and the engine could
+not have known. Its rows are a **teaching label plus a gloss**:
+
+    french = 'Consonne B — Maladie'      lingala = 'Bokono'
+
+and the professor's clip reads the letter before the word: *"B … Bokono"*. Both
+are right for the lesson page. Both are wrong as exercise material:
+
+- **match-pairs** pairs *"Consonne B"* with the word starting in B — **30 of the
+  46 native rows are solvable that way with no Lingala at all**;
+- **choose-the-audio** shows the French, which names the letter, and the clip
+  opens by pronouncing it.
+
+**The fix was in the material, not the engine.** `populate_alphabet_pool.py`
+rewrites `lesson_pool` for L346 only:
+
+| | before | after |
+|---|---|---|
+| `french` | `Consonne B — Maladie` | `Maladie` |
+| `audio_url` | the letter-first clip | the **dictionary's** recording of the bare word (21 of 46) |
+| `lingala` | `Bokono` | unchanged |
+
+`lesson_items` is untouched, so the lesson page keeps the label and the
+letter-first clip. **The teaching surface and the exercise surface are allowed
+to differ, and here they must.** A match-pairs screen now reads
+`Père ↔ Tatá · Nid ↔ Zála · Vin ↔ Víno`, and all four viable types are
+legitimate again — which is why the per-lesson type policy that was drafted
+first was **reverted** rather than shipped. Fixing the cause removed the need
+for the mechanism.
+
+**Only the audio comes from the dictionary; the French does not.** The
+dictionary frequently holds a *different sense*: `Mwǎsi` is *Femme* here and
+*Fiancé(e)* there, `Yango` is *Cela, Ça* here and *Donc* there, `Ekpángba` is
+*Entrepôt* here and *Atelier* there — and several words carry 2–4 senses with no
+principled way to choose. The lesson's own gloss is what the professor wrote for
+this lesson, so it wins. Audio has no such problem: every sense of a word is a
+recording of the same spoken word.
+
+**Tone marks stay.** The dictionary is written without them and the course with
+them, and L346 is the lesson that teaches *Ton haut (accent aigu)*. The script
+never touches `lingala`.
+
+### Élargir needs a topic, and this lesson has none
+
+L346's 61 routed rows were deleted in the same pass. Élargir means "everything
+else the course knows **about this topic**", and *Sons et alphabet* is about the
+writing system, not a subject — so topical routing returned whatever the
+embeddings surfaced: *Musicien, Fourchette, Aiguille, Couronne, "Cette meuf est
+joviale"*. Three of the 61 were genuinely about letters.
+
+**Seven were the lesson's own words with the tone marks stripped** — `Tólí` →
+`Toli`, `Zála` → `Zala`, `Ngúlu` → `Ngulu`, `Mbúla` → `Mbula`. A learner would
+master the accented spelling in Pratiquer and then be marked correct on the bare
+one, in the lesson whose entire subject is tone. The rule that untoned and toned
+material must never meet is enforced **within a screen** by the orthography
+bucket; nothing enforced it **across stages**, and this is where that gap
+surfaced.
+
+So the lesson screen now **hides Élargir when a lesson has no routed material at
+all**, rather than unlocking a stage that dead-ends on *"pas assez de contenu"* —
+which is what a learner was otherwise handed as the reward for passing. The
+probe is a single-row read (`limit=1`: the question is "is there any?", never
+"how many"), it fails towards showing the stage, and at exactly zero it affects
+no other lesson and needs no per-lesson configuration. **The data decides.**
+
+**Kept from the reverted attempt:** listen-and-type now skips rows whose
+parenthesised or comma-separated text the tokenizer drops — `(Eleko ya) Gálá` is
+read in full but would ask for `Gálá` alone, `(M)péma` is read *mpéma* but would
+ask for *péma*. **The clip is the answer key.** That is a correctness fix
+independent of any lesson.
+
+**Deliberately not done:** the 25 rows with no dictionary entry keep the
+letter-first clip, and are *not* excluded from listen-and-type. In a
+pronunciation lesson, hearing *"L … Likásu"* while typing `Likásu` is a cue
+rather than a distractor — the letter is audibly separate and the slot groups
+make the target unambiguous, unlike the parenthesised rows above. Excluding them
+would halve the lesson's listen-and-type coverage to fix something that is not
+broken.
 
 ### Slice 8 — monetization  ⬜
 Daily session cap on Élargir (~3/day free, unlimited paid). Mistakes are never
@@ -1031,8 +1273,14 @@ not change. That was the design goal of Slice 2 and it should hold.
 
 ### Definition of done for each slice
 
-- `npx esbuild` syntax check on the extracted babel block passes
-- `npm test` passes (228 tests as of 2026-08-18)
+- `npm run check:syntax` passes — parses the whole babel block with oxc. (This
+  line used to say "`npx esbuild` syntax check"; esbuild was never installed, so
+  the step was unrunnable as written. `scripts/check_syntax.mjs` is the real one,
+  and it uses a parser already on disk via vitest.)
+- `npm test` passes (279 tests as of 2026-08-18)
+- `npm run verify:progression` passes, if the change touches anything a session
+  writes — it runs the real write path against monoko-test as a signed-in
+  learner, which no unit test does
 - `node scripts/audit_exercise_types.mjs` exits 0 — every shipped type checked
   against the **live** 6,196-row pool, all 50 lessons, both stages. Unit tests
   prove the builders work on hand-made rows; this proves it on the real ones,
@@ -1144,9 +1392,12 @@ only changes how the app sounds.
 
 ## 8. Open risks
 
-- **`index.html` is 3,203 lines**, single-file, transpiled in-browser by Babel
-  standalone. This work adds ~600–800. That is where a build step stops being
-  optional, especially with Capacitor's slower WebView startup.
+- **`index.html` is 6,109 lines** (was 3,203 when this risk was written; Slice 7
+  took it past double), single-file, transpiled in-browser by Babel standalone.
+  **Measured 2026-08-18: ~700 KB gzipped for the compiler and a median 109 ms
+  transform on an M-series Mac — 350–650 ms on a phone, before first paint.**
+  The build step is no longer optional. Plan, sequencing and the decision to
+  separate "add a bundler" from "split the file": **`BUILD_AND_SPLIT_PLAN.md`**.
 - **Untoned dictionary text now reaches two surfaces** — chat context (live since
   2026-08-07) and exercises (once built). Tone restoration would unlock 5,220
   pairs into first-class use: build a lexicon from the toned sources, restore by
