@@ -124,6 +124,8 @@ sql/lesson_pool_conjugation_source.sql — SQL migration: widens lesson_pool's s
 sql/progression.sql               — SQL migration: user_streak + review_schedule (SM-2), and the pratiquer_runs/elargir_runs drift repair (applied 2026-08-18)
 sql/lesson_exercise_policy.sql    — SQL migration: per-lesson exercise-type ALLOW-list. Only L346 has a row (written 2026-08-18, NOT YET APPLIED to production)
 scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~4,000 lines of React that no unit test slices
+make_alphabet_cut_tool.py         — builds alphabet_cut_tool.html: confirm where the WORD starts in each of L346's 46 clips. The clips read the sound before the word ('O ... Motoki'), and the structure varies (1-4 speech segments), so the tool proposes the last segment and a human confirms. Audio is base64-embedded because R2 sends no CORS header
+apply_alphabet_cuts.py            — cuts each clip to the confirmed word, uploads to R2 as <name>_word.mp3 (never overwriting the original), repoints lesson_pool. Needs .env.r2. Rollback JSON first
 populate_alphabet_pool.py         — makes L346 'Sons et alphabet' usable as exercise material: trims the teaching label off lesson_pool.french ('Consonne B — Maladie' -> 'Maladie'), swaps in the DICTIONARY's clean word audio where the word exists there (21/46), and deletes the lesson's mis-routed Élargir rows. Rollback JSON first; lesson_items untouched
 populate_conjugation_forms.py     — loads the FIRST professor's ko linga paradigm (5 tenses x 6 persons, 24 clips already on R2) from the original Cours 2 workbook matrix, attaches it to the lessons that teach those tenses, and mirrors the forms into lesson_pool as exercise material
 populate_lesson_pool.py           — assembles lesson_pool from the three tiers; idempotent upsert on (source_table, source_id)
@@ -940,6 +942,13 @@ gloss and, where the dictionary has the word, its clean recording
 the French**, which is often a different sense (`Mwǎsi` is *Femme* here and
 *Fiancé(e)* there), and never `lingala`, because the dictionary is untoned and
 this is the lesson that teaches tone.
+
+**L346's audio is now cut from the course clips, not the dictionary** (2026-08-20).
+Only 21 of its 46 words exist in the dictionary, so that source could never
+cover the lesson. All 46 were cut from the professor's own letter-first clips
+instead — one session, one voice, no level mismatch. `.env.r2` (gitignored,
+mode 600) holds the R2 credentials the upload needs; **do not paste an R2
+token into a chat again, and rotate any that has been.**
 
 **Élargir needs a topic.** It means "everything else the course knows about this
 topic", so a lesson that is not *about* a subject has nothing to widen into —

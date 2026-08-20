@@ -1,0 +1,462 @@
+[
+ {
+  "id": 313,
+  "file": "consonne_l_noix_de_cola_e12_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_l_noix_de_cola_e12_phrase.mp3",
+  "lingala": "Likásu",
+  "start": 5.159,
+  "end": 6.136,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 315,
+  "file": "son_compose_gb_pont_e22_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_gb_pont_e22_phrase.mp3",
+  "lingala": "Gbagba",
+  "start": 3.491,
+  "end": 4.346,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 316,
+  "file": "son_compose_ts_grammaire_e37_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ts_grammaire_e37_phrase.mp3",
+  "lingala": "Etsúséláká",
+  "start": 3.772,
+  "end": 5.26,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 378,
+  "file": "son_compose_ngw_brillant_e39_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ngw_brillant_e39_phrase.mp3",
+  "lingala": "Ngwaa",
+  "start": 3.397,
+  "end": 4.128,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 759,
+  "file": "voyelle_u_deformer_e4_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_u_deformer_e4_phrase.mp3",
+  "lingala": "Mbula",
+  "start": 1.61,
+  "end": 2.348,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 770,
+  "file": "ton_montant_caron_femme_e44_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_montant_caron_femme_e44_phrase.mp3",
+  "lingala": "Mwǎsi",
+  "start": 1.462,
+  "end": 2.622,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 774,
+  "file": "ton_descendant_accent_circonflexe_enigme_e43_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_descendant_accent_circonflexe_enigme_e43_phrase.mp3",
+  "lingala": "Sâmbóle",
+  "start": 1.666,
+  "end": 2.947,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 775,
+  "file": "ton_haut_accent_aigu_pere_e42_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_haut_accent_aigu_pere_e42_phrase.mp3",
+  "lingala": "Tatá",
+  "start": 2.384,
+  "end": 3.279,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 778,
+  "file": "son_compose_tsh_tchad_e40_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_tsh_tchad_e40_phrase.mp3",
+  "lingala": "Tshádi",
+  "start": 3.232,
+  "end": 3.897,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 779,
+  "file": "son_compose_ngb_hachette_e38_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ngb_hachette_e38_phrase.mp3",
+  "lingala": "Ngbá",
+  "start": 5.352,
+  "end": 6.076,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 782,
+  "file": "son_compose_nz_buffle_e36_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nz_buffle_e36_phrase.mp3",
+  "lingala": "Nzále",
+  "start": 3.617,
+  "end": 4.498,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 783,
+  "file": "son_compose_ny_animal_e35_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ny_animal_e35_phrase.mp3",
+  "lingala": "Nyama",
+  "start": 4.972,
+  "end": 6.035,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 784,
+  "file": "son_compose_nt_chevre_e34_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nt_chevre_e34_phrase.mp3",
+  "lingala": "Ntaba",
+  "start": 2.574,
+  "end": 3.376,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 787,
+  "file": "son_compose_nk_cent_e32_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nk_cent_e32_phrase.mp3",
+  "lingala": "Nkáma",
+  "start": 3.409,
+  "end": 4.273,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 789,
+  "file": "son_compose_ng_cochon_e31_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ng_cochon_e31_phrase.mp3",
+  "lingala": "Ngúlu",
+  "start": 2.939,
+  "end": 3.758,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 790,
+  "file": "son_compose_mv_frange_e28_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mv_frange_e28_phrase.mp3",
+  "lingala": "Litamvula",
+  "start": 3.348,
+  "end": 4.583,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 794,
+  "file": "son_compose_mp_souffle_e27_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mp_souffle_e27_phrase.mp3",
+  "lingala": "(M)péma",
+  "start": 3.571,
+  "end": 4.112,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 796,
+  "file": "son_compose_mf_taxe_e26_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mf_taxe_e26_phrase.mp3",
+  "lingala": "Mfúti",
+  "start": 3.9,
+  "end": 4.72,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 797,
+  "file": "son_compose_kw_venus_e24_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_kw_venus_e24_phrase.mp3",
+  "lingala": "Mokwéte",
+  "start": 4.254,
+  "end": 5.586,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 798,
+  "file": "consonne_z_nid_e21_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_z_nid_e21_phrase.mp3",
+  "lingala": "Zála",
+  "start": 4.314,
+  "end": 5.127,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 800,
+  "file": "consonne_y_cela_ca_e20_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_y_cela_ca_e20_phrase.mp3",
+  "lingala": "Yango",
+  "start": 3.371,
+  "end": 4.218,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 801,
+  "file": "consonne_v_vin_e18_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_v_vin_e18_phrase.mp3",
+  "lingala": "Víno",
+  "start": 4.142,
+  "end": 5.035,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 804,
+  "file": "consonne_s_lune_e16_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_s_lune_e16_phrase.mp3",
+  "lingala": "Sánzá",
+  "start": 3.383,
+  "end": 4.281,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 807,
+  "file": "consonne_p_lumiere_e15_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_p_lumiere_e15_phrase.mp3",
+  "lingala": "Polé",
+  "start": 4.011,
+  "end": 4.656,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 808,
+  "file": "consonne_n_python_e14_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_n_python_e14_phrase.mp3",
+  "lingala": "Ngúma",
+  "start": 6.351,
+  "end": 7.111,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 810,
+  "file": "consonne_m_pluie_e13_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_m_pluie_e13_phrase.mp3",
+  "lingala": "Mbúla",
+  "start": 4.609,
+  "end": 5.378,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 812,
+  "file": "consonne_k_pouvoir_e11_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_k_pouvoir_e11_phrase.mp3",
+  "lingala": "Kokoka",
+  "start": 4.01,
+  "end": 5.015,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 815,
+  "file": "consonne_g_saison_seche_e10_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_g_saison_seche_e10_phrase.mp3",
+  "lingala": "(Eleko ya) Gálá",
+  "start": 5.891,
+  "end": 8.164,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 817,
+  "file": "consonne_f_poubelle_e9_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_f_poubelle_e9_phrase.mp3",
+  "lingala": "Fúlu",
+  "start": 2.659,
+  "end": 3.375,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 819,
+  "file": "consonne_w_sesame_e19_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_w_sesame_e19_phrase.mp3",
+  "lingala": "Wangíla",
+  "start": 4.385,
+  "end": 5.485,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 822,
+  "file": "consonne_d_panier_e8_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_d_panier_e8_phrase.mp3",
+  "lingala": "Dangu",
+  "start": 3.24,
+  "end": 4.063,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 823,
+  "file": "voyelle_pour_e6_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_pour_e6_phrase.mp3",
+  "lingala": "Mpɔ",
+  "start": 2.427,
+  "end": 2.966,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 825,
+  "file": "voyelle_timbre_e5_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_timbre_e5_phrase.mp3",
+  "lingala": "Tɛmbɛlɛ",
+  "start": 3.438,
+  "end": 4.228,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 829,
+  "file": "voyelle_o_sueur_e3_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_o_sueur_e3_phrase.mp3",
+  "lingala": "Motóki",
+  "start": 3.023,
+  "end": 4.175,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 833,
+  "file": "voyelle_i_discours_e2_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_i_discours_e2_phrase.mp3",
+  "lingala": "Lisakolí, lisúkúlu",
+  "start": 4.029,
+  "end": 5.048,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 837,
+  "file": "voyelle_e_genre_e1_phrase_v2.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_e_genre_e1_phrase_v2.mp3",
+  "lingala": "Eléko",
+  "start": 0,
+  "end": 0.99,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 840,
+  "file": "voyelle_e_genre_e1_phrase_v1.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_e_genre_e1_phrase_v1.mp3",
+  "lingala": "Lokelé",
+  "start": 1.382,
+  "end": 2.41,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 849,
+  "file": "voyelle_a_decision_e0_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/voyelle_a_decision_e0_phrase.mp3",
+  "lingala": "Mokáno",
+  "start": 3.294,
+  "end": 4.286,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 853,
+  "file": "consonne_b_maladie_e7_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_b_maladie_e7_phrase.mp3",
+  "lingala": "Bokono",
+  "start": 2.334,
+  "end": 3.181,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 854,
+  "file": "son_compose_mw_huit_e29_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mw_huit_e29_phrase.mp3",
+  "lingala": "Mwambe",
+  "start": 3.49,
+  "end": 4.342,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 924,
+  "file": "ton_bas_aucun_accent_donner_e41_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/ton_bas_aucun_accent_donner_e41_phrase.mp3",
+  "lingala": "Kopésa",
+  "start": 2.374,
+  "end": 3.536,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 988,
+  "file": "son_compose_nd_maison_e30_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_nd_maison_e30_phrase.mp3",
+  "lingala": "Ndáko",
+  "start": 3.695,
+  "end": 4.666,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 994,
+  "file": "son_compose_kp_entrepot_e23_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_kp_entrepot_e23_phrase.mp3",
+  "lingala": "Ekpángba",
+  "start": 3.122,
+  "end": 4.04,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 1009,
+  "file": "consonne_t_conseil_e17_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/consonne_t_conseil_e17_phrase.mp3",
+  "lingala": "Tólí",
+  "start": 4.532,
+  "end": 5.254,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 1013,
+  "file": "son_compose_ns_fil_e33_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_ns_fil_e33_phrase.mp3",
+  "lingala": "(N)singa",
+  "start": 3.8,
+  "end": 4.652,
+  "skip": false,
+  "confirmed": true
+ },
+ {
+  "id": 1052,
+  "file": "son_compose_mb_recompense_e25_phrase.mp3",
+  "src": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/1.1/son_compose_mb_recompense_e25_phrase.mp3",
+  "lingala": "Mbano",
+  "start": 3.371,
+  "end": 4.21,
+  "skip": false,
+  "confirmed": true
+ }
+]

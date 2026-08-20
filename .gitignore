@@ -11,3 +11,6 @@ artifacts/professor_ingest/mp3/
 # Generated review tool (36MB, embeds audio; regenerate with make_variant_split_tool.py)
 variant_split_tool.html
 variant_split_decisions.json
+.alphabet_clips/
+.alphabet_cuts/
+alphabet_cut_tool.html

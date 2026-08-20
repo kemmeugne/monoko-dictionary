@@ -1148,13 +1148,26 @@ read in full but would ask for `Gálá` alone, `(M)péma` is read *mpéma* but w
 ask for *péma*. **The clip is the answer key.** That is a correctness fix
 independent of any lesson.
 
-**Deliberately not done:** the 25 rows with no dictionary entry keep the
-letter-first clip, and are *not* excluded from listen-and-type. In a
-pronunciation lesson, hearing *"L … Likásu"* while typing `Likásu` is a cue
-rather than a distractor — the letter is audibly separate and the slot groups
-make the target unambiguous, unlike the parenthesised rows above. Excluding them
-would halve the lesson's listen-and-type coverage to fix something that is not
-broken.
+**Superseded 2026-08-20 — all 46 clips were cut instead.** Only 21 of the 46
+words are in the dictionary at all, so "use the dictionary recording" could never
+cover the lesson. The letter-first clips already contain the word, a pause away,
+so `make_alphabet_cut_tool.py` + `apply_alphabet_cuts.py` cut all 46 down to the
+word. **One recording session, one voice, every word** — and no dictionary
+dependency for this lesson, which also removes the level mismatch between the two
+sources.
+
+Cutting looked like a one-line silence split until it was measured. Across the 46:
+**1 segment × 4 clips, 2 × 30, 3 × 9, 4 × 3.** Only the 30 are the expected
+[letter][word]; the rest are breaths, repeats, a second example, or a letter run
+into the word with no gap. So the tool proposes the last segment and a human
+confirms — the same rule the variant split arrived at, where a clip scored 0.97
+confidence and was 4.8 s wrong. Anthony confirmed all 46; median cut **0.86 s**,
+range 0.54–2.27 s.
+
+Two rows keep a clip that says something other than their text, deliberately:
+`Lisakolí, lisúkúlu` is now recorded as *lisúkúlu* alone, and `(Eleko ya) Gálá`
+keeps the full phrase. The lesson text is unchanged, so the clip-vs-tiles guard
+still keeps both out of listen-and-type — which is exactly what it is for.
 
 ### Slice 8 — monetization  ⬜
 Daily session cap on Élargir (~3/day free, unlimited paid). Mistakes are never
@@ -1402,9 +1415,11 @@ only changes how the app sounds.
   2026-08-07) and exercises (once built). Tone restoration would unlock 5,220
   pairs into first-class use: build a lexicon from the toned sources, restore by
   lookup, professor resolves ambiguities. Not a v1 blocker.
-- **R2 token pasted into a chat transcript on 2026-08-07 — rotate it.** It is
-  write-capable on the `audios` bucket. Once rotated, put it in a gitignored
-  `.env.r2`; nothing in the repo reads R2 credentials from a file yet.
+- **R2 tokens have now been pasted into a chat transcript twice** — 2026-08-07,
+  and again 2026-08-20 for the alphabet cut upload. Both are write-capable on the
+  `audios` bucket. **Rotate, and keep rotating after any paste.** The credentials
+  now live in a gitignored `.env.r2` (mode 600), which the scripts read via
+  `set -a && source .env.r2`, so there is no longer a reason to paste one.
 - **Harness sessions 3–5** (Playwright, lints, CI) remain a hard prerequisite for
   Phase 3.5 (Stripe). They do not gate this work, but do not drift into
   monetisation without closing them.
