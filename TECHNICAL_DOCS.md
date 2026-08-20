@@ -406,11 +406,17 @@ stale number until the learner's next session.
 ---
 
 ### `review_schedule`  (added 2026-08-18, `sql/progression.sql`)
-SM-2 scheduler state, one row per (user, pool item). **Pratiquer only** — spaced
-repetition needs a finite item set with per-item state, which native content is
-(median 25 rows a lesson) and the 6,196-row routed corpus is not. Élargir draws
-at random and writes nothing here. Nothing in the schema enforces that; the
-client simply never writes an `elargir` row.
+SM-2 scheduler state, one row per (user, pool item). **Both stages** since
+2026-08-20. Spaced repetition needs a finite item set with per-item state, and
+both stages are finite **per lesson** — median 25 native items, median 80 routed.
+The 4,788-row figure that first excluded Élargir counts the whole corpus across
+49 lessons, which no learner ever meets.
+
+There is **no `stage` column, deliberately**: a pool item belongs to exactly one
+tier, so `(user_id, pool_item_id)` already identifies the stage. The separation
+is enforced where the session is built — `items` is filtered by tier before
+`due` is consulted, so a Pratiquer item cannot leak into an Élargir session
+however overdue it is.
 
 | Column | Type | Description |
 |---|---|---|

@@ -25,7 +25,7 @@ A briefing screen now opens every session and lists what is in it (2026-08-18).
 | 5 · Stage split | ✅ 2026-08-17 | tier filter, 80% gate, mastery counter, Signaler |
 | 6 · The four remaining types | ✅ **2026-08-18** | tokenizer · tap-words · fill-the-blank · listen-and-type · speaking |
 | 6b · Briefing + conjugation material | ✅ 2026-08-18 | *Au programme* off the built queue ✅ · paradigm grid ✅ · 30 forms mirrored into `lesson_pool` ✅ (L358 gains its first match-pairs bucket) |
-| 7 · Progression + retention | ✅ 2026-08-18 | XP, streaks, medals, SM-2 (Pratiquer only), Élargir topic levels · `sql/progression.sql` applied |
+| 7 · Progression + retention | ✅ 2026-08-18 | XP, streaks, medals, SM-2 (both stages from 2026-08-20), Élargir topic levels · `sql/progression.sql` applied |
 | 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
 
 **Verify engine work with all three:** `npm run check:syntax` (the babel block
@@ -937,9 +937,17 @@ perfect-session bonus. **`sql/progression.sql` applied 2026-08-18**; RLS on
 `user_streak` and `review_schedule` verified against the live database with the
 client's own publishable key, which is rejected `42501` on both.
 
-**SM-2 is Pratiquer-only**, as planned: spaced repetition needs a finite item set
-with per-item state, which native content (median 25) is and the 6,196-row corpus
-is not. Élargir draws at random and writes no schedule rows.
+**SM-2 runs on both stages.** It shipped Pratiquer-only on the stated grounds
+that the corpus "is not a finite item set" — **which was wrong, and worth
+recording as an error rather than quietly fixing.** 4,788 routed rows is the
+whole corpus across 49 lessons; a learner only ever meets ONE lesson's slice,
+and that is a median of **80 items** against Pratiquer's 25. Both are finite at
+the unit that matters. Élargir was scheduled from 2026-08-20, which is what turns
+it from endless recycling into a pool a learner actually gets through.
+
+`review_schedule` needs no `stage` column: a pool item has exactly one tier, so
+`(user_id, pool_item_id)` already says which stage a row belongs to, and `items`
+is tier-filtered before `due` is consulted.
 
 **What SM-2 actually looks like here.** Classic SM-2 grades recall 0–5; an
 exercise screen knows only right or wrong. So the quality signal is one bit and

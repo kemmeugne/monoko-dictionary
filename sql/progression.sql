@@ -54,13 +54,17 @@ create table if not exists user_streak (
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 3. Spaced repetition (SM-2)
 -- ─────────────────────────────────────────────────────────────────────────────
--- PRATIQUER ONLY. Spaced repetition needs a finite item set with per-item
--- state. Native content is finite (median 25 items a lesson); the 6,196-row
--- routed corpus is not, and giving every corpus row a schedule row would write
--- millions of rows to schedule material the learner will never see twice.
--- Elargir keeps drawing at random with no per-item state. Nothing in the
--- schema enforces this -- the client simply never writes an elargir row -- so
--- if a second writer ever appears, add `stage` here rather than assuming.
+-- BOTH STAGES (revised 2026-08-20). Spaced repetition needs a finite item set
+-- with per-item state, and both stages are finite ONCE YOU COUNT PER LESSON,
+-- which is the only unit a learner meets: median 25 native items for Pratiquer,
+-- median 80 routed items for Elargir. The "4,788 rows" figure that first ruled
+-- Elargir out is the whole corpus across 49 lessons, which nobody ever sees.
+--
+-- NO `stage` COLUMN, DELIBERATELY. A pool item belongs to exactly one tier, so
+-- (user_id, pool_item_id) already says which stage a schedule row belongs to.
+-- The separation is enforced where the session is built: `items` is filtered by
+-- tier before `due` is consulted, so a Pratiquer item cannot leak into an
+-- Elargir session however overdue it is.
 --
 -- This is scheduler state, which exercise_attempts deliberately is not:
 -- attempts are an append-only event log (one row per question, first-try only),

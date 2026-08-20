@@ -258,11 +258,14 @@ change in the thinnest lesson as noise rather than a regression.
 50-XP perfect-session bonus), medals at 80/90/100, a streak, SM-2 scheduling and
 Élargir topic levels. `sql/progression.sql` applied — `user_streak` (one row per
 **learner**, spanning every language, keyed on the learner's **local** day) and
-`review_schedule` (SM-2 state, Pratiquer only).
+`review_schedule` (SM-2 state, both stages from 2026-08-20).
 
-**Spaced repetition (SM-2)** belongs **only to Pratiquer** — it needs a finite
-item set with per-item state, which native content (median 25 items) is and the
-6,196-row corpus is not. Élargir draws at random with no per-item state.
+**Spaced repetition (SM-2) runs on both stages** (Élargir added 2026-08-20).
+It needs a finite item set with per-item state, and both are finite **per
+lesson** — median 25 native items, median 80 routed. The corpus-wide figure that
+first excluded Élargir counts all 49 lessons, which no learner ever meets.
+Scheduling Élargir is what turns it from endless recycling into a pool a learner
+gets through.
 Because a screen only knows right or wrong, the quality signal is one bit:
 ease moves +0.1/−0.2 under a **3.0 ceiling that is ours, not SM-2's**.
 Due items are served **below** breadth in `selectionOrder` — an unseen item has

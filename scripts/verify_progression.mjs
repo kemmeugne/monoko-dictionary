@@ -102,26 +102,39 @@ const main = async () => {
   const lang = (await rest("languages?select=id&limit=1", { service: true })).body?.[0];
   if (!lesson || !lang) { console.log("\n❌ test project has no lessons/languages — run npm run db:seed-test"); process.exit(1); }
 
+  // Two fixtures, one per stage: SM-2 writes for BOTH now, and the two stages
+  // draw on disjoint tiers, so a single native row would not prove Élargir
+  // scheduling works.
   const SOURCE_ID = 999_000_001;   // far outside any seeded range
-  await rest("lesson_pool?source_table=eq.lesson_items&source_id=eq." + SOURCE_ID, { service: true, method: "DELETE" });
+  const SOURCE_ID_E = 999_000_002;
+  for (const sid of [SOURCE_ID, SOURCE_ID_E]) {
+    await rest("lesson_pool?source_table=eq.lesson_items&source_id=eq." + sid, { service: true, method: "DELETE" });
+  }
   const made = await rest("lesson_pool", {
     service: true, method: "POST", prefer: "return=representation",
     body: [{
       language_id: lang.id, lesson_id: lesson.id, source_table: "lesson_items", source_id: SOURCE_ID,
       french: "vérification", lingala: "bokebi", tier: "native", token_count: 1,
       orthography: "toned", level: 1, effective_level: 1,
+    }, {
+      language_id: lang.id, lesson_id: lesson.id, source_table: "lesson_items", source_id: SOURCE_ID_E,
+      french: "vérification élargir", lingala: "bokebi mingi", tier: "approved", token_count: 2,
+      orthography: "toned", level: 1, effective_level: 1,
     }],
   });
-  const poolId = made.body?.[0]?.id;
-  if (!poolId) { console.log("\n❌ could not create a lesson_pool fixture:", made.raw.slice(0, 200)); process.exit(1); }
+  const poolId = made.body?.find(r => r.tier === "native")?.id;
+  const poolIdE = made.body?.find(r => r.tier === "approved")?.id;
+  if (!poolId || !poolIdE) { console.log("\n❌ could not create lesson_pool fixtures:", made.raw.slice(0, 200)); process.exit(1); }
 
   const today = new Date().toISOString().slice(0, 10);
   const cleanup = async () => {
-    await rest(`review_schedule?user_id=eq.${uid}&pool_item_id=eq.${poolId}`, { service: true, method: "DELETE" });
-    await rest(`exercise_attempts?user_id=eq.${uid}&pool_item_id=eq.${poolId}`, { service: true, method: "DELETE" });
+    for (const pid of [poolId, poolIdE]) {
+      await rest(`review_schedule?user_id=eq.${uid}&pool_item_id=eq.${pid}`, { service: true, method: "DELETE" });
+      await rest(`exercise_attempts?user_id=eq.${uid}&pool_item_id=eq.${pid}`, { service: true, method: "DELETE" });
+      await rest(`lesson_pool?id=eq.${pid}`, { service: true, method: "DELETE" });
+    }
     await rest(`lesson_stage_state?user_id=eq.${uid}&lesson_id=eq.${lesson.id}`, { service: true, method: "DELETE" });
     await rest(`user_streak?user_id=eq.${uid}`, { service: true, method: "DELETE" });
-    await rest(`lesson_pool?id=eq.${poolId}`, { service: true, method: "DELETE" });
   };
 
   try {
@@ -158,6 +171,19 @@ const main = async () => {
     stage.status < 300 ? ok("lesson_stage_state upsert", "incl. pratiquer_runs / elargir_runs")
                        : bad("lesson_stage_state upsert", `${stage.status} ${stage.raw}`);
 
+    // Élargir schedules too, since Slice 7's follow-up. A pool item belongs to
+    // exactly one tier, so the two stages cannot collide on (user, pool_item).
+    const schedE = await rest("review_schedule?on_conflict=user_id,pool_item_id", {
+      token, method: "POST", prefer: "resolution=merge-duplicates,return=representation",
+      body: [{ user_id: uid, pool_item_id: poolIdE, lesson_id: lesson.id,
+               ease: 2.5, interval_days: 1, reps: 1, due_on: today }] });
+    schedE.status < 300 ? ok("review_schedule upsert for an Élargir item")
+                        : bad("review_schedule upsert for an Élargir item", `${schedE.status} ${schedE.raw}`);
+
+    const both = (await rest(`review_schedule?user_id=eq.${uid}&lesson_id=eq.${lesson.id}&select=pool_item_id`, { token })).body || [];
+    both.length === 2 ? ok("both stages scheduled independently", "2 rows, one per tier")
+                      : bad("both stages scheduled independently", JSON.stringify(both));
+
     // ── Types round-trip ───────────────────────────────────────────────────
     console.log("\ntypes survive the round trip:");
     const back = (await rest(`review_schedule?user_id=eq.${uid}&pool_item_id=eq.${poolId}&select=*`, { token })).body?.[0];
@@ -174,7 +200,7 @@ const main = async () => {
     mine?.length === 1 && mine[0].current_streak === 3 ? ok("loadStreak sees its own row") : bad("loadStreak", JSON.stringify(mine));
 
     const sch = (await rest(`review_schedule?user_id=eq.${uid}&lesson_id=eq.${lesson.id}&select=pool_item_id,ease,interval_days,reps,due_on&limit=2000`, { token })).body;
-    sch?.length === 1 ? ok("loadSchedule sees its own row") : bad("loadSchedule", JSON.stringify(sch));
+    sch?.length === 2 ? ok("loadSchedule sees both stages' rows") : bad("loadSchedule", JSON.stringify(sch));
 
     const st = (await rest(`lesson_stage_state?user_id=eq.${uid}&lesson_id=eq.${lesson.id}&select=*`, { token })).body?.[0];
     st?.pratiquer_runs === 1 ? ok("stage state reads back runs") : bad("stage state runs", JSON.stringify(st));

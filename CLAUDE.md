@@ -185,7 +185,7 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `profiles` — one row per auth user: `display_name`, `preferred_language_id` (added 2026-04-14)
 - `user_progress` — lesson completion tracking: `user_id`, `lesson_id`, `language_id`, `completed_at`, `exam_score` (null until Phase 3); RLS ensures users only access their own rows (added 2026-04-14)
 - `user_streak` — **one row per USER, not per language and not per lesson**: `current_streak`, `longest_streak`, `last_day`. A streak answers "did you show up today", which is a fact about the person; keying it by language would break the streak of someone doing Lingala on Monday and Yoruba on Tuesday. `last_day` is a **date in the learner's local day**, sent by the client — never `now()::date`, which is UTC (added 2026-08-18, `sql/progression.sql`)
-- `review_schedule` — SM-2 scheduler state, **Pratiquer only**: `(user_id, pool_item_id)` unique, plus `ease`, `interval_days`, `reps`, `due_on`. Distinct from `exercise_attempts`, which is an append-only event log — squeezing ease/interval into it would mean recomputing the whole history on every session start. Élargir writes nothing here (added 2026-08-18)
+- `review_schedule` — SM-2 scheduler state, **both stages** (Élargir added 2026-08-20): `(user_id, pool_item_id)` unique, plus `ease`, `interval_days`, `reps`, `due_on`. Distinct from `exercise_attempts`, which is an append-only event log — squeezing ease/interval into it would mean recomputing the whole history on every session start. Élargir writes nothing here (added 2026-08-18)
 
 ---
 
@@ -835,8 +835,12 @@ are excluded from the 80% gate.
 **Slice 7 is built (2026-08-18) — XP, medals, streaks, SM-2 and Élargir topic
 levels.** `sql/progression.sql` **applied 2026-08-18**, RLS verified on both new
 tables with the client's publishable key (rejected `42501`). Rules that matter:
-- **SM-2 is Pratiquer-only.** It needs a finite item set with per-item state,
-  which native content is and the 6,196-row corpus is not. The grading signal
+- **SM-2 runs on both stages** (Élargir added 2026-08-20). It needs a finite
+  item set with per-item state, and both are finite **per lesson** — median 25
+  native items, median 80 routed. The 4,788-row figure that first ruled Élargir
+  out counts the whole corpus across 49 lessons, which no learner ever meets.
+  `review_schedule` needs no `stage` column: a pool item has exactly one tier,
+  and `items` is tier-filtered before `due` is consulted. The grading signal
   is one bit, so ease moves +0.1/−0.2 with a **3.0 ceiling that is ours, not
   SM-2's** — a binary signal cannot justify runaway intervals. A miss sets
   `interval_days = 0`; the ladder floors at 1 day so `0 × ease` cannot strand

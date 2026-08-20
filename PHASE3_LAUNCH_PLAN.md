@@ -33,7 +33,8 @@ keeps recordings on-device and does not affect the objective 80% gate.
 
 **Slice 7 built 2026-08-18 — XP, medals (80/90/100), streaks, SM-2 and Élargir
 topic levels.** The streak is one row per learner spanning every language, the
-scheduler is Pratiquer-only, and a perfect session pays a flat 50 XP bonus.
+scheduler covers both stages (Élargir added 2026-08-20), and a perfect session
+pays a flat 50 XP bonus.
 `sql/progression.sql` is applied. Remaining in this phase: **the session cap**,
 which is the paywall.
 

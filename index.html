@@ -2641,7 +2641,7 @@
                 const chips = [
                   streak > 0 && { key: "streak", icon: "🔥", text: `${plural(streak, "jour", "jours")} d'affilée`,
                                   fg: "#B45309", bg: "#FFF4E5" },
-                  stage === "pratiquer" && (stats?.due || 0) > 0 &&
+                  (stats?.due || 0) > 0 &&
                     { key: "due", icon: "🔁", text: `${plural(stats.due, "à revoir", "à revoir")}`,
                       fg: brief.accent, bg: brief.soft },
                   stage === "elargir" && (stats?.level || 1) > 1 &&
@@ -3909,7 +3909,7 @@
       };
 
       const loadStageState = async (lessonId) => {
-        const empty = { done: 0, total: 0, dueCount: 0 };
+        const empty = { done: 0, total: 0, dueCount: 0, dueElargir: 0 };
         if (!currentUser || !lessonId) { setStageState(null); setMastery(empty); setHasElargir(true); return; }
         try {
           // Four independent reads, so they go out together. The schedule is one
@@ -3923,10 +3923,10 @@
               .eq("user_id", currentUser.id).eq("lesson_id", lessonId)
               .eq("stage", "pratiquer").eq("correct", true).neq("format", "speaking"),
             loadSchedule(lessonId),
-            // Only "is there any?", never a count — one row is enough to answer
-            // it, so this stays a single-row read however deep the pool goes.
+            // Ids, not a count: this answers both "does this lesson have an
+            // Élargir stage at all?" and "how many of its items are due?".
             supaFetch("lesson_pool",
-              `lesson_id=eq.${lessonId}&tier=in.(approved,reassigned)&select=id&limit=1`),
+              `lesson_id=eq.${lessonId}&tier=in.(approved,reassigned)&select=id&limit=1000`),
           ]);
           setStageState(state || null);
           setHasElargir((routed || []).length > 0);
@@ -3934,12 +3934,18 @@
           // sessions is one item mastered, not ten.
           const ids = new Set((correct.data || []).map(r => r.pool_item_id));
           const nativeIds = new Set((native || []).map(r => r.id));
+          // Due counts are per STAGE, because the two stages draw on disjoint
+          // pools and a learner owing 6 Élargir items should not see that number
+          // on the Pratiquer briefing. Both are counted against ids that still
+          // exist in the pool, so a schedule row left behind by a re-populate
+          // cannot inflate either.
+          const due = dueItems(schedule, localDay());
+          const routedIds = new Set((routed || []).map(r => r.id));
           setMastery({
             done: [...ids].filter(id => nativeIds.has(id)).length,
             total: nativeIds.size,
-            // Counted against the native set so a schedule row left behind by a
-            // re-populate — whose pool id no longer exists — cannot inflate it.
-            dueCount: [...dueItems(schedule, localDay())].filter(id => nativeIds.has(id)).length,
+            dueCount: [...due].filter(id => nativeIds.has(id)).length,
+            dueElargir: [...due].filter(id => routedIds.has(id)).length,
           });
         } catch (e) {
           console.error("loadStageState:", e);
@@ -4012,7 +4018,7 @@
             supaFetch("lesson_pool",
               `lesson_id=eq.${selectedLesson.id}&${STAGE_TIERS[stage]}&select=*&limit=1000`),
             loadSeenItems(selectedLesson.id, stage),
-            stage === "pratiquer" ? loadSchedule(selectedLesson.id) : Promise.resolve(new Map()),
+            loadSchedule(selectedLesson.id),
           ]);
 
           // Élargir levels up on topic XP, and the level is spent twice over:
@@ -4026,7 +4032,11 @@
 
           const built = buildSession(items, level, SESSION_QUESTIONS, seen, {
             production: stage === "elargir" ? productionBias(topicLevel) : 0,
-            due: stage === "pratiquer" ? dueItems(schedule, localDay()) : null,
+            // Both stages now. `schedule` holds every scheduled item in the
+            // lesson, but `items` is already filtered by tier, so a Pratiquer
+            // item cannot leak into an Élargir session however due it is —
+            // which is why review_schedule needs no `stage` column of its own.
+            due: dueItems(schedule, localDay()),
           });
           if (!built.length) {
             setSessionNote(stage === "pratiquer"
@@ -4084,12 +4094,19 @@
           }
 
           // ── SM-2 ──
-          // Pratiquer only, and written even for an ABANDONED session: the eight
-          // questions someone answered before quitting are still evidence about
-          // what they know, and throwing them away would mean a learner who
-          // never finishes is never scheduled. Only the GATE requires
-          // completion, not the scheduler.
-          if (stage === "pratiquer" && attempts.length) {
+          // BOTH stages. Élargir was excluded at first on the grounds that its
+          // material is not a finite set — which was wrong: the corpus is
+          // 4,788 rows across 49 lessons, but a learner only ever meets ONE
+          // lesson's slice, and that is a median of 80 items. Scheduling it is
+          // what turns Élargir from endless recycling into a pool the learner
+          // actually gets through.
+          //
+          // Written even for an ABANDONED session: the eight questions someone
+          // answered before quitting are still evidence about what they know,
+          // and throwing them away would mean a learner who never finishes is
+          // never scheduled. Only the GATE requires completion, not the
+          // scheduler.
+          if (attempts.length) {
             await step("sm2", async () => {
               const prior = await loadSchedule(lessonId);
               const updates = scheduleUpdates(attempts, prior, today);
@@ -5302,7 +5319,8 @@
                 stats={sessionStage === "elargir"
                   ? { runs: stageState?.elargir_runs || 0, best: stageState?.elargir_best || 0,
                       level: elargirLevel(stageState?.elargir_xp),
-                      levelProgress: elargirLevelProgress(stageState?.elargir_xp) }
+                      levelProgress: elargirLevelProgress(stageState?.elargir_xp),
+                      due: mastery.dueElargir || 0 }
                   : { runs: stageState?.pratiquer_runs || 0, best: stageState?.pratiquer_best || 0,
                       passed: !!stageState?.pratiquer_passed,
                       due: mastery.dueCount || 0 }}
