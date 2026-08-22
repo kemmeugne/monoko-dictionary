@@ -68,6 +68,8 @@ const FILES = [
   "conjugation_lesson_tenses.sql",        // ...and the per-lesson tense list
   "lesson_pool_conjugation_source.sql",   // ...admitted into lesson_pool
   "progression.sql",                      // Slice 7 — streak + SM-2 schedule
+  "culture_capsules.sql",                 // course-path cultural rewards
+  "community_experience.sql",             // profile privacy + XP leaderboard
   "lesson_exercise_policy.sql",           // per-lesson exercise-type allow-list
 ];
 

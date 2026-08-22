@@ -90,7 +90,7 @@ This app will be wrapped with Capacitor and shipped to the App Store and Play St
 ## Key files in this repo
 
 ```
-index.html                        — entire frontend (React, 6,109 lines — a build step is now
+index.html                        — entire frontend (React, ~6,700 lines — a build step is now
                                     a Phase 4 prerequisite, see BUILD_AND_SPLIT_PLAN.md).
                                     Module 1.1 has a
                                     special tile view (AlphabetPanel); it reads every tile from
@@ -105,10 +105,13 @@ api/lesson-context.js             — Vercel serverless function (pgvector seman
 api/mms-tts.js                    — Vercel serverless function (warm-up GET ping for HF Space; POST proxies audio but unused — client calls Space directly)
 api/cron/keep-tts-warm.js         — Vercel cron handler (GET ping to MMS_SPACE_URL; requires Vercel Pro for sub-hourly schedule)
 api/_rate-limit.js                — shared per-IP rate limiter + CORS helper, used by every api/*.js endpoint (in-memory sliding window)
+api/leaderboard.js                — authenticated weekly country/world ranking; returns pseudonyms only, never user ids
+monoko-ui.css                     — production learner shell: home, continuous course trail, profile, rewards, ranking and responsive navigation
 tests/                            — Vitest unit tests for every api/*.js file (see tests/README.md); test Supabase harness docs live here
 sql/test_schema.sql               — idempotent schema for the test Supabase project (harness sprint; see HARNESS_SPRINT.md)
 scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test project via psql (refuses to run against any non-test project ref)
 scripts/seed_test_data.js         — wipes + reseeds the test project with representative data + test user (refuses to run against any non-test project ref)
+scripts/release_browser_check.mjs — dependency-free Chrome CDP release check for desktop, 390px and 320px against monoko-test
 HARNESS_SPRINT.md                 — spec + status for the verification harness (unit tests, test Supabase, Playwright, lints, CI) — Sessions 1–2 done, 3–5 pending
 tts_space/app.py                  — HuggingFace Space: ESPnet2 VITS Lingala TTS (Gradio 6.x, served at kemz42-monoko-lingala-tts.hf.space)
 tts_space/requirements.txt        — Space deps: git+espnet, huggingface_hub, numpy, soundfile, nltk
@@ -122,8 +125,11 @@ sql/conjugation_tables.sql        — SQL migration: conjugation_forms + lesson_
 sql/conjugation_lesson_tenses.sql — SQL migration: adds lesson_conjugation_tables.tenses text[] — a lesson shows only the tenses it teaches; NULL means all (applied 2026-08-18)
 sql/lesson_pool_conjugation_source.sql — SQL migration: widens lesson_pool's source_table CHECK to admit conjugation_forms (applied 2026-08-18)
 sql/progression.sql               — SQL migration: user_streak + review_schedule (SM-2), and the pratiquer_runs/elargir_runs drift repair (applied 2026-08-18)
-sql/lesson_exercise_policy.sql    — SQL migration: per-lesson exercise-type ALLOW-list. Only L346 has a row (written 2026-08-18, NOT YET APPLIED to production)
-scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~4,000 lines of React that no unit test slices
+sql/lesson_exercise_policy.sql    — SQL migration: per-lesson exercise-type ALLOW-list. Only L346 has a row (applied 2026-08-22)
+sql/culture_capsules.sql          — editable lesson-linked cultural capsules + one-time claims (applied 2026-08-22)
+sql/culture_capsules_seed.sql     — 16 sourced Lingala/Congolese capsule drafts tied to relevant live lessons (applied 2026-08-22)
+sql/community_experience.sql      — profile pseudonyms/country, XP events, 500-XP level rewards and Grand défi state (applied 2026-08-22)
+scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~6,700 lines of React that no unit test slices
 make_alphabet_cut_tool.py         — builds alphabet_cut_tool.html: confirm where the WORD starts in each of L346's 46 clips. The clips read the sound before the word ('O ... Motoki'), and the structure varies (1-4 speech segments), so the tool proposes the last segment and a human confirms. Audio is base64-embedded because R2 sends no CORS header
 apply_alphabet_cuts.py            — cuts each clip to the confirmed word, uploads to R2 as <name>_word.mp3 (never overwriting the original), repoints lesson_pool. Needs .env.r2. Rollback JSON first
 populate_alphabet_pool.py         — makes L346 'Sons et alphabet' usable as exercise material: trims the teaching label off lesson_pool.french ('Consonne B — Maladie' -> 'Maladie'), swaps in the DICTIONARY's clean word audio where the word exists there (21/46), and deletes the lesson's mis-routed Élargir rows. Rollback JSON first; lesson_items untouched
@@ -182,10 +188,14 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `lesson_exercise_policy` — `(lesson_id PK, allow_types text[], reason)`. **A lesson with no row serves every type**, which is every lesson but one. The engine picks exercise types from the *shape* of a lesson's rows, and shape cannot see what a lesson is *for*: L346 "Sons et alphabet" has `french = 'Consonne T — Conseil'`, a teaching label rather than a translation, so match-pairs is solvable by first letter in **30 of its 46 rows** and choose-the-audio is given away by the clip pronouncing the letter before the word. It serves `listen_type` + `speaking` only. **Allow-list, not deny-list** — a seventh exercise type must not silently opt a curated lesson back in. Add a row only when a type is *wrong* for a lesson, never to tune difficulty (added 2026-08-18)
 - `conjugation_forms` — one verb's paradigm as a **grid**: `(language_id, verb, tense, person)` unique, plus `french`, `lingala`, `audio_url`, sort orders. 30 rows = *ko linga* × 5 tenses × 6 persons, 24 of them with the professor's clip (added 2026-08-18)
 - `lesson_conjugation_tables` — pins a paradigm to a lesson: `(lesson_id, verb)` unique, plus `tenses text[]`. **NULL `tenses` means every tense**; a list restricts the lesson to what it teaches. Two rows today: L358 gets four tenses, L359 gets `futur`, L393 (futur proche) is deliberately attached to nothing (added 2026-08-18)
-- `profiles` — one row per auth user: `display_name`, `preferred_language_id` (added 2026-04-14)
+- `profiles` — one row per auth user: private display name/preferences plus optional unique `public_pseudonym`, `country_code` and `leaderboard_opt_in` for the community ranking
 - `user_progress` — lesson completion tracking: `user_id`, `lesson_id`, `language_id`, `completed_at`, `exam_score` (null until Phase 3); RLS ensures users only access their own rows (added 2026-04-14). **A row is written by PASSING PRATIQUER at 80%, never by the learner declaring it** (changed 2026-08-20 — it used to be a "J'ai terminé ce module" button, so the checkmark, the level progress bars and the "Continuer" card reported what someone had tapped rather than what they had learned). It stays a table rather than being read off `lesson_stage_state.pratiquer_passed` because the level cards need completion for every lesson at once, and stage state loads one lesson at a time
 - `user_streak` — **one row per USER, not per language and not per lesson**: `current_streak`, `longest_streak`, `last_day`. A streak answers "did you show up today", which is a fact about the person; keying it by language would break the streak of someone doing Lingala on Monday and Yoruba on Tuesday. `last_day` is a **date in the learner's local day**, sent by the client — never `now()::date`, which is UTC (added 2026-08-18, `sql/progression.sql`)
 - `review_schedule` — SM-2 scheduler state, **both stages** (Élargir added 2026-08-20): `(user_id, pool_item_id)` unique, plus `ease`, `interval_days`, `reps`, `due_on`. Distinct from `exercise_attempts`, which is an append-only event log — squeezing ease/interval into it would mean recomputing the whole history on every session start. Élargir writes nothing here (added 2026-08-18)
+- `culture_capsules` / `user_culture_rewards` — editable lesson-linked culture content and one-time learner claims. Only naturally relevant lessons get capsules; other trail gifts remain XP rewards.
+- `user_xp_events` — weekly ranking event ledger. RLS exposes only a learner's own events; the leaderboard endpoint aggregates with a service credential and emits pseudonyms only.
+- `user_level_rewards` — one row per completed course level; claims the named medal and fixed 500 XP exactly once. A database trigger creates its leaderboard XP event.
+- `level_challenge_state` — one row per learner and level for the optional 20-question Grand défi: retained best score, one-way `passed`, replay count/session XP and a one-time 300-XP enriched-level reward.
 
 ---
 
@@ -289,7 +299,7 @@ both hard-refuse to run unless pointed at that exact test project ref.
 
 - Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
   and fill in real values, or ask for them.
-- `npm test` — Vitest, **279 tests, no network calls, fully mocked**. Covers
+- `npm test` — Vitest, **286 tests, no network calls, fully mocked**. Covers
   every `api/*.js` handler plus the exercise engine: the tokenizer, the
   exercise builders, the audio hand-off and the progression maths (SM-2,
   streaks, medals, levels). Engine tests slice the code out of
@@ -297,7 +307,7 @@ both hard-refuse to run unless pointed at that exact test project ref.
   See `tests/README.md`.
 - `npm run check:syntax` — parses the whole babel block and fails on a syntax
   error. **Run it before every deploy.** There is no build step, so a stray
-  bracket in the ~4,000 lines of React that no unit test slices is caught by
+  bracket in the ~6,700 lines of React that no unit test slices is caught by
   nothing else — it passes every gate and ships a blank page.
 - `npm run verify:progression` — the Slice 7 write path end to end against
   monoko-test, **as the test user with a real session token**, so it exercises
@@ -305,8 +315,8 @@ both hard-refuse to run unless pointed at that exact test project ref.
   structurally cannot: a column the code writes that the schema lacks (one
   unknown column makes PostgREST reject the whole row), an `on_conflict` target
   it cannot infer (409), a type that will not round-trip, and a policy missing
-  its `WITH CHECK`. Creates and deletes its own fixtures. 18/18 as of
-  2026-08-18.
+  its `WITH CHECK`. Creates and deletes its own fixtures. 20/20 as of
+  2026-08-22.
 - **`npm run db:sync-test-schema` applies `sql/test_schema.sql` and then the
   real migration files**, the same ones run against production — never a copy
   of their DDL, which would fork and then drift. Add any new structural
@@ -314,6 +324,10 @@ both hard-refuse to run unless pointed at that exact test project ref.
   deliberately excluded.
 - `npm run db:sync-test-schema` / `npm run db:seed-test` — set up or reset
   the test project's schema and data. Both are safe to re-run any time.
+- `node scripts/release_browser_check.mjs` — with `.env.test`, a local Vercel
+  server and Chrome CDP port 9230, signs in as the real test learner and checks
+  home, weekly ranking, continuous trail, one-time level reward, Grand défi,
+  culture modal and horizontal overflow at desktop/390/320px.
 - Full spec and session-by-session status: `HARNESS_SPRINT.md`. This runs
   before Phase 3 feature work and is a hard prerequisite for Phase 3.5
   (Stripe, quotas, rate limiting) per `PHASE3_LAUNCH_PLAN.md`.

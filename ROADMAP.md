@@ -22,10 +22,17 @@ Last updated: 2026-08-18
 - Supabase Auth — dictionary public, courses + chat require login
 - Admin panel for professor corrections at `/admin.html`
 - User progress tracking — lesson completion, per-level progress bars, "Continuer" home shortcut
+- **Learner experience redesign shipped (2026-08-22)** — quiet
+  persistent shell, integrated home dictionary, continuous locked 49-lesson
+  trail, responsive top/bottom navigation, full profile, medals and 16 editable
+  Lingala/Congolese culture capsules.
+- **Level milestones and community loop shipped (2026-08-22)** — fixed 500-XP
+  level completion rewards, optional 20-question Grand défi with permanent
+  enriched-level distinction, and opt-in pseudonymous weekly country/world ranking.
 - **The practice loop is complete (2026-08-18)** — all six exercise types, plus
   XP, medals, streaks, SM-2 review scheduling and Élargir topic levels. Only the
   daily session cap (the paywall) is left in Phase 3.
-- **A build step is now a Phase 4 prerequisite** — `index.html` is 6,109 lines
+- **A build step is now a Phase 4 prerequisite** — `index.html` is ~6,700 lines
   transpiled in the browser on every load. See `BUILD_AND_SPLIT_PLAN.md`.
 - **Content that was in the database but not on screen was surfaced 2026-08-18** —
   181 example sentences across 9 lessons, 179 of them already carrying the
@@ -272,7 +279,7 @@ Due items are served **below** breadth in `selectionOrder` — an unseen item ha
 no schedule row and cannot be due, so scheduling first would have undone the
 breadth-first coverage Slice 6 measured.
 
-**Verification grew with it.** `npm test` is **279** (was 228);
+**Verification grew with it.** `npm test` is **286** (was 228);
 **`npm run check:syntax`** parses the whole babel block, which nothing else did
 — a stray bracket in the React no unit test slices used to pass every gate and
 ship a blank page; and **`npm run verify:progression`** exercises the write path
@@ -283,8 +290,19 @@ tests structurally cannot (a column the schema lacks, an unresolvable
 only the 12 base tables — and `db:sync-test-schema` now applies the real
 migration files rather than a copy of their DDL.
 
-**Dropped:** `exam_results` table, pass thresholds, level locking. `user_progress`
+**Dropped:** `exam_results`, exam pass thresholds and the old exam-based level locking. `user_progress`
 keeps its unused `exam_score` column for now.
+
+**2026-08-22 — Course trail and learner shell completed.** The production UI now
+uses one continuous path across all six niveaux. Passing Pratiquer unlocks the
+next lesson; finishing every lesson in a niveau opens the next niveau, awards a
+named medal and 500 XP once, and unlocks a separate Grand défi. Passing that
+optional level-wide challenge at 80% enriches the existing medal and awards 300
+XP once. Lesson-level Aller plus loin remains independent and marks its lesson
+node with a gold ring at 80%. Home, profile, culture collection and the opt-in
+weekly pseudonym ranking share the same live progression state. The release is
+covered by a repeatable real-Chrome check against monoko-test at desktop, 390px
+and 320px.
 
 ---
 
@@ -301,7 +319,7 @@ Rationale:
 - Can ship in weeks vs months compared to React Native rewrite
 - Upgrade path: migrate specific screens to native later if needed
 
-**Prerequisite — a build step, before anything here.** `index.html` is 6,109
+**Prerequisite — a build step, before anything here.** `index.html` is ~6,700
 lines transpiled in the browser by Babel standalone: ~700 KB gzipped for the
 compiler plus 350–650 ms of transpile on a phone, on every cold load, before
 first paint. Wrapping that in Capacitor pays it again on every app launch, on

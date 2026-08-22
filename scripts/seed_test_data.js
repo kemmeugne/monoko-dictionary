@@ -154,6 +154,12 @@ async function main() {
 
   // ── Wipe, children first ────────────────────────────────────────────
   console.log("Wiping existing seed data...");
+  await wipe("user_culture_rewards", "user_id");
+  await wipe("level_challenge_state", "user_id");
+  await wipe("user_level_rewards", "user_id");
+  await wipe("user_xp_events");
+  await wipe("lesson_stage_state", "user_id");
+  await wipe("user_streak", "user_id");
   await wipe("user_progress");
   await wipe("profiles", "user_id");
   await wipe("chat_events");
@@ -339,7 +345,7 @@ async function main() {
     { lesson_id: lessons[2].id, french: "Mère", dialect: "Mama", item_order: 2, withAudio: false },
   ];
 
-  await rest("POST", "lesson_items", {
+  const lessonItems = await rest("POST", "lesson_items", {
     // `?? null` matters here: JSON.stringify silently drops keys whose value
     // is `undefined` (unlike explicit `null`), which would reproduce the
     // same PGRST102 "keys must match" error across rows that don't set
@@ -355,13 +361,39 @@ async function main() {
       audio_key: r.withAudio ? `Lingala/lessons/L.SEED${i}.mp3` : null,
       audio_source_cell: r.withAudio ? `LESSON.SEED.${i}` : null,
     })),
+    prefer: "return=representation",
+  });
+
+  await rest("POST", "lesson_pool", {
+    body: lessonItems.map((item, i) => ({
+      language_id: 1,
+      lesson_id: item.lesson_id,
+      source_table: "lesson_items",
+      source_id: item.id,
+      french: item.french,
+      lingala: item.dialect,
+      audio_url: item.audio_url,
+      tier: "native",
+      token_count: Math.max(item.french.trim().split(/\s+/).length, item.dialect.trim().split(/\s+/).length),
+      orthography: "toned",
+      level: item.lesson_id === lessons[2].id ? 2 : 1,
+      difficulty: 1,
+      effective_level: item.lesson_id === lessons[2].id ? 2 : 1,
+    })),
   });
 
   // ── Auth user + profile + progress ──────────────────────────────────
   const userId = await ensureTestUser(TEST_USER_EMAIL, TEST_USER_PASSWORD);
 
   await rest("POST", "profiles", {
-    body: { user_id: userId, display_name: "Test User", preferred_language_id: 1 },
+    body: {
+      user_id: userId,
+      display_name: "Test User",
+      preferred_language_id: 1,
+      public_pseudonym: "MonokoTest",
+      country_code: "CA",
+      leaderboard_opt_in: true,
+    },
   });
 
   await rest("POST", "user_progress", {
@@ -371,10 +403,61 @@ async function main() {
     ],
   });
 
+  await rest("POST", "lesson_stage_state", {
+    body: [
+      {
+        user_id: userId, lesson_id: lessons[0].id, language_id: 1,
+        pratiquer_passed: true, pratiquer_best: 90, elargir_best: 84,
+        pratiquer_xp: 250, elargir_xp: 200, pratiquer_runs: 1, elargir_runs: 1,
+      },
+      {
+        user_id: userId, lesson_id: lessons[1].id, language_id: 1,
+        pratiquer_passed: true, pratiquer_best: 85, elargir_best: 0,
+        pratiquer_xp: 200, elargir_xp: 0, pratiquer_runs: 1, elargir_runs: 0,
+      },
+    ],
+  });
+
+  await rest("POST", "user_streak", {
+    body: {
+      user_id: userId, current_streak: 4, longest_streak: 7,
+      last_day: new Date().toISOString().slice(0, 10),
+    },
+  });
+
+  await rest("POST", "user_xp_events", {
+    body: [
+      { user_id: userId, language_id: 1, lesson_id: lessons[0].id, stage: "pratiquer", xp: 250, event_key: "11111111-1111-4111-8111-111111111111" },
+      { user_id: userId, language_id: 1, lesson_id: lessons[0].id, stage: "elargir", xp: 200, event_key: "22222222-2222-4222-8222-222222222222" },
+      { user_id: userId, language_id: 1, lesson_id: lessons[1].id, stage: "pratiquer", xp: 200, event_key: "33333333-3333-4333-8333-333333333333" },
+    ],
+  });
+
+  await rest("POST", "culture_capsules", {
+    body: [
+      {
+        id: "seed-lingala-locuteurs", lesson_id: lessons[0].id, level: 1, sort_order: 1,
+        title: "Le lingala, une langue qui voyage", region: "Les deux Congo",
+        short_copy: "Le lingala est parle bien au-dela de Kinshasa et Brazzaville.",
+        body_copy: "Le lingala relie des millions de personnes dans les deux Congo et au sein de nombreuses communautes de la diaspora.",
+        icon: "globe", visual_key: "art-conversation", source_label: "Contenu de test",
+        review_status: "draft", reward_xp: 50, is_published: true,
+      },
+      {
+        id: "seed-rumba-congolaise", lesson_id: lessons[1].id, level: 1, sort_order: 2,
+        title: "La rumba congolaise", region: "Kinshasa et Brazzaville",
+        short_copy: "Une musique partagee entre les deux rives du fleuve Congo.",
+        body_copy: "La rumba congolaise fait dialoguer guitare, danse et langues locales, dont le lingala.",
+        icon: "music", visual_key: "art-rumba", source_label: "Contenu de test",
+        review_status: "draft", reward_xp: 50, is_published: true,
+      },
+    ],
+  });
+
   console.log("Seed complete.");
   console.log(`  languages: 2, words/senses: ${allVocab.length}, examples: ${CORE_VOCAB.length}`);
   console.log(`  courses: ${courses.length}, lessons: ${lessons.length}, lesson_items: ${lessonItemRows.length}`);
-  console.log(`  corrections: 3, chat_events: 2`);
+  console.log(`  corrections: 3, chat_events: 2, culture_capsules: 2`);
   console.log(`  test user: ${TEST_USER_EMAIL} / ${TEST_USER_PASSWORD} (${userId})`);
 }
 

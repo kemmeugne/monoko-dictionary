@@ -105,8 +105,8 @@ describe("setCorsHeaders", () => {
     const res = createMockRes();
     const req = { headers: {} };
     setCorsHeaders(res, req);
-    expect(res.headers["Access-Control-Allow-Methods"]).toBe("POST, OPTIONS");
-    expect(res.headers["Access-Control-Allow-Headers"]).toBe("Content-Type");
+    expect(res.headers["Access-Control-Allow-Methods"]).toBe("GET, POST, OPTIONS");
+    expect(res.headers["Access-Control-Allow-Headers"]).toBe("Content-Type, Authorization");
     expect(res.headers["Vary"]).toBe("Origin");
   });
 });

@@ -289,6 +289,9 @@ One row per authenticated user.
 | `user_id` | UUID PK → auth.users | |
 | `display_name` | TEXT | User's chosen display name |
 | `preferred_language_id` | INT FK → languages | |
+| `public_pseudonym` | TEXT | Optional unique name shown in rankings |
+| `country_code` | TEXT | Learner-selected ranking country |
+| `leaderboard_opt_in` | BOOLEAN | False by default; no ranking exposure without consent |
 | `created_at` | TIMESTAMPTZ | Auto |
 
 RLS: users can only read/write their own row.
@@ -304,7 +307,7 @@ One row per (user, lesson) pair. Tracks which modules a user has completed.
 | `user_id` | UUID FK → auth.users | |
 | `lesson_id` | INT FK → lessons | ON DELETE CASCADE |
 | `language_id` | INT FK → languages | Denormalized for efficient per-language queries |
-| `completed_at` | TIMESTAMPTZ | When the user tapped "J'ai terminé" |
+| `completed_at` | TIMESTAMPTZ | When the learner passed Pratiquer at 80% first-try |
 | `exam_score` | NUMERIC | Always NULL — exams were dropped 2026-08-07, column kept rather than migrated away |
 
 Unique constraint: `(user_id, lesson_id)` — one completion row per lesson per user.
@@ -369,6 +372,7 @@ asked on every render and must not aggregate an ever-growing attempt log.
 | `language_id` | BIGINT FK → languages | |
 | `pratiquer_passed` | BOOLEAN | **One-way door** — never cleared by a later weaker session |
 | `pratiquer_best` / `elargir_best` | INT | % first-try, best session |
+| `pratiquer_xp` / `elargir_xp` | INT | Persisted XP by lesson stage |
 | `elargir_xp` | INT | Drives the topic level |
 | `pratiquer_runs` / `elargir_runs` | INT | Completed sessions only. **Existed in production from Slice 5 but in no `sql/` file until 2026-08-18** — the app wrote them and the briefing read them while every migration file said they did not exist. Only a rebuilt environment would have noticed, and it would have failed the whole upsert on an unknown column, taking `pratiquer_passed` and the scores with it. |
 | `updated_at` | TIMESTAMPTZ | |
@@ -444,6 +448,31 @@ sets `interval_days = 0`; the ladder (1 → 6 → ×ease) floors at 1 day so tha
 `0 × ease` cannot strand a lapsed item as due-forever.
 
 Verified end to end by `npm run verify:progression` against monoko-test.
+
+---
+
+### Learner community and level milestones  (added 2026-08-22)
+
+`sql/community_experience.sql` supports the redesigned persistent learner
+shell without deriving durable rewards from presentation state:
+
+| Table | Purpose |
+|---|---|
+| `user_xp_events` | Seven-day ranking ledger; country/world API returns pseudonyms only |
+| `user_level_rewards` | Fixed 500 XP and named medal, unique per learner and course |
+| `level_challenge_state` | Best score, one-way pass, runs and XP for the optional level-wide Grand défi |
+
+Level completion is still derived from every lesson having a `user_progress`
+row. RLS checks that condition before a level reward or Grand défi state can
+be written. Database triggers create the fixed 500-XP completion event and the
+one-time 300-XP enriched-level event, so replaying cannot duplicate either.
+Ordinary challenge-session XP remains cumulative and the best score never
+decreases.
+
+`sql/culture_capsules.sql` keeps capsule copy, source, review status and image
+URL editable independently of the frontend. The initial seed deliberately
+selects 16 of 49 lessons; gifts without a relevant cultural connection remain
+plain XP rather than forcing filler content.
 
 ---
 

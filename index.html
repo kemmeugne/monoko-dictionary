@@ -27,14 +27,15 @@
     @keyframes waveC{0%{height:14px}100%{height:32px}}
     @keyframes micRing{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4),0 6px 24px rgba(0,0,0,0.2)}50%{box-shadow:0 0 0 16px rgba(22,163,74,0),0 6px 24px rgba(22,163,74,0.35)}}
   </style>
+  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-1">
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
     const { useState, useRef, useEffect, useCallback } = React;
 
-    const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_W6hYzyecMTm06Cr9siLV1A_4qtR5ect";
+    const SUPABASE_URL = window.__MONOKO_SUPABASE_URL__ || "https://haioiccujncsehadipzb.supabase.co";
+    const SUPABASE_KEY = window.__MONOKO_SUPABASE_KEY__ || "sb_publishable_W6hYzyecMTm06Cr9siLV1A_4qtR5ect";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function supaFetch(table, params = "") {
@@ -45,10 +46,11 @@
       return res.json();
     }
 
-    async function supaCount(table, filter = "") {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id${filter ? '&' + filter : ''}`, {
+    async function supaCount(table, filter = "", select = "id") {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=${select}${filter ? '&' + filter : ''}`, {
         headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: "count=exact", Range: "0-0" },
       });
+      if (!res.ok) throw new Error(`Supabase count error: ${res.status}`);
       const range = res.headers.get("content-range");
       return range ? parseInt(range.split("/")[1]) : 0;
     }
@@ -2436,10 +2438,17 @@
         accent: "#2C5F2D",
         soft: "#EAF7EE",
       },
+      level_challenge: {
+        label: "Grand défi du niveau",
+        short: "Grand défi",
+        blurb: "20 questions puisées dans tout ce niveau. Obtenez 80 % de bonnes réponses du premier coup pour enrichir votre médaille et recevoir le bonus unique de 300 XP.",
+        accent: "#B27A0A",
+        soft: "#FFF4D8",
+      },
     };
 
     const SessionView = ({ lesson, stage, exercises, poolSize, stats, streak = 0, bonus = 0,
-                           onExit, onSeeLesson, onSessionEnd, onReport }) => {
+                           milestoneBonus = 0, secondaryLabel = "Pourquoi ? Voir la leçon", onExit, onSeeLesson, onSessionEnd, onReport }) => {
       const [started, setStarted] = useState(false);
       const [queue, setQueue] = useState(exercises);
       const [idx, setIdx] = useState(0);
@@ -2773,12 +2782,17 @@
                 Session terminée
               </h2>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 46, fontWeight: 800, color: "#6B21A8",
-                          fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp + bonus} XP</p>
+                          fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp + bonus + milestoneBonus} XP</p>
               {/* The bonus is shown as its own line, not folded into the total:
                   a number the learner cannot account for reads as a bug. */}
               {bonus > 0 && (
                 <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 700, color: "#B45309" }}>
                   ✨ Sans faute — bonus de {bonus} XP
+                </p>
+              )}
+              {milestoneBonus > 0 && (
+                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 700, color: "#B27A0A" }}>
+                  Médaille enrichie · bonus unique de {milestoneBonus} XP
                 </p>
               )}
               <p style={{ color: "#9B8A6E", fontSize: 14, margin: 0 }}>{lesson.title}</p>
@@ -2813,6 +2827,18 @@
                       Recommencez quand vous voulez, rien n'est perdu.
                     </p>
                   )}
+                </div>
+              )}
+              {stage === "level_challenge" && (
+                <div style={{
+                  marginTop: 18, padding: "13px 16px", borderRadius: 14,
+                  background: firstTryPct() >= PASS_PCT ? "#EAF7EE" : "#FDF6EC",
+                  border: `1.5px solid ${firstTryPct() >= PASS_PCT ? "#16A34A" : "#D4A843"}`,
+                }}>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: firstTryPct() >= PASS_PCT ? "#167047" : "#8B6D47" }}>
+                    {firstTryPct() >= PASS_PCT ? "Niveau enrichi · distinction obtenue" : `${firstTryPct()}% · il en faut ${PASS_PCT}%`}
+                  </p>
+                  {firstTryPct() < PASS_PCT && <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>Votre record est conservé. Vous pouvez recommencer librement.</p>}
                 </div>
               )}
 
@@ -2855,7 +2881,7 @@
             <button onClick={onSeeLesson} style={{
               width: "100%", minHeight: 48, borderRadius: 14, background: "transparent",
               border: "1.5px solid #E8E0D4", color: "#9B8A6E", fontSize: 14, fontWeight: 600, cursor: "pointer",
-            }}>Pourquoi&nbsp;? Voir la leçon</button>
+            }}>{secondaryLabel}</button>
           )}
         </div>
       );
@@ -3704,6 +3730,256 @@
       );
     }
 
+    const UI_ICON_PATHS = {
+      home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V21h14V10.5"/><path d="M9 21v-6h6v6"/>',
+      map: '<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>',
+      book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
+      messages: '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/>',
+      headphones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+      user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+      sparkles: '<path d="m12 3-1.3 3.7L7 8l3.7 1.3L12 13l1.3-3.7L17 8l-3.7-1.3L12 3Z"/><path d="m5 14-.8 2.2L2 17l2.2.8L5 20l.8-2.2L8 17l-2.2-.8L5 14ZM19 13l-.6 1.4L17 15l1.4.6L19 17l.6-1.4L21 15l-1.4-.6L19 13Z"/>',
+      flame: '<path d="M12 22c4 0 7-3 7-7 0-3-1.5-5.5-4-8-1 3-2.5 4-4 5 .5-4-1-7-3-10 0 4-3 6-3 11 0 5 3 9 7 9Z"/>',
+      medal: '<circle cx="12" cy="13" r="5"/><path d="m9 8-3-6h4l2 4 2-4h4l-3 6M9 17l-1 5 4-2 4 2-1-5"/>',
+      more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+      chevron: '<path d="m9 18 6-6-6-6"/>',
+      search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+      arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+      graduation: '<path d="m2 10 10-5 10 5-10 5L2 10Z"/><path d="M6 12v5c3 3 9 3 12 0v-5M22 10v6"/>',
+      play: '<polygon points="8 5 19 12 8 19 8 5"/>',
+      gift: '<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M7.5 8C5 8 4 6.7 4 5.5S5 3 6.5 3C9 3 12 8 12 8M16.5 8C19 8 20 6.7 20 5.5S19 3 17.5 3C15 3 12 8 12 8"/>',
+      lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+      check: '<path d="m5 12 4 4L19 6"/>',
+      trophy: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H3v2a4 4 0 0 0 4 4M17 6h4v2a4 4 0 0 1-4 4"/>',
+      shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
+      globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>',
+      pin: '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+      close: '<path d="m6 6 12 12M18 6 6 18"/>',
+      volume: '<path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>',
+    };
+
+    const UiIcon = ({ name }) => (
+      <svg className="m-ui-icon" viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: UI_ICON_PATHS[name] || UI_ICON_PATHS.sparkles }} />
+    );
+
+    const LEVEL_META = [
+      { title:"Fondations", cefr:"A1", description:"Comprendre les sons et mener ses premiers échanges en lingala.", medal:"Médaille des fondations" },
+      { title:"Vie quotidienne", cefr:"A2", description:"Parler de ses proches et des besoins de tous les jours.", medal:"Médaille du quotidien" },
+      { title:"Communication", cefr:"B1", description:"Tenir une conversation et maîtriser le système verbal.", medal:"Médaille de la communication" },
+      { title:"Approfondissement", cefr:"B1+", description:"Raconter, négocier et comprendre les images culturelles.", medal:"Médaille de l'approfondissement" },
+      { title:"Maîtrise", cefr:"B2", description:"Adapter son registre et construire une parole nuancée.", medal:"Médaille de maîtrise" },
+      { title:"Culture vivante", cefr:"B2+", description:"Explorer les arts, les pratiques et les usages contemporains.", medal:"Médaille de la culture vivante" },
+    ];
+
+    const displayNameFor = (user, profile) => profile?.public_pseudonym || user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Apprenant";
+    const initialsFor = (name) => (name || "M").replace(/[^A-Za-zÀ-ÿ]/g, "").slice(0, 2).toUpperCase() || "M";
+    const courseDone = (course, progress) => !!course?.lessons?.length && course.lessons.every(lesson => progress.has(lesson.id));
+    const totalLessons = (courses) => courses.reduce((sum, course) => sum + (course.lessons?.length || 0), 0);
+    const completedLessons = (courses, progress) => courses.reduce((sum, course) => sum + (course.lessons || []).filter(lesson => progress.has(lesson.id)).length, 0);
+    const earnedMedals = (courses, progress) => courses.filter(course => courseDone(course, progress)).length;
+
+    function ProgressChips({ xp, streak, medals, onProfile }) {
+      return <div className="m-progress-chips" aria-label="Progression">
+        <span className="m-chip xp"><UiIcon name="sparkles"/><b>{xp}</b></span>
+        <span className="m-chip streak"><UiIcon name="flame"/><b>{streak}</b></span>
+        <button className="m-chip medals" onClick={onProfile} title="Voir les médailles"><UiIcon name="medal"/><b>{medals}/6</b></button>
+      </div>;
+    }
+
+    function GlobalRail({ active, langName, displayName, xp, completed, total, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage }) {
+      return <aside className="m-rail" aria-label="Navigation principale">
+        <button className="m-nav-button" onClick={onHome} style={{display:"flex", fontFamily:"'Playfair Display',serif", fontSize:22, color:"white", padding:0, marginBottom:24}}>
+          <span className="m-brand-mark">M</span><span>Monɔkɔ</span>
+        </button>
+        <button className="m-nav-button" onClick={onLanguage}><UiIcon name="globe"/><span>{langName}</span><UiIcon name="chevron"/></button>
+        <div className="m-rail-label"><span>Navigation</span><strong>6 sections</strong></div>
+        <nav>
+          <button className={`m-nav-button ${active === "home" ? "active" : ""}`} onClick={onHome}><UiIcon name="home"/><span>Accueil</span></button>
+          <button className={`m-nav-button ${active === "courses" ? "active" : ""}`} onClick={onLearn}><UiIcon name="map"/><span>Apprendre</span><b>{completed}/{total || 49}</b></button>
+          <button className="m-nav-button" onClick={onDictionary}><UiIcon name="book"/><span>Dictionnaire</span></button>
+          <button className="m-nav-button" onClick={onChat}><UiIcon name="messages"/><span>Parler</span></button>
+          <button className="m-nav-button" onClick={onLive}><UiIcon name="headphones"/><span>Traduction en direct</span></button>
+        </nav>
+        <button className="m-rail-profile" onClick={onProfile}>
+          <span className="avatar">{initialsFor(displayName)}</span>
+          <span><strong>{displayName}</strong><small>{xp} XP</small></span>
+          <UiIcon name="chevron"/>
+        </button>
+      </aside>;
+    }
+
+    function TopBar({ xp, streak, medals, onMenu, onHome, onProfile }) {
+      return <header className="m-topbar">
+        <button className="m-icon-button" onClick={onMenu} aria-label="Ouvrir le parcours"><UiIcon name="map"/></button>
+        <button className="m-top-brand" onClick={onHome} style={{border:0, background:"transparent"}}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
+        <ProgressChips xp={xp} streak={streak} medals={medals} onProfile={onProfile}/>
+      </header>;
+    }
+
+    function BottomNav({ active, onHome, onLearn, onReview, onProfile }) {
+      return <nav className="m-bottom-nav" aria-label="Navigation principale">
+        <button className={active === "home" ? "active" : ""} onClick={onHome}><UiIcon name="home"/><span>Accueil</span></button>
+        <button className={active === "courses" ? "active" : ""} onClick={onLearn}><UiIcon name="map"/><span>Parcours</span></button>
+        <button onClick={onReview}><UiIcon name="book"/><span>Réviser</span></button>
+        <button className={active === "profile" ? "active" : ""} onClick={onProfile}><UiIcon name="user"/><span>Profil</span></button>
+      </nav>;
+    }
+
+    function HomeHub({ langName, stats, wordOfDay, currentUser, profile, courses, userProgress, xp, streak, lastLesson, onHome, onLearn, onDictionary, onBrowse, onSearch, onChat, onLive, onProfile, onLanguage, onWord, onResume }) {
+      const [direction, setDirection] = useState("french");
+      const [term, setTerm] = useState("");
+      const displayName = displayNameFor(currentUser, profile);
+      const done = completedLessons(courses, userProgress);
+      const total = totalLessons(courses) || 49;
+      const medals = earnedMedals(courses, userProgress);
+      const nextLesson = lastLesson?.langId ? lastLesson : null;
+      return <div className="m-app">
+        <GlobalRail active="home" langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <main className="m-page">
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile}/>
+          <div className="m-home">
+            <header className="m-welcome">
+              <div><div className="m-kicker"><span>{langName}</span><span>Votre espace</span></div><h1>Mbote, {displayName}</h1><p>Reprenez votre parcours ou explorez la langue à votre rythme.</p></div>
+              <div className="m-home-stats">
+                <span><UiIcon name="sparkles"/><b>{xp}</b><small>XP</small></span>
+                <span><UiIcon name="flame"/><b>{streak}</b><small>jours</small></span>
+                <button className="medals" onClick={onProfile}><UiIcon name="medal"/><b>{medals}/6</b><small>médailles</small></button>
+              </div>
+            </header>
+            <div className="m-dashboard">
+              <div className="m-column">
+                <section className="m-section">
+                  <div className="m-section-heading"><div><span>Votre progression</span><h2>Apprendre</h2></div><button onClick={onLearn}>Voir le parcours <UiIcon name="arrow"/></button></div>
+                  <button className="m-learning-card" onClick={nextLesson ? onResume : onLearn}>
+                    <span className="m-learning-icon"><UiIcon name="graduation"/></span>
+                    <span className="m-learning-copy"><small>{nextLesson ? "Continuer" : "Commencer"} · {done}/{total} leçons</small><strong>{nextLesson?.lessonTitle || "Sons et alphabet"}</strong><span>{nextLesson?.courseTitle || "Niveau 1 · Fondations"}</span></span>
+                    <span className="m-learning-play"><UiIcon name="play"/></span>
+                    <span className="m-learning-progress"><span><b>{done} leçons maîtrisées</b><b>{Math.round(done / total * 100)} %</b></span><i className="m-learning-track"><i style={{width:`${Math.round(done / total * 100)}%`}}/></i></span>
+                  </button>
+                </section>
+                <section className="m-section" id="home-dictionary">
+                  <div className="m-section-heading"><div><span>{stats.words.toLocaleString()} mots vérifiés</span><h2>Dictionnaire</h2></div></div>
+                  <div className="m-dictionary-panel">
+                    <div className="m-segmented"><button className={direction === "french" ? "active" : ""} onClick={() => setDirection("french")}>Français → {langName}</button><button className={direction === "dialect" ? "active" : ""} onClick={() => setDirection("dialect")}>{langName} → Français</button></div>
+                    <form className="m-search" onSubmit={event => { event.preventDefault(); if (term.trim()) onSearch(term.trim(), direction); }}><UiIcon name="search"/><input value={term} onChange={event => setTerm(event.target.value)} placeholder={direction === "french" ? "Mot en français" : `Mot en ${langName.toLowerCase()}`} aria-label="Rechercher un mot"/><button type="submit" aria-label="Rechercher"><UiIcon name="arrow"/></button></form>
+                    <button className="m-browse" onClick={onBrowse}><span className="m-learning-icon" style={{width:38,height:38}}><UiIcon name="book"/></span><span><strong>Parcourir de A à Z</strong><small>Explorer les entrées par lettre</small></span><UiIcon name="chevron"/></button>
+                    <div className="m-dictionary-counts"><span><b>{stats.words.toLocaleString()}</b><small>mots</small></span><span><b>{stats.senses.toLocaleString()}</b><small>traductions</small></span><span><b>A–Z</b><small>complet</small></span></div>
+                  </div>
+                </section>
+              </div>
+              <div className="m-column">
+                <section className="m-streak-band"><span className="icon"><UiIcon name="flame"/></span><span><small>Série en cours</small><strong>{streak} jours</strong></span><span><small>Record</small><strong>{Math.max(streak, 0)}</strong></span></section>
+                <section className="m-section"><div className="m-section-heading"><div><span>Avec Monɔkɔ</span><h2>Pratiquer autrement</h2></div></div><div className="m-tool-grid"><button className="m-tool chat" onClick={onChat}><span className="m-tool-icon"><UiIcon name="messages"/></span><span><strong>Parler avec Monɔkɔ</strong><small>Conversation guidée par l'IA</small></span><UiIcon name="arrow"/></button><button className="m-tool live" onClick={onLive}><span className="m-tool-icon"><UiIcon name="headphones"/></span><span><strong>Traduction en direct</strong><small>Français et lingala à l'oral</small></span><UiIcon name="arrow"/></button></div></section>
+                {wordOfDay && <section className="m-section"><div className="m-section-heading"><div><span>Un mot chaque jour</span><h2>Mot du jour</h2></div></div><button className="m-word" onClick={onWord}><small>Français</small><strong>{wordOfDay.french_word}</strong><small style={{marginTop:9}}>Lingala</small><b>{wordOfDay.dialect_word}</b></button></section>}
+              </div>
+            </div>
+          </div>
+          <BottomNav active="home" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
+        </main>
+      </div>;
+    }
+
+    function CourseTrail({ courses, userProgress, stageByLesson, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onOpenLesson, onLevelChallenge, onCapsule }) {
+      const displayName = displayNameFor(currentUser, profile);
+      const done = completedLessons(courses, userProgress);
+      const total = totalLessons(courses) || 49;
+      const medals = earnedMedals(courses, userProgress);
+      let globalIndex = -1;
+      const flat = courses.flatMap(course => (course.lessons || []).map(lesson => ({lesson, course})));
+      const firstIncomplete = flat.findIndex(item => !userProgress.has(item.lesson.id));
+      const currentIndex = firstIncomplete < 0 ? flat.length : firstIncomplete;
+      const scrollLevel = number => document.querySelector(`#course-level-${number}`)?.scrollIntoView({behavior:"smooth", block:"start"});
+      return <div className="m-course-layout">
+        <GlobalRail active="courses" langName="Lingala" displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <main className="m-course-main">
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => scrollLevel(Math.min(medals + 1, 6))} onHome={onHome} onProfile={onProfile}/>
+          <div className="m-course-body">
+            <header className="m-course-header"><div className="m-kicker"><span>Parcours Lingala</span><span>{done}/{total} leçons</span></div><h1>Votre chemin</h1><p>Chaque leçon maîtrisée ouvre la suivante. Les cadeaux marquent les découvertes qui jalonnent le parcours.</p></header>
+            <div className="m-level-tabs" aria-label="Accéder à un niveau">{courses.map((course,index) => { const unlocked = index === 0 || courses.slice(0,index).every(item => courseDone(item,userProgress)); const enriched = levelChallenges[course.id]?.passed; return <button className={enriched ? "enriched" : ""} key={course.id} disabled={!unlocked} onClick={() => scrollLevel(index+1)} aria-label={`Niveau ${index+1}${enriched ? ", enrichi" : ""}`}>{index+1}</button>; })}</div>
+            {loading ? <Spinner/> : courses.map((course, courseIndex) => {
+              const meta = LEVEL_META[courseIndex] || LEVEL_META[0];
+              const levelDone = courseDone(course,userProgress);
+              const completeHere = (course.lessons || []).filter(lesson => userProgress.has(lesson.id)).length;
+              const rewardClaimed = levelRewards.has(course.id);
+              const challenge = levelChallenges[course.id] || null;
+              return <section key={course.id} id={`course-level-${courseIndex+1}`} style={{scrollMarginTop:76}}>
+                <header className="m-course-header" style={{paddingTop:32}}><div className="m-kicker"><span>Niveau {courseIndex+1}</span><span>{meta.cefr}</span></div><h1>{meta.title}</h1><p>{meta.description}</p><div className="m-level-progress"><div className="m-progress-copy"><span>{completeHere} leçons sur {course.lessons?.length || 0}</span><strong>{course.lessons?.length ? Math.round(completeHere/course.lessons.length*100) : 0} %</strong></div><div className="m-progress-track"><span style={{width:`${course.lessons?.length ? completeHere/course.lessons.length*100 : 0}%`}}/></div></div></header>
+                <div className="m-trail">{(course.lessons || []).map(lesson => {
+                  globalIndex += 1;
+                  const index = globalIndex;
+                  const complete = userProgress.has(lesson.id);
+                  const unlocked = complete || index <= currentIndex;
+                  const enriched = (stageByLesson[lesson.id]?.elargir_best || 0) >= 80;
+                  const capsule = cultureCapsules.find(item => item.lesson_id === lesson.id);
+                  return <React.Fragment key={lesson.id}>
+                    <div className={`m-trail-step ${index % 2 ? "right" : "left"}`}>
+                      <button className={`m-trail-node ${complete ? "completed" : unlocked ? "current" : "locked"} ${enriched ? "enriched" : ""}`} disabled={!unlocked} onClick={() => onOpenLesson(lesson,course)} aria-label={`${lesson.title}, ${complete ? "maîtrisée" : unlocked ? "disponible" : "verrouillée"}`}><UiIcon name={complete ? "check" : unlocked ? "book" : "lock"}/></button>
+                      <span className="m-node-copy"><strong>{lesson.title}</strong><span>{enriched ? `Approfondie · ${stageByLesson[lesson.id].elargir_best}%` : complete ? "Maîtrisée" : unlocked ? `${lesson.itemCount || 0} expressions` : "Verrouillée"}</span>{unlocked && !complete && <span className="current">À vous</span>}</span>
+                    </div>
+                    <div className="m-reward-step"><button disabled={!complete} onClick={() => capsule && onCapsule(capsule)} aria-label={complete ? capsule ? `Ouvrir ${capsule.title}` : "Bonus XP obtenu" : "Récompense verrouillée"}><UiIcon name={complete ? capsule ? "gift" : "sparkles" : "lock"}/></button></div>
+                  </React.Fragment>;
+                })}</div>
+                <div className={`m-level-finish ${levelDone ? challenge?.passed ? "enriched" : "" : "locked"}`}><span className="medal"><UiIcon name={levelDone ? "medal" : "lock"}/></span><span><strong>{challenge?.passed ? "Niveau enrichi" : levelDone ? meta.medal : "Médaille à découvrir"}</strong><small>{challenge?.passed ? `Grand défi · record ${challenge.best_score}%` : levelDone ? `Niveau ${courseIndex+1} terminé · bonus de 500 XP` : `Terminez les ${course.lessons?.length || 0} leçons du niveau`}</small></span><strong>{levelDone ? rewardClaimed ? "+500 XP" : "Attribution..." : `${completeHere}/${course.lessons?.length || 0}`}</strong></div>
+                <button className={`m-level-challenge ${challenge?.passed ? "enriched" : ""}`} disabled={!levelDone} onClick={() => onLevelChallenge(course)}><span><UiIcon name={challenge?.passed ? "trophy" : levelDone ? "sparkles" : "lock"}/></span><span><strong>{challenge?.passed ? "Rejouer le Grand défi" : "Grand défi du niveau"}</strong><small>{levelDone ? challenge?.best_score ? `Meilleur score ${challenge.best_score}% · objectif 80%` : "20 questions · objectif 80% · +300 XP une fois" : "Disponible après la médaille"}</small></span><UiIcon name="chevron"/></button>
+              </section>;
+            })}
+          </div>
+          <BottomNav active="courses" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
+        </main>
+      </div>;
+    }
+
+    const capsuleImage = capsule => capsule?.image_url || ({
+      "art-rumble":"assets/culture/rumble-in-the-jungle.jpg",
+      "art-lumumba":"assets/culture/patrice-lumumba.jpg",
+      "art-river":"assets/culture/capsules-1.jpg",
+      "art-okapi":"assets/culture/capsules-1.jpg",
+      "art-textile":"assets/culture/capsules-2.jpg",
+      "art-radio":"assets/culture/capsules-2.jpg",
+      "art-rumba":"assets/culture/capsules-2.jpg",
+      "art-liboke":"assets/culture/capsules-2.jpg",
+      "art-conversation":"assets/culture/capsules-1.jpg",
+    }[capsule?.visual_key] || "assets/culture/capsules-1.jpg");
+
+    function ProfileHub({ courses, userProgress, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onSaveProfile, savingProfile, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onCapsule }) {
+      const [cultureLevel,setCultureLevel] = useState(1);
+      const [pseudo,setPseudo] = useState(profile?.public_pseudonym || displayNameFor(currentUser,profile));
+      const [country,setCountry] = useState(profile?.country_code || "CA");
+      const [participates,setParticipates] = useState(!!profile?.leaderboard_opt_in);
+      useEffect(() => { setPseudo(profile?.public_pseudonym || displayNameFor(currentUser,profile)); setCountry(profile?.country_code || "CA"); setParticipates(!!profile?.leaderboard_opt_in); }, [profile?.public_pseudonym,profile?.country_code,profile?.leaderboard_opt_in]);
+      const displayName = displayNameFor(currentUser,profile);
+      const medals = earnedMedals(courses,userProgress);
+      const visibleCapsules = cultureCapsules.filter(item => item.level === cultureLevel);
+      const unlockedCapsules = cultureCapsules.filter(item => userProgress.has(item.lesson_id));
+      const rows = leaderboard?.rows || [];
+      const me = rows.find(row => row.me) || leaderboard?.current || null;
+      const countryLabel = { CA:"Canada", CD:"RDC", CG:"République du Congo", FR:"France", BE:"Belgique", US:"États-Unis", OTHER:"Autre" }[country] || "Pays";
+      return <div className="m-course-layout">
+        <GlobalRail active="profile" langName="Lingala" displayName={displayName} xp={xp} completed={completedLessons(courses,userProgress)} total={totalLessons(courses)||49} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <main className="m-course-main">
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile}/>
+          <div className="m-profile">
+            <header className="m-profile-heading"><span className="m-profile-avatar">{initialsFor(displayName)}</span><div><div className="m-kicker"><span>Profil</span><span>Lingala</span></div><h1>{displayName}</h1><p>Votre parcours, vos médailles et les histoires culturelles découvertes.</p></div></header>
+            <div className="m-profile-stats"><div><UiIcon name="sparkles"/><strong>{xp}</strong><span>XP</span></div><div><UiIcon name="flame"/><strong>{streak}</strong><span>jours</span></div><div><UiIcon name="book"/><strong>{userProgress.size}</strong><span>leçons</span></div></div>
+            <section className="m-collection"><div className="m-collection-heading"><div><span>Récompenses de niveau</span><h2>Médailles</h2></div><strong>{medals}/6</strong></div><div className="m-medal-grid">{LEVEL_META.map((meta,index) => { const course = courses[index]; const unlocked = courseDone(course,userProgress); const challenge = course && levelChallenges[course.id]; return <div className={`m-medal ${unlocked ? challenge?.passed ? "enriched" : "" : "locked"}`} key={meta.medal}><span className="m-medal-icon"><UiIcon name={unlocked ? "medal" : "lock"}/></span><strong>{challenge?.passed ? "Niveau enrichi" : unlocked ? meta.medal : "Médaille à découvrir"}</strong><small>{challenge?.passed ? `Grand défi · ${challenge.best_score}%` : unlocked ? `Niveau ${index+1} terminé` : `Terminez le niveau ${index+1}`}</small></div>; })}</div></section>
+            <section className="m-collection"><div className="m-collection-heading"><div><span>Communauté Monɔkɔ</span><h2>Classement de la semaine</h2></div><strong>{leaderboardScope === "world" ? "Monde" : countryLabel}</strong></div>
+              <div className="m-ranking-spotlight"><div className="m-standing"><span className="m-standing-icon"><UiIcon name="trophy"/></span><span className="m-standing-copy"><small>Votre position</small><strong>{me ? `#${me.rank}` : "—"}</strong><b>{me ? `${leaderboardScope === "country" ? "au pays" : "dans le monde"} · sur ${leaderboard?.total || rows.length}` : "Activez votre participation"}</b></span></div></div>
+              <div className="m-ranking-tabs"><button className={leaderboardScope === "country" ? "active" : ""} onClick={() => onLeaderboardScope("country")}><UiIcon name="pin"/>Pays</button><button className={leaderboardScope === "world" ? "active" : ""} onClick={() => onLeaderboardScope("world")}><UiIcon name="globe"/>Monde</button></div>
+              {rows.length ? rows.map(row => <div className={`m-ranking-row ${row.me ? "me" : ""}`} key={`${leaderboardScope}-${row.rank}-${row.pseudonym}`}><span className="m-rank">#{row.rank}</span><span className="m-rank-avatar">{initialsFor(row.pseudonym)}</span><span className="m-rank-name"><strong>{row.pseudonym}{row.me ? " · vous" : ""}</strong><small>Série de {row.streak || 0} jours</small></span><span className="m-rank-score">{row.xp} XP</span></div>) : <div className="m-ranking-empty">{participates ? "Le classement apparaîtra dès que plusieurs apprenants auront gagné des XP cette semaine." : "Choisissez un pseudonyme et activez votre participation pour rejoindre le classement."}</div>}
+              <p className="m-privacy"><UiIcon name="shield"/>Seuls les pseudonymes et le pays choisi apparaissent.</p>
+              <div className="m-profile-settings"><label>Pseudonyme public<input value={pseudo} maxLength="24" onChange={event => setPseudo(event.target.value)} /></label><label>Pays<select value={country} onChange={event => setCountry(event.target.value)}><option value="CA">Canada</option><option value="CD">RDC</option><option value="CG">République du Congo</option><option value="FR">France</option><option value="BE">Belgique</option><option value="US">États-Unis</option><option value="OTHER">Autre</option></select></label><label className="m-toggle-row"><span>Participer au classement</span><input type="checkbox" checked={participates} onChange={event => setParticipates(event.target.checked)}/></label><button className="m-save-profile" disabled={savingProfile || !pseudo.trim()} onClick={() => onSaveProfile({public_pseudonym:pseudo.trim(),country_code:country,leaderboard_opt_in:participates})}>{savingProfile ? "Enregistrement..." : "Enregistrer le profil"}</button></div>
+            </section>
+            <section className="m-collection"><div className="m-collection-heading"><div><span>Collection</span><h2>Culture des Congo</h2></div><strong>{unlockedCapsules.length}/{cultureCapsules.length}</strong></div><div className="m-culture-tabs">{LEVEL_META.map((_,index) => <button className={cultureLevel === index+1 ? "active" : ""} onClick={() => setCultureLevel(index+1)} key={index}>N{index+1}</button>)}</div><div className="m-culture-grid">{visibleCapsules.map(capsule => { const unlocked = userProgress.has(capsule.lesson_id); return <button key={capsule.id} className={`m-culture-card ${unlocked ? "" : "locked"}`} disabled={!unlocked} onClick={() => onCapsule(capsule)}><span className="m-culture-art" style={{backgroundImage:`linear-gradient(rgba(22,60,50,.08),rgba(22,60,50,.28)),url("${capsuleImage(capsule)}")`}}>{!unlocked && <UiIcon name="lock"/>}</span><span className="m-culture-copy"><strong>{unlocked ? capsule.title : "Capsule à découvrir"}</strong><small>{unlocked ? capsule.region : "Progressez sur le parcours"}</small></span></button>; })}</div></section>
+          </div>
+          <BottomNav active="profile" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
+        </main>
+      </div>;
+    }
+
+    function CultureModal({ capsule, onClose }) {
+      if (!capsule) return null;
+      return <div className="m-modal-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section className="m-modal" role="dialog" aria-modal="true" aria-labelledby="culture-modal-title"><div className="m-modal-art" style={{backgroundImage:`url("${capsuleImage(capsule)}")`}}/><div className="m-modal-body"><div className="m-kicker"><span>{capsule.region}</span><span>{capsule.review_status === "draft" ? "Brouillon éditorial" : "Vérifié"}</span></div><h2 id="culture-modal-title">{capsule.title}</h2><p>{capsule.body_copy || capsule.short_copy}</p><div className="m-modal-actions"><button onClick={onClose}>Fermer</button>{capsule.source_url && <a href={capsule.source_url} target="_blank" rel="noreferrer">Voir la source</a>}</div></div></section></div>;
+    }
+
     function App() {
       // Language selection
       const [languages, setLanguages] = useState([]);
@@ -3751,11 +4027,24 @@
       // perfect-session bonus as a separate line rather than folding it into a
       // total the learner cannot account for.
       const [lastBonus, setLastBonus] = useState(0);
+      const [lastMilestoneBonus, setLastMilestoneBonus] = useState(0);
+      const [levelChallengeCourse, setLevelChallengeCourse] = useState(null);
       const [currentCardIdx, setCurrentCardIdx] = useState(0);
       const [cardFlipped, setCardFlipped] = useState(false);
       // Progress tracking
       const [userProgress, setUserProgress] = useState(new Set()); // Set of completed lesson IDs
       const [lastLesson, setLastLesson] = useState(null);          // { lessonId, lessonTitle, courseTitle, courseId, langId }
+      const [stageByLesson, setStageByLesson] = useState({});
+      const [levelRewards, setLevelRewards] = useState(new Set());
+      const [levelChallenges, setLevelChallenges] = useState({});
+      const [claimingLevelRewards, setClaimingLevelRewards] = useState(false);
+      const [totalXp, setTotalXp] = useState(0);
+      const [cultureCapsules, setCultureCapsules] = useState([]);
+      const [selectedCapsule, setSelectedCapsule] = useState(null);
+      const [learnerProfile, setLearnerProfile] = useState(null);
+      const [profileSaving, setProfileSaving] = useState(false);
+      const [leaderboardScope, setLeaderboardScope] = useState("country");
+      const [leaderboard, setLeaderboard] = useState({ rows: [], current: null, total: 0 });
       // Chat state
       const [chatMessages, setChatMessages] = useState([]);
       const [chatInput, setChatInput] = useState("");
@@ -3863,7 +4152,7 @@
         // Load stats for this language
         try {
           const wc = await supaCount("words", `language_id=eq.${lang.id}`);
-          const sc = await supaCount("senses", `word_id=in.(select id from words where language_id=eq.${lang.id})`);
+          const sc = await supaCount("senses", `words.language_id=eq.${lang.id}`, "id,words!inner(id)");
           setStats({ words: wc, senses: sc || wc });
 
           const dayOffset = Math.floor(Date.now() / 86400000) % Math.max(wc, 1);
@@ -3897,6 +4186,146 @@
             .eq("language_id", languageId);
           if (data) setUserProgress(new Set(data.map(r => r.lesson_id)));
         } catch(e) { console.error("loadUserProgress:", e); }
+      };
+
+      const loadCourseExperience = async ({ navigate = false } = {}) => {
+        if (!langId) return [];
+        setLoading(true);
+        try {
+          const courseRows = await supaFetch("courses", `language_id=eq.${langId}&select=*&order=course_order`);
+          const hydrated = await Promise.all(courseRows.map(async course => {
+            const lessonRows = await supaFetch("lessons", `course_id=eq.${course.id}&select=*,lesson_items(id)&order=lesson_order`);
+            return { ...course, lessons: lessonRows.map(lesson => ({ ...lesson, itemCount: lesson.lesson_items?.length || 0 })) };
+          }));
+          setCourses(hydrated);
+          if (navigate) setView("courses");
+          return hydrated;
+        } catch (error) {
+          console.error("loadCourseExperience:", error);
+          setCourses([]);
+          return [];
+        } finally { setLoading(false); }
+      };
+
+      const loadLearningSummary = async (user, languageId) => {
+        if (!user || !languageId) {
+          setStageByLesson({}); setLevelRewards(new Set()); setLevelChallenges({}); setTotalXp(0); setLearnerProfile(null);
+          return;
+        }
+        try {
+          const [{ data: stages }, { data: profileRow }, { data: rewards }, { data: challenges }] = await Promise.all([
+            supabaseClient.from("lesson_stage_state").select("*").eq("user_id", user.id).eq("language_id", languageId),
+            supabaseClient.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
+            supabaseClient.from("user_level_rewards").select("*").eq("user_id", user.id).eq("language_id", languageId),
+            supabaseClient.from("level_challenge_state").select("*").eq("user_id", user.id).eq("language_id", languageId),
+          ]);
+          const stageMap = Object.fromEntries((stages || []).map(row => [row.lesson_id, row]));
+          const lessonXp = (stages || []).reduce((sum, row) => sum
+            + (row.pratiquer_xp ?? ((row.pratiquer_runs || 0) * 200 + (row.pratiquer_best === 100 ? 50 : 0)))
+            + (row.elargir_xp || 0), 0);
+          const levelXp = (rewards || []).reduce((sum, row) => sum + (row.xp || 0), 0);
+          const challengeXp = (challenges || []).reduce((sum, row) => sum + (row.session_xp || 0) + (row.reward_xp || 0), 0);
+          setStageByLesson(stageMap);
+          setLevelRewards(new Set((rewards || []).map(row => row.course_id)));
+          setLevelChallenges(Object.fromEntries((challenges || []).map(row => [row.course_id, row])));
+          setTotalXp(lessonXp + levelXp + challengeXp);
+          setLearnerProfile(profileRow || {
+            user_id: user.id,
+            display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Apprenant",
+            public_pseudonym: "",
+            country_code: "CA",
+            leaderboard_opt_in: false,
+          });
+        } catch (error) { console.error("loadLearningSummary:", error); }
+      };
+
+      const loadCultureCapsules = async () => {
+        if (selectedLang?.name !== "Lingala") { setCultureCapsules([]); return; }
+        try {
+          const rows = await supaFetch("culture_capsules", "select=*&is_published=eq.true&order=level,sort_order");
+          setCultureCapsules(rows || []);
+        } catch (error) { console.error("loadCultureCapsules:", error); setCultureCapsules([]); }
+      };
+
+      const claimCompletedLevelRewards = async () => {
+        if (!currentUser || !langId || claimingLevelRewards) return;
+        const missing = courses.filter(course => courseDone(course, userProgress) && !levelRewards.has(course.id));
+        if (!missing.length) return;
+        setClaimingLevelRewards(true);
+        try {
+          const { error } = await supabaseClient.from("user_level_rewards").upsert(missing.map(course => ({
+            user_id: currentUser.id, course_id: course.id, language_id: langId, xp: 500,
+          })), { onConflict: "user_id,course_id", ignoreDuplicates: true });
+          if (error && error.code !== "23505") throw error;
+          await loadLearningSummary(currentUser, langId);
+          if (learnerProfile?.leaderboard_opt_in) await loadLeaderboard(leaderboardScope, true);
+        } catch (error) { console.error("claimCompletedLevelRewards:", error); }
+        finally { setClaimingLevelRewards(false); }
+      };
+
+      const loadLeaderboard = async (scope = leaderboardScope, force = false) => {
+        if (!currentUser || !langId || (!force && !learnerProfile?.leaderboard_opt_in)) {
+          setLeaderboard({ rows: [], current: null, total: 0 });
+          return;
+        }
+        try {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          const response = await fetch(`/api/leaderboard?language_id=${langId}&scope=${scope}`, {
+            headers: { Authorization: `Bearer ${session?.access_token || ""}` },
+          });
+          if (!response.ok) throw new Error(`leaderboard ${response.status}`);
+          setLeaderboard(await response.json());
+        } catch (error) { console.error("loadLeaderboard:", error); setLeaderboard({ rows: [], current: null, total: 0 }); }
+      };
+
+      const saveLearnerProfile = async values => {
+        if (!currentUser) return;
+        setProfileSaving(true);
+        try {
+          const row = {
+            user_id: currentUser.id,
+            display_name: currentUser.user_metadata?.display_name || currentUser.email?.split("@")[0] || "Apprenant",
+            preferred_language_id: langId,
+            ...values,
+          };
+          const { data, error } = await supabaseClient.from("profiles").upsert(row, { onConflict: "user_id" }).select().single();
+          if (error) throw error;
+          setLearnerProfile(data);
+          if (data.leaderboard_opt_in) await loadLeaderboard(leaderboardScope, true);
+          else setLeaderboard({ rows: [], current: null, total: 0 });
+        } catch (error) { console.error("saveLearnerProfile:", error); }
+        finally { setProfileSaving(false); }
+      };
+
+      const openCourseTrail = async () => {
+        if (!currentUser) { requireAuth("courses"); return; }
+        await loadCourseExperience({ navigate: true });
+      };
+
+      const openProfile = async () => {
+        if (!currentUser) { requireAuth("profile"); return; }
+        if (!courses.length || !courses.every(course => course.lessons)) await loadCourseExperience();
+        setView("profile");
+      };
+
+      const openDictionaryHome = () => {
+        setView("home");
+        window.setTimeout(() => document.querySelector("#home-dictionary")?.scrollIntoView({ behavior:"smooth", block:"start" }), 40);
+      };
+
+      const openTrailLesson = async (lesson, course) => {
+        setSelectedCourse(course);
+        setSelectedLesson(lesson);
+        setCurrentCardIdx(0);
+        setCardFlipped(false);
+        const saved = { lessonId: lesson.id, lessonTitle: lesson.title, courseTitle: course.title, courseId: course.id, langId };
+        localStorage.setItem("monoko_last_lesson", JSON.stringify(saved));
+        setLastLesson(saved);
+        setLoading(true);
+        try { setLessonItems(await supaFetch("lesson_items", `lesson_id=eq.${lesson.id}&select=*&order=item_order`)); }
+        catch (error) { console.error("openTrailLesson:", error); setLessonItems([]); }
+        setLoading(false);
+        setView("lesson");
       };
 
 
@@ -4055,6 +4484,69 @@
         } finally { setPoolLoading(false); }
       };
 
+      const startLevelChallenge = async course => {
+        const lessonIds = (course?.lessons || []).map(lesson => lesson.id);
+        if (!course || !lessonIds.length) return;
+        setPoolLoading(true);
+        setSessionNote("");
+        try {
+          const items = await supaFetch("lesson_pool", `lesson_id=in.(${lessonIds.join(",")})&tier=in.(native,approved,reassigned)&select=*&limit=5000`);
+          const built = buildSession(items, (course.course_order || 1) + 1, SESSION_QUESTIONS, null, { production: .3 });
+          if (!built.length) {
+            setSessionNote("Pas encore assez de contenu dans ce niveau pour lancer le Grand défi.");
+            return;
+          }
+          primeClips(exerciseClips(built[0]));
+          setLevelChallengeCourse(course);
+          setSelectedCourse(course);
+          setSessionPoolSize(items.length);
+          setSessionStage("level_challenge");
+          setSessionExercises(built);
+          setLastBonus(0);
+          setLastMilestoneBonus(0);
+          setView("level_challenge");
+        } catch (error) {
+          console.error("startLevelChallenge:", error);
+          setSessionNote("Impossible de charger le Grand défi. Réessayez.");
+        } finally { setPoolLoading(false); }
+      };
+
+      const handleLevelChallengeEnd = async ({ completed, attempts, pct, xp }) => {
+        if (!currentUser || !levelChallengeCourse || !completed) return;
+        const course = levelChallengeCourse;
+        const previous = levelChallenges[course.id] || {};
+        const bonus = perfectBonus(pct);
+        const firstPass = pct >= PASS_PCT && !previous.passed;
+        const earnedXp = xp + bonus;
+        setLastBonus(bonus);
+        setLastMilestoneBonus(firstPass ? 300 : 0);
+        try {
+          const { error } = await supabaseClient.from("level_challenge_state").upsert({
+            user_id: currentUser.id,
+            course_id: course.id,
+            language_id: langId,
+            best_score: Math.max(previous.best_score || 0, pct),
+            passed: previous.passed || pct >= PASS_PCT,
+            runs: (previous.runs || 0) + 1,
+            session_xp: (previous.session_xp || 0) + earnedXp,
+            reward_xp: previous.reward_xp || 0,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "user_id,course_id" });
+          if (error) throw error;
+          await supabaseClient.from("user_xp_events").insert({
+            user_id: currentUser.id, language_id: langId, stage: "level_challenge",
+            xp: earnedXp, event_key: crypto.randomUUID(),
+          });
+          const next = streakNext(streak, localDay());
+          await supabaseClient.from("user_streak").upsert({
+            user_id: currentUser.id, ...next, updated_at: new Date().toISOString(),
+          }, { onConflict: "user_id" });
+          setStreak({ user_id: currentUser.id, ...next });
+          setTotalXp(total => total + earnedXp + (firstPass ? 300 : 0));
+        } catch (error) { console.error("handleLevelChallengeEnd:", error); }
+        finally { loadLearningSummary(currentUser, langId); }
+      };
+
       // Called once per session, completed or abandoned. Attempts are written
       // either way — they are the mastery counter's evidence — but only a
       // completed session may move the gate.
@@ -4067,6 +4559,7 @@
         // the database and the number shown on the summary cannot diverge.
         const bonus = completed ? perfectBonus(pct) : 0;
         setLastBonus(bonus);
+        setLastMilestoneBonus(0);
 
         // EACH WRITE IS ISOLATED, AND THAT IS THE POINT.
         // These four writes were one try block until Slice 7, which is fine
@@ -4153,6 +4646,7 @@
               pratiquer_passed: prev.pratiquer_passed || (stage === "pratiquer" && pct >= PASS_PCT),
               pratiquer_best: stage === "pratiquer" ? Math.max(prev.pratiquer_best || 0, pct) : (prev.pratiquer_best || 0),
               elargir_best:   stage === "elargir"   ? Math.max(prev.elargir_best || 0, pct)   : (prev.elargir_best || 0),
+              pratiquer_xp:   (prev.pratiquer_xp || 0) + (stage === "pratiquer" ? xp + bonus : 0),
               // The perfect-session bonus counts toward the topic level, which
               // is the only thing Élargir XP drives.
               elargir_xp:     (prev.elargir_xp || 0) + (stage === "elargir" ? xp + bonus : 0),
@@ -4163,11 +4657,23 @@
               elargir_runs:   (prev.elargir_runs   || 0) + (stage === "elargir"   ? 1 : 0),
               updated_at: new Date().toISOString(),
             }, { onConflict: "user_id,lesson_id" });
+
+            const earnedXp = xp + bonus;
+            await step("xp-event", () => supabaseClient.from("user_xp_events").insert({
+              user_id: currentUser.id,
+              language_id: langId,
+              lesson_id: lessonId,
+              stage,
+              xp: earnedXp,
+              event_key: crypto.randomUUID(),
+            }));
+            setTotalXp(total => total + earnedXp);
           }
         } catch (e) {
           console.error("handleSessionEnd:", e);
         } finally {
           loadStageState(lessonId);      // refresh the gate and the counter
+          loadLearningSummary(currentUser, langId);
         }
       };
 
@@ -4243,7 +4749,7 @@
             setCardFlipped(false);
             setView("lesson");
           } else {
-            setView("course_detail");
+            setView("courses");
           }
         } catch(e) { console.error(e); }
         setLoading(false);
@@ -4292,15 +4798,9 @@
           // Success — navigate to intended destination
           if (authReturnTo === "chat") { setView("chat"); }
           else if (authReturnTo === "live") { setView("live"); }
-          else if (authReturnTo === "courses") {
-            setView("courses");
-            if (langId) {
-              setLoading(true);
-              try { const d = await supaFetch("courses", `language_id=eq.${langId}&select=*,lessons(id)&order=course_order`); setCourses(d); }
-              catch(e) { console.error(e); }
-              setLoading(false);
-            }
-          } else { setView("home"); }
+          else if (authReturnTo === "courses") { await loadCourseExperience({ navigate: true }); }
+          else if (authReturnTo === "profile") { await loadCourseExperience(); setView("profile"); }
+          else { setView("home"); }
           setAuthReturnTo(null);
         } catch(e) {
           const msg = e.message || "";
@@ -4321,6 +4821,7 @@
       useEffect(() => {
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
         if (view === "chat") fetch("/api/mms-tts").catch(() => {});
+        if (["home", "courses", "profile"].includes(view)) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       }, [view]);
 
       // Reload progress whenever the logged-in user or active language changes
@@ -4328,6 +4829,24 @@
         if (currentUser && selectedLang) loadUserProgress(currentUser.id, selectedLang.id);
         else setUserProgress(new Set());
       }, [currentUser?.id, selectedLang?.id]);
+
+      useEffect(() => {
+        if (!selectedLang) { setCourses([]); setCultureCapsules([]); return; }
+        loadCourseExperience();
+        loadCultureCapsules();
+      }, [selectedLang?.id]);
+
+      useEffect(() => {
+        loadLearningSummary(currentUser, selectedLang?.id);
+      }, [currentUser?.id, selectedLang?.id]);
+
+      useEffect(() => {
+        claimCompletedLevelRewards();
+      }, [currentUser?.id, selectedLang?.id, courses, userProgress, levelRewards]);
+
+      useEffect(() => {
+        if (view === "profile") loadLeaderboard(leaderboardScope);
+      }, [view, leaderboardScope, learnerProfile?.leaderboard_opt_in, currentUser?.id]);
 
       // The gate and the mastery counter are per lesson, so they load with it.
       useEffect(() => {
@@ -4380,12 +4899,15 @@
       };
       const theme = LANG_THEMES[langName] || defaultTheme;
 
-      const doSearch = useCallback(async () => {
-        const q = query.trim();
+      const doSearch = useCallback(async (queryOverride, modeOverride) => {
+        const q = (typeof queryOverride === "string" ? queryOverride : query).trim();
+        const mode = typeof modeOverride === "string" ? modeOverride : searchMode;
         if (!q || !langId) return;
+        if (typeof queryOverride === "string") setQuery(q);
+        if (typeof modeOverride === "string") setSearchMode(mode);
         setLoading(true); setHasSearched(true);
         try {
-          if (searchMode === "french") {
+          if (mode === "french") {
             const data = await supaFetch("words", `select=id,french_word,letter,senses(dialect_word)&language_id=eq.${langId}&french_word=ilike.*${encodeURIComponent(q)}*&order=french_word&limit=50`);
             setResults(data.map(w => ({ id: w.id, french_word: w.french_word, dialect_words: w.senses?.map(s => s.dialect_word).join(" · ") || "" })));
           } else {
@@ -4612,9 +5134,12 @@
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, [chatMessages, chatLoading]);
 
+      const redesignedView = ["home", "courses", "profile", "level_challenge"].includes(view);
+      const activeStreak = streakDisplay(streak, localDay());
+
       return (
-        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100dvh", background:"#F7F3ED", fontFamily:"'DM Sans', sans-serif", paddingTop:"env(safe-area-inset-top)", paddingBottom:"env(safe-area-inset-bottom)" }}>
-          <div style={{ padding:"0 20px 100px" }}>
+        <div className={`m-frame ${redesignedView ? "m-redesigned" : ""}`}>
+          <div className="m-content">
 
             {/* LANGUAGE SELECT */}
             {view === "lang_select" && (
@@ -4892,8 +5417,22 @@
               </div>
             )}
 
-            {/* HOME */}
             {view === "home" && selectedLang && (
+              <HomeHub
+                langName={langName} stats={stats} wordOfDay={wordOfDay} currentUser={currentUser}
+                profile={learnerProfile} courses={courses} userProgress={userProgress} xp={totalXp}
+                streak={activeStreak} lastLesson={lastLesson}
+                onHome={() => setView("home")} onLearn={openCourseTrail} onDictionary={openDictionaryHome}
+                onBrowse={() => setView("browse")}
+                onSearch={(term, mode) => { setView("search"); doSearch(term, mode); }}
+                onChat={openChat} onLive={() => currentUser ? setView("live") : requireAuth("live")}
+                onProfile={openProfile} onLanguage={switchLanguage}
+                onWord={() => openWord(wordOfDay.id, "home")} onResume={resumeLesson}
+              />
+            )}
+
+            {/* Legacy home retained for rollback during the first production release. */}
+            {view === "home_legacy" && selectedLang && (
               <div style={{ animation:"fadeIn 0.3s ease-out" }}>
                 <div style={{ textAlign:"center", paddingTop:48, paddingBottom:32 }}>
                   <div style={{
@@ -5170,8 +5709,55 @@
               </div>
             )}
 
-            {/* COURSES LIST */}
             {view === "courses" && selectedLang && (
+              <CourseTrail
+                courses={courses} userProgress={userProgress} stageByLesson={stageByLesson}
+                levelRewards={levelRewards} levelChallenges={levelChallenges}
+                cultureCapsules={cultureCapsules} currentUser={currentUser} profile={learnerProfile}
+                xp={totalXp} streak={activeStreak} loading={loading}
+                onHome={() => setView("home")} onLearn={openCourseTrail} onDictionary={openDictionaryHome}
+                onChat={openChat} onLive={() => setView("live")} onProfile={openProfile}
+                onLanguage={switchLanguage} onOpenLesson={openTrailLesson}
+                onLevelChallenge={startLevelChallenge} onCapsule={setSelectedCapsule}
+              />
+            )}
+
+            {view === "profile" && selectedLang && currentUser && (
+              <ProfileHub
+                courses={courses} userProgress={userProgress} cultureCapsules={cultureCapsules}
+                levelChallenges={levelChallenges}
+                currentUser={currentUser} profile={learnerProfile} xp={totalXp} streak={activeStreak}
+                leaderboard={leaderboard} leaderboardScope={leaderboardScope}
+                onLeaderboardScope={setLeaderboardScope} onSaveProfile={saveLearnerProfile}
+                savingProfile={profileSaving} onHome={() => setView("home")} onLearn={openCourseTrail}
+                onDictionary={openDictionaryHome} onChat={openChat} onLive={() => setView("live")}
+                onProfile={openProfile} onLanguage={switchLanguage} onCapsule={setSelectedCapsule}
+              />
+            )}
+
+            {view === "level_challenge" && levelChallengeCourse && sessionExercises && (
+              <SessionView
+                lesson={{ title:`Grand défi · ${LEVEL_META[(levelChallengeCourse.course_order || 1) - 1]?.title || levelChallengeCourse.title}` }}
+                stage="level_challenge"
+                exercises={sessionExercises}
+                poolSize={sessionPoolSize}
+                stats={{
+                  runs: levelChallenges[levelChallengeCourse.id]?.runs || 0,
+                  best: levelChallenges[levelChallengeCourse.id]?.best_score || 0,
+                  passed: !!levelChallenges[levelChallengeCourse.id]?.passed,
+                }}
+                streak={activeStreak}
+                bonus={lastBonus}
+                milestoneBonus={lastMilestoneBonus}
+                secondaryLabel="Revenir au parcours"
+                onExit={() => { setSessionExercises(null); setView("courses"); }}
+                onSeeLesson={() => { setSessionExercises(null); setView("courses"); }}
+                onSessionEnd={handleLevelChallengeEnd}
+              />
+            )}
+
+            {/* Legacy course list retained for rollback during the first production release. */}
+            {view === "courses_legacy" && selectedLang && (
               <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
                 <button onClick={() => { setView("home"); setCourses([]); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
@@ -5259,7 +5845,7 @@
             )}
 
             {/* COURSE DETAIL (lesson list) */}
-            {view === "course_detail" && selectedCourse && (
+            {view === "course_detail_legacy" && selectedCourse && (
               <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
                 <button onClick={() => { setView("courses"); setSelectedCourse(null); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
@@ -5345,6 +5931,7 @@
                       due: mastery.dueCount || 0 }}
                 streak={streakDisplay(streak, localDay())}
                 bonus={lastBonus}
+                milestoneBonus={lastMilestoneBonus}
                 onExit={() => setSessionExercises(null)}
                 onSeeLesson={() => setSessionExercises(null)}
                 onSessionEnd={handleSessionEnd}
@@ -5354,7 +5941,7 @@
 
             {view === "lesson" && selectedLesson && !sessionExercises && (
               <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
-                <button onClick={() => { setView("course_detail"); setSelectedLesson(null); setLessonItems([]); }} style={{
+                <button onClick={() => { setView("courses"); setSelectedLesson(null); setLessonItems([]); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
                   color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
                   fontFamily:"'DM Sans', sans-serif",
@@ -6174,6 +6761,7 @@
                 )}
               </div>
             )}
+            <CultureModal capsule={selectedCapsule} onClose={() => setSelectedCapsule(null)}/>
           </div>
         </div>
       );
