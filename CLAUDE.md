@@ -106,16 +106,32 @@ api/mms-tts.js                    — Vercel serverless function (warm-up GET pi
 api/cron/keep-tts-warm.js         — Vercel cron handler (GET ping to MMS_SPACE_URL; requires Vercel Pro for sub-hourly schedule)
 api/_rate-limit.js                — shared per-IP rate limiter + CORS helper, used by every api/*.js endpoint (in-memory sliding window)
 api/leaderboard.js                — authenticated weekly country/world ranking; returns pseudonyms only, never user ids
-monoko-ui.css                     — production learner shell: home, continuous course trail, profile, rewards, ranking and responsive navigation
+monoko-ui.css                     — production learner shell: public landing, home, continuous course trail, lesson pages, profile, rewards, ranking and responsive navigation
 course-trail-meta.js              — mock-matched lesson preview descriptions and estimated durations, kept separate from the exercise/content records
 COURSE_TRAIL_PARITY.md            — production contract for every course-trail behavior carried over from the isolated mock
+
+Landing, home and language switching (2026-08-22). `/` is the **public landing
+page** (`PublicLanding`, view `lang_select`) — a signed-out marketing page, not a
+chooser. A signed-in learner never sees it: the app reads
+`profiles.preferred_language_id` on load and resumes straight to that language's
+home, and switching language opens a sheet (`.m-language-sheet`) from the shell
+instead of walking back through the landing page. The preference is now written
+on the language choice itself; before this it was only ever set as a side effect
+of editing a profile, and nothing read it back, so every returning learner met
+the chooser again. `lang_select_legacy` holds the retired chooser as a rollback
+reference and is not routed to.
+
+The hero map is a backdrop, not a control: at full-viewport height Leaflet's own
+touch handlers would swallow a vertical swipe and trap a phone reader on the
+first screen, so every interaction handler is off for `immersive` and the
+container is `pointer-events: none`. The language tabs under it do the selecting.
 tests/                            — Vitest unit tests for every api/*.js file (see tests/README.md); test Supabase harness docs live here
 sql/test_schema.sql               — idempotent schema for the test Supabase project (harness sprint; see HARNESS_SPRINT.md)
 scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test project via psql (refuses to run against any non-test project ref)
 scripts/seed_test_data.js         — wipes + reseeds the test project with representative data + test user (refuses to run against any non-test project ref)
 scripts/release_browser_check.mjs — dependency-free Chrome CDP release check for desktop, 390px and 320px against monoko-test
 
-Developer course controls: `sql/developer_course_tools.sql` stores authorized
+Developer course controls: `sql/developer_course_tools.sql` (applied 2026-08-22) stores authorized
 accounts in `app_developers` and exposes protected progress preset RPCs. An
 authorized developer sees the three-dot menu in `Apprendre`; its presets rebuild
 that developer's real lesson progress, XP and prior milestone claims atomically,
@@ -139,7 +155,7 @@ sql/lesson_exercise_policy.sql    — SQL migration: per-lesson exercise-type AL
 sql/culture_capsules.sql          — editable lesson-linked cultural capsules + one-time claims (applied 2026-08-22)
 sql/culture_capsules_seed.sql     — 16 sourced Lingala/Congolese capsule drafts tied to relevant live lessons (applied 2026-08-22)
 sql/community_experience.sql      — profile pseudonyms/country, XP events, 500-XP level rewards and Grand défi state (applied 2026-08-22)
-sql/trail_rewards.sql             — protected ordinary-gift and medal-ceremony claims, culture unlocks, and developer reward rebuild helper
+sql/trail_rewards.sql             — protected ordinary-gift and medal-ceremony claims, culture unlocks, and developer reward rebuild helper (applied 2026-08-22, verified against production 2026-08-22)
 scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~6,700 lines of React that no unit test slices
 make_alphabet_cut_tool.py         — builds alphabet_cut_tool.html: confirm where the WORD starts in each of L346's 46 clips. The clips read the sound before the word ('O ... Motoki'), and the structure varies (1-4 speech segments), so the tool proposes the last segment and a human confirms. Audio is base64-embedded because R2 sends no CORS header
 apply_alphabet_cuts.py            — cuts each clip to the confirmed word, uploads to R2 as <name>_word.mp3 (never overwriting the original), repoints lesson_pool. Needs .env.r2. Rollback JSON first

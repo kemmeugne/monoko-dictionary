@@ -28,6 +28,14 @@ Last updated: 2026-08-22
   navigation, full profile, medals and 16 editable Lingala/Congolese culture
   capsules. Claimable gifts, capsule reveals and medal ceremonies use the live
   progression state and include their production celebrations.
+- **Public landing and lesson pages redesigned (2026-08-22)** — the three views
+  the redesign had left behind now share the shell and the design tokens. `/` is
+  a signed-out marketing landing with an immersive (non-interactive) hero map;
+  signed-in learners resume in their own language via `preferred_language_id`
+  and switch language from a sheet instead of the landing page. Lesson pages run
+  inside the standard shell: entries are stacked cards on a phone and a
+  two-column table from 760px, and the conjugation paradigm, the Sons-et-alphabet
+  tiles and the practice block all moved off the retired cream/purple palette.
 - **Level milestones and community loop shipped (2026-08-22)** — fixed 500-XP
   level completion rewards, optional 20-question Grand défi with permanent
   enriched-level distinction, and opt-in pseudonymous weekly country/world ranking.

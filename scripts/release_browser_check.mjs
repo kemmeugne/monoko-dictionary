@@ -219,7 +219,9 @@ await assertPage("real Aller plus loin engine", `() => ({
 })`);
 await evaluate(`document.querySelector('button[aria-label="Quitter"]').click()`);
 await waitFor(`document.body.textContent.includes("Module terminé")`, "lesson after Aller plus loin exit");
-await clickByText("button", "Fondations");
+// The redesigned lesson page returns to the trail with one labelled control;
+// the course name it used to carry now sits in the lesson heading kicker.
+await clickByText(".m-lesson-back", "Retour au parcours");
 await waitFor(`document.querySelector(".m-path-trail")`, "course trail after Aller plus loin");
 await clickByText(".m-course-level", "Fondations");
 

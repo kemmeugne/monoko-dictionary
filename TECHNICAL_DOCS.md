@@ -288,7 +288,7 @@ One row per authenticated user.
 |---|---|---|
 | `user_id` | UUID PK → auth.users | |
 | `display_name` | TEXT | User's chosen display name |
-| `preferred_language_id` | INT FK → languages | |
+| `preferred_language_id` | INT FK → languages | Written when the learner picks a language, and read on load to resume them there (2026-08-22). Until then only `saveLearnerProfile` set it, so it was a side effect of editing a pseudonym and nothing read it back |
 | `public_pseudonym` | TEXT | Optional unique name shown in rankings |
 | `country_code` | TEXT | Learner-selected ranking country |
 | `leaderboard_opt_in` | BOOLEAN | False by default; no ranking exposure without consent |
