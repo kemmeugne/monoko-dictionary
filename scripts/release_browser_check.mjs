@@ -165,19 +165,24 @@ await assertPage("desktop profile", `() => ({
 const profileShot = await screenshot("profile-desktop");
 
 await clickByText(".m-rail nav button", "Apprendre");
-await waitFor(`document.querySelectorAll(".m-trail-node").length === 3`, "course trail");
+await waitFor(`document.querySelectorAll(".m-path-node").length >= 7`, "course trail");
 await assertPage("desktop course trail", `() => ({
-  trail: !!document.querySelector(".m-trail"),
-  lessons: document.querySelectorAll(".m-trail-node").length === 3,
-  completed: document.querySelectorAll(".m-trail-node.completed").length === 2,
-  available: document.querySelectorAll(".m-trail-node.current").length === 1,
-  enriched: document.querySelectorAll(".m-trail-node.enriched").length >= 1,
+  trail: !!document.querySelector(".m-path-trail"),
+  curvedPath: (document.querySelector(".m-path-base")?.getAttribute("d") || "").includes(" C "),
+  lessons: document.querySelectorAll(".m-path-node:not(.reward):not(.gate)").length === 3,
+  rewards: document.querySelectorAll(".m-path-node.reward").length === 3,
+  gates: document.querySelectorAll(".m-path-node.gate").length >= 1,
+  completed: document.querySelectorAll(".m-path-node:not(.reward):not(.gate).completed").length === 2,
+  available: document.querySelectorAll(".m-path-node:not(.reward):not(.gate).current").length === 1,
+  enriched: document.querySelectorAll(".m-path-node.elargir-passed").length >= 1,
+  courseRail: getComputedStyle(document.querySelector(".m-course-level-rail")).display !== "none",
   levelReward: document.body.textContent.includes("+500 XP"),
-  grandChallenge: document.querySelectorAll(".m-level-challenge:not(:disabled)").length === 1
+  grandChallenge: document.querySelectorAll(".m-reward-horizon .m-level-challenge:not(:disabled)").length === 1
 })`);
 const trailShot = await screenshot("trail-desktop");
 
-await evaluate(`document.querySelector(".m-level-challenge:not(:disabled)").click()`);
+await clickByText(".m-course-level", "Fondations");
+await evaluate(`document.querySelector(".m-reward-horizon .m-level-challenge:not(:disabled)").click()`);
 await waitFor(`document.body.textContent.includes("Grand défi du niveau") && [...document.querySelectorAll("button")].some(button => button.textContent.includes("Commencer"))`, "Grand défi briefing", 20000);
 await assertPage("Grand défi briefing", `() => ({
   title: document.body.textContent.includes("Grand défi · Fondations"),
@@ -186,13 +191,44 @@ await assertPage("Grand défi briefing", `() => ({
 })`);
 const challengeShot = await screenshot("challenge-desktop");
 await evaluate(`document.querySelector('button[aria-label="Quitter"]').click()`);
-await waitFor(`document.querySelector(".m-trail")`, "course trail after challenge");
+await waitFor(`document.querySelector(".m-path-trail")`, "course trail after challenge");
 
-await evaluate(`document.querySelector(".m-reward-step button:not(:disabled)").click()`);
+await evaluate(`document.querySelector(".m-path-node.reward.available:not(.milestone)").click()`);
 await waitFor(`document.querySelector(".m-modal")`, "culture capsule modal");
 await waitFor(`getComputedStyle(document.querySelector(".m-modal-art")).backgroundImage.includes("assets/culture/capsules-1.jpg")`, "culture capsule artwork");
 const cultureShot = await screenshot("culture-desktop");
 await clickByText(".m-modal button", "Fermer");
+
+await evaluate(`document.querySelector(".m-course-brand").click()`);
+await waitFor(`document.querySelector(".m-home")`, "home before secondary tools");
+await evaluate(`document.querySelector(".m-browse").click()`);
+await waitFor(`document.querySelector(".m-secondary-content") && document.body.textContent.includes("Parcourir")`, "browse shell");
+await assertPage("desktop dictionary shell", `() => ({
+  browse: document.body.textContent.includes("Parcourir"),
+  active: document.querySelector(".m-rail .m-nav-button.active")?.textContent.includes("Dictionnaire"),
+  medals: !!document.querySelector(".m-chip.medals")
+})`);
+await clickByText(".m-rail nav button", "Accueil");
+await waitFor(`document.querySelector(".m-home")`, "home after dictionary shell");
+await clickByText(".m-rail nav button", "Parler");
+await waitFor(`document.querySelector(".m-secondary-content.conversation")`, "chat shell");
+await assertPage("desktop chat shell", `() => ({
+  chat: document.body.textContent.includes("Parler avec Monoko"),
+  rail: getComputedStyle(document.querySelector(".m-rail")).display !== "none",
+  active: document.querySelector(".m-rail .m-nav-button.active")?.textContent.includes("Parler"),
+  medals: !!document.querySelector(".m-chip.medals")
+})`);
+await sleep(500);
+const chatShot = await screenshot("chat-desktop");
+await clickByText(".m-rail nav button", "Traduction en direct");
+await waitFor(`document.querySelector(".m-secondary-content.conversation") && document.body.textContent.includes("Traduction en direct")`, "live translation shell");
+await assertPage("desktop live shell", `() => ({
+  live: document.body.textContent.includes("Traduction en direct"),
+  active: document.querySelector(".m-rail .m-nav-button.active")?.textContent.includes("Traduction en direct"),
+  medals: !!document.querySelector(".m-chip.medals")
+})`);
+await sleep(500);
+const liveShot = await screenshot("live-desktop");
 
 await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true, screenWidth: 390, screenHeight: 844 });
 await evaluate(`document.querySelector(".m-bottom-nav button").click()`);
@@ -204,8 +240,18 @@ await assertPage("mobile home", `() => ({
 })`);
 const mobileShot = await screenshot("home-mobile");
 
+await clickByText(".m-bottom-nav button", "Parcours");
+await waitFor(`document.querySelector(".m-path-trail")`, "mobile course trail");
+await assertPage("mobile course trail", `() => ({
+  trail: !!document.querySelector(".m-path-trail"),
+  railHidden: getComputedStyle(document.querySelector(".m-course-level-rail")).display === "none",
+  bottomNav: getComputedStyle(document.querySelector(".m-bottom-nav")).display !== "none",
+  labels: document.querySelectorAll(".m-path-label").length >= 3
+})`);
+const mobileTrailShot = await screenshot("trail-mobile");
+
 await send("Emulation.setDeviceMetricsOverride", { width: 320, height: 700, deviceScaleFactor: 2, mobile: true, screenWidth: 320, screenHeight: 700 });
-await assertPage("320px home", `() => ({ home: !!document.querySelector(".m-home") })`);
+await assertPage("320px course trail", `() => ({ trail: !!document.querySelector(".m-path-trail") })`);
 
 const ignored = ["favicon.ico", "Failed to load resource"];
 const seriousErrors = browserErrors.filter(error => !ignored.some(fragment => error.includes(fragment)));
@@ -213,7 +259,7 @@ if (seriousErrors.length) throw new Error(`Browser errors: ${seriousErrors.join(
 
 console.log(JSON.stringify({
   ok: true,
-  screenshots: [homeShot, profileShot, trailShot, challengeShot, cultureShot, mobileShot],
-  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "Grand défi briefing", "culture modal", "390px mobile", "320px overflow"],
+  screenshots: [homeShot, profileShot, trailShot, challengeShot, cultureShot, chatShot, liveShot, mobileShot, mobileTrailShot],
+  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "Grand défi briefing", "culture modal", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
 }, null, 2));
 socket.close();

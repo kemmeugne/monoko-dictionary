@@ -27,7 +27,7 @@
     @keyframes waveC{0%{height:14px}100%{height:32px}}
     @keyframes micRing{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4),0 6px 24px rgba(0,0,0,0.2)}50%{box-shadow:0 0 0 16px rgba(22,163,74,0),0 6px 24px rgba(22,163,74,0.35)}}
   </style>
-  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-1">
+  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-2">
 </head>
 <body>
   <div id="root"></div>
@@ -3754,6 +3754,7 @@
       globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>',
       pin: '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
       close: '<path d="m6 6 12 12M18 6 6 18"/>',
+      circle: '<circle cx="12" cy="12" r="8"/>',
       volume: '<path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>',
     };
 
@@ -3795,9 +3796,9 @@
         <nav>
           <button className={`m-nav-button ${active === "home" ? "active" : ""}`} onClick={onHome}><UiIcon name="home"/><span>Accueil</span></button>
           <button className={`m-nav-button ${active === "courses" ? "active" : ""}`} onClick={onLearn}><UiIcon name="map"/><span>Apprendre</span><b>{completed}/{total || 49}</b></button>
-          <button className="m-nav-button" onClick={onDictionary}><UiIcon name="book"/><span>Dictionnaire</span></button>
-          <button className="m-nav-button" onClick={onChat}><UiIcon name="messages"/><span>Parler</span></button>
-          <button className="m-nav-button" onClick={onLive}><UiIcon name="headphones"/><span>Traduction en direct</span></button>
+          <button className={`m-nav-button ${active === "dictionary" ? "active" : ""}`} onClick={onDictionary}><UiIcon name="book"/><span>Dictionnaire</span></button>
+          <button className={`m-nav-button ${active === "chat" ? "active" : ""}`} onClick={onChat}><UiIcon name="messages"/><span>Parler</span></button>
+          <button className={`m-nav-button ${active === "live" ? "active" : ""}`} onClick={onLive}><UiIcon name="headphones"/><span>Traduction en direct</span></button>
         </nav>
         <button className="m-rail-profile" onClick={onProfile}>
           <span className="avatar">{initialsFor(displayName)}</span>
@@ -3819,9 +3820,24 @@
       return <nav className="m-bottom-nav" aria-label="Navigation principale">
         <button className={active === "home" ? "active" : ""} onClick={onHome}><UiIcon name="home"/><span>Accueil</span></button>
         <button className={active === "courses" ? "active" : ""} onClick={onLearn}><UiIcon name="map"/><span>Parcours</span></button>
-        <button onClick={onReview}><UiIcon name="book"/><span>Réviser</span></button>
+        <button className={active === "dictionary" ? "active" : ""} onClick={onReview}><UiIcon name="book"/><span>Réviser</span></button>
         <button className={active === "profile" ? "active" : ""} onClick={onProfile}><UiIcon name="user"/><span>Profil</span></button>
       </nav>;
+    }
+
+    function StandardPage({ active, langName, currentUser, profile, courses, userProgress, xp, streak, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, children }) {
+      const displayName = displayNameFor(currentUser,profile);
+      const done = completedLessons(courses,userProgress);
+      const total = totalLessons(courses) || 49;
+      const medals = earnedMedals(courses,userProgress);
+      return <div className="m-app">
+        <GlobalRail active={active} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <main className="m-page">
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile}/>
+          <div className={`m-secondary-content ${active === "chat" || active === "live" ? "conversation" : ""}`}>{children}</div>
+          <BottomNav active={active} onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
+        </main>
+      </div>;
     }
 
     function HomeHub({ langName, stats, wordOfDay, currentUser, profile, courses, userProgress, xp, streak, lastLesson, onHome, onLearn, onDictionary, onBrowse, onSearch, onChat, onLive, onProfile, onLanguage, onWord, onResume }) {
@@ -3878,53 +3894,139 @@
       </div>;
     }
 
+    const TRAIL_NODE_POSITIONS = [50,27,72,79,54,25,34,68,77,47,22,51,78,61,29,38];
+
+    function CourseLevelRail({ courses, userProgress, levelChallenges, focusedLevel, displayName, xp, onHome, onLevel, onProfile }) {
+      return <aside className="m-course-level-rail" aria-label="Niveaux du parcours">
+        <button className="m-course-brand" onClick={onHome}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
+        <div className="m-course-rail-heading"><span>Parcours Lingala</span><strong>{courses.length || 6} niveaux</strong></div>
+        <nav>{courses.map((course,index) => {
+          const meta = LEVEL_META[index] || LEVEL_META[0];
+          const unlocked = index === 0 || courses.slice(0,index).every(item => courseDone(item,userProgress));
+          const completeHere = (course.lessons || []).filter(lesson => userProgress.has(lesson.id)).length;
+          const done = courseDone(course,userProgress);
+          const challenge = levelChallenges[course.id];
+          const status = challenge?.passed ? `Enrichi · record ${challenge.best_score}%` : done ? "Terminé · Grand défi disponible" : unlocked ? `${completeHere}/${course.lessons?.length || 0} leçons` : `Après le niveau ${index}`;
+          return <button key={course.id} className={`m-course-level ${focusedLevel === index+1 ? "active" : ""} ${challenge?.passed ? "enriched" : ""}`} disabled={!unlocked} onClick={() => onLevel(index+1)}>
+            <span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {status}</small></span><UiIcon name={challenge?.passed ? "sparkles" : focusedLevel === index+1 ? "chevron" : unlocked ? "circle" : "lock"}/>
+          </button>;
+        })}</nav>
+        <button className="m-course-profile" onClick={onProfile}><span className="avatar">{initialsFor(displayName)}</span><span><strong>{displayName}</strong><small>{xp} XP</small></span><UiIcon name="chevron"/></button>
+      </aside>;
+    }
+
     function CourseTrail({ courses, userProgress, stageByLesson, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onOpenLesson, onLevelChallenge, onCapsule }) {
       const displayName = displayNameFor(currentUser, profile);
       const done = completedLessons(courses, userProgress);
       const total = totalLessons(courses) || 49;
       const medals = earnedMedals(courses, userProgress);
-      let globalIndex = -1;
-      const flat = courses.flatMap(course => (course.lessons || []).map(lesson => ({lesson, course})));
+      const flat = courses.flatMap((course,courseIndex) => (course.lessons || []).map(lesson => ({lesson,course,courseIndex})));
       const firstIncomplete = flat.findIndex(item => !userProgress.has(item.lesson.id));
       const currentIndex = firstIncomplete < 0 ? flat.length : firstIncomplete;
-      const scrollLevel = number => document.querySelector(`#course-level-${number}`)?.scrollIntoView({behavior:"smooth", block:"start"});
+      const initialLevel = firstIncomplete < 0 ? Math.max(1,courses.length) : (flat[firstIncomplete]?.courseIndex || 0) + 1;
+      const [focusedLevel,setFocusedLevel] = useState(initialLevel);
+      const [mobileLevelsOpen,setMobileLevelsOpen] = useState(false);
+      const route = [];
+      let lessonIndex = -1;
+      const levelRouteStarts = {};
+
+      courses.forEach((course,courseIndex) => {
+        (course.lessons || []).forEach((lesson,indexInCourse) => {
+          lessonIndex += 1;
+          if (indexInCourse === 0) levelRouteStarts[courseIndex+1] = route.length;
+          route.push({type:"lesson",lesson,course,courseIndex,lessonIndex,x:TRAIL_NODE_POSITIONS[(route.length+courseIndex+1)%TRAIL_NODE_POSITIONS.length]});
+          route.push({type:"reward",lesson,course,courseIndex,lessonIndex,milestone:indexInCourse === (course.lessons?.length || 0)-1,x:TRAIL_NODE_POSITIONS[(route.length+courseIndex+4)%TRAIL_NODE_POSITIONS.length]});
+        });
+        route.push({type:"gate",course,courseIndex,x:TRAIL_NODE_POSITIONS[(route.length+7)%TRAIL_NODE_POSITIONS.length]});
+      });
+
+      const scrollLevel = number => {
+        setFocusedLevel(number);
+        setMobileLevelsOpen(false);
+        document.querySelector(`#course-level-${number}`)?.scrollIntoView({behavior:"smooth",block:"center"});
+      };
+      const focusedCourse = courses[focusedLevel-1] || courses[0];
+      const focusedMeta = LEVEL_META[focusedLevel-1] || LEVEL_META[0];
+      const focusedComplete = focusedCourse ? (focusedCourse.lessons || []).filter(lesson => userProgress.has(lesson.id)).length : 0;
+      const focusedTotal = focusedCourse?.lessons?.length || 0;
+      const focusedDone = courseDone(focusedCourse,userProgress);
+      const focusedChallenge = focusedCourse ? levelChallenges[focusedCourse.id] : null;
+      const focusedPercent = focusedTotal ? Math.round(focusedComplete/focusedTotal*100) : 0;
+      const trailHeight = 112+route.length*136+95;
+      const pathPoints = route.map((item,index) => ({x:item.x,y:112+index*136}));
+      const pathD = pathPoints.reduce((value,point,index) => {
+        if (!index) return `M ${point.x} ${point.y}`;
+        const previous = pathPoints[index-1];
+        const middle = (previous.y+point.y)/2;
+        return `${value} C ${previous.x} ${middle}, ${point.x} ${middle}, ${point.x} ${point.y}`;
+      },"");
+      const firstCurrentRoute = route.findIndex(item => item.type === "lesson" && item.lessonIndex === currentIndex);
+      const reachedRoute = currentIndex >= flat.length ? route.length-1 : Math.max(0,firstCurrentRoute);
+      const trailProgress = Math.max(2,Math.round(reachedRoute/Math.max(1,route.length-1)*100));
+
+      const labelClass = x => x < 43 ? "label-right" : x > 61 ? "label-left" : "label-bottom";
+      const routeStatus = item => {
+        if (item.type === "lesson") return userProgress.has(item.lesson.id) ? "completed" : item.lessonIndex <= currentIndex ? "current" : "locked";
+        if (item.type === "reward") {
+          const completed = userProgress.has(item.lesson.id);
+          if (!completed) return "locked";
+          if (item.milestone) return levelRewards.has(item.course.id) ? "completed" : "available";
+          return cultureCapsules.some(capsule => capsule.lesson_id === item.lesson.id) ? "available" : "completed";
+        }
+        return courseDone(item.course,userProgress) ? "available" : "locked";
+      };
+
       return <div className="m-course-layout">
-        <GlobalRail active="courses" langName="Lingala" displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <CourseLevelRail courses={courses} userProgress={userProgress} levelChallenges={levelChallenges} focusedLevel={focusedLevel} displayName={displayName} xp={xp} onHome={onHome} onLevel={scrollLevel} onProfile={onProfile}/>
         <main className="m-course-main">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => scrollLevel(Math.min(medals + 1, 6))} onHome={onHome} onProfile={onProfile}/>
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile}/>
           <div className="m-course-body">
-            <header className="m-course-header"><div className="m-kicker"><span>Parcours Lingala</span><span>{done}/{total} leçons</span></div><h1>Votre chemin</h1><p>Chaque leçon maîtrisée ouvre la suivante. Les cadeaux marquent les découvertes qui jalonnent le parcours.</p></header>
-            <div className="m-level-tabs" aria-label="Accéder à un niveau">{courses.map((course,index) => { const unlocked = index === 0 || courses.slice(0,index).every(item => courseDone(item,userProgress)); const enriched = levelChallenges[course.id]?.passed; return <button className={enriched ? "enriched" : ""} key={course.id} disabled={!unlocked} onClick={() => scrollLevel(index+1)} aria-label={`Niveau ${index+1}${enriched ? ", enrichi" : ""}`}>{index+1}</button>; })}</div>
-            {loading ? <Spinner/> : courses.map((course, courseIndex) => {
-              const meta = LEVEL_META[courseIndex] || LEVEL_META[0];
-              const levelDone = courseDone(course,userProgress);
-              const completeHere = (course.lessons || []).filter(lesson => userProgress.has(lesson.id)).length;
-              const rewardClaimed = levelRewards.has(course.id);
-              const challenge = levelChallenges[course.id] || null;
-              return <section key={course.id} id={`course-level-${courseIndex+1}`} style={{scrollMarginTop:76}}>
-                <header className="m-course-header" style={{paddingTop:32}}><div className="m-kicker"><span>Niveau {courseIndex+1}</span><span>{meta.cefr}</span></div><h1>{meta.title}</h1><p>{meta.description}</p><div className="m-level-progress"><div className="m-progress-copy"><span>{completeHere} leçons sur {course.lessons?.length || 0}</span><strong>{course.lessons?.length ? Math.round(completeHere/course.lessons.length*100) : 0} %</strong></div><div className="m-progress-track"><span style={{width:`${course.lessons?.length ? completeHere/course.lessons.length*100 : 0}%`}}/></div></div></header>
-                <div className="m-trail">{(course.lessons || []).map(lesson => {
-                  globalIndex += 1;
-                  const index = globalIndex;
-                  const complete = userProgress.has(lesson.id);
-                  const unlocked = complete || index <= currentIndex;
-                  const enriched = (stageByLesson[lesson.id]?.elargir_best || 0) >= 80;
-                  const capsule = cultureCapsules.find(item => item.lesson_id === lesson.id);
-                  return <React.Fragment key={lesson.id}>
-                    <div className={`m-trail-step ${index % 2 ? "right" : "left"}`}>
-                      <button className={`m-trail-node ${complete ? "completed" : unlocked ? "current" : "locked"} ${enriched ? "enriched" : ""}`} disabled={!unlocked} onClick={() => onOpenLesson(lesson,course)} aria-label={`${lesson.title}, ${complete ? "maîtrisée" : unlocked ? "disponible" : "verrouillée"}`}><UiIcon name={complete ? "check" : unlocked ? "book" : "lock"}/></button>
-                      <span className="m-node-copy"><strong>{lesson.title}</strong><span>{enriched ? `Approfondie · ${stageByLesson[lesson.id].elargir_best}%` : complete ? "Maîtrisée" : unlocked ? `${lesson.itemCount || 0} expressions` : "Verrouillée"}</span>{unlocked && !complete && <span className="current">À vous</span>}</span>
-                    </div>
-                    <div className="m-reward-step"><button disabled={!complete} onClick={() => capsule && onCapsule(capsule)} aria-label={complete ? capsule ? `Ouvrir ${capsule.title}` : "Bonus XP obtenu" : "Récompense verrouillée"}><UiIcon name={complete ? capsule ? "gift" : "sparkles" : "lock"}/></button></div>
-                  </React.Fragment>;
-                })}</div>
-                <div className={`m-level-finish ${levelDone ? challenge?.passed ? "enriched" : "" : "locked"}`}><span className="medal"><UiIcon name={levelDone ? "medal" : "lock"}/></span><span><strong>{challenge?.passed ? "Niveau enrichi" : levelDone ? meta.medal : "Médaille à découvrir"}</strong><small>{challenge?.passed ? `Grand défi · record ${challenge.best_score}%` : levelDone ? `Niveau ${courseIndex+1} terminé · bonus de 500 XP` : `Terminez les ${course.lessons?.length || 0} leçons du niveau`}</small></span><strong>{levelDone ? rewardClaimed ? "+500 XP" : "Attribution..." : `${completeHere}/${course.lessons?.length || 0}`}</strong></div>
-                <button className={`m-level-challenge ${challenge?.passed ? "enriched" : ""}`} disabled={!levelDone} onClick={() => onLevelChallenge(course)}><span><UiIcon name={challenge?.passed ? "trophy" : levelDone ? "sparkles" : "lock"}/></span><span><strong>{challenge?.passed ? "Rejouer le Grand défi" : "Grand défi du niveau"}</strong><small>{levelDone ? challenge?.best_score ? `Meilleur score ${challenge.best_score}% · objectif 80%` : "20 questions · objectif 80% · +300 XP une fois" : "Disponible après la médaille"}</small></span><UiIcon name="chevron"/></button>
-              </section>;
-            })}
+            <header className="m-journey-heading">
+              <div className="m-level-kicker"><span>Niveau {focusedLevel}</span><span>{focusedMeta.cefr}</span></div>
+              <h1>{focusedMeta.title}</h1><p>{focusedMeta.description}</p>
+              <div className="m-level-progress"><div className="m-progress-copy"><span>{focusedComplete} leçon{focusedComplete === 1 ? "" : "s"} sur {focusedTotal}</span><strong>{focusedPercent} %</strong></div><div className="m-progress-track"><span style={{width:`${focusedPercent}%`}}/></div></div>
+              <div className={`m-reward-horizon ${focusedChallenge?.passed ? "enriched" : ""}`}>
+                <span className="m-reward-icon"><UiIcon name={focusedChallenge?.passed ? "sparkles" : "gift"}/></span>
+                <span><strong>{focusedChallenge?.passed ? "Niveau enrichi" : focusedDone ? "Grand défi du niveau" : "Prochaine récompense"}</strong><small>{focusedChallenge?.passed ? `Record ${focusedChallenge.best_score}% · médaille rehaussée` : focusedDone ? "20 questions · 80% pour enrichir ce niveau" : `Encore ${Math.max(0,focusedTotal-focusedComplete)} leçon${focusedTotal-focusedComplete === 1 ? "" : "s"} avant la médaille`}</small></span>
+                <button className="m-level-challenge" disabled={!focusedCourse} onClick={() => focusedDone ? onLevelChallenge(focusedCourse) : scrollLevel(focusedLevel)}>{focusedDone ? focusedChallenge?.passed ? "Rejouer" : "Jouer" : "Voir"}</button>
+              </div>
+            </header>
+            {loading ? <Spinner/> : <div className="m-path-wrap">
+              <svg className="m-path-lines" viewBox={`0 0 100 ${trailHeight}`} preserveAspectRatio="none" style={{height:`${trailHeight}px`}} aria-hidden="true"><path className="m-path-base" d={pathD} vectorEffect="non-scaling-stroke"/><path className="m-path-progress" d={pathD} pathLength="100" vectorEffect="non-scaling-stroke" style={{strokeDasharray:`${trailProgress} ${100-trailProgress}`}}/></svg>
+              <div className="m-path-trail" style={{minHeight:`${trailHeight}px`}}>{route.map((item,routeIndex) => {
+                const status = routeStatus(item);
+                const y = 112+routeIndex*136;
+                const side = labelClass(item.x);
+                const levelNumber = item.courseIndex+1;
+                if (item.type === "lesson") {
+                  const enriched = (stageByLesson[item.lesson.id]?.elargir_best || 0) >= 80;
+                  const sub = enriched ? `Approfondie · record ${stageByLesson[item.lesson.id].elargir_best}%` : status === "completed" ? "Maîtrisée" : status === "current" ? `${item.lesson.itemCount || 0} expressions` : "Verrouillée";
+                  return <div key={`lesson-${item.lesson.id}`} id={levelRouteStarts[levelNumber] === routeIndex ? `course-level-${levelNumber}` : undefined} className={`m-path-item ${status} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
+                    <button className={`m-path-node ${status} ${enriched ? "elargir-passed" : ""}`} disabled={status === "locked"} onClick={() => { setFocusedLevel(levelNumber); onOpenLesson(item.lesson,item.course); }}><UiIcon name={status === "completed" ? "check" : status === "locked" ? "lock" : "book"}/>{status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}{enriched && <span className="m-node-elargir"><UiIcon name="sparkles"/></span>}</button>
+                    <span className="m-path-label"><strong>{item.lesson.title}</strong><span>{sub}</span>{status === "current" && <span className="m-current-tag">À vous</span>}</span>
+                  </div>;
+                }
+                if (item.type === "reward") {
+                  const capsule = cultureCapsules.find(value => value.lesson_id === item.lesson.id);
+                  const challenge = levelChallenges[item.course.id];
+                  const title = item.milestone ? challenge?.passed ? "Niveau enrichi" : focusedMeta && levelNumber === focusedLevel ? (LEVEL_META[item.courseIndex] || LEVEL_META[0]).medal : (LEVEL_META[item.courseIndex] || LEVEL_META[0]).medal : capsule ? capsule.title : "Bonus XP";
+                  const detail = item.milestone ? status === "locked" ? `Terminez le niveau ${levelNumber}` : status === "available" ? "Médaille disponible · +500 XP" : challenge?.passed ? `Grand défi · record ${challenge.best_score}%` : "Médaille obtenue · +500 XP" : status === "locked" ? "Récompense verrouillée" : capsule ? "Capsule culturelle" : "Bonus obtenu";
+                  return <div key={`reward-${item.lesson.id}`} className={`m-path-item ${status === "available" ? "current" : status} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
+                    <button className={`m-path-node reward ${item.milestone ? `milestone medal-${levelNumber}` : ""} ${status}`} disabled={status === "locked"} onClick={() => item.milestone ? onLevelChallenge(item.course) : capsule && onCapsule(capsule)}><UiIcon name={status === "locked" ? "lock" : item.milestone ? "medal" : status === "completed" ? "check" : "gift"}/>{item.milestone && status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}</button>
+                    <span className="m-path-label"><strong>{title}</strong><span>{detail}</span></span>
+                  </div>;
+                }
+                const nextMeta = LEVEL_META[levelNumber] || null;
+                return <div key={`gate-${item.course.id}`} className={`m-path-item ${status === "available" ? "current" : "locked"} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
+                  <button className={`m-path-node gate ${status === "locked" ? "locked" : ""}`} disabled={status === "locked"} onClick={() => nextMeta ? scrollLevel(levelNumber+1) : onProfile()}><UiIcon name={status === "locked" ? "lock" : nextMeta ? "map" : "trophy"}/></button>
+                  <span className="m-path-label"><strong>{nextMeta ? `Niveau ${levelNumber+1} · ${nextMeta.title}` : "Parcours accompli"}</strong><span>{status === "available" ? nextMeta ? "Nouveau niveau ouvert" : "Les six niveaux sont maîtrisés" : `Terminez ${LEVEL_META[item.courseIndex]?.title || "ce niveau"}`}</span></span>
+                </div>;
+              })}</div>
+            </div>}
           </div>
           <BottomNav active="courses" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
+        {mobileLevelsOpen && <div className="m-level-drawer" role="dialog" aria-modal="true" aria-label="Choisir un niveau" onClick={() => setMobileLevelsOpen(false)}><div onClick={event => event.stopPropagation()}><header><strong>Choisir un niveau</strong><button className="m-icon-button" onClick={() => setMobileLevelsOpen(false)} aria-label="Fermer"><UiIcon name="close"/></button></header><div className="m-mobile-level-list">{courses.map((course,index) => { const meta = LEVEL_META[index] || LEVEL_META[0]; const unlocked = index === 0 || courses.slice(0,index).every(value => courseDone(value,userProgress)); const completeHere = (course.lessons || []).filter(lesson => userProgress.has(lesson.id)).length; return <button key={course.id} className={focusedLevel === index+1 ? "active" : ""} disabled={!unlocked} onClick={() => scrollLevel(index+1)}><span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {unlocked ? `${completeHere}/${course.lessons?.length || 0} leçons` : "Verrouillé"}</small></span><UiIcon name={unlocked ? "chevron" : "lock"}/></button>; })}</div></div></div>}
       </div>;
     }
 
@@ -5134,8 +5236,14 @@
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, [chatMessages, chatLoading]);
 
-      const redesignedView = ["home", "courses", "profile", "level_challenge"].includes(view);
       const activeStreak = streakDisplay(streak, localDay());
+      const redesignedView = ["home", "courses", "profile", "level_challenge", "search", "browse", "detail", "chat", "live"].includes(view);
+      const pageShellProps = {
+        langName, currentUser, profile:learnerProfile, courses, userProgress, xp:totalXp, streak:activeStreak,
+        onHome:() => setView("home"), onLearn:openCourseTrail, onDictionary:openDictionaryHome,
+        onChat:openChat, onLive:() => currentUser ? setView("live") : requireAuth("live"),
+        onProfile:openProfile, onLanguage:switchLanguage,
+      };
 
       return (
         <div className={`m-frame ${redesignedView ? "m-redesigned" : ""}`}>
@@ -5607,7 +5715,7 @@
 
             {/* SEARCH */}
             {view === "search" && selectedLang && (
-              <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
+              <StandardPage {...pageShellProps} active="dictionary"><div style={{ animation:"slideIn 0.25s ease-out" }}>
                 <button onClick={() => { setView("home"); setQuery(""); setResults([]); setHasSearched(false); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
                   color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
@@ -5661,12 +5769,12 @@
                     {results.map(w => <ResultRow key={w.id} word={w} onClick={() => openWord(w.id, "search")} />)}
                   </div>
                 )}
-              </div>
+              </div></StandardPage>
             )}
 
             {/* BROWSE */}
             {view === "browse" && selectedLang && (
-              <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
+              <StandardPage {...pageShellProps} active="dictionary"><div style={{ animation:"slideIn 0.25s ease-out" }}>
                 <button onClick={() => {
                   if (browseLetter) { setBrowseLetter(null); setBrowseWords([]); }
                   else { setView("home"); }
@@ -5699,14 +5807,14 @@
                     {loading ? <Spinner /> : browseWords.map(w => <ResultRow key={w.id} word={w} onClick={() => openWord(w.id, "browse")} />)}
                   </React.Fragment>
                 )}
-              </div>
+              </div></StandardPage>
             )}
 
             {/* DETAIL */}
             {view === "detail" && selectedWordId && (
-              <div style={{ paddingTop:20 }}>
+              <StandardPage {...pageShellProps} active="dictionary"><div>
                 <WordDetail wordId={selectedWordId} langName={langName} onBack={() => { setSelectedWordId(null); setView(prevView); }} />
-              </div>
+              </div></StandardPage>
             )}
 
             {view === "courses" && selectedLang && (
@@ -6377,11 +6485,9 @@
 
             {/* LIVE TRANSLATION */}
             {view === "live" && selectedLang && (
-              <LiveTranslationView
-                langName={langName}
-                langId={langId}
-                onBack={() => setView("home")}
-              />
+              <StandardPage {...pageShellProps} active="live">
+                <LiveTranslationView langName={langName} langId={langId} onBack={() => setView("home")}/>
+              </StandardPage>
             )}
 
             {/* AUTH */}
@@ -6525,7 +6631,7 @@
 
             {/* CHAT WITH MONOKO */}
             {view === "chat" && selectedLang && (
-              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, display:"flex", flexDirection:"column", minHeight:"calc(100dvh - 120px)" }}>
+              <StandardPage {...pageShellProps} active="chat"><div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", minHeight:"calc(100dvh - 148px)" }}>
                 <button onClick={() => { setView("home"); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
                   color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
@@ -6759,7 +6865,7 @@
                     </div>
                   </div>
                 )}
-              </div>
+              </div></StandardPage>
             )}
             <CultureModal capsule={selectedCapsule} onClose={() => setSelectedCapsule(null)}/>
           </div>
