@@ -154,6 +154,7 @@ async function main() {
 
   // ── Wipe, children first ────────────────────────────────────────────
   console.log("Wiping existing seed data...");
+  await wipe("app_developers", "user_id");
   await wipe("user_culture_rewards", "user_id");
   await wipe("level_challenge_state", "user_id");
   await wipe("user_level_rewards", "user_id");
@@ -384,6 +385,10 @@ async function main() {
 
   // ── Auth user + profile + progress ──────────────────────────────────
   const userId = await ensureTestUser(TEST_USER_EMAIL, TEST_USER_PASSWORD);
+
+  await rest("POST", "app_developers", {
+    body: { user_id: userId },
+  });
 
   await rest("POST", "profiles", {
     body: {

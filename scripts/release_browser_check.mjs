@@ -134,9 +134,7 @@ await send("Page.addScriptToEvaluateOnNewDocument", {
   source: `window.__MONOKO_SUPABASE_URL__=${JSON.stringify(process.env.SUPABASE_URL)};window.__MONOKO_SUPABASE_KEY__=${JSON.stringify(process.env.SUPABASE_ANON_KEY)};`,
 });
 await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
-const previewUrl = new URL(APP_URL);
-previewUrl.searchParams.set("preview", "courses");
-await send("Page.navigate", { url: previewUrl.toString() });
+await send("Page.navigate", { url: APP_URL });
 
 await waitFor(`[...document.querySelectorAll("button")].some(button => button.textContent.includes("Français") && button.textContent.includes("Lingala"))`, "Lingala language button");
 await clickByText("button", "Français");
@@ -144,7 +142,9 @@ await waitFor(`document.querySelector(".m-home")`, "redesigned home");
 await assertPage("desktop home", `() => ({
   home: !!document.querySelector(".m-home"),
   dictionary: document.body.textContent.includes("Dictionnaire"),
-  practice: document.body.textContent.includes("Pratiquer autrement")
+  practice: document.body.textContent.includes("Pratiquer autrement"),
+  oneStatGroup: document.querySelectorAll(".m-progress-chips").length === 1 && !document.querySelector(".m-home-stats"),
+  largeChips: parseFloat(getComputedStyle(document.querySelector(".m-chip")).minHeight) >= 40
 })`);
 const homeShot = await screenshot("home-desktop");
 
@@ -178,8 +178,7 @@ await assertPage("desktop course trail", `() => ({
   available: document.querySelectorAll(".m-path-node:not(.reward):not(.gate).current").length === 1,
   enriched: document.querySelectorAll(".m-path-node.elargir-passed").length >= 1,
   courseRail: getComputedStyle(document.querySelector(".m-course-level-rail")).display !== "none",
-  developerPreview: !!document.querySelector(".m-preview-panel"),
-  everyLevelOpen: [...document.querySelectorAll(".m-course-level")].every(button => !button.disabled),
+  developerMenu: !!document.querySelector('.m-developer-more[aria-label="Outils développeur"]'),
   levelReward: document.body.textContent.includes("+500 XP"),
   grandChallenge: document.querySelectorAll(".m-reward-horizon .m-level-challenge:not(:disabled)").length === 1
 })`);
@@ -203,8 +202,22 @@ await waitFor(`getComputedStyle(document.querySelector(".m-modal-art")).backgrou
 const cultureShot = await screenshot("culture-desktop");
 await clickByText(".m-modal button", "Fermer");
 
-await fill('.m-preview-panel input[type="range"]', "0");
-await waitFor(`document.querySelector(".m-path-node.preview-open") && !document.querySelector(".m-path-node.preview-open").disabled`, "developer preview locked lesson access");
+await evaluate(`window.confirm = () => true`);
+await evaluate(`document.querySelector('.m-developer-more[aria-label="Outils développeur"]').click()`);
+await waitFor(`document.querySelector(".m-developer-menu")`, "developer progress menu");
+await clickByText(".m-developer-menu button", "Parcours terminé");
+await waitFor(`[...document.querySelectorAll(".m-path-node:not(.reward):not(.gate)")].every(node => node.classList.contains("completed"))`, "developer completed-course preset", 20000);
+await assertPage("developer completed-course preset", `() => ({
+  allLessonsComplete: [...document.querySelectorAll(".m-path-node:not(.reward):not(.gate)")].every(node => node.classList.contains("completed")),
+  everyLevelOpen: [...document.querySelectorAll(".m-course-level")].every(button => !button.disabled),
+  xpRecalculated: [...document.querySelectorAll(".m-chip.xp")].some(chip => Number(chip.textContent.trim()) >= 1000),
+  medalsEarned: document.querySelector(".m-chip.medals")?.textContent.trim().startsWith("2/")
+})`);
+await waitFor(`!document.querySelector(".m-developer-menu")`, "developer menu to close after preset");
+await evaluate(`document.querySelector('.m-developer-more[aria-label="Outils développeur"]').click()`);
+await waitFor(`document.querySelector(".m-developer-menu")`, "developer menu restore preset");
+await clickByText(".m-developer-menu button", "Niveau 2 ouvert");
+await waitFor(`document.querySelectorAll(".m-path-node:not(.reward):not(.gate).completed").length === 2`, "developer level-two preset", 20000);
 
 await evaluate(`document.querySelector(".m-course-brand").click()`);
 await waitFor(`document.querySelector(".m-home")`, "home before secondary tools");
@@ -279,6 +292,6 @@ if (seriousErrors.length) throw new Error(`Browser errors: ${seriousErrors.join(
 console.log(JSON.stringify({
   ok: true,
   screenshots: [homeShot, profileShot, trailShot, challengeShot, cultureShot, dictionaryShot, chatShot, liveShot, mobileShot, mobileTrailShot],
-  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "developer progress preview", "Grand défi briefing", "culture modal", "dictionary focus", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
+  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "developer progress and rewards", "Grand défi briefing", "culture modal", "dictionary focus", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
 }, null, 2));
 socket.close();

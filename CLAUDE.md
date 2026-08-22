@@ -113,10 +113,11 @@ scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test pr
 scripts/seed_test_data.js         — wipes + reseeds the test project with representative data + test user (refuses to run against any non-test project ref)
 scripts/release_browser_check.mjs — dependency-free Chrome CDP release check for desktop, 390px and 320px against monoko-test
 
-Developer course preview: open the app once with `?preview=courses`, then enter
-`Apprendre`. The mode persists in local storage, unlocks every level and lesson,
-and provides a local completion slider. It never writes simulated progress to
-Supabase. Use `Voir ma vraie progression` to disable it.
+Developer course controls: `sql/developer_course_tools.sql` stores authorized
+accounts in `app_developers` and exposes protected progress preset RPCs. An
+authorized developer sees the three-dot menu in `Apprendre`; its presets rebuild
+that developer's real lesson progress, XP and completed-level medals atomically.
+The table has no client policies, so developer access must be granted with SQL.
 
 HARNESS_SPRINT.md                 — spec + status for the verification harness (unit tests, test Supabase, Playwright, lints, CI) — Sessions 1–2 done, 3–5 pending
 tts_space/app.py                  — HuggingFace Space: ESPnet2 VITS Lingala TTS (Gradio 6.x, served at kemz42-monoko-lingala-tts.hf.space)

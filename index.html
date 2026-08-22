@@ -27,7 +27,7 @@
     @keyframes waveC{0%{height:14px}100%{height:32px}}
     @keyframes micRing{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4),0 6px 24px rgba(0,0,0,0.2)}50%{box-shadow:0 0 0 16px rgba(22,163,74,0),0 6px 24px rgba(22,163,74,0.35)}}
   </style>
-  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-3">
+  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-4">
 </head>
 <body>
   <div id="root"></div>
@@ -3808,11 +3808,17 @@
       </aside>;
     }
 
-    function TopBar({ xp, streak, medals, onMenu, onHome, onProfile }) {
+    function TopBar({ xp, streak, medals, onMenu, onHome, onProfile, onMore, moreOpen, moreContent }) {
       return <header className="m-topbar">
         <button className="m-icon-button" onClick={onMenu} aria-label="Ouvrir le parcours"><UiIcon name="map"/></button>
         <button className="m-top-brand" onClick={onHome} style={{border:0, background:"transparent"}}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
-        <ProgressChips xp={xp} streak={streak} medals={medals} onProfile={onProfile}/>
+        <div className="m-top-actions">
+          <ProgressChips xp={xp} streak={streak} medals={medals} onProfile={onProfile}/>
+          {onMore && <div className="m-developer-menu-wrap">
+            <button className={`m-icon-button m-developer-more ${moreOpen ? "active" : ""}`} onClick={onMore} aria-label="Outils développeur" aria-expanded={moreOpen}><UiIcon name="more"/></button>
+            {moreOpen && moreContent}
+          </div>}
+        </div>
       </header>;
     }
 
@@ -3855,11 +3861,6 @@
           <div className="m-home">
             <header className="m-welcome">
               <div><div className="m-kicker"><span>{langName}</span><span>Votre espace</span></div><h1>Mbote, {displayName}</h1><p>Reprenez votre parcours ou explorez la langue à votre rythme.</p></div>
-              <div className="m-home-stats">
-                <span><UiIcon name="sparkles"/><b>{xp}</b><small>XP</small></span>
-                <span><UiIcon name="flame"/><b>{streak}</b><small>jours</small></span>
-                <button className="medals" onClick={onProfile}><UiIcon name="medal"/><b>{medals}/6</b><small>médailles</small></button>
-              </div>
             </header>
             <div className="m-dashboard">
               <div className="m-column">
@@ -3896,13 +3897,13 @@
 
     const TRAIL_NODE_POSITIONS = [50,27,72,79,54,25,34,68,77,47,22,51,78,61,29,38];
 
-    function CourseLevelRail({ courses, userProgress, levelChallenges, focusedLevel, displayName, xp, previewEnabled, previewCompleted, previewTotal, onPreviewCompleted, onDisablePreview, onHome, onLevel, onProfile }) {
+    function CourseLevelRail({ courses, userProgress, levelChallenges, focusedLevel, displayName, xp, onHome, onLevel, onProfile }) {
       return <aside className="m-course-level-rail" aria-label="Niveaux du parcours">
         <button className="m-course-brand" onClick={onHome}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
         <div className="m-course-rail-heading"><span>Parcours Lingala</span><strong>{courses.length || 6} niveaux</strong></div>
         <nav>{courses.map((course,index) => {
           const meta = LEVEL_META[index] || LEVEL_META[0];
-          const unlocked = previewEnabled || index === 0 || courses.slice(0,index).every(item => courseDone(item,userProgress));
+          const unlocked = index === 0 || courses.slice(0,index).every(item => courseDone(item,userProgress));
           const completeHere = (course.lessons || []).filter(lesson => userProgress.has(lesson.id)).length;
           const done = courseDone(course,userProgress);
           const challenge = levelChallenges[course.id];
@@ -3911,44 +3912,15 @@
             <span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {status}</small></span><UiIcon name={challenge?.passed ? "sparkles" : focusedLevel === index+1 ? "chevron" : unlocked ? "circle" : "lock"}/>
           </button>;
         })}</nav>
-        {previewEnabled && <section className="m-preview-panel" aria-label="Aperçu développeur">
-          <div><span><UiIcon name="sparkles"/><strong>Aperçu développeur</strong></span><small>Progression simulée · aucune donnée modifiée</small></div>
-          <div className="m-preview-stepper"><button onClick={() => onPreviewCompleted(previewCompleted-1)} aria-label="Retirer une leçon">−</button><strong>{previewCompleted}/{previewTotal}</strong><button onClick={() => onPreviewCompleted(previewCompleted+1)} aria-label="Ajouter une leçon">+</button></div>
-          <input type="range" min="0" max={previewTotal} value={previewCompleted} onChange={event => onPreviewCompleted(Number(event.target.value))} aria-label="Leçons terminées dans l'aperçu"/>
-          <button className="m-preview-exit" onClick={onDisablePreview}>Voir ma vraie progression</button>
-        </section>}
         <button className="m-course-profile" onClick={onProfile}><span className="avatar">{initialsFor(displayName)}</span><span><strong>{displayName}</strong><small>{xp} XP</small></span><UiIcon name="chevron"/></button>
       </aside>;
     }
 
-    function CourseTrail({ courses, userProgress, stageByLesson, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onOpenLesson, onLevelChallenge, onCapsule }) {
+    function CourseTrail({ courses, userProgress, stageByLesson, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, isDeveloper, developerUpdating, onSetDeveloperProgress, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onOpenLesson, onLevelChallenge, onCapsule }) {
       const displayName = displayNameFor(currentUser, profile);
       const flat = courses.flatMap((course,courseIndex) => (course.lessons || []).map(lesson => ({lesson,course,courseIndex})));
-      const previewRequested = new URLSearchParams(window.location.search).get("preview") === "courses" || ["localhost","127.0.0.1"].includes(window.location.hostname);
-      const [previewEnabled,setPreviewEnabled] = useState(() => previewRequested || localStorage.getItem("monoko_course_preview") === "1");
-      const [previewCompletedRaw,setPreviewCompletedRaw] = useState(() => {
-        const stored = localStorage.getItem("monoko_course_preview_completed");
-        if (stored === null) return null;
-        const saved = Number(stored);
-        return Number.isFinite(saved) && saved >= 0 ? saved : null;
-      });
       const actualCompleted = flat.filter(item => userProgress.has(item.lesson.id)).length;
-      const previewCompleted = Math.max(0,Math.min(flat.length,previewCompletedRaw ?? actualCompleted));
-      const previewProgress = new Set(flat.slice(0,previewCompleted).map(item => item.lesson.id));
-      const visibleProgress = previewEnabled ? previewProgress : userProgress;
-      const setPreviewCompleted = value => {
-        const next = Math.max(0,Math.min(flat.length,value));
-        setPreviewCompletedRaw(next);
-        localStorage.setItem("monoko_course_preview_completed",String(next));
-      };
-      const disablePreview = () => {
-        setPreviewEnabled(false);
-        localStorage.removeItem("monoko_course_preview");
-        const url = new URL(window.location.href);
-        url.searchParams.delete("preview");
-        window.history.replaceState(null,"",`${url.pathname}${url.search}${url.hash}`);
-      };
-      useEffect(() => { if (previewEnabled) localStorage.setItem("monoko_course_preview","1"); },[previewEnabled]);
+      const visibleProgress = userProgress;
       const done = completedLessons(courses, visibleProgress);
       const total = totalLessons(courses) || 49;
       const medals = earnedMedals(courses, visibleProgress);
@@ -3957,6 +3929,7 @@
       const initialLevel = firstIncomplete < 0 ? Math.max(1,courses.length) : (flat[firstIncomplete]?.courseIndex || 0) + 1;
       const [focusedLevel,setFocusedLevel] = useState(initialLevel);
       const [mobileLevelsOpen,setMobileLevelsOpen] = useState(false);
+      const [developerMenuOpen,setDeveloperMenuOpen] = useState(false);
       const route = [];
       let lessonIndex = -1;
       const levelRouteStarts = {};
@@ -3975,6 +3948,21 @@
         setFocusedLevel(number);
         setMobileLevelsOpen(false);
         document.querySelector(`#course-level-${number}`)?.scrollIntoView({behavior:"smooth",block:"center"});
+      };
+      const courseEnds = courses.reduce((values,course) => [...values,(values.at(-1) || 0)+(course.lessons?.length || 0)],[]);
+      const developerPresets = [
+        { label:"Début du parcours", count:0 },
+        { label:"Progression actuelle", count:actualCompleted },
+        courses.length > 1 && { label:"Niveau 2 ouvert", count:courseEnds[0] },
+        courses.length > 3 && { label:"Niveau 4 ouvert", count:courseEnds[2] },
+        courses.length > 5 && { label:"Niveau 6 ouvert", count:courseEnds[4] },
+        { label:"Parcours terminé", count:flat.length },
+      ].filter(Boolean);
+      const applyDeveloperPreset = async preset => {
+        const message = `${preset.label} remplacera votre progression ${currentUser?.email || "développeur"} et recalculera les XP et médailles. Continuer ?`;
+        if (!window.confirm(message)) return;
+        const result = await onSetDeveloperProgress(preset.count);
+        if (result) setDeveloperMenuOpen(false);
       };
       const focusedCourse = courses[focusedLevel-1] || courses[0];
       const focusedMeta = LEVEL_META[focusedLevel-1] || LEVEL_META[0];
@@ -4008,9 +3996,9 @@
       };
 
       return <div className="m-course-layout">
-        <CourseLevelRail courses={courses} userProgress={visibleProgress} levelChallenges={levelChallenges} focusedLevel={focusedLevel} displayName={displayName} xp={xp} previewEnabled={previewEnabled} previewCompleted={previewCompleted} previewTotal={flat.length} onPreviewCompleted={setPreviewCompleted} onDisablePreview={disablePreview} onHome={onHome} onLevel={scrollLevel} onProfile={onProfile}/>
+        <CourseLevelRail courses={courses} userProgress={visibleProgress} levelChallenges={levelChallenges} focusedLevel={focusedLevel} displayName={displayName} xp={xp} onHome={onHome} onLevel={scrollLevel} onProfile={onProfile}/>
         <main className="m-course-main">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile}/>
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile} onMore={isDeveloper ? () => setDeveloperMenuOpen(value => !value) : null} moreOpen={developerMenuOpen} moreContent={<div className="m-developer-menu" role="menu" aria-label="Progression développeur"><header><strong>Mode développeur</strong><small>XP et récompenses réels</small></header>{developerPresets.map((preset,index) => <button key={`${preset.label}-${index}`} role="menuitem" disabled={developerUpdating} className={preset.count === actualCompleted ? "current" : ""} onClick={() => applyDeveloperPreset(preset)}><span>{preset.label}</span><b>{preset.count}</b></button>)}</div>}/>
           <div className="m-course-body">
             <header className="m-journey-heading">
               <div className="m-level-kicker"><span>Niveau {focusedLevel}</span><span>{focusedMeta.cefr}</span></div>
@@ -4033,7 +4021,7 @@
                   const enriched = (stageByLesson[item.lesson.id]?.elargir_best || 0) >= 80;
                   const sub = enriched ? `Approfondie · record ${stageByLesson[item.lesson.id].elargir_best}%` : status === "completed" ? "Maîtrisée" : status === "current" ? `${item.lesson.itemCount || 0} expressions` : "Verrouillée";
                   return <div key={`lesson-${item.lesson.id}`} id={levelRouteStarts[levelNumber] === routeIndex ? `course-level-${levelNumber}` : undefined} className={`m-path-item ${status} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
-                    <button className={`m-path-node ${status} ${enriched ? "elargir-passed" : ""} ${previewEnabled && status === "locked" ? "preview-open" : ""}`} disabled={status === "locked" && !previewEnabled} onClick={() => { setFocusedLevel(levelNumber); onOpenLesson(item.lesson,item.course); }}><UiIcon name={status === "completed" ? "check" : status === "locked" ? "lock" : "book"}/>{status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}{enriched && <span className="m-node-elargir"><UiIcon name="sparkles"/></span>}</button>
+                    <button className={`m-path-node ${status} ${enriched ? "elargir-passed" : ""}`} disabled={status === "locked"} onClick={() => { setFocusedLevel(levelNumber); onOpenLesson(item.lesson,item.course); }}><UiIcon name={status === "completed" ? "check" : status === "locked" ? "lock" : "book"}/>{status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}{enriched && <span className="m-node-elargir"><UiIcon name="sparkles"/></span>}</button>
                     <span className="m-path-label"><strong>{item.lesson.title}</strong><span>{sub}</span>{status === "current" && <span className="m-current-tag">À vous</span>}</span>
                   </div>;
                 }
@@ -4043,13 +4031,13 @@
                   const title = item.milestone ? challenge?.passed ? "Niveau enrichi" : focusedMeta && levelNumber === focusedLevel ? (LEVEL_META[item.courseIndex] || LEVEL_META[0]).medal : (LEVEL_META[item.courseIndex] || LEVEL_META[0]).medal : capsule ? capsule.title : "Bonus XP";
                   const detail = item.milestone ? status === "locked" ? `Terminez le niveau ${levelNumber}` : status === "available" ? "Médaille disponible · +500 XP" : challenge?.passed ? `Grand défi · record ${challenge.best_score}%` : "Médaille obtenue · +500 XP" : status === "locked" ? "Récompense verrouillée" : capsule ? "Capsule culturelle" : "Bonus obtenu";
                   return <div key={`reward-${item.lesson.id}`} className={`m-path-item ${status === "available" ? "current" : status} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
-                    <button className={`m-path-node reward ${item.milestone ? `milestone medal-${levelNumber}` : ""} ${status} ${previewEnabled && capsule && status === "locked" ? "preview-open" : ""}`} disabled={status === "locked" && !(previewEnabled && capsule)} onClick={() => item.milestone ? onLevelChallenge(item.course) : capsule && onCapsule(capsule)}><UiIcon name={status === "locked" ? "lock" : item.milestone ? "medal" : status === "completed" ? "check" : "gift"}/>{item.milestone && status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}</button>
+                    <button className={`m-path-node reward ${item.milestone ? `milestone medal-${levelNumber}` : ""} ${status}`} disabled={status === "locked"} onClick={() => item.milestone ? onLevelChallenge(item.course) : capsule && onCapsule(capsule)}><UiIcon name={status === "locked" ? "lock" : item.milestone ? "medal" : status === "completed" ? "check" : "gift"}/>{item.milestone && status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}</button>
                     <span className="m-path-label"><strong>{title}</strong><span>{detail}</span></span>
                   </div>;
                 }
                 const nextMeta = LEVEL_META[levelNumber] || null;
                 return <div key={`gate-${item.course.id}`} className={`m-path-item ${status === "available" ? "current" : "locked"} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
-                  <button className={`m-path-node gate ${status === "locked" ? "locked" : ""} ${previewEnabled && status === "locked" ? "preview-open" : ""}`} disabled={status === "locked" && !previewEnabled} onClick={() => nextMeta ? scrollLevel(levelNumber+1) : onProfile()}><UiIcon name={status === "locked" ? "lock" : nextMeta ? "map" : "trophy"}/></button>
+                  <button className={`m-path-node gate ${status === "locked" ? "locked" : ""}`} disabled={status === "locked"} onClick={() => nextMeta ? scrollLevel(levelNumber+1) : onProfile()}><UiIcon name={status === "locked" ? "lock" : nextMeta ? "map" : "trophy"}/></button>
                   <span className="m-path-label"><strong>{nextMeta ? `Niveau ${levelNumber+1} · ${nextMeta.title}` : "Parcours accompli"}</strong><span>{status === "available" ? nextMeta ? "Nouveau niveau ouvert" : "Les six niveaux sont maîtrisés" : `Terminez ${LEVEL_META[item.courseIndex]?.title || "ce niveau"}`}</span></span>
                 </div>;
               })}</div>
@@ -4057,7 +4045,7 @@
           </div>
           <BottomNav active="courses" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
-        {mobileLevelsOpen && <div className="m-level-drawer" role="dialog" aria-modal="true" aria-label="Choisir un niveau" onClick={() => setMobileLevelsOpen(false)}><div onClick={event => event.stopPropagation()}><header><strong>Choisir un niveau</strong><button className="m-icon-button" onClick={() => setMobileLevelsOpen(false)} aria-label="Fermer"><UiIcon name="close"/></button></header>{previewEnabled && <div className="m-mobile-preview"><strong>Aperçu développeur</strong><span>{previewCompleted}/{flat.length} leçons simulées</span><input type="range" min="0" max={flat.length} value={previewCompleted} onChange={event => setPreviewCompleted(Number(event.target.value))}/></div>}<div className="m-mobile-level-list">{courses.map((course,index) => { const meta = LEVEL_META[index] || LEVEL_META[0]; const unlocked = previewEnabled || index === 0 || courses.slice(0,index).every(value => courseDone(value,visibleProgress)); const completeHere = (course.lessons || []).filter(lesson => visibleProgress.has(lesson.id)).length; return <button key={course.id} className={focusedLevel === index+1 ? "active" : ""} disabled={!unlocked} onClick={() => scrollLevel(index+1)}><span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {unlocked ? `${completeHere}/${course.lessons?.length || 0} leçons` : "Verrouillé"}</small></span><UiIcon name={unlocked ? "chevron" : "lock"}/></button>; })}</div></div></div>}
+        {mobileLevelsOpen && <div className="m-level-drawer" role="dialog" aria-modal="true" aria-label="Choisir un niveau" onClick={() => setMobileLevelsOpen(false)}><div onClick={event => event.stopPropagation()}><header><strong>Choisir un niveau</strong><button className="m-icon-button" onClick={() => setMobileLevelsOpen(false)} aria-label="Fermer"><UiIcon name="close"/></button></header><div className="m-mobile-level-list">{courses.map((course,index) => { const meta = LEVEL_META[index] || LEVEL_META[0]; const unlocked = index === 0 || courses.slice(0,index).every(value => courseDone(value,visibleProgress)); const completeHere = (course.lessons || []).filter(lesson => visibleProgress.has(lesson.id)).length; return <button key={course.id} className={focusedLevel === index+1 ? "active" : ""} disabled={!unlocked} onClick={() => scrollLevel(index+1)}><span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {unlocked ? `${completeHere}/${course.lessons?.length || 0} leçons` : "Verrouillé"}</small></span><UiIcon name={unlocked ? "chevron" : "lock"}/></button>; })}</div></div></div>}
       </div>;
     }
 
@@ -4173,6 +4161,8 @@
       const [levelChallenges, setLevelChallenges] = useState({});
       const [claimingLevelRewards, setClaimingLevelRewards] = useState(false);
       const [totalXp, setTotalXp] = useState(0);
+      const [isCourseDeveloper, setIsCourseDeveloper] = useState(false);
+      const [developerProgressUpdating, setDeveloperProgressUpdating] = useState(false);
       const [cultureCapsules, setCultureCapsules] = useState([]);
       const [selectedCapsule, setSelectedCapsule] = useState(null);
       const [learnerProfile, setLearnerProfile] = useState(null);
@@ -4319,7 +4309,11 @@
             .select("lesson_id")
             .eq("user_id", userId)
             .eq("language_id", languageId);
-          if (data) setUserProgress(new Set(data.map(r => r.lesson_id)));
+          if (data) {
+            const progress = new Set(data.map(r => r.lesson_id));
+            setUserProgress(progress);
+            return progress;
+          }
         } catch(e) { console.error("loadUserProgress:", e); }
       };
 
@@ -4396,6 +4390,30 @@
           if (learnerProfile?.leaderboard_opt_in) await loadLeaderboard(leaderboardScope, true);
         } catch (error) { console.error("claimCompletedLevelRewards:", error); }
         finally { setClaimingLevelRewards(false); }
+      };
+
+      const setDeveloperCourseProgress = async completedCount => {
+        if (!currentUser || !langId || !isCourseDeveloper || developerProgressUpdating) return;
+        setDeveloperProgressUpdating(true);
+        try {
+          const { data, error } = await supabaseClient.rpc("developer_set_course_progress", {
+            p_language_id: langId,
+            p_completed_lessons: completedCount,
+          });
+          if (error) throw error;
+          await Promise.all([
+            loadUserProgress(currentUser.id, langId),
+            loadLearningSummary(currentUser, langId),
+          ]);
+          if (learnerProfile?.leaderboard_opt_in) await loadLeaderboard(leaderboardScope, true);
+          return data;
+        } catch (error) {
+          console.error("setDeveloperCourseProgress:", error);
+          window.alert("La progression développeur n'a pas pu être mise à jour. Vérifiez que la migration SQL est installée.");
+          return null;
+        } finally {
+          setDeveloperProgressUpdating(false);
+        }
       };
 
       const loadLeaderboard = async (scope = leaderboardScope, force = false) => {
@@ -4981,6 +4999,16 @@
       useEffect(() => {
         loadLearningSummary(currentUser, selectedLang?.id);
       }, [currentUser?.id, selectedLang?.id]);
+
+      useEffect(() => {
+        let cancelled = false;
+        if (!currentUser) { setIsCourseDeveloper(false); return; }
+        supabaseClient.rpc("is_course_developer").then(({ data, error }) => {
+          if (!cancelled) setIsCourseDeveloper(!error && data === true);
+          if (error && error.code !== "PGRST202") console.error("is_course_developer:", error);
+        });
+        return () => { cancelled = true; };
+      }, [currentUser?.id]);
 
       useEffect(() => {
         claimCompletedLevelRewards();
@@ -5864,6 +5892,8 @@
                 levelRewards={levelRewards} levelChallenges={levelChallenges}
                 cultureCapsules={cultureCapsules} currentUser={currentUser} profile={learnerProfile}
                 xp={totalXp} streak={activeStreak} loading={loading}
+                isDeveloper={isCourseDeveloper} developerUpdating={developerProgressUpdating}
+                onSetDeveloperProgress={setDeveloperCourseProgress}
                 onHome={openHome} onLearn={openCourseTrail} onDictionary={openDictionaryHome}
                 onChat={openChat} onLive={() => setView("live")} onProfile={openProfile}
                 onLanguage={switchLanguage} onOpenLesson={openTrailLesson}
