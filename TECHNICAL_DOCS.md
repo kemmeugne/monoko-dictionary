@@ -461,6 +461,7 @@ shell without deriving durable rewards from presentation state:
 | `user_xp_events` | Seven-day ranking ledger; country/world API returns pseudonyms only |
 | `user_level_rewards` | Fixed 500 XP and named medal, unique per learner and course |
 | `level_challenge_state` | Best score, one-way pass, runs and XP for the optional level-wide Grand défi |
+| `lesson_reward_claims` | One-time ordinary lesson gift claims, including any linked culture unlock |
 
 Level completion is still derived from every lesson having a `user_progress`
 row. RLS checks that condition before a level reward or Grand défi state can
@@ -468,6 +469,18 @@ be written. Database triggers create the fixed 500-XP completion event and the
 one-time 300-XP enriched-level event, so replaying cannot duplicate either.
 Ordinary challenge-session XP remains cumulative and the best score never
 decreases.
+
+`sql/trail_rewards.sql` keeps reward eligibility and XP issuance on the server.
+`claim_lesson_reward` derives an ordinary gift from completed lesson progress;
+`claim_level_reward` derives the completed course boundary and awards its named
+medal plus 500 XP exactly once. Both RPCs require an authenticated learner and
+remain idempotent under retries. Final lesson nodes therefore open the medal
+ceremony rather than also creating an ordinary gift.
+
+`sql/developer_course_tools.sql` authorizes developer accounts separately from
+normal learners. Its presets rebuild that developer's real progress, XP and
+prior claims atomically, but leave the selected level boundary unclaimed so the
+production ceremony and reward flow can be tested repeatedly.
 
 `sql/culture_capsules.sql` keeps capsule copy, source, review status and image
 URL editable independently of the frontend. The initial seed deliberately

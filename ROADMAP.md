@@ -1,6 +1,6 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-08-18
+Last updated: 2026-08-22
 
 ---
 
@@ -24,8 +24,10 @@ Last updated: 2026-08-18
 - User progress tracking — lesson completion, per-level progress bars, "Continuer" home shortcut
 - **Learner experience redesign shipped (2026-08-22)** — quiet
   persistent shell, integrated home dictionary, continuous locked 49-lesson
-  trail, responsive top/bottom navigation, full profile, medals and 16 editable
-  Lingala/Congolese culture capsules.
+  trail, mock-matched lesson and challenge previews, responsive top/bottom
+  navigation, full profile, medals and 16 editable Lingala/Congolese culture
+  capsules. Claimable gifts, capsule reveals and medal ceremonies use the live
+  progression state and include their production celebrations.
 - **Level milestones and community loop shipped (2026-08-22)** — fixed 500-XP
   level completion rewards, optional 20-question Grand défi with permanent
   enriched-level distinction, and opt-in pseudonymous weekly country/world ranking.
@@ -299,10 +301,14 @@ next lesson; finishing every lesson in a niveau opens the next niveau, awards a
 named medal and 500 XP once, and unlocks a separate Grand défi. Passing that
 optional level-wide challenge at 80% enriches the existing medal and awards 300
 XP once. Lesson-level Aller plus loin remains independent and marks its lesson
-node with a gold ring at 80%. Home, profile, culture collection and the opt-in
-weekly pseudonym ranking share the same live progression state. The release is
-covered by a repeatable real-Chrome check against monoko-test at desktop, 390px
-and 320px.
+node with a gold ring at 80%. Completed non-final lessons expose a one-time XP
+gift; linked cultural gifts also enter the profile collection. Final lessons
+open an automatic medal ceremony before the Grand défi becomes available.
+Home, profile, culture collection and the opt-in weekly pseudonym ranking share
+the same live progression state. Authorized developer presets rebuild real
+progress and prior rewards while leaving the selected boundary claimable for
+ceremony testing. The release is covered by a repeatable authenticated
+real-Chrome check against monoko-test at desktop, 390px and 320px.
 
 ---
 
