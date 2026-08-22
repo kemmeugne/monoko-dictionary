@@ -155,19 +155,21 @@ await fill('input[type="password"]', process.env.TEST_USER_PASSWORD);
 await sleep(100);
 await clickLastByText("button:not([disabled])", "Se connecter");
 await waitFor(`document.querySelector(".m-profile")`, "authenticated profile", 20000);
-await waitFor(`document.body.textContent.includes("MonokoTest") && document.body.textContent.includes("1150 XP")`, "profile data and level reward", 20000);
-await waitFor(`document.querySelector(".m-ranking-row.me")?.textContent.includes("1150 XP")`, "weekly leaderboard row", 20000);
+await waitFor(`document.body.textContent.includes("MonokoTest") && document.body.textContent.includes("650 XP")`, "profile data before reward claims", 20000);
+await waitFor(`document.querySelector(".m-ranking-row.me")?.textContent.includes("650 XP")`, "weekly leaderboard row", 20000);
 await assertPage("desktop profile", `() => ({
   profile: !!document.querySelector(".m-profile"),
-  xp: document.body.textContent.includes("1150 XP"),
+  xp: document.body.textContent.includes("650 XP"),
   streak: document.body.textContent.includes("4"),
   ranking: document.querySelector(".m-ranking-row.me")?.textContent.includes("MonokoTest"),
-  culturesFollowClaims: document.querySelectorAll(".m-culture-card:not(.locked)").length === 1
+  medalsFollowClaims: document.querySelector(".m-chip.medals")?.textContent.trim().startsWith("0/"),
+  culturesFollowClaims: document.querySelectorAll(".m-culture-card:not(.locked)").length === 0
 })`);
 const profileShot = await screenshot("profile-desktop");
 
 await clickByText(".m-rail nav button", "Apprendre");
 await waitFor(`document.querySelectorAll(".m-path-node").length >= 7`, "course trail");
+await waitFor(`document.querySelector(".m-trail-reward-modal .m-milestone-stage") && document.body.textContent.includes("Recevoir ma médaille")`, "automatic level medal ceremony");
 await assertPage("desktop course trail", `() => ({
   trail: !!document.querySelector(".m-path-trail"),
   curvedPath: (document.querySelector(".m-path-base")?.getAttribute("d") || "").includes(" C "),
@@ -181,19 +183,57 @@ await assertPage("desktop course trail", `() => ({
   courseRail: getComputedStyle(document.querySelector(".m-course-level-rail")).display !== "none",
   developerMenu: !!document.querySelector('.m-developer-more[aria-label="Outils développeur"]'),
   levelReward: document.body.textContent.includes("+500 XP"),
-  grandChallenge: document.querySelectorAll(".m-reward-horizon .m-level-challenge:not(:disabled)").length === 1
+  medalAvailable: !!document.querySelector(".m-path-node.reward.milestone.available")
 })`);
 const trailShot = await screenshot("trail-desktop");
+const medalShot = await screenshot("medal-ceremony-desktop");
+await clickByText(".m-trail-reward-modal button", "Recevoir ma médaille");
+await waitFor(`document.querySelector(".m-milestone-stage.revealed") && document.querySelector(".m-chip.xp")?.textContent.includes("1150")`, "persisted level medal reveal", 20000);
+await assertPage("level medal reveal", `() => ({
+  confetti: document.querySelectorAll(".m-celebration span").length >= 40,
+  medalCount: document.querySelector(".m-chip.medals")?.textContent.trim().startsWith("1/"),
+  grandChallenge: document.body.textContent.includes("Relever le Grand défi")
+})`);
+const medalRevealShot = await screenshot("medal-reveal-desktop");
+await clickByText(".m-trail-reward-modal button", "Entrer dans le niveau");
+await waitFor(`!document.querySelector(".m-trail-reward-modal")`, "medal ceremony close");
 
 await clickByText(".m-course-level", "Fondations");
-await evaluate(`document.querySelector(".m-reward-horizon .m-level-challenge:not(:disabled)").click()`);
-await waitFor(`document.body.textContent.includes("Grand défi du niveau") && [...document.querySelectorAll("button")].some(button => button.textContent.includes("Commencer"))`, "Grand défi briefing", 20000);
-await assertPage("Grand défi briefing", `() => ({
-  title: document.body.textContent.includes("Grand défi · Fondations"),
+await evaluate(`document.querySelector(".m-path-node:not(.reward):not(.gate).completed").click()`);
+await waitFor(`document.querySelector(".m-lesson-preview") && document.body.textContent.includes("80 % pour avancer")`, "mock-style lesson preview");
+await waitFor(`[...document.querySelectorAll(".m-lesson-preview button")].some(button => button.textContent.includes("Aller plus loin"))`, "eligible Aller plus loin action");
+await assertPage("lesson preview", `() => ({
+  mastered: document.body.textContent.includes("Leçon maîtrisée"),
+  description: document.body.textContent.includes("Saluer, remercier"),
+  duration: document.body.textContent.includes("8 min"),
+  replay: document.body.textContent.includes("Revoir la leçon"),
+  elargir: document.body.textContent.includes("Aller plus loin")
+})`);
+const lessonPreviewShot = await screenshot("lesson-preview-desktop");
+await clickByText(".m-lesson-preview button", "Aller plus loin");
+await waitFor(`document.body.textContent.includes("Aller plus loin") && [...document.querySelectorAll("button")].some(button => button.textContent.includes("Commencer"))`, "real Aller plus loin engine", 20000);
+await assertPage("real Aller plus loin engine", `() => ({
+  briefing: document.body.textContent.includes("Aller plus loin"),
   target: document.body.textContent.includes("80"),
   questions: document.body.textContent.includes("question")
 })`);
+await evaluate(`document.querySelector('button[aria-label="Quitter"]').click()`);
+await waitFor(`document.body.textContent.includes("Module terminé")`, "lesson after Aller plus loin exit");
+await clickByText("button", "Fondations");
+await waitFor(`document.querySelector(".m-path-trail")`, "course trail after Aller plus loin");
+await clickByText(".m-course-level", "Fondations");
+
+await evaluate(`document.querySelector(".m-reward-horizon .m-level-challenge:not(:disabled)").click()`);
+await waitFor(`document.querySelector(".m-challenge-brief") && [...document.querySelectorAll("button")].some(button => button.textContent.includes("Lancer les 20 questions"))`, "Grand défi briefing", 20000);
+await assertPage("Grand défi briefing", `() => ({
+  title: document.body.textContent.includes("Grand défi du niveau"),
+  target: document.body.textContent.includes("80"),
+  questions: document.body.textContent.includes("20") && document.body.textContent.includes("questions"),
+  record: document.body.textContent.includes("record")
+})`);
 const challengeShot = await screenshot("challenge-desktop");
+await clickByText(".m-challenge-brief button", "Lancer les 20 questions");
+await waitFor(`document.body.textContent.includes("Grand défi · Fondations") && [...document.querySelectorAll("button")].some(button => button.textContent.includes("Commencer"))`, "real Grand défi engine", 20000);
 await evaluate(`document.querySelector('button[aria-label="Quitter"]').click()`);
 await waitFor(`document.querySelector(".m-path-trail")`, "course trail after challenge");
 
@@ -202,8 +242,9 @@ await waitFor(`document.querySelector(".m-trail-reward-modal") && document.body.
 const giftShot = await screenshot("gift-desktop");
 await clickByText(".m-trail-reward-modal button", "Ouvrir le cadeau");
 await waitFor(`document.querySelector(".m-trail-reward-modal .m-reward-earned") && document.querySelector(".m-chip.xp")?.textContent.includes("1200")`, "persisted gift XP reveal", 20000);
+await waitFor(`document.querySelectorAll(".m-celebration span").length >= 20`, "gift confetti");
 await clickByText(".m-trail-reward-modal button", "Découvrir la capsule");
-await waitFor(`document.querySelector(".m-modal:not(.m-trail-reward-modal)")`, "culture capsule modal");
+await waitFor(`document.querySelector(".m-culture-modal") && document.querySelectorAll(".m-celebration span").length >= 20`, "culture capsule modal and confetti");
 await waitFor(`getComputedStyle(document.querySelector(".m-modal-art")).backgroundImage.includes("assets/culture/capsules-1.jpg")`, "culture capsule artwork");
 const cultureShot = await screenshot("culture-desktop");
 await clickByText(".m-modal button", "Fermer");
@@ -220,8 +261,10 @@ await assertPage("developer completed-course preset", `() => ({
   allLessonsComplete: [...document.querySelectorAll(".m-path-node:not(.reward):not(.gate)")].every(node => node.classList.contains("completed")),
   everyLevelOpen: [...document.querySelectorAll(".m-course-level")].every(button => !button.disabled),
   xpRecalculated: [...document.querySelectorAll(".m-chip.xp")].some(chip => Number(chip.textContent.trim()) >= 1000),
-  medalsEarned: document.querySelector(".m-chip.medals")?.textContent.trim().startsWith("2/")
+  boundaryMedalAvailable: !!document.querySelector(".m-path-node.reward.milestone.available"),
+  medalsEarned: document.querySelector(".m-chip.medals")?.textContent.trim().startsWith("1/")
 })`);
+await evaluate(`document.querySelector(".m-trail-reward-modal .m-reward-secondary")?.click()`);
 await waitFor(`!document.querySelector(".m-developer-menu")`, "developer menu to close after preset");
 await evaluate(`document.querySelector('.m-developer-more[aria-label="Outils développeur"]').click()`);
 await waitFor(`document.querySelector(".m-developer-menu")`, "developer menu restore preset");
@@ -300,7 +343,7 @@ if (seriousErrors.length) throw new Error(`Browser errors: ${seriousErrors.join(
 
 console.log(JSON.stringify({
   ok: true,
-  screenshots: [homeShot, profileShot, trailShot, challengeShot, giftShot, cultureShot, dictionaryShot, chatShot, liveShot, mobileShot, mobileTrailShot],
-  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "lesson gift claim and XP", "developer progress and rewards", "Grand défi briefing", "culture modal", "dictionary focus", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
+  screenshots: [homeShot, profileShot, trailShot, medalShot, medalRevealShot, lessonPreviewShot, challengeShot, giftShot, cultureShot, dictionaryShot, chatShot, liveShot, mobileShot, mobileTrailShot],
+  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "automatic medal ceremony", "lesson preview and Aller plus loin", "lesson gift claim and XP", "developer progress and reward boundaries", "Grand défi briefing and real engine", "culture modal and confetti", "dictionary focus", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
 }, null, 2));
 socket.close();

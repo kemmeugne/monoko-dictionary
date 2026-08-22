@@ -384,6 +384,26 @@ async function main() {
     })),
   });
 
+  // One routed row makes the first completed lesson eligible for the trail's
+  // Aller plus loin action. The browser check only opens its real briefing;
+  // production sessions still require the full routed pool.
+  await rest("POST", "lesson_pool", {
+    body: {
+      language_id: 1,
+      lesson_id: lessons[0].id,
+      source_table: "parallel_sentences",
+      source_id: 900001,
+      french: "Comment allez-vous aujourd'hui ?",
+      lingala: "Boni yo lelo ?",
+      tier: "approved",
+      token_count: 5,
+      orthography: "toned",
+      level: 1,
+      difficulty: 1,
+      effective_level: 1,
+    },
+  });
+
   // ── Auth user + profile + progress ──────────────────────────────────
   const userId = await ensureTestUser(TEST_USER_EMAIL, TEST_USER_PASSWORD);
 

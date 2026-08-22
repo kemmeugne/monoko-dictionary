@@ -148,7 +148,10 @@ begin
     select course_id
     from ordered_lessons
     group by course_id
-    having count(*) = count(*) filter (where position <= v_target)
+    -- Match the mock boundary: rewards strictly before the selected progress
+    -- point are claimed, while the reward after the latest completed lesson is
+    -- left available so a developer can test its full ceremony.
+    having max(position) < v_target
   )
   insert into user_level_rewards (user_id, course_id, language_id, xp)
   select v_user_id, course_id, p_language_id, 500

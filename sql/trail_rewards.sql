@@ -93,6 +93,77 @@ $$;
 revoke all on function claim_lesson_reward(bigint) from public;
 grant execute on function claim_lesson_reward(bigint) to authenticated;
 
+-- Final lesson rewards are claimed through the medal ceremony. As with lesson
+-- gifts, the browser supplies only the course id; eligibility, language, XP,
+-- and the attached final-lesson capsule are derived here.
+create or replace function claim_level_reward(p_course_id bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_language_id bigint;
+  v_capsule_id text;
+  v_inserted integer;
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required' using errcode = '42501';
+  end if;
+
+  select course.language_id
+    into v_language_id
+  from courses course
+  where course.id = p_course_id
+    and exists (select 1 from lessons lesson where lesson.course_id = course.id)
+    and not exists (
+      select 1
+      from lessons lesson
+      where lesson.course_id = course.id
+        and not exists (
+          select 1 from user_progress progress
+          where progress.user_id = v_user_id
+            and progress.lesson_id = lesson.id
+        )
+    );
+
+  if v_language_id is null then
+    raise exception 'Level reward is locked' using errcode = '42501';
+  end if;
+
+  insert into user_level_rewards (user_id, course_id, language_id, xp)
+  values (v_user_id, p_course_id, v_language_id, 500)
+  on conflict (user_id, course_id) do nothing;
+
+  get diagnostics v_inserted = row_count;
+
+  select capsule.id
+    into v_capsule_id
+  from lessons lesson
+  join culture_capsules capsule
+    on capsule.lesson_id = lesson.id and capsule.is_published = true
+  where lesson.course_id = p_course_id
+    and not exists (
+      select 1 from lessons later
+      where later.course_id = lesson.course_id
+        and (later.lesson_order, later.id) > (lesson.lesson_order, lesson.id)
+    )
+  limit 1;
+
+  return jsonb_build_object(
+    'claimed', true,
+    'new_claim', v_inserted = 1,
+    'course_id', p_course_id,
+    'xp', 500,
+    'capsule_id', v_capsule_id
+  );
+end;
+$$;
+
+revoke all on function claim_level_reward(bigint) from public;
+grant execute on function claim_level_reward(bigint) to authenticated;
+
 -- A level's final path node is its medal rather than an ordinary gift. Keep a
 -- cultural capsule attached to that final lesson in the same medal claim.
 create or replace function record_level_reward_xp()

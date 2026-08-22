@@ -107,6 +107,8 @@ api/cron/keep-tts-warm.js         — Vercel cron handler (GET ping to MMS_SPACE
 api/_rate-limit.js                — shared per-IP rate limiter + CORS helper, used by every api/*.js endpoint (in-memory sliding window)
 api/leaderboard.js                — authenticated weekly country/world ranking; returns pseudonyms only, never user ids
 monoko-ui.css                     — production learner shell: home, continuous course trail, profile, rewards, ranking and responsive navigation
+course-trail-meta.js              — mock-matched lesson preview descriptions and estimated durations, kept separate from the exercise/content records
+COURSE_TRAIL_PARITY.md            — production contract for every course-trail behavior carried over from the isolated mock
 tests/                            — Vitest unit tests for every api/*.js file (see tests/README.md); test Supabase harness docs live here
 sql/test_schema.sql               — idempotent schema for the test Supabase project (harness sprint; see HARNESS_SPRINT.md)
 scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test project via psql (refuses to run against any non-test project ref)
@@ -116,7 +118,8 @@ scripts/release_browser_check.mjs — dependency-free Chrome CDP release check f
 Developer course controls: `sql/developer_course_tools.sql` stores authorized
 accounts in `app_developers` and exposes protected progress preset RPCs. An
 authorized developer sees the three-dot menu in `Apprendre`; its presets rebuild
-that developer's real lesson progress, XP and completed-level medals atomically.
+that developer's real lesson progress, XP and prior milestone claims atomically,
+while leaving the reward at the selected boundary available for ceremony testing.
 The table has no client policies, so developer access must be granted with SQL.
 
 HARNESS_SPRINT.md                 — spec + status for the verification harness (unit tests, test Supabase, Playwright, lints, CI) — Sessions 1–2 done, 3–5 pending
@@ -136,6 +139,7 @@ sql/lesson_exercise_policy.sql    — SQL migration: per-lesson exercise-type AL
 sql/culture_capsules.sql          — editable lesson-linked cultural capsules + one-time claims (applied 2026-08-22)
 sql/culture_capsules_seed.sql     — 16 sourced Lingala/Congolese capsule drafts tied to relevant live lessons (applied 2026-08-22)
 sql/community_experience.sql      — profile pseudonyms/country, XP events, 500-XP level rewards and Grand défi state (applied 2026-08-22)
+sql/trail_rewards.sql             — protected ordinary-gift and medal-ceremony claims, culture unlocks, and developer reward rebuild helper
 scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~6,700 lines of React that no unit test slices
 make_alphabet_cut_tool.py         — builds alphabet_cut_tool.html: confirm where the WORD starts in each of L346's 46 clips. The clips read the sound before the word ('O ... Motoki'), and the structure varies (1-4 speech segments), so the tool proposes the last segment and a human confirms. Audio is base64-embedded because R2 sends no CORS header
 apply_alphabet_cuts.py            — cuts each clip to the confirmed word, uploads to R2 as <name>_word.mp3 (never overwriting the original), repoints lesson_pool. Needs .env.r2. Rollback JSON first
@@ -200,7 +204,7 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `user_streak` — **one row per USER, not per language and not per lesson**: `current_streak`, `longest_streak`, `last_day`. A streak answers "did you show up today", which is a fact about the person; keying it by language would break the streak of someone doing Lingala on Monday and Yoruba on Tuesday. `last_day` is a **date in the learner's local day**, sent by the client — never `now()::date`, which is UTC (added 2026-08-18, `sql/progression.sql`)
 - `review_schedule` — SM-2 scheduler state, **both stages** (Élargir added 2026-08-20): `(user_id, pool_item_id)` unique, plus `ease`, `interval_days`, `reps`, `due_on`. Distinct from `exercise_attempts`, which is an append-only event log — squeezing ease/interval into it would mean recomputing the whole history on every session start. Élargir writes nothing here (added 2026-08-18)
 - `culture_capsules` / `user_culture_rewards` — editable lesson-linked culture content and one-time learner claims. Only naturally relevant lessons get capsules; other trail gifts remain XP rewards.
-- `lesson_reward_claims` — one row per opened ordinary lesson gift. `claim_lesson_reward` derives eligibility and level-based XP server-side, records leaderboard XP once, and unlocks a linked cultural capsule when present.
+- `lesson_reward_claims` — one row per opened ordinary lesson gift. `claim_lesson_reward` derives eligibility and level-based XP server-side, records leaderboard XP once, and unlocks a linked cultural capsule when present. Final-lesson gifts use `claim_level_reward`, which derives the completed course and awards its medal ceremony safely.
 - `user_xp_events` — weekly ranking event ledger. RLS exposes only a learner's own events; the leaderboard endpoint aggregates with a service credential and emits pseudonyms only.
 - `user_level_rewards` — one row per completed course level; claims the named medal and fixed 500 XP exactly once. A database trigger creates its leaderboard XP event.
 - `level_challenge_state` — one row per learner and level for the optional 20-question Grand défi: retained best score, one-way `passed`, replay count/session XP and a one-time 300-XP enriched-level reward.
@@ -334,7 +338,8 @@ both hard-refuse to run unless pointed at that exact test project ref.
   the test project's schema and data. Both are safe to re-run any time.
 - `node scripts/release_browser_check.mjs` — with `.env.test`, a local Vercel
   server and Chrome CDP port 9230, signs in as the real test learner and checks
-  home, weekly ranking, continuous trail, one-time level reward, Grand défi,
+  home, weekly ranking, continuous trail, lesson preview/Aller plus loin,
+  ordinary gifts, automatic medal ceremony, real Grand défi handoff, confetti,
   culture modal and horizontal overflow at desktop/390/320px.
 - Full spec and session-by-session status: `HARNESS_SPRINT.md`. This runs
   before Phase 3 feature work and is a hard prerequisite for Phase 3.5
