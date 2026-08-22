@@ -155,6 +155,7 @@ async function main() {
   // ── Wipe, children first ────────────────────────────────────────────
   console.log("Wiping existing seed data...");
   await wipe("app_developers", "user_id");
+  await wipe("lesson_reward_claims", "user_id");
   await wipe("user_culture_rewards", "user_id");
   await wipe("level_challenge_state", "user_id");
   await wipe("user_level_rewards", "user_id");

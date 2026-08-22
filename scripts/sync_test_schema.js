@@ -70,6 +70,7 @@ const FILES = [
   "progression.sql",                      // Slice 7 — streak + SM-2 schedule
   "culture_capsules.sql",                 // course-path cultural rewards
   "community_experience.sql",             // profile privacy + XP leaderboard
+  "trail_rewards.sql",                    // one-time lesson gifts + XP claims
   "developer_course_tools.sql",           // protected developer progress presets
   "lesson_exercise_policy.sql",           // per-lesson exercise-type allow-list
 ];

@@ -43,6 +43,7 @@ declare
   v_total integer;
   v_target integer;
   v_rewards integer;
+  v_trail_xp integer;
 begin
   if v_user_id is null or not exists (
     select 1 from app_developers where user_id = v_user_id
@@ -132,6 +133,10 @@ begin
   from ordered_lessons
   where position <= v_target;
 
+  v_trail_xp := developer_rebuild_trail_rewards(
+    v_user_id, p_language_id, v_target
+  );
+
   with ordered_lessons as (
     select lesson.id,
            lesson.course_id,
@@ -155,7 +160,7 @@ begin
     'completed_lessons', v_target,
     'total_lessons', v_total,
     'level_rewards', v_rewards,
-    'xp', v_target * 200 + v_rewards * 500
+    'xp', v_target * 200 + v_rewards * 500 + v_trail_xp
   );
 end;
 $$;

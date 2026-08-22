@@ -201,6 +201,7 @@ button.m-chip { cursor: pointer; }
 @keyframes m-current-pulse { 0%,100% { box-shadow:0 7px 0 var(--m-purple-dark),0 14px 28px rgba(91,50,154,.2),0 0 0 0 rgba(116,71,185,.2); } 50% { box-shadow:0 7px 0 var(--m-purple-dark),0 14px 28px rgba(91,50,154,.25),0 0 0 12px rgba(116,71,185,0); } }
 @keyframes m-reward-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
 @keyframes m-milestone-pulse { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+@keyframes m-gift-open { 0%,100% { transform:rotate(0) scale(1); } 25% { transform:rotate(-5deg) scale(1.04); } 50% { transform:rotate(5deg) scale(1.08); } 75% { transform:rotate(-3deg) scale(1.04); } }
 .m-course-header h1 { margin: 4px 0 0; font: 800 34px/1.06 "Playfair Display", serif; }
 .m-course-header p { margin: 8px 0 0; color: var(--m-muted); font-size: 12px; line-height: 1.45; }
 .m-level-progress { margin-top: 20px; }
@@ -321,6 +322,23 @@ button.m-chip { cursor: pointer; }
 .m-modal-body p { color: var(--m-muted); font-size: 12px; line-height: 1.55; }
 .m-modal-actions { display: flex; gap: 8px; }
 .m-modal-actions button, .m-modal-actions a { min-height: 46px; padding: 0 14px; border: 1px solid var(--m-line); border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: white; color: var(--m-forest); font-size: 11px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.m-trail-reward-modal { width: min(100%,460px); }
+.m-gift-stage, .m-reward-reveal { min-height: 430px; padding: 28px 24px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.m-gift-stage h2, .m-reward-reveal h2 { margin: 9px 0 0; font: 800 27px/1.15 "Playfair Display",serif; }
+.m-gift-stage p, .m-reward-reveal p { max-width: 350px; margin: 10px auto 22px; color: var(--m-muted); font-size: 13px; line-height: 1.55; }
+.m-reward-burst { width: 92px; height: 92px; margin: 0 auto 20px; border-radius: 50%; display: grid; place-items: center; background: var(--m-gold-soft); color: #b57d11; box-shadow: 0 0 0 12px rgba(255,244,215,.5); }
+.m-reward-burst .m-ui-icon { width: 42px; height: 42px; }
+.m-reward-burst.xp { margin-bottom: 28px; color: var(--m-purple-dark); background: var(--m-purple-soft); box-shadow: 0 0 0 12px rgba(240,234,250,.55); }
+.m-gift-stage.opening .m-reward-burst { animation: m-gift-open 700ms ease-in-out infinite; }
+.m-reward-primary, .m-reward-secondary { width: 100%; min-height: 48px; border-radius: 7px; font-size: 12px; font-weight: 800; cursor: pointer; }
+.m-reward-primary { border: 0; background: var(--m-gold); color: white; box-shadow: 0 4px 0 #a97713; }
+.m-reward-primary:disabled { opacity: .65; cursor: wait; }
+.m-reward-secondary { margin-top: 9px; border: 1px solid var(--m-line); background: white; color: var(--m-forest); }
+.m-reward-culture-art { width: calc(100% + 48px); height: 190px; margin: -28px -24px 22px; background-position: center; background-size: cover; }
+.m-reward-earned { width: 100%; min-height: 68px; margin: 0 0 18px; padding: 10px 14px; border-radius: 8px; display: grid; grid-template-columns: 34px minmax(0,1fr); grid-template-rows: auto auto; align-items: center; background: var(--m-gold-soft); color: #835f18; text-align: left; }
+.m-reward-earned .m-ui-icon { grid-row: 1 / 3; width: 22px; }
+.m-reward-earned strong { font-size: 14px; }
+.m-reward-earned small { color: #967636; font-size: 10px; }
 
 @media (min-width: 760px) {
   .m-course-layout, .m-app { display: grid; grid-template-columns: 274px minmax(0,1fr); }

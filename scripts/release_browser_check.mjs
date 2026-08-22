@@ -162,7 +162,7 @@ await assertPage("desktop profile", `() => ({
   xp: document.body.textContent.includes("1150 XP"),
   streak: document.body.textContent.includes("4"),
   ranking: document.querySelector(".m-ranking-row.me")?.textContent.includes("MonokoTest"),
-  cultures: document.querySelectorAll(".m-culture-card:not(.locked)").length === 2
+  culturesFollowClaims: document.querySelectorAll(".m-culture-card:not(.locked)").length === 1
 })`);
 const profileShot = await screenshot("profile-desktop");
 
@@ -198,10 +198,18 @@ await evaluate(`document.querySelector('button[aria-label="Quitter"]').click()`)
 await waitFor(`document.querySelector(".m-path-trail")`, "course trail after challenge");
 
 await evaluate(`document.querySelector(".m-path-node.reward.available:not(.milestone)").click()`);
-await waitFor(`document.querySelector(".m-modal")`, "culture capsule modal");
+await waitFor(`document.querySelector(".m-trail-reward-modal") && document.body.textContent.includes("Ouvrir le cadeau")`, "lesson gift modal");
+const giftShot = await screenshot("gift-desktop");
+await clickByText(".m-trail-reward-modal button", "Ouvrir le cadeau");
+await waitFor(`document.querySelector(".m-trail-reward-modal .m-reward-earned") && document.querySelector(".m-chip.xp")?.textContent.includes("1200")`, "persisted gift XP reveal", 20000);
+await clickByText(".m-trail-reward-modal button", "Découvrir la capsule");
+await waitFor(`document.querySelector(".m-modal:not(.m-trail-reward-modal)")`, "culture capsule modal");
 await waitFor(`getComputedStyle(document.querySelector(".m-modal-art")).backgroundImage.includes("assets/culture/capsules-1.jpg")`, "culture capsule artwork");
 const cultureShot = await screenshot("culture-desktop");
 await clickByText(".m-modal button", "Fermer");
+await evaluate(`document.querySelector(".m-path-node.reward.gift.completed").click()`);
+await waitFor(`document.querySelector(".m-trail-reward-modal .m-reward-earned") && document.querySelector(".m-chip.xp")?.textContent.includes("1200")`, "claimed gift remains one-time");
+await clickByText(".m-trail-reward-modal button", "Fermer");
 
 await evaluate(`window.confirm = () => true`);
 await evaluate(`document.querySelector('.m-developer-more[aria-label="Outils développeur"]').click()`);
@@ -292,7 +300,7 @@ if (seriousErrors.length) throw new Error(`Browser errors: ${seriousErrors.join(
 
 console.log(JSON.stringify({
   ok: true,
-  screenshots: [homeShot, profileShot, trailShot, challengeShot, cultureShot, dictionaryShot, chatShot, liveShot, mobileShot, mobileTrailShot],
-  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "developer progress and rewards", "Grand défi briefing", "culture modal", "dictionary focus", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
+  screenshots: [homeShot, profileShot, trailShot, challengeShot, giftShot, cultureShot, dictionaryShot, chatShot, liveShot, mobileShot, mobileTrailShot],
+  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "lesson gift claim and XP", "developer progress and rewards", "Grand défi briefing", "culture modal", "dictionary focus", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
 }, null, 2));
 socket.close();

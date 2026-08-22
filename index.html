@@ -27,7 +27,7 @@
     @keyframes waveC{0%{height:14px}100%{height:32px}}
     @keyframes micRing{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4),0 6px 24px rgba(0,0,0,0.2)}50%{box-shadow:0 0 0 16px rgba(22,163,74,0),0 6px 24px rgba(22,163,74,0.35)}}
   </style>
-  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-5">
+  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-6">
 </head>
 <body>
   <div id="root"></div>
@@ -3898,6 +3898,37 @@
 
     const TRAIL_NODE_POSITIONS = [50,27,72,79,54,25,34,68,77,47,22,51,78,61,29,38];
 
+    function TrailRewardModal({ reward, step, claiming, onOpen, onClose, onCapsule }) {
+      if (!reward) return null;
+      const hasCapsule = !!reward.capsule;
+      return <div className="m-modal-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget && step !== "opening") onClose(); }}>
+        <section className="m-modal m-trail-reward-modal" role="dialog" aria-modal="true" aria-labelledby="trail-reward-title">
+          {step === "closed" && <div className="m-gift-stage">
+            <div className="m-reward-burst"><UiIcon name="gift"/></div>
+            <div className="m-kicker"><span>Cadeau de leçon</span></div>
+            <h2 id="trail-reward-title">{hasCapsule ? "Une découverte vous attend" : "Bonus XP"}</h2>
+            <p>« {reward.lesson.title} » est maîtrisée. {hasCapsule ? "Ce cadeau contient de l'XP et une capsule culturelle." : "Ce cadeau contient un bonus d'XP."}</p>
+            <button className="m-reward-primary" disabled={claiming} onClick={onOpen}>{claiming ? "Ouverture…" : "Ouvrir le cadeau"}</button>
+            <button className="m-reward-secondary" disabled={claiming} onClick={onClose}>Plus tard</button>
+          </div>}
+          {step === "opening" && <div className="m-gift-stage opening">
+            <div className="m-reward-burst"><UiIcon name="gift"/></div>
+            <h2 id="trail-reward-title">Ouverture du cadeau…</h2>
+          </div>}
+          {step === "revealed" && <div className="m-reward-reveal">
+            {hasCapsule && <div className="m-reward-culture-art" style={{backgroundImage:`url("${capsuleImage(reward.capsule)}")`}}/>}
+            {!hasCapsule && <div className="m-reward-burst xp"><UiIcon name="sparkles"/></div>}
+            <div className="m-kicker"><span>Récompense obtenue</span></div>
+            <h2 id="trail-reward-title">{hasCapsule ? reward.capsule.title : `+${reward.xp} XP`}</h2>
+            <p>{hasCapsule ? reward.capsule.short_copy : `${reward.xp} XP ont été ajoutés à votre progression.`}</p>
+            <div className="m-reward-earned"><UiIcon name="sparkles"/><strong>+{reward.xp} XP</strong><small>Ajoutés au profil</small></div>
+            {hasCapsule && <button className="m-reward-primary" onClick={() => { onClose(); onCapsule(reward.capsule); }}>Découvrir la capsule</button>}
+            <button className="m-reward-secondary" onClick={onClose}>Fermer</button>
+          </div>}
+        </section>
+      </div>;
+    }
+
     function CourseLevelRail({ courses, userProgress, levelChallenges, focusedLevel, displayName, xp, onHome, onLevel, onProfile }) {
       return <aside className="m-course-level-rail" aria-label="Niveaux du parcours">
         <button className="m-course-brand" onClick={onHome}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
@@ -3917,7 +3948,7 @@
       </aside>;
     }
 
-    function CourseTrail({ courses, userProgress, stageByLesson, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, isDeveloper, developerUpdating, onSetDeveloperProgress, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onOpenLesson, onLevelChallenge, onCapsule }) {
+    function CourseTrail({ courses, userProgress, stageByLesson, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, isDeveloper, developerUpdating, onSetDeveloperProgress, onClaimLessonReward, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onOpenLesson, onLevelChallenge, onCapsule }) {
       const displayName = displayNameFor(currentUser, profile);
       const flat = courses.flatMap((course,courseIndex) => (course.lessons || []).map(lesson => ({lesson,course,courseIndex})));
       const actualCompleted = flat.filter(item => userProgress.has(item.lesson.id)).length;
@@ -3931,6 +3962,9 @@
       const [focusedLevel,setFocusedLevel] = useState(initialLevel);
       const [mobileLevelsOpen,setMobileLevelsOpen] = useState(false);
       const [developerMenuOpen,setDeveloperMenuOpen] = useState(false);
+      const [selectedReward,setSelectedReward] = useState(null);
+      const [rewardStep,setRewardStep] = useState("closed");
+      const [claimingReward,setClaimingReward] = useState(false);
       const route = [];
       let lessonIndex = -1;
       const levelRouteStarts = {};
@@ -3965,6 +3999,27 @@
         const result = await onSetDeveloperProgress(preset.count);
         if (result) setDeveloperMenuOpen(false);
       };
+      const openTrailReward = (item,capsule,status,xpAmount) => {
+        setSelectedReward({ lesson:item.lesson, capsule, xp:xpAmount });
+        setRewardStep(status === "completed" ? "revealed" : "closed");
+      };
+      const claimSelectedReward = async () => {
+        if (!selectedReward || claimingReward) return;
+        setClaimingReward(true);
+        const result = await onClaimLessonReward(selectedReward.lesson.id);
+        if (!result) { setClaimingReward(false); return; }
+        setSelectedReward(value => ({ ...value, xp:result.xp || value.xp }));
+        setRewardStep("opening");
+        window.setTimeout(() => {
+          setRewardStep("revealed");
+          setClaimingReward(false);
+        },650);
+      };
+      const closeTrailReward = () => {
+        if (rewardStep === "opening") return;
+        setSelectedReward(null);
+        setRewardStep("closed");
+      };
       const focusedCourse = courses[focusedLevel-1] || courses[0];
       const focusedMeta = LEVEL_META[focusedLevel-1] || LEVEL_META[0];
       const focusedComplete = focusedCourse ? (focusedCourse.lessons || []).filter(lesson => visibleProgress.has(lesson.id)).length : 0;
@@ -3991,7 +4046,7 @@
           const completed = visibleProgress.has(item.lesson.id);
           if (!completed) return "locked";
           if (item.milestone) return levelRewards.has(item.course.id) ? "completed" : "available";
-          return "available";
+          return lessonRewards.has(item.lesson.id) ? "completed" : "available";
         }
         return courseDone(item.course,visibleProgress) ? "available" : "locked";
       };
@@ -4033,7 +4088,7 @@
                   const title = item.milestone ? challenge?.passed ? "Niveau enrichi" : focusedMeta && levelNumber === focusedLevel ? (LEVEL_META[item.courseIndex] || LEVEL_META[0]).medal : (LEVEL_META[item.courseIndex] || LEVEL_META[0]).medal : capsule ? capsule.title : "Bonus XP";
                   const detail = item.milestone ? status === "locked" ? `Terminez le niveau ${levelNumber}` : status === "available" ? "Niveau terminé · +500 XP" : challenge?.passed ? `Grand défi · record ${challenge.best_score}%` : "Médaille obtenue" : status === "locked" ? `Après ${item.lessonIndex+1} leçon${item.lessonIndex ? "s" : ""}` : `+${rewardXp} XP`;
                   return <div key={`reward-${item.lesson.id}`} className={`m-path-item ${status === "available" ? "current" : status} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
-                    <button className={`m-path-node reward ${item.milestone ? `milestone medal-${levelNumber}` : "gift"} ${status}`} disabled={status === "locked"} onClick={() => item.milestone ? onLevelChallenge(item.course) : capsule && onCapsule(capsule)}><UiIcon name={status === "locked" ? "lock" : item.milestone ? "medal" : "gift"}/>{item.milestone && status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}</button>
+                    <button className={`m-path-node reward ${item.milestone ? `milestone medal-${levelNumber}` : "gift"} ${status}`} disabled={status === "locked"} onClick={() => item.milestone ? onLevelChallenge(item.course) : openTrailReward(item,capsule,status,rewardXp)}><UiIcon name={status === "locked" ? "lock" : item.milestone ? "medal" : status === "completed" ? "check" : "gift"}/>{item.milestone && status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}</button>
                     <span className="m-path-label"><strong>{title}</strong><span>{detail}</span></span>
                   </div>;
                 }
@@ -4048,6 +4103,7 @@
           <BottomNav active="courses" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
         {mobileLevelsOpen && <div className="m-level-drawer" role="dialog" aria-modal="true" aria-label="Choisir un niveau" onClick={() => setMobileLevelsOpen(false)}><div onClick={event => event.stopPropagation()}><header><strong>Choisir un niveau</strong><button className="m-icon-button" onClick={() => setMobileLevelsOpen(false)} aria-label="Fermer"><UiIcon name="close"/></button></header><div className="m-mobile-level-list">{courses.map((course,index) => { const meta = LEVEL_META[index] || LEVEL_META[0]; const unlocked = index === 0 || courses.slice(0,index).every(value => courseDone(value,visibleProgress)); const completeHere = (course.lessons || []).filter(lesson => visibleProgress.has(lesson.id)).length; return <button key={course.id} className={focusedLevel === index+1 ? "active" : ""} disabled={!unlocked} onClick={() => scrollLevel(index+1)}><span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {unlocked ? `${completeHere}/${course.lessons?.length || 0} leçons` : "Verrouillé"}</small></span><UiIcon name={unlocked ? "chevron" : "lock"}/></button>; })}</div></div></div>}
+        <TrailRewardModal reward={selectedReward} step={rewardStep} claiming={claimingReward} onOpen={claimSelectedReward} onClose={closeTrailReward} onCapsule={onCapsule}/>
       </div>;
     }
 
@@ -4063,7 +4119,7 @@
       "art-conversation":"assets/culture/capsules-1.jpg",
     }[capsule?.visual_key] || "assets/culture/capsules-1.jpg");
 
-    function ProfileHub({ courses, userProgress, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onSaveProfile, savingProfile, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onCapsule }) {
+    function ProfileHub({ courses, userProgress, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onSaveProfile, savingProfile, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onCapsule }) {
       const [cultureLevel,setCultureLevel] = useState(1);
       const [pseudo,setPseudo] = useState(profile?.public_pseudonym || displayNameFor(currentUser,profile));
       const [country,setCountry] = useState(profile?.country_code || "CA");
@@ -4072,7 +4128,12 @@
       const displayName = displayNameFor(currentUser,profile);
       const medals = earnedMedals(courses,userProgress);
       const visibleCapsules = cultureCapsules.filter(item => item.level === cultureLevel);
-      const unlockedCapsules = cultureCapsules.filter(item => userProgress.has(item.lesson_id));
+      const capsuleUnlocked = capsule => {
+        if (lessonRewards.has(capsule.lesson_id)) return true;
+        const course = courses[capsule.level-1];
+        return course?.lessons?.at(-1)?.id === capsule.lesson_id && levelRewards.has(course.id);
+      };
+      const unlockedCapsules = cultureCapsules.filter(capsuleUnlocked);
       const rows = leaderboard?.rows || [];
       const me = rows.find(row => row.me) || leaderboard?.current || null;
       const countryLabel = { CA:"Canada", CD:"RDC", CG:"République du Congo", FR:"France", BE:"Belgique", US:"États-Unis", OTHER:"Autre" }[country] || "Pays";
@@ -4091,7 +4152,7 @@
               <p className="m-privacy"><UiIcon name="shield"/>Seuls les pseudonymes et le pays choisi apparaissent.</p>
               <div className="m-profile-settings"><label>Pseudonyme public<input value={pseudo} maxLength="24" onChange={event => setPseudo(event.target.value)} /></label><label>Pays<select value={country} onChange={event => setCountry(event.target.value)}><option value="CA">Canada</option><option value="CD">RDC</option><option value="CG">République du Congo</option><option value="FR">France</option><option value="BE">Belgique</option><option value="US">États-Unis</option><option value="OTHER">Autre</option></select></label><label className="m-toggle-row"><span>Participer au classement</span><input type="checkbox" checked={participates} onChange={event => setParticipates(event.target.checked)}/></label><button className="m-save-profile" disabled={savingProfile || !pseudo.trim()} onClick={() => onSaveProfile({public_pseudonym:pseudo.trim(),country_code:country,leaderboard_opt_in:participates})}>{savingProfile ? "Enregistrement..." : "Enregistrer le profil"}</button></div>
             </section>
-            <section className="m-collection"><div className="m-collection-heading"><div><span>Collection</span><h2>Culture des Congo</h2></div><strong>{unlockedCapsules.length}/{cultureCapsules.length}</strong></div><div className="m-culture-tabs">{LEVEL_META.map((_,index) => <button className={cultureLevel === index+1 ? "active" : ""} onClick={() => setCultureLevel(index+1)} key={index}>N{index+1}</button>)}</div><div className="m-culture-grid">{visibleCapsules.map(capsule => { const unlocked = userProgress.has(capsule.lesson_id); return <button key={capsule.id} className={`m-culture-card ${unlocked ? "" : "locked"}`} disabled={!unlocked} onClick={() => onCapsule(capsule)}><span className="m-culture-art" style={{backgroundImage:`linear-gradient(rgba(22,60,50,.08),rgba(22,60,50,.28)),url("${capsuleImage(capsule)}")`}}>{!unlocked && <UiIcon name="lock"/>}</span><span className="m-culture-copy"><strong>{unlocked ? capsule.title : "Capsule à découvrir"}</strong><small>{unlocked ? capsule.region : "Progressez sur le parcours"}</small></span></button>; })}</div></section>
+            <section className="m-collection"><div className="m-collection-heading"><div><span>Collection</span><h2>Culture des Congo</h2></div><strong>{unlockedCapsules.length}/{cultureCapsules.length}</strong></div><div className="m-culture-tabs">{LEVEL_META.map((_,index) => <button className={cultureLevel === index+1 ? "active" : ""} onClick={() => setCultureLevel(index+1)} key={index}>N{index+1}</button>)}</div><div className="m-culture-grid">{visibleCapsules.map(capsule => { const unlocked = capsuleUnlocked(capsule); return <button key={capsule.id} className={`m-culture-card ${unlocked ? "" : "locked"}`} disabled={!unlocked} onClick={() => onCapsule(capsule)}><span className="m-culture-art" style={{backgroundImage:`linear-gradient(rgba(22,60,50,.08),rgba(22,60,50,.28)),url("${capsuleImage(capsule)}")`}}>{!unlocked && <UiIcon name="lock"/>}</span><span className="m-culture-copy"><strong>{unlocked ? capsule.title : "Capsule à découvrir"}</strong><small>{unlocked ? capsule.region : "Ouvrez son cadeau sur le parcours"}</small></span></button>; })}</div></section>
           </div>
           <BottomNav active="profile" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
@@ -4159,6 +4220,7 @@
       const [userProgress, setUserProgress] = useState(new Set()); // Set of completed lesson IDs
       const [lastLesson, setLastLesson] = useState(null);          // { lessonId, lessonTitle, courseTitle, courseId, langId }
       const [stageByLesson, setStageByLesson] = useState({});
+      const [lessonRewards, setLessonRewards] = useState(new Set());
       const [levelRewards, setLevelRewards] = useState(new Set());
       const [levelChallenges, setLevelChallenges] = useState({});
       const [claimingLevelRewards, setClaimingLevelRewards] = useState(false);
@@ -4340,15 +4402,16 @@
 
       const loadLearningSummary = async (user, languageId) => {
         if (!user || !languageId) {
-          setStageByLesson({}); setLevelRewards(new Set()); setLevelChallenges({}); setTotalXp(0); setLearnerProfile(null);
+          setStageByLesson({}); setLessonRewards(new Set()); setLevelRewards(new Set()); setLevelChallenges({}); setTotalXp(0); setLearnerProfile(null);
           return;
         }
         try {
-          const [{ data: stages }, { data: profileRow }, { data: rewards }, { data: challenges }] = await Promise.all([
+          const [{ data: stages }, { data: profileRow }, { data: rewards }, { data: challenges }, { data: trailRewards }] = await Promise.all([
             supabaseClient.from("lesson_stage_state").select("*").eq("user_id", user.id).eq("language_id", languageId),
             supabaseClient.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
             supabaseClient.from("user_level_rewards").select("*").eq("user_id", user.id).eq("language_id", languageId),
             supabaseClient.from("level_challenge_state").select("*").eq("user_id", user.id).eq("language_id", languageId),
+            supabaseClient.from("lesson_reward_claims").select("*").eq("user_id", user.id).eq("language_id", languageId),
           ]);
           const stageMap = Object.fromEntries((stages || []).map(row => [row.lesson_id, row]));
           const lessonXp = (stages || []).reduce((sum, row) => sum
@@ -4356,10 +4419,12 @@
             + (row.elargir_xp || 0), 0);
           const levelXp = (rewards || []).reduce((sum, row) => sum + (row.xp || 0), 0);
           const challengeXp = (challenges || []).reduce((sum, row) => sum + (row.session_xp || 0) + (row.reward_xp || 0), 0);
+          const trailXp = (trailRewards || []).reduce((sum, row) => sum + (row.xp || 0), 0);
           setStageByLesson(stageMap);
+          setLessonRewards(new Set((trailRewards || []).map(row => row.lesson_id)));
           setLevelRewards(new Set((rewards || []).map(row => row.course_id)));
           setLevelChallenges(Object.fromEntries((challenges || []).map(row => [row.course_id, row])));
-          setTotalXp(lessonXp + levelXp + challengeXp);
+          setTotalXp(lessonXp + levelXp + challengeXp + trailXp);
           setLearnerProfile(profileRow || {
             user_id: user.id,
             display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Apprenant",
@@ -4415,6 +4480,23 @@
           return null;
         } finally {
           setDeveloperProgressUpdating(false);
+        }
+      };
+
+      const claimLessonReward = async lessonId => {
+        if (!currentUser || !langId) return null;
+        try {
+          const { data, error } = await supabaseClient.rpc("claim_lesson_reward", {
+            p_lesson_id: lessonId,
+          });
+          if (error) throw error;
+          await loadLearningSummary(currentUser, langId);
+          if (learnerProfile?.leaderboard_opt_in) await loadLeaderboard(leaderboardScope, true);
+          return data;
+        } catch (error) {
+          console.error("claimLessonReward:", error);
+          window.alert("Ce cadeau n'a pas pu être ouvert. Réessayez dans un instant.");
+          return null;
         }
       };
 
@@ -5890,12 +5972,12 @@
 
             {view === "courses" && selectedLang && (
               <CourseTrail
-                courses={courses} userProgress={userProgress} stageByLesson={stageByLesson}
+                courses={courses} userProgress={userProgress} stageByLesson={stageByLesson} lessonRewards={lessonRewards}
                 levelRewards={levelRewards} levelChallenges={levelChallenges}
                 cultureCapsules={cultureCapsules} currentUser={currentUser} profile={learnerProfile}
                 xp={totalXp} streak={activeStreak} loading={loading}
                 isDeveloper={isCourseDeveloper} developerUpdating={developerProgressUpdating}
-                onSetDeveloperProgress={setDeveloperCourseProgress}
+                onSetDeveloperProgress={setDeveloperCourseProgress} onClaimLessonReward={claimLessonReward}
                 onHome={openHome} onLearn={openCourseTrail} onDictionary={openDictionaryHome}
                 onChat={openChat} onLive={() => setView("live")} onProfile={openProfile}
                 onLanguage={switchLanguage} onOpenLesson={openTrailLesson}
@@ -5905,7 +5987,7 @@
 
             {view === "profile" && selectedLang && currentUser && (
               <ProfileHub
-                courses={courses} userProgress={userProgress} cultureCapsules={cultureCapsules}
+                courses={courses} userProgress={userProgress} lessonRewards={lessonRewards} levelRewards={levelRewards} cultureCapsules={cultureCapsules}
                 levelChallenges={levelChallenges}
                 currentUser={currentUser} profile={learnerProfile} xp={totalXp} streak={activeStreak}
                 leaderboard={leaderboard} leaderboardScope={leaderboardScope}
