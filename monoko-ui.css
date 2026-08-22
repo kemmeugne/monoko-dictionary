@@ -159,7 +159,6 @@ button.m-chip { cursor: pointer; }
 .m-path-node.elargir-passed { box-shadow: 0 0 0 3px var(--m-canvas),0 0 0 8px #e0ad39,0 9px 0 8px #a97815,0 18px 28px rgba(112,77,10,.24); }
 .m-path-node.reward { width: 64px; height: 64px; background: var(--m-gold); color: white; box-shadow: 0 6px 0 #a97713,0 12px 22px rgba(179,128,25,.2); }
 .m-path-node.reward.available { animation: m-reward-bounce 1.8s ease-in-out infinite; }
-.m-path-node.reward.completed { background: var(--m-green); box-shadow: 0 6px 0 #1e6040; }
 .m-path-node.reward.locked { background: #e4e7e3; color: #a2aaa4; box-shadow: 0 6px 0 #cdd2ce; }
 .medal-1 { --medal-face:#2f7d54; --medal-edge:#18563a; }
 .medal-2 { --medal-face:#dc6d55; --medal-edge:#a94936; }

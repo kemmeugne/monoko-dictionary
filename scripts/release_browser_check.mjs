@@ -177,6 +177,7 @@ await assertPage("desktop course trail", `() => ({
   completed: document.querySelectorAll(".m-path-node:not(.reward):not(.gate).completed").length === 2,
   available: document.querySelectorAll(".m-path-node:not(.reward):not(.gate).current").length === 1,
   enriched: document.querySelectorAll(".m-path-node.elargir-passed").length >= 1,
+  orangeGifts: document.querySelectorAll(".m-path-node.reward.gift.available").length > 0 && [...document.querySelectorAll(".m-path-node.reward.gift.available")].every(node => getComputedStyle(node).backgroundColor === "rgb(211, 154, 36)"),
   courseRail: getComputedStyle(document.querySelector(".m-course-level-rail")).display !== "none",
   developerMenu: !!document.querySelector('.m-developer-more[aria-label="Outils développeur"]'),
   levelReward: document.body.textContent.includes("+500 XP"),
