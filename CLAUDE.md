@@ -112,6 +112,12 @@ sql/test_schema.sql               — idempotent schema for the test Supabase pr
 scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test project via psql (refuses to run against any non-test project ref)
 scripts/seed_test_data.js         — wipes + reseeds the test project with representative data + test user (refuses to run against any non-test project ref)
 scripts/release_browser_check.mjs — dependency-free Chrome CDP release check for desktop, 390px and 320px against monoko-test
+
+Developer course preview: open the app once with `?preview=courses`, then enter
+`Apprendre`. The mode persists in local storage, unlocks every level and lesson,
+and provides a local completion slider. It never writes simulated progress to
+Supabase. Use `Voir ma vraie progression` to disable it.
+
 HARNESS_SPRINT.md                 — spec + status for the verification harness (unit tests, test Supabase, Playwright, lints, CI) — Sessions 1–2 done, 3–5 pending
 tts_space/app.py                  — HuggingFace Space: ESPnet2 VITS Lingala TTS (Gradio 6.x, served at kemz42-monoko-lingala-tts.hf.space)
 tts_space/requirements.txt        — Space deps: git+espnet, huggingface_hub, numpy, soundfile, nltk

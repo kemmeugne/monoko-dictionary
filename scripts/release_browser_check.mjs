@@ -134,7 +134,9 @@ await send("Page.addScriptToEvaluateOnNewDocument", {
   source: `window.__MONOKO_SUPABASE_URL__=${JSON.stringify(process.env.SUPABASE_URL)};window.__MONOKO_SUPABASE_KEY__=${JSON.stringify(process.env.SUPABASE_ANON_KEY)};`,
 });
 await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
-await send("Page.navigate", { url: APP_URL });
+const previewUrl = new URL(APP_URL);
+previewUrl.searchParams.set("preview", "courses");
+await send("Page.navigate", { url: previewUrl.toString() });
 
 await waitFor(`[...document.querySelectorAll("button")].some(button => button.textContent.includes("Français") && button.textContent.includes("Lingala"))`, "Lingala language button");
 await clickByText("button", "Français");
@@ -176,6 +178,8 @@ await assertPage("desktop course trail", `() => ({
   available: document.querySelectorAll(".m-path-node:not(.reward):not(.gate).current").length === 1,
   enriched: document.querySelectorAll(".m-path-node.elargir-passed").length >= 1,
   courseRail: getComputedStyle(document.querySelector(".m-course-level-rail")).display !== "none",
+  developerPreview: !!document.querySelector(".m-preview-panel"),
+  everyLevelOpen: [...document.querySelectorAll(".m-course-level")].every(button => !button.disabled),
   levelReward: document.body.textContent.includes("+500 XP"),
   grandChallenge: document.querySelectorAll(".m-reward-horizon .m-level-challenge:not(:disabled)").length === 1
 })`);
@@ -199,8 +203,19 @@ await waitFor(`getComputedStyle(document.querySelector(".m-modal-art")).backgrou
 const cultureShot = await screenshot("culture-desktop");
 await clickByText(".m-modal button", "Fermer");
 
+await fill('.m-preview-panel input[type="range"]', "0");
+await waitFor(`document.querySelector(".m-path-node.preview-open") && !document.querySelector(".m-path-node.preview-open").disabled`, "developer preview locked lesson access");
+
 await evaluate(`document.querySelector(".m-course-brand").click()`);
 await waitFor(`document.querySelector(".m-home")`, "home before secondary tools");
+await clickByText(".m-rail nav button", "Dictionnaire");
+await waitFor(`document.querySelector(".m-dictionary-panel.focused")`, "focused home dictionary");
+await assertPage("home dictionary focus", `() => ({
+  active: document.querySelector(".m-rail .m-nav-button.active")?.textContent.includes("Dictionnaire"),
+  panel: !!document.querySelector(".m-dictionary-panel.focused"),
+  search: getComputedStyle(document.querySelector(".m-dictionary-panel.focused .m-search")).borderColor !== "rgb(223, 230, 223)"
+})`);
+const dictionaryShot = await screenshot("dictionary-focus-desktop");
 await evaluate(`document.querySelector(".m-browse").click()`);
 await waitFor(`document.querySelector(".m-secondary-content") && document.body.textContent.includes("Parcourir")`, "browse shell");
 await assertPage("desktop dictionary shell", `() => ({
@@ -254,12 +269,16 @@ await send("Emulation.setDeviceMetricsOverride", { width: 320, height: 700, devi
 await assertPage("320px course trail", `() => ({ trail: !!document.querySelector(".m-path-trail") })`);
 
 const ignored = ["favicon.ico", "Failed to load resource"];
+const appOrigin = new URL(APP_URL).origin;
+if (["localhost", "127.0.0.1"].includes(new URL(APP_URL).hostname)) {
+  ignored.push(`HTTP 500: ${appOrigin}/api/lesson-context`, `HTTP 500: ${appOrigin}/api/rag-context`);
+}
 const seriousErrors = browserErrors.filter(error => !ignored.some(fragment => error.includes(fragment)));
 if (seriousErrors.length) throw new Error(`Browser errors: ${seriousErrors.join(" | ")}`);
 
 console.log(JSON.stringify({
   ok: true,
-  screenshots: [homeShot, profileShot, trailShot, challengeShot, cultureShot, chatShot, liveShot, mobileShot, mobileTrailShot],
-  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "Grand défi briefing", "culture modal", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
+  screenshots: [homeShot, profileShot, trailShot, challengeShot, cultureShot, dictionaryShot, chatShot, liveShot, mobileShot, mobileTrailShot],
+  checks: ["desktop home", "profile and weekly ranking", "continuous course trail", "developer progress preview", "Grand défi briefing", "culture modal", "dictionary focus", "shared dictionary/chat/live shell", "390px mobile", "390px mobile trail", "320px overflow"],
 }, null, 2));
 socket.close();

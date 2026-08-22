@@ -83,6 +83,8 @@ button.m-chip { cursor: pointer; }
 .m-learning-track i { height: 100%; display: block; border-radius: inherit; background: #f6c65a; }
 
 .m-dictionary-panel { padding: 17px; border: 1px solid var(--m-line); border-radius: 8px; background: var(--m-surface); box-shadow: 0 3px 14px rgba(31,47,37,.05); }
+.m-dictionary-panel.focused { border-color: #d3ad4b; box-shadow: 0 0 0 3px rgba(211,154,36,.16),0 8px 24px rgba(31,47,37,.08); }
+.m-dictionary-panel.focused .m-search { border-color: var(--m-gold); box-shadow: 0 0 0 3px rgba(211,154,36,.1); }
 .m-segmented { padding: 3px; border-radius: 7px; display: grid; grid-template-columns: repeat(2,1fr); background: #e9eee9; }
 .m-segmented button { min-height: 42px; padding: 0 6px; border: 0; border-radius: 5px; background: transparent; color: var(--m-muted); font-size: 10px; font-weight: 700; cursor: pointer; }
 .m-segmented button.active { background: white; color: var(--m-forest); box-shadow: 0 2px 7px rgba(31,47,37,.08); }
@@ -149,6 +151,7 @@ button.m-chip { cursor: pointer; }
 .m-path-node.completed { background: var(--m-green); box-shadow: 0 7px 0 #1e6040,0 13px 24px rgba(42,73,56,.2); }
 .m-path-node.current { animation: m-current-pulse 2.4s ease-in-out infinite; }
 .m-path-node.locked { background: #e2e7e2; color: #929c95; box-shadow: 0 7px 0 #cbd3cc; cursor: default; }
+.m-path-node.preview-open { cursor: pointer; box-shadow: 0 7px 0 #cbd3cc,0 0 0 3px #f6c65a; }
 .m-path-node.elargir-passed { box-shadow: 0 0 0 3px var(--m-canvas),0 0 0 8px #e0ad39,0 9px 0 8px #a97815,0 18px 28px rgba(112,77,10,.24); }
 .m-path-node.reward { width: 64px; height: 64px; background: var(--m-gold); color: white; box-shadow: 0 6px 0 #a97713,0 12px 22px rgba(179,128,25,.2); }
 .m-path-node.reward.available { animation: m-reward-bounce 1.8s ease-in-out infinite; }
@@ -191,6 +194,21 @@ button.m-chip { cursor: pointer; }
 .m-mobile-level-list strong { font-size: 13px; }
 .m-mobile-level-list small { color: var(--m-muted); font-size: 10px; }
 .m-course-level-index { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #edf1ed; color: #667069; font: 700 12px "DM Mono",monospace; }
+.m-preview-panel { margin-top: 18px; padding: 12px; border: 1px solid rgba(246,198,90,.45); border-radius: 8px; display: grid; gap: 10px; background: rgba(246,198,90,.1); }
+.m-preview-panel > div:first-child { display: grid; gap: 4px; }
+.m-preview-panel > div:first-child > span { display: flex; align-items: center; gap: 6px; color: #f6c65a; }
+.m-preview-panel > div:first-child .m-ui-icon { width: 15px; }
+.m-preview-panel > div:first-child strong { color: white; font-size: 11px; }
+.m-preview-panel > div:first-child small { color: #b9d1c7; font-size: 8px; line-height: 1.35; }
+.m-preview-stepper { display: grid; grid-template-columns: 34px minmax(0,1fr) 34px; align-items: center; gap: 6px; }
+.m-preview-stepper button { width: 34px; height: 34px; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; background: rgba(255,255,255,.08); color: white; font-size: 20px; cursor: pointer; }
+.m-preview-stepper strong { color: white; font: 700 11px "DM Mono",monospace; text-align: center; }
+.m-preview-panel input[type="range"] { width: 100%; accent-color: #f6c65a; }
+.m-preview-exit { min-height: 34px; border: 0; border-radius: 6px; background: rgba(255,255,255,.1); color: #d7e5df; font-size: 9px; font-weight: 700; cursor: pointer; }
+.m-mobile-preview { margin-bottom: 12px; padding: 12px; border: 1px solid #ead39a; border-radius: 8px; display: grid; gap: 7px; background: var(--m-gold-soft); color: #6e5018; }
+.m-mobile-preview strong { font-size: 12px; }
+.m-mobile-preview span { font-size: 10px; }
+.m-mobile-preview input { width: 100%; accent-color: var(--m-gold); }
 
 @keyframes m-current-pulse { 0%,100% { box-shadow:0 7px 0 var(--m-purple-dark),0 14px 28px rgba(91,50,154,.2),0 0 0 0 rgba(116,71,185,.2); } 50% { box-shadow:0 7px 0 var(--m-purple-dark),0 14px 28px rgba(91,50,154,.25),0 0 0 12px rgba(116,71,185,0); } }
 @keyframes m-reward-bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
