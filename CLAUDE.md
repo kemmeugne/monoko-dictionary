@@ -390,6 +390,20 @@ both hard-refuse to run unless pointed at that exact test project ref.
   home, weekly ranking, continuous trail, lesson preview/Aller plus loin,
   ordinary gifts, automatic medal ceremony, real Grand défi handoff, confetti,
   culture modal and horizontal overflow at desktop/390/320px.
+- **Never complete a public `auth.signUp()` against the test project.** Supabase
+  sends a confirmation email to whatever address is used, and a fake one bounces
+  — enough of them and the project's email sending gets restricted (this
+  happened on 2026-08-23). Create users the way `scripts/seed_test_data.js`
+  does: `POST /auth/v1/admin/users` with `email_confirm: true`, which creates a
+  confirmed user and sends nothing. Signup *form* logic can still be tested in
+  the browser as long as the assertion stops on a path that returns before
+  `signUp()` is called — the taken-pseudonym refusal does — and the
+  accept path is asserted against `pseudonym_available()` directly.
+- **Do not assert on `document.body.textContent` in this app.** `index.html`
+  carries its React source in an inline `<script type="text/babel">`, and that
+  source is part of `body.textContent`, so any assertion on a user-facing string
+  also matches the code that produces it. Two checks passed this way while the
+  feature underneath was broken. Assert against the rendered element.
 - Full spec and session-by-session status: `HARNESS_SPRINT.md`. This runs
   before Phase 3 feature work and is a hard prerequisite for Phase 3.5
   (Stripe, quotas, rate limiting) per `PHASE3_LAUNCH_PLAN.md`.

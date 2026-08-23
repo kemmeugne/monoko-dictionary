@@ -121,3 +121,20 @@ POST path is "implemented but unused — client calls Space directly," so
 this is likely latent/dead code rather than an active bug. Tests are
 written against the code as it exists; flagging here rather than changing
 handler logic, which is out of scope for this sprint.
+
+## Never send email from a test
+
+Supabase mails a confirmation to any address passed to a public
+`auth.signUp()`. Fake addresses bounce, and enough bounces get the project's
+email sending restricted — which happened on 2026-08-23 after browser tests
+completed signups with `probe-...@monoko.app` addresses.
+
+Create users the way `scripts/seed_test_data.js` does:
+
+```
+POST /auth/v1/admin/users   { email, password, email_confirm: true }
+```
+
+That creates an already-confirmed user and sends nothing. Signup *form* logic
+can still be exercised in a browser, provided the test stops on a path that
+returns before `signUp()` is reached.
