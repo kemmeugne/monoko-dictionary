@@ -36,7 +36,14 @@ Last updated: 2026-08-22
   all learners and fixed once chosen. The ranking gained the dark standing
   card, a Rang/Apprenant/XP header and the gold "Vous" row. Exercise sessions
   are constrained to a 760px column instead of stretching across a desktop.
-  Needs `sql/account_settings.sql` applied before the UI ships.
+  `sql/account_settings.sql` applied 2026-08-23.
+- **Post-ship verification pass (2026-08-23)** — found and fixed five bugs in
+  the above: the signup pseudonym check queried `profiles` directly and RLS
+  made it always pass, so uniqueness was never warned about and a collision
+  left the learner with no profile row at all; the profile insert now retries
+  without the name; signing in from the settings gate landed on home; the
+  signup pseudonym field kept a stale value; and the auth gate called every
+  destination "cours". Needs `sql/pseudonym_availability.sql`.
 - **Public landing and lesson pages redesigned (2026-08-22)** — the three views
   the redesign had left behind now share the shell and the design tokens. `/` is
   a signed-out marketing landing with an immersive (non-interactive) hero map;

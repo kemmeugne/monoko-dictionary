@@ -4695,12 +4695,23 @@
           // insert is what makes "chosen once, at signup" true, since the
           // immutability trigger then refuses every later change.
           const chosen = (user.user_metadata?.public_pseudonym || "").trim();
-          await supabaseClient.from("profiles").insert({
+          const base = {
             user_id: user.id,
             display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Apprenant",
             preferred_language_id: languageId,
-            ...(chosen ? { public_pseudonym: chosen } : {}),
-          });
+          };
+          const { error: insertError } = await supabaseClient
+            .from("profiles").insert({ ...base, ...(chosen ? { public_pseudonym: chosen } : {}) });
+          // A pseudonym claimed between the signup check and here loses the
+          // race. Losing it must not cost the learner their profile row —
+          // without one they have no preferred language and no way back into
+          // their own course — so retry without the name and let them choose
+          // another in settings.
+          if (insertError && chosen && /duplicate key|public_pseudonym_unique/i.test(insertError.message || "")) {
+            await supabaseClient.from("profiles").insert(base);
+          } else if (insertError) {
+            throw insertError;
+          }
         } catch (error) { console.error("persist preferred language:", error); }
       };
 
@@ -5466,7 +5477,7 @@
       const requireAuth = (returnTo) => {
         setAuthReturnTo(returnTo);
         setAuthMode("login");
-        setAuthEmail(""); setAuthPassword(""); setAuthDisplayName(""); setAuthError("");
+        setAuthEmail(""); setAuthPassword(""); setAuthDisplayName(""); setAuthPseudonym(""); setAuthError("");
         setView("auth");
       };
 
@@ -5495,13 +5506,20 @@
               setAuthSubmitting(false);
               return;
             }
-            // Checked before the account exists so a taken name is reported on
-            // this form. It is only an early read — the unique index on
-            // profiles is what actually guarantees it.
-            const { data: taken } = await supabaseClient
-              .from("profiles").select("user_id")
-              .ilike("public_pseudonym", wantedPseudonym).maybeSingle();
-            if (taken) {
+            // Asked of the database, not of `profiles` directly: RLS is
+            // `auth.uid() = user_id`, so someone still signing up reads back an
+            // empty set for every name and every check would pass. The unique
+            // index remains the real guarantee; this is what makes the failure
+            // land on the form instead of after the account exists.
+            const { data: free, error: checkError } = await supabaseClient
+              .rpc("pseudonym_available", { p_name: wantedPseudonym });
+            // If the check itself is unavailable, let the signup through rather
+            // than blocking every new account on it: the unique index still
+            // refuses a duplicate, and the profile insert falls back to
+            // creating the row without the name. A missing migration should
+            // cost the early warning, not the ability to sign up at all.
+            if (checkError) console.error("pseudonym_available:", checkError);
+            if (free === false) {
               setAuthError("Ce pseudonyme est déjà utilisé. Choisissez-en un autre.");
               setAuthSubmitting(false);
               return;
@@ -5531,6 +5549,7 @@
           else if (authReturnTo === "live") { setView("live"); }
           else if (authReturnTo === "courses") { await loadCourseExperience({ navigate: true }); }
           else if (authReturnTo === "profile") { await loadCourseExperience(); setView("profile"); }
+          else if (authReturnTo === "settings") { setView("settings"); }
           else { setView("home"); }
           setAuthReturnTo(null);
         } catch(e) {
@@ -6980,7 +6999,7 @@
                     </h2>
                     {authReturnTo && (
                       <p style={{ fontSize:13, color:"#9B8A6E", margin:0 }}>
-                        Un compte est requis pour accéder aux {authReturnTo === "chat" ? "conversations" : authReturnTo === "live" ? "traductions en direct" : "cours"}.
+                        Un compte est requis pour accéder aux {authReturnTo === "chat" ? "conversations" : authReturnTo === "live" ? "traductions en direct" : authReturnTo === "settings" ? "paramètres" : "cours"}.
                       </p>
                     )}
                   </div>
@@ -7053,7 +7072,7 @@
 
                   {/* Error */}
                   {authError && (
-                    <div style={{ background: authError.startsWith("✓") ? "#E8F5EE" : "#FFF0F0", border:`1px solid ${authError.startsWith("✓") ? "#2C5F2D" : "#FFC0C0"}`, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, color: authError.startsWith("✓") ? "#2C5F2D" : "#C62828", fontWeight:600 }}>
+                    <div className="m-auth-message" role="status" style={{ background: authError.startsWith("✓") ? "#E8F5EE" : "#FFF0F0", border:`1px solid ${authError.startsWith("✓") ? "#2C5F2D" : "#FFC0C0"}`, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, color: authError.startsWith("✓") ? "#2C5F2D" : "#C62828", fontWeight:600 }}>
                       {authError}
                     </div>
                   )}

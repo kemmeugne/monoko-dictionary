@@ -123,6 +123,16 @@ rewards, streak and the resolved profile, plus the resume guard, or the next
 person to sign in on the device sees someone else's streak and lands in
 someone else's language.
 
+**Checking a pseudonym needs a SECURITY DEFINER function, not a select.**
+`profiles` RLS is `auth.uid() = user_id`, so a visitor who is still signing up
+reads back an empty set for *every* name — a availability check that queries
+the table directly always says "free", which is what the first version of this
+form did. `pseudonym_available(text)` answers the one question without exposing
+the table. If that function is missing the form lets the signup through rather
+than blocking it: the unique index still refuses the duplicate, and the profile
+insert retries without the name so the learner keeps a profile row. A missing
+migration costs the warning, never the ability to sign up.
+
 **The public pseudonym is chosen once.** It is asked for at signup, carried
 from auth metadata into `profiles` on the first insert, and then fixed: the
 `profiles_pseudonym_immutable` trigger refuses every later change including
@@ -177,7 +187,8 @@ sql/culture_capsules.sql          — editable lesson-linked cultural capsules +
 sql/culture_capsules_seed.sql     — 16 sourced Lingala/Congolese capsule drafts tied to relevant live lessons (applied 2026-08-22)
 sql/community_experience.sql      — profile pseudonyms/country, XP events, 500-XP level rewards and Grand défi state (applied 2026-08-22)
 sql/trail_rewards.sql             — protected ordinary-gift and medal-ceremony claims, culture unlocks, and developer reward rebuild helper (applied 2026-08-22, verified against production 2026-08-22)
-sql/account_settings.sql          — optional profile fields (phone/address/ethnicity) + pseudonym unique across ALL learners and immutable once chosen. Applied to monoko-test 2026-08-22; **PRODUCTION GATE — the settings screen writes these columns, and PostgREST rejects the whole row on one unknown column, so apply this before shipping that UI**
+sql/account_settings.sql          — optional profile fields (phone/address/ethnicity) + pseudonym unique across ALL learners and immutable once chosen (applied 2026-08-23)
+sql/pseudonym_availability.sql    — `pseudonym_available(text)` SECURITY DEFINER check, granted to anon. **NOT YET APPLIED to production.** Without it the signup form loses its early warning and falls back to the unique index (see below)
 scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~6,700 lines of React that no unit test slices
 make_alphabet_cut_tool.py         — builds alphabet_cut_tool.html: confirm where the WORD starts in each of L346's 46 clips. The clips read the sound before the word ('O ... Motoki'), and the structure varies (1-4 speech segments), so the tool proposes the last segment and a human confirms. Audio is base64-embedded because R2 sends no CORS header
 apply_alphabet_cuts.py            — cuts each clip to the confirmed word, uploads to R2 as <name>_word.mp3 (never overwriting the original), repoints lesson_pool. Needs .env.r2. Rollback JSON first
