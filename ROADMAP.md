@@ -28,6 +28,15 @@ Last updated: 2026-08-22
   navigation, full profile, medals and 16 editable Lingala/Congolese culture
   capsules. Claimable gifts, capsule reveals and medal ceremonies use the live
   progression state and include their production celebrations.
+- **Account settings, sign out and the weekly ranking (2026-08-22)** — a
+  settings screen for every personal detail (password, display name, one-time
+  pseudonym, country, ranking opt-in, optional phone/address/ethnicity), sign
+  out from both the rail and settings, and the language switch finally
+  reachable on a phone via the top-bar gear. The pseudonym is now unique across
+  all learners and fixed once chosen. The ranking gained the dark standing
+  card, a Rang/Apprenant/XP header and the gold "Vous" row. Exercise sessions
+  are constrained to a 760px column instead of stretching across a desktop.
+  Needs `sql/account_settings.sql` applied before the UI ships.
 - **Public landing and lesson pages redesigned (2026-08-22)** — the three views
   the redesign had left behind now share the shell and the design tokens. `/` is
   a signed-out marketing landing with an immersive (non-interactive) hero map;

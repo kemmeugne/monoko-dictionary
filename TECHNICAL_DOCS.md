@@ -289,7 +289,8 @@ One row per authenticated user.
 | `user_id` | UUID PK → auth.users | |
 | `display_name` | TEXT | User's chosen display name |
 | `preferred_language_id` | INT FK → languages | Written when the learner picks a language, and read on load to resume them there (2026-08-22). Until then only `saveLearnerProfile` set it, so it was a side effect of editing a pseudonym and nothing read it back |
-| `public_pseudonym` | TEXT | Optional unique name shown in rankings |
+| `public_pseudonym` | TEXT | Public name shown in rankings. **Unique across every learner and immutable once set** (`sql/account_settings.sql`): asked at signup, enforced by a full unique index on `lower(trim(...))` and the `profiles_pseudonym_immutable` trigger, which refuses changes and blanking alike |
+| `phone` / `address` / `ethnicity` | TEXT | Optional personal details offered in settings. Never required, never published, and deliberately outside the leaderboard endpoint's column list |
 | `country_code` | TEXT | Learner-selected ranking country |
 | `leaderboard_opt_in` | BOOLEAN | False by default; no ranking exposure without consent |
 | `created_at` | TIMESTAMPTZ | Auto |

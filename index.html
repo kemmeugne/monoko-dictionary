@@ -2506,8 +2506,8 @@
           <div style={{
             minHeight: "100dvh", background: "#FDFBF7",
             display: "flex", flexDirection: "column",
-            padding: "calc(env(safe-area-inset-top) + 14px) 18px calc(env(safe-area-inset-bottom) + 16px)",
-          }}>
+            padding: "calc(env(safe-area-inset-top) + 14px) 0 calc(env(safe-area-inset-bottom) + 16px)",
+          }} className="m-session-shell">
             <button onClick={onExit} aria-label="Quitter" style={{
               width: 44, height: 44, marginLeft: -10, border: "none", background: "none",
               color: "#9B8A6E", fontSize: 26, lineHeight: 1, cursor: "pointer", textAlign: "left",
@@ -2661,8 +2661,8 @@
         <div style={{
           minHeight: "100dvh", background: "#FDFBF7",
           display: "flex", flexDirection: "column",
-          padding: "calc(env(safe-area-inset-top) + 14px) 18px calc(env(safe-area-inset-bottom) + 16px)",
-        }}>
+          padding: "calc(env(safe-area-inset-top) + 14px) 0 calc(env(safe-area-inset-bottom) + 16px)",
+        }} className="m-session-shell">
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <button onClick={onExit} aria-label="Quitter la session" style={{
               width: 44, height: 44, marginLeft: -10, border: "none", background: "none",
@@ -3672,6 +3672,8 @@
       search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
       arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
       back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+      settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+      logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
       graduation: '<path d="m2 10 10-5 10 5-10 5L2 10Z"/><path d="M6 12v5c3 3 9 3 12 0v-5M22 10v6"/>',
       play: '<polygon points="8 5 19 12 8 19 8 5"/>',
       gift: '<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M7.5 8C5 8 4 6.7 4 5.5S5 3 6.5 3C9 3 12 8 12 8M16.5 8C19 8 20 6.7 20 5.5S19 3 17.5 3C15 3 12 8 12 8"/>',
@@ -3725,7 +3727,7 @@
       </div>;
     }
 
-    function GlobalRail({ active, langName, displayName, xp, completed, total, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage }) {
+    function GlobalRail({ active, langName, displayName, xp, completed, total, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut }) {
       return <aside className="m-rail" aria-label="Navigation principale">
         <button className="m-nav-button" onClick={onHome} style={{display:"flex", fontFamily:"'Playfair Display',serif", fontSize:22, color:"white", padding:0, marginBottom:24}}>
           <span className="m-brand-mark">M</span><span>Monɔkɔ</span>
@@ -3739,20 +3741,27 @@
           <button className={`m-nav-button ${active === "chat" ? "active" : ""}`} onClick={onChat}><UiIcon name="messages"/><span>Parler</span></button>
           <button className={`m-nav-button ${active === "live" ? "active" : ""}`} onClick={onLive}><UiIcon name="headphones"/><span>Traduction en direct</span></button>
         </nav>
-        <button className="m-rail-profile" onClick={onProfile}>
-          <span className="avatar">{initialsFor(displayName)}</span>
-          <span><strong>{displayName}</strong><small>{xp} XP</small></span>
-          <UiIcon name="chevron"/>
-        </button>
+        <div className="m-rail-account">
+          <button className="m-rail-profile" onClick={onProfile}>
+            <span className="avatar">{initialsFor(displayName)}</span>
+            <span><strong>{displayName}</strong><small>{xp} XP</small></span>
+            <UiIcon name="chevron"/>
+          </button>
+          <div className="m-rail-account-links">
+            <button onClick={onSettings}><UiIcon name="settings"/>Paramètres</button>
+            <button onClick={onSignOut}><UiIcon name="logout"/>Déconnexion</button>
+          </div>
+        </div>
       </aside>;
     }
 
-    function TopBar({ xp, streak, medals, onMenu, onHome, onProfile, onMore, moreOpen, moreContent }) {
+    function TopBar({ xp, streak, medals, onMenu, onHome, onProfile, onSettings, onMore, moreOpen, moreContent }) {
       return <header className="m-topbar">
         <button className="m-icon-button" onClick={onMenu} aria-label="Ouvrir le parcours"><UiIcon name="map"/></button>
         <button className="m-top-brand" onClick={onHome} style={{border:0, background:"transparent"}}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
         <div className="m-top-actions">
           <ProgressChips xp={xp} streak={streak} medals={medals} onProfile={onProfile}/>
+          {onSettings && <button className="m-icon-button m-top-settings" onClick={onSettings} aria-label="Paramètres"><UiIcon name="settings"/></button>}
           {onMore && <div className="m-developer-menu-wrap">
             <button className={`m-icon-button m-developer-more ${moreOpen ? "active" : ""}`} onClick={onMore} aria-label="Outils développeur" aria-expanded={moreOpen}><UiIcon name="more"/></button>
             {moreOpen && moreContent}
@@ -3770,15 +3779,15 @@
       </nav>;
     }
 
-    function StandardPage({ active, langName, currentUser, profile, courses, userProgress, levelRewards, xp, streak, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, children }) {
+    function StandardPage({ active, langName, currentUser, profile, courses, userProgress, levelRewards, xp, streak, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut, children }) {
       const displayName = displayNameFor(currentUser,profile);
       const done = completedLessons(courses,userProgress);
       const total = totalLessons(courses) || 49;
       const medals = earnedMedals(courses,userProgress,levelRewards);
       return <div className="m-app">
-        <GlobalRail active={active} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <GlobalRail active={active} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage} onSettings={onSettings} onSignOut={onSignOut}/>
         <main className="m-page">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile}/>
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
           <div className={`m-secondary-content ${active === "chat" || active === "live" ? "conversation" : ""}`}>{children}</div>
           <BottomNav active={active} onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
@@ -3872,7 +3881,7 @@
       </section>;
     }
 
-    function HomeHub({ activeSection, langName, stats, wordOfDay, currentUser, profile, courses, userProgress, levelRewards, xp, streak, lastLesson, onHome, onLearn, onDictionary, onBrowse, onSearch, onChat, onLive, onProfile, onLanguage, onWord, onResume }) {
+    function HomeHub({ activeSection, langName, stats, wordOfDay, currentUser, profile, courses, userProgress, levelRewards, xp, streak, lastLesson, onHome, onLearn, onDictionary, onBrowse, onSearch, onChat, onLive, onProfile, onLanguage, onSettings, onWord, onResume }) {
       const [direction, setDirection] = useState("french");
       const [term, setTerm] = useState("");
       const displayName = displayNameFor(currentUser, profile);
@@ -3883,7 +3892,7 @@
       return <div className="m-app">
         <GlobalRail active={activeSection} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
         <main className="m-page">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile}/>
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
           <div className="m-home">
             <header className="m-welcome">
               <div><div className="m-kicker"><span>{langName}</span><span>Votre espace</span></div><h1>Mbote, {displayName}</h1><p>Reprenez votre parcours ou explorez la langue à votre rythme.</p></div>
@@ -4031,7 +4040,7 @@
       </aside>;
     }
 
-    function CourseTrail({ courses, userProgress, stageByLesson, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, isDeveloper, developerUpdating, onSetDeveloperProgress, onClaimLessonReward, onClaimLevelReward, onCelebrate, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onOpenLesson, onLevelChallenge, onCapsule }) {
+    function CourseTrail({ courses, userProgress, stageByLesson, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, isDeveloper, developerUpdating, onSetDeveloperProgress, onClaimLessonReward, onClaimLevelReward, onCelebrate, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onOpenLesson, onLevelChallenge, onCapsule }) {
       const displayName = displayNameFor(currentUser, profile);
       const flat = courses.flatMap((course,courseIndex) => (course.lessons || []).map(lesson => ({lesson,course,courseIndex})));
       const actualCompleted = flat.filter(item => userProgress.has(item.lesson.id)).length;
@@ -4192,7 +4201,7 @@
       return <div className="m-course-layout">
         <CourseLevelRail courses={courses} userProgress={visibleProgress} levelRewards={levelRewards} levelChallenges={levelChallenges} focusedLevel={focusedLevel} displayName={displayName} xp={xp} onHome={onHome} onLevel={scrollLevel} onProfile={onProfile}/>
         <main className="m-course-main">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile} onMore={isDeveloper ? () => setDeveloperMenuOpen(value => !value) : null} moreOpen={developerMenuOpen} moreContent={<div className="m-developer-menu" role="menu" aria-label="Progression développeur"><header><strong>Mode développeur</strong><small>XP et récompenses réels</small></header>{developerPresets.map((preset,index) => <button key={`${preset.label}-${index}`} role="menuitem" disabled={developerUpdating} className={preset.count === actualCompleted ? "current" : ""} onClick={() => applyDeveloperPreset(preset)}><span>{preset.label}</span><b>{preset.count}</b></button>)}</div>}/>
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile} onSettings={onSettings} onMore={isDeveloper ? () => setDeveloperMenuOpen(value => !value) : null} moreOpen={developerMenuOpen} moreContent={<div className="m-developer-menu" role="menu" aria-label="Progression développeur"><header><strong>Mode développeur</strong><small>XP et récompenses réels</small></header>{developerPresets.map((preset,index) => <button key={`${preset.label}-${index}`} role="menuitem" disabled={developerUpdating} className={preset.count === actualCompleted ? "current" : ""} onClick={() => applyDeveloperPreset(preset)}><span>{preset.label}</span><b>{preset.count}</b></button>)}</div>}/>
           <div className="m-course-body">
             <header className="m-journey-heading">
               <div className="m-level-kicker"><span>Niveau {focusedLevel}</span><span>{focusedMeta.cefr}</span></div>
@@ -4258,12 +4267,11 @@
       "art-conversation":"assets/culture/capsules-1.jpg",
     }[capsule?.visual_key] || "assets/culture/capsules-1.jpg");
 
-    function ProfileHub({ courses, userProgress, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onSaveProfile, savingProfile, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onCapsule, onLevelChallenge }) {
+    function ProfileHub({ courses, userProgress, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onCapsule, onLevelChallenge }) {
       const [cultureLevel,setCultureLevel] = useState(1);
-      const [pseudo,setPseudo] = useState(profile?.public_pseudonym || displayNameFor(currentUser,profile));
       const [country,setCountry] = useState(profile?.country_code || "CA");
       const [participates,setParticipates] = useState(!!profile?.leaderboard_opt_in);
-      useEffect(() => { setPseudo(profile?.public_pseudonym || displayNameFor(currentUser,profile)); setCountry(profile?.country_code || "CA"); setParticipates(!!profile?.leaderboard_opt_in); }, [profile?.public_pseudonym,profile?.country_code,profile?.leaderboard_opt_in]);
+      useEffect(() => { setCountry(profile?.country_code || "CA"); setParticipates(!!profile?.leaderboard_opt_in); }, [profile?.country_code,profile?.leaderboard_opt_in]);
       const displayName = displayNameFor(currentUser,profile);
       const medals = earnedMedals(courses,userProgress,levelRewards);
       const visibleCapsules = cultureCapsules.filter(item => item.level === cultureLevel);
@@ -4279,23 +4287,203 @@
       return <div className="m-course-layout">
         <GlobalRail active="profile" langName="Lingala" displayName={displayName} xp={xp} completed={completedLessons(courses,userProgress)} total={totalLessons(courses)||49} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
         <main className="m-course-main">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile}/>
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
           <div className="m-profile">
             <header className="m-profile-heading"><span className="m-profile-avatar">{initialsFor(displayName)}</span><div><div className="m-kicker"><span>Profil</span><span>Lingala</span></div><h1>{displayName}</h1><p>Votre parcours, vos médailles et les histoires culturelles découvertes.</p></div></header>
             <div className="m-profile-stats"><div><UiIcon name="sparkles"/><strong>{xp}</strong><span>XP</span></div><div><UiIcon name="flame"/><strong>{streak}</strong><span>jours</span></div><div><UiIcon name="book"/><strong>{userProgress.size}</strong><span>leçons</span></div></div>
             <section className="m-collection"><div className="m-collection-heading"><div><span>Récompenses de niveau</span><h2>Médailles</h2></div><strong>{medals}/6</strong></div><div className="m-medal-grid">{LEVEL_META.map((meta,index) => { const course = courses[index]; const unlocked = !!course && levelRewards.has(course.id); const challenge = course && levelChallenges[course.id]; return <button className={`m-medal ${unlocked ? challenge?.passed ? "enriched" : "" : "locked"}`} disabled={!unlocked} onClick={() => onLevelChallenge(course)} key={meta.medal}><span className="m-medal-icon"><UiIcon name={unlocked ? "medal" : "lock"}/></span><strong>{challenge?.passed ? "Niveau enrichi" : unlocked ? meta.medal : "Médaille à découvrir"}</strong><small>{challenge?.passed ? `Grand défi · ${challenge.best_score}%` : unlocked ? "Grand défi disponible" : courseDone(course,userProgress) ? "À recevoir sur le parcours" : `Terminez le niveau ${index+1}`}</small></button>; })}</div></section>
-            <section className="m-collection"><div className="m-collection-heading"><div><span>Communauté Monɔkɔ</span><h2>Classement de la semaine</h2></div><strong>{leaderboardScope === "world" ? "Monde" : countryLabel}</strong></div>
-              <div className="m-ranking-spotlight"><div className="m-standing"><span className="m-standing-icon"><UiIcon name="trophy"/></span><span className="m-standing-copy"><small>Votre position</small><strong>{me ? `#${me.rank}` : "—"}</strong><b>{me ? `${leaderboardScope === "country" ? "au pays" : "dans le monde"} · sur ${leaderboard?.total || rows.length}` : "Activez votre participation"}</b></span></div></div>
-              <div className="m-ranking-tabs"><button className={leaderboardScope === "country" ? "active" : ""} onClick={() => onLeaderboardScope("country")}><UiIcon name="pin"/>Pays</button><button className={leaderboardScope === "world" ? "active" : ""} onClick={() => onLeaderboardScope("world")}><UiIcon name="globe"/>Monde</button></div>
-              {rows.length ? rows.map(row => <div className={`m-ranking-row ${row.me ? "me" : ""}`} key={`${leaderboardScope}-${row.rank}-${row.pseudonym}`}><span className="m-rank">#{row.rank}</span><span className="m-rank-avatar">{initialsFor(row.pseudonym)}</span><span className="m-rank-name"><strong>{row.pseudonym}{row.me ? " · vous" : ""}</strong><small>Série de {row.streak || 0} jours</small></span><span className="m-rank-score">{row.xp} XP</span></div>) : <div className="m-ranking-empty">{participates ? "Le classement apparaîtra dès que plusieurs apprenants auront gagné des XP cette semaine." : "Choisissez un pseudonyme et activez votre participation pour rejoindre le classement."}</div>}
-              <p className="m-privacy"><UiIcon name="shield"/>Seuls les pseudonymes et le pays choisi apparaissent.</p>
-              <div className="m-profile-settings"><label>Pseudonyme public<input value={pseudo} maxLength="24" onChange={event => setPseudo(event.target.value)} /></label><label>Pays<select value={country} onChange={event => setCountry(event.target.value)}><option value="CA">Canada</option><option value="CD">RDC</option><option value="CG">République du Congo</option><option value="FR">France</option><option value="BE">Belgique</option><option value="US">États-Unis</option><option value="OTHER">Autre</option></select></label><label className="m-toggle-row"><span>Participer au classement</span><input type="checkbox" checked={participates} onChange={event => setParticipates(event.target.checked)}/></label><button className="m-save-profile" disabled={savingProfile || !pseudo.trim()} onClick={() => onSaveProfile({public_pseudonym:pseudo.trim(),country_code:country,leaderboard_opt_in:participates})}>{savingProfile ? "Enregistrement..." : "Enregistrer le profil"}</button></div>
+            <section className="m-collection m-ranking">
+              <div className="m-collection-heading">
+                <div><span>Communauté Monɔkɔ</span><h2>Classement de la semaine</h2></div>
+                <strong className="m-ranking-place"><UiIcon name={leaderboardScope === "world" ? "globe" : "pin"}/>{leaderboardScope === "world" ? "Monde" : countryLabel}</strong>
+              </div>
+
+              <div className="m-ranking-spotlight">
+                <div className="m-standing">
+                  <span className="m-standing-icon"><UiIcon name="trophy"/></span>
+                  <span className="m-standing-copy">
+                    <small>Votre position</small>
+                    <strong>{me ? `#${me.rank}` : "—"}</strong>
+                    <b>{me
+                      ? `${leaderboardScope === "country" ? `au ${countryLabel}` : "dans le monde"} · sur ${(leaderboard?.total || rows.length).toLocaleString("fr-FR")}`
+                      : "Activez votre participation"}</b>
+                  </span>
+                </div>
+                <dl className="m-standing-stats">
+                  <div><dt>Cette semaine</dt><dd>{(me?.xp ?? 0).toLocaleString("fr-FR")} <span>XP</span></dd></div>
+                  <div><dt>Série active</dt><dd>{streak || 0} <span>{(streak || 0) > 1 ? "jours" : "jour"}</span></dd></div>
+                </dl>
+              </div>
+
+              <div className="m-ranking-tabs">
+                <button className={leaderboardScope === "country" ? "active" : ""} onClick={() => onLeaderboardScope("country")}><UiIcon name="pin"/>{countryLabel}</button>
+                <button className={leaderboardScope === "world" ? "active" : ""} onClick={() => onLeaderboardScope("world")}><UiIcon name="globe"/>Monde</button>
+              </div>
+
+              {rows.length ? <div className="m-ranking-table">
+                <div className="m-ranking-head"><span>Rang</span><span>Apprenant</span><span>XP</span></div>
+                {rows.map(row => <div className={`m-ranking-row ${row.me ? "me" : ""}`} key={`${leaderboardScope}-${row.rank}-${row.pseudonym}`}>
+                  <span className="m-rank">#{row.rank}</span>
+                  <span className="m-rank-avatar">{initialsFor(row.pseudonym)}</span>
+                  <span className="m-rank-name">
+                    <strong>{row.pseudonym}{row.me && <b className="m-rank-you">Vous</b>}</strong>
+                    <small><UiIcon name="flame"/>Série de {row.streak || 0} jours</small>
+                  </span>
+                  <span className="m-rank-score">{row.xp} <span>XP</span></span>
+                </div>)}
+              </div> : <div className="m-ranking-empty">{participates
+                ? "Le classement apparaîtra dès que plusieurs apprenants auront gagné des XP cette semaine."
+                : "Choisissez un pseudonyme et activez votre participation dans les paramètres pour rejoindre le classement."}</div>}
+
+              <p className="m-privacy"><UiIcon name="shield"/>Seuls les pseudonymes apparaissent dans le classement.</p>
+              <button className="m-ranking-settings" onClick={onSettings}><UiIcon name="settings"/>Pseudonyme, pays et participation</button>
             </section>
             <section className="m-collection"><div className="m-collection-heading"><div><span>Collection</span><h2>Culture des Congo</h2></div><strong>{unlockedCapsules.length}/{cultureCapsules.length}</strong></div><div className="m-culture-tabs">{LEVEL_META.map((_,index) => <button className={cultureLevel === index+1 ? "active" : ""} onClick={() => setCultureLevel(index+1)} key={index}>N{index+1}</button>)}</div><div className="m-culture-grid">{visibleCapsules.map(capsule => { const unlocked = capsuleUnlocked(capsule); return <button key={capsule.id} className={`m-culture-card ${unlocked ? "" : "locked"}`} disabled={!unlocked} onClick={() => onCapsule(capsule)}><span className="m-culture-art" style={{backgroundImage:`linear-gradient(rgba(22,60,50,.08),rgba(22,60,50,.28)),url("${capsuleImage(capsule)}")`}}>{!unlocked && <UiIcon name="lock"/>}</span><span className="m-culture-copy"><strong>{unlocked ? capsule.title : "Capsule à découvrir"}</strong><small>{unlocked ? capsule.region : "Ouvrez son cadeau sur le parcours"}</small></span></button>; })}</div></section>
           </div>
           <BottomNav active="profile" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
       </div>;
+    }
+
+    const COUNTRY_OPTIONS = [
+      ["CA","Canada"],["CD","République démocratique du Congo"],["CG","République du Congo"],
+      ["FR","France"],["BE","Belgique"],["US","États-Unis"],["OTHER","Autre"],
+    ];
+
+    function SettingsHub({ langName, currentUser, profile, courses, userProgress, levelRewards, xp, streak,
+                           saving, saveError, passwordSaving, passwordNote, onSave, onChangePassword,
+                           onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut }) {
+      const lockedPseudonym = (profile?.public_pseudonym || "").trim();
+      const [name, setName] = useState(profile?.display_name || "");
+      const [pseudo, setPseudo] = useState(lockedPseudonym);
+      const [country, setCountry] = useState(profile?.country_code || "CA");
+      const [participates, setParticipates] = useState(!!profile?.leaderboard_opt_in);
+      const [phone, setPhone] = useState(profile?.phone || "");
+      const [address, setAddress] = useState(profile?.address || "");
+      const [ethnicity, setEthnicity] = useState(profile?.ethnicity || "");
+      const [password, setPassword] = useState("");
+
+      useEffect(() => {
+        setName(profile?.display_name || "");
+        setPseudo((profile?.public_pseudonym || "").trim());
+        setCountry(profile?.country_code || "CA");
+        setParticipates(!!profile?.leaderboard_opt_in);
+        setPhone(profile?.phone || "");
+        setAddress(profile?.address || "");
+        setEthnicity(profile?.ethnicity || "");
+      }, [profile?.user_id, profile?.public_pseudonym, profile?.display_name]);
+
+      const submit = () => {
+        const values = {
+          display_name: name.trim() || "Apprenant",
+          country_code: country,
+          leaderboard_opt_in: participates,
+          phone: phone.trim() || null,
+          address: address.trim() || null,
+          ethnicity: ethnicity.trim() || null,
+        };
+        // Only ever sent while still unset; afterwards the field is read-only
+        // here and stripped in the save handler.
+        if (!lockedPseudonym && pseudo.trim()) values.public_pseudonym = pseudo.trim();
+        onSave(values);
+      };
+
+      return <StandardPage active="settings" langName={langName} currentUser={currentUser} profile={profile}
+        courses={courses} userProgress={userProgress} levelRewards={levelRewards} xp={xp} streak={streak}
+        onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive}
+        onProfile={onProfile} onLanguage={onLanguage} onSettings={onSettings} onSignOut={onSignOut}>
+        <div className="m-settings">
+          <header className="m-settings-heading">
+            <div className="m-kicker"><span>Votre compte</span></div>
+            <h1>Paramètres</h1>
+            <p>Vos informations personnelles. Seuls votre pseudonyme et votre pays apparaissent dans le classement.</p>
+          </header>
+
+          <section className="m-settings-card">
+            <h2>Compte</h2>
+            <label className="m-field readonly">
+              <span>Adresse e-mail</span>
+              <input value={currentUser?.email || ""} readOnly disabled/>
+              <small>L'adresse e-mail ne peut pas être modifiée ici.</small>
+            </label>
+            <label className="m-field">
+              <span>Nouveau mot de passe</span>
+              <input type="password" value={password} autoComplete="new-password" placeholder="6 caractères minimum"
+                     onChange={event => setPassword(event.target.value)}/>
+            </label>
+            <button className="m-settings-secondary" disabled={passwordSaving || password.length < 6}
+                    onClick={async () => { const ok = await onChangePassword(password); if (ok) setPassword(""); }}>
+              {passwordSaving ? "Modification…" : "Modifier le mot de passe"}
+            </button>
+            {passwordNote && <p className="m-settings-note">{passwordNote}</p>}
+          </section>
+
+          <section className="m-settings-card">
+            <h2>Profil</h2>
+            <label className="m-field">
+              <span>Nom affiché</span>
+              <input value={name} maxLength="40" onChange={event => setName(event.target.value)}/>
+              <small>Visible uniquement par vous.</small>
+            </label>
+            <label className={`m-field ${lockedPseudonym ? "readonly" : ""}`}>
+              <span>Pseudonyme public</span>
+              <input value={pseudo} maxLength="24" readOnly={!!lockedPseudonym} disabled={!!lockedPseudonym}
+                     placeholder="Choisissez-le avec soin"
+                     onChange={event => setPseudo(event.target.value)}/>
+              <small>{lockedPseudonym
+                ? "Choisi une seule fois : c'est le nom que les autres apprenants voient dans le classement."
+                : "Unique, et définitif une fois enregistré. C'est le nom que les autres apprenants verront."}</small>
+            </label>
+          </section>
+
+          <section className="m-settings-card">
+            <h2>Communauté</h2>
+            <label className="m-field">
+              <span>Pays</span>
+              <select value={country} onChange={event => setCountry(event.target.value)}>
+                {COUNTRY_OPTIONS.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+              </select>
+            </label>
+            <label className="m-toggle-row">
+              <span>Participer au classement hebdomadaire</span>
+              <input type="checkbox" checked={participates} onChange={event => setParticipates(event.target.checked)}/>
+            </label>
+            <p className="m-settings-note"><UiIcon name="shield"/>Sans participation, rien de vous n'apparaît dans le classement.</p>
+          </section>
+
+          <section className="m-settings-card">
+            <h2>Informations complémentaires</h2>
+            <p className="m-settings-hint">Facultatif. Rien ici n'est publié ni partagé.</p>
+            <label className="m-field"><span>Téléphone</span>
+              <input value={phone} maxLength="32" inputMode="tel" onChange={event => setPhone(event.target.value)}/></label>
+            <label className="m-field"><span>Adresse</span>
+              <input value={address} maxLength="200" onChange={event => setAddress(event.target.value)}/></label>
+            <label className="m-field"><span>Origine / ethnie</span>
+              <input value={ethnicity} maxLength="60" onChange={event => setEthnicity(event.target.value)}/></label>
+          </section>
+
+          <section className="m-settings-card">
+            <h2>Langue</h2>
+            <div className="m-settings-row">
+              <span><strong>{langName}</strong><small>Langue d'apprentissage active</small></span>
+              <button className="m-settings-secondary" onClick={onLanguage}>Changer</button>
+            </div>
+          </section>
+
+          {saveError && <p className="m-settings-error">{saveError}</p>}
+          <button className="m-settings-save" disabled={saving} onClick={submit}>
+            {saving ? "Enregistrement…" : "Enregistrer les modifications"}
+          </button>
+
+          <section className="m-settings-card danger">
+            <h2>Session</h2>
+            <div className="m-settings-row">
+              <span><strong>Se déconnecter</strong><small>{currentUser?.email}</small></span>
+              <button className="m-settings-signout" onClick={onSignOut}><UiIcon name="logout"/>Déconnexion</button>
+            </div>
+          </section>
+        </div>
+      </StandardPage>;
     }
 
     function CultureModal({ capsule, onClose, onCelebrate }) {
@@ -4373,6 +4561,9 @@
       const celebrationTimer = useRef(null);
       const [learnerProfile, setLearnerProfile] = useState(null);
       const [languageSheet, setLanguageSheet] = useState(false);
+      const [profileError, setProfileError] = useState("");
+      const [passwordSaving, setPasswordSaving] = useState(false);
+      const [passwordNote, setPasswordNote] = useState("");
       const resumedLanguageRef = useRef(false);
       const [profileSaving, setProfileSaving] = useState(false);
       const [leaderboardScope, setLeaderboardScope] = useState("country");
@@ -4399,6 +4590,7 @@
       const [authEmail, setAuthEmail] = useState("");
       const [authPassword, setAuthPassword] = useState("");
       const [authDisplayName, setAuthDisplayName] = useState("");
+      const [authPseudonym, setAuthPseudonym] = useState("");
       const [authError, setAuthError] = useState("");
       const [authSubmitting, setAuthSubmitting] = useState(false);
       const [authReturnTo, setAuthReturnTo] = useState(null); // "chat" | "courses"
@@ -4498,10 +4690,16 @@
             .eq("user_id", user.id).select("user_id").maybeSingle();
           if (error) throw error;
           if (data) return;
+          // First profile row for this learner. The pseudonym they chose at
+          // signup lives in auth metadata until here; carrying it over on the
+          // insert is what makes "chosen once, at signup" true, since the
+          // immutability trigger then refuses every later change.
+          const chosen = (user.user_metadata?.public_pseudonym || "").trim();
           await supabaseClient.from("profiles").insert({
             user_id: user.id,
             display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Apprenant",
             preferred_language_id: languageId,
+            ...(chosen ? { public_pseudonym: chosen } : {}),
           });
         } catch (error) { console.error("persist preferred language:", error); }
       };
@@ -4724,22 +4922,67 @@
       };
 
       const saveLearnerProfile = async values => {
-        if (!currentUser) return;
+        if (!currentUser) return false;
         setProfileSaving(true);
+        setProfileError("");
         try {
           const row = {
             user_id: currentUser.id,
-            display_name: currentUser.user_metadata?.display_name || currentUser.email?.split("@")[0] || "Apprenant",
+            // Never re-derive a name the learner has already chosen: this save
+            // runs from several forms, and only one of them edits the name.
+            display_name: values.display_name
+              ?? learnerProfile?.display_name
+              ?? currentUser.user_metadata?.display_name
+              ?? currentUser.email?.split("@")[0] ?? "Apprenant",
             preferred_language_id: langId,
             ...values,
           };
+          // A pseudonym is chosen once. Once it is set, drop it from every
+          // payload rather than resending it — saving an unrelated field must
+          // not depend on the immutability trigger tolerating a no-op write.
+          if (learnerProfile?.public_pseudonym?.trim()) delete row.public_pseudonym;
           const { data, error } = await supabaseClient.from("profiles").upsert(row, { onConflict: "user_id" }).select().single();
           if (error) throw error;
           setLearnerProfile(data);
           if (data.leaderboard_opt_in) await loadLeaderboard(leaderboardScope, true);
           else setLeaderboard({ rows: [], current: null, total: 0 });
-        } catch (error) { console.error("saveLearnerProfile:", error); }
+          return true;
+        } catch (error) {
+          console.error("saveLearnerProfile:", error);
+          const message = error?.message || "";
+          setProfileError(
+            /duplicate key|public_pseudonym_unique/i.test(message)
+              ? "Ce pseudonyme est déjà utilisé. Choisissez-en un autre."
+              : /pseudonyme ne peut pas/i.test(message)
+              ? "Le pseudonyme ne peut plus être modifié."
+              : "Enregistrement impossible. Vérifiez votre connexion et réessayez."
+          );
+          return false;
+        }
         finally { setProfileSaving(false); }
+      };
+
+      const changePassword = async password => {
+        setPasswordNote("");
+        if ((password || "").length < 6) { setPasswordNote("6 caractères minimum."); return false; }
+        setPasswordSaving(true);
+        try {
+          const { error } = await supabaseClient.auth.updateUser({ password });
+          if (error) throw error;
+          setPasswordNote("Mot de passe mis à jour.");
+          return true;
+        } catch (error) {
+          console.error("changePassword:", error);
+          setPasswordNote(/should be different/i.test(error?.message || "")
+            ? "Choisissez un mot de passe différent de l'actuel."
+            : "Modification impossible. Réessayez.");
+          return false;
+        } finally { setPasswordSaving(false); }
+      };
+
+      const openSettings = () => {
+        if (!currentUser) { requireAuth("settings"); return; }
+        setView("settings");
       };
 
       const openCourseTrail = async () => {
@@ -5243,11 +5486,34 @@
         setAuthError(""); setAuthSubmitting(true);
         try {
           if (authMode === "signup") {
+            // The pseudonym is chosen here and never again, so refuse a signup
+            // that would create an account without one rather than leaving the
+            // learner to discover the one-time choice later in settings.
+            const wantedPseudonym = authPseudonym.trim();
+            if (wantedPseudonym.length < 2) {
+              setAuthError("Choisissez un pseudonyme (2 caractères minimum).");
+              setAuthSubmitting(false);
+              return;
+            }
+            // Checked before the account exists so a taken name is reported on
+            // this form. It is only an early read — the unique index on
+            // profiles is what actually guarantees it.
+            const { data: taken } = await supabaseClient
+              .from("profiles").select("user_id")
+              .ilike("public_pseudonym", wantedPseudonym).maybeSingle();
+            if (taken) {
+              setAuthError("Ce pseudonyme est déjà utilisé. Choisissez-en un autre.");
+              setAuthSubmitting(false);
+              return;
+            }
             const { data, error } = await supabaseClient.auth.signUp({
               email: authEmail.trim(),
               password: authPassword,
               options: {
-                data: { display_name: authDisplayName.trim() || authEmail.trim().split("@")[0] },
+                data: {
+                  display_name: authDisplayName.trim() || authEmail.trim().split("@")[0],
+                  public_pseudonym: wantedPseudonym,
+                },
                 emailRedirectTo: "https://monoko-dictionary.vercel.app",
               },
             });
@@ -5277,10 +5543,28 @@
         setAuthSubmitting(false);
       };
 
+      // Signing out has to clear the learner, not just the session: progress,
+      // XP, rewards and the resolved profile all belong to the person who was
+      // signed in, and leaving them on screen shows the next person someone
+      // else's streak. Resetting the resume guard matters too, or the next
+      // learner to sign in on this device is not sent to their own language.
       const handleSignOut = async () => {
         await supabaseClient.auth.signOut();
         setTesterName("");
-        setView("home");
+        setLanguageSheet(false);
+        setUserProgress(new Set());
+        setStageByLesson({});
+        setLessonRewards(new Set());
+        setLevelRewards(new Set());
+        setLevelChallenges({});
+        setTotalXp(0);
+        setLearnerProfile(null);
+        setLeaderboard({ rows: [], current: null, total: 0 });
+        setStreak(null);
+        resumedLanguageRef.current = false;
+        clearLanguageState();
+        setSelectedLang(null);
+        setView("lang_select");
       };
 
       useEffect(() => {
@@ -5606,12 +5890,13 @@
       }, [chatMessages, chatLoading]);
 
       const activeStreak = streakDisplay(streak, localDay());
-      const redesignedView = ["lang_select", "home", "courses", "profile", "level_challenge", "lesson", "search", "browse", "detail", "chat", "live"].includes(view);
+      const redesignedView = ["lang_select", "home", "courses", "profile", "settings", "level_challenge", "lesson", "search", "browse", "detail", "chat", "live"].includes(view);
       const pageShellProps = {
         langName, currentUser, profile:learnerProfile, courses, userProgress, levelRewards, xp:totalXp, streak:activeStreak,
         onHome:openHome, onLearn:openCourseTrail, onDictionary:openDictionaryHome,
         onChat:openChat, onLive:() => currentUser ? setView("live") : requireAuth("live"),
         onProfile:openProfile, onLanguage:switchLanguage,
+        onSettings:openSettings, onSignOut:handleSignOut,
       };
 
       return (
@@ -5910,7 +6195,7 @@
                 onBrowse={() => { setHomeSection("dictionary"); setView("browse"); }}
                 onSearch={(term, mode) => { setHomeSection("dictionary"); setView("search"); doSearch(term, mode); }}
                 onChat={openChat} onLive={() => currentUser ? setView("live") : requireAuth("live")}
-                onProfile={openProfile} onLanguage={switchLanguage}
+                onProfile={openProfile} onLanguage={switchLanguage} onSettings={openSettings}
                 onWord={() => openWord(wordOfDay.id, "home")} onResume={resumeLesson}
               />
             )}
@@ -6203,8 +6488,22 @@
                 onSetDeveloperProgress={setDeveloperCourseProgress} onClaimLessonReward={claimLessonReward} onClaimLevelReward={claimLevelReward} onCelebrate={celebrate}
                 onHome={openHome} onLearn={openCourseTrail} onDictionary={openDictionaryHome}
                 onChat={openChat} onLive={() => setView("live")} onProfile={openProfile}
-                onLanguage={switchLanguage} onOpenLesson={openTrailLesson}
+                onLanguage={switchLanguage} onSettings={openSettings} onOpenLesson={openTrailLesson}
                 onLevelChallenge={openLevelChallengeBrief} onCapsule={setSelectedCapsule}
+              />
+            )}
+
+            {view === "settings" && selectedLang && currentUser && (
+              <SettingsHub
+                langName={langName} currentUser={currentUser} profile={learnerProfile}
+                courses={courses} userProgress={userProgress} levelRewards={levelRewards}
+                xp={totalXp} streak={activeStreak}
+                saving={profileSaving} saveError={profileError}
+                passwordSaving={passwordSaving} passwordNote={passwordNote}
+                onSave={saveLearnerProfile} onChangePassword={changePassword}
+                onHome={openHome} onLearn={openCourseTrail} onDictionary={openDictionaryHome}
+                onChat={openChat} onLive={() => setView("live")} onProfile={openProfile}
+                onLanguage={switchLanguage} onSettings={openSettings} onSignOut={handleSignOut}
               />
             )}
 
@@ -6214,10 +6513,9 @@
                 levelChallenges={levelChallenges}
                 currentUser={currentUser} profile={learnerProfile} xp={totalXp} streak={activeStreak}
                 leaderboard={leaderboard} leaderboardScope={leaderboardScope}
-                onLeaderboardScope={setLeaderboardScope} onSaveProfile={saveLearnerProfile}
-                savingProfile={profileSaving} onHome={openHome} onLearn={openCourseTrail}
+                onLeaderboardScope={setLeaderboardScope} onHome={openHome} onLearn={openCourseTrail}
                 onDictionary={openDictionaryHome} onChat={openChat} onLive={() => setView("live")}
-                onProfile={openProfile} onLanguage={switchLanguage} onCapsule={setSelectedCapsule} onLevelChallenge={openLevelChallengeBrief}
+                onProfile={openProfile} onLanguage={switchLanguage} onSettings={openSettings} onCapsule={setSelectedCapsule} onLevelChallenge={openLevelChallengeBrief}
               />
             )}
 
@@ -6710,6 +7008,22 @@
                         onFocus={e => e.target.style.borderColor="#2C5F2D"}
                         onBlur={e => e.target.style.borderColor="#E8E0D4"}
                       />
+                    </div>
+                  )}
+
+                  {/* Public pseudonym (signup only) — chosen once, never again */}
+                  {authMode === "signup" && (
+                    <div style={{ marginBottom:12 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Pseudonyme public</label>
+                      <input value={authPseudonym} onChange={e => setAuthPseudonym(e.target.value)}
+                        maxLength="24" placeholder="Visible dans le classement"
+                        style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
+                        onFocus={e => e.target.style.borderColor="#2C5F2D"}
+                        onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                      />
+                      <p style={{ margin:"6px 0 0", fontSize:11, color:"#9B8A6E", lineHeight:1.45 }}>
+                        Unique et définitif : c'est le nom que les autres apprenants verront.
+                      </p>
                     </div>
                   )}
 
