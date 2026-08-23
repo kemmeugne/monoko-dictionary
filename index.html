@@ -3819,6 +3819,7 @@
             <span className="flag">{LANG_THEMES[selectedName]?.emoji || "🌍"}</span>
             <span><small>{geo.family}</small><strong>{selectedName}</strong><b>{geo.speakers} de locuteurs</b></span>
             {selectedLanguage && <button onClick={() => openLanguage(selectedLanguage)} aria-label={`Ouvrir ${selectedName}`}><UiIcon name="arrow"/></button>}
+            {geo.description && <p className="m-landing-language-blurb">{geo.description}</p>}
           </aside>
 
           <div className="m-landing-map-tabs" aria-label="Langues sur la carte">
@@ -4569,13 +4570,6 @@
         selectLanguage(lang);
       };
 
-      // Signing out is the only remaining route back to the public landing page.
-      const leaveLanguage = () => {
-        setLanguageSheet(false);
-        clearLanguageState();
-        setSelectedLang(null);
-        setView("lang_select");
-      };
 
       // ── Progress helpers ──────────────────────────────────────────────────────
       const loadUserProgress = async (userId, languageId) => {
@@ -7069,7 +7063,6 @@
                         </button>;
                       })}
                     </div>
-                    <button className="m-language-sheet-exit" onClick={leaveLanguage}>Voir toutes les langues</button>
                   </div>
                 </section>
               </div>

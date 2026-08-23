@@ -513,7 +513,8 @@ button.m-chip { cursor: pointer; }
 .m-landing-actions .secondary { background: rgba(255,255,255,.92); color: var(--m-forest); box-shadow: inset 0 0 0 1px var(--m-line); }
 .m-landing-actions button:disabled { opacity: .5; cursor: not-allowed; }
 
-.m-landing-language-note { padding: 12px 14px; border-radius: 8px; display: grid; grid-template-columns: 46px minmax(0,1fr) auto; align-items: center; gap: 12px; background: rgba(255,255,255,.95); box-shadow: var(--m-shadow); }
+.m-landing-language-note { padding: 12px 14px; border-radius: 8px; display: grid; grid-template-columns: 46px minmax(0,1fr) auto; align-items: center; gap: 10px 12px; background: rgba(255,255,255,.95); box-shadow: var(--m-shadow); }
+.m-landing-language-blurb { grid-column: 1 / -1; margin: 0; padding-top: 9px; border-top: 1px solid var(--m-line); color: var(--m-muted); font-size: 12px; line-height: 1.5; }
 .m-landing-language-note .flag { width: 46px; height: 46px; border-radius: 8px; display: grid; place-items: center; background: var(--m-green-soft); font-size: 23px; }
 .m-landing-language-note > span:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
 .m-landing-language-note small { color: var(--m-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
@@ -578,11 +579,11 @@ button.m-chip { cursor: pointer; }
 .m-lesson-practice { min-width: 0; padding: 18px; border: 1px solid var(--m-line); border-radius: 8px; background: var(--m-surface); box-shadow: 0 3px 14px rgba(31,47,37,.05); }
 
 .m-language-sheet .m-modal-body { display: grid; gap: 14px; }
+.m-language-sheet .m-language-grid { grid-template-columns: 1fr; }
 .m-language-sheet .m-modal-body h2 { margin: 0; }
 .m-language-entry.current { border-color: var(--m-green); background: var(--m-green-soft); }
 .m-language-entry.current .m-language-flag { background: #fff; }
 .m-language-entry.current .m-language-entry-arrow { color: var(--m-forest); }
-.m-language-sheet-exit { min-height: 46px; border: 0; border-radius: 7px; background: var(--m-canvas); color: var(--m-forest); font: 700 12px "DM Sans", sans-serif; cursor: pointer; box-shadow: inset 0 0 0 1px var(--m-line); }
 
 /* Sons et alphabet (lesson 1.1). Four accents carry the phonetic grouping —
    that coding is the lesson's teaching device, so it stays; the hues are the
