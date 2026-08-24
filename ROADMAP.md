@@ -34,6 +34,13 @@ Last updated: 2026-08-22
   instead of rendering signed-out and only challenging at Parcours; the trail
   page carries Paramètres and Déconnexion; and changing a password asks for the
   current one plus the new one twice.
+- **Landing dictionary and folding language card (2026-08-24)** — the dictionary
+  renders on the landing page itself (language tabs, direction, search, results
+  that expand to senses with audio) instead of pushing a visitor into the app
+  shell. The language description is folded on arrival and toggles open, so the
+  map stays visible on a phone. Fixed hero clipping: `.m-landing-hero` is
+  `overflow: hidden`, so content wider than the viewport was cut off while
+  page-level overflow still read 0.
 - **Public dictionary + account actions everywhere (2026-08-24)** — the landing
   page routes straight into the dictionary for signed-out visitors (hero action,
   header nav, one button per language) and the shell renders a visitor variant

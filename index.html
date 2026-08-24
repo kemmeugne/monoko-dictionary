@@ -3804,7 +3804,125 @@
       </div>;
     }
 
-    function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, onOpenDictionary, currentUser }) {
+    // The dictionary, rendered on the landing page itself. Sending a visitor
+    // into the app shell to look up one word was a heavier answer than the
+    // question deserved, and it dropped them somewhere they had not asked to be.
+    function LandingDictionary({ languages, initialLanguage, onClose }) {
+      const [language, setLanguage] = useState(initialLanguage || languages[0] || null);
+      const [mode, setMode] = useState("french");
+      const [term, setTerm] = useState("");
+      const [rows, setRows] = useState([]);
+      const [busy, setBusy] = useState(false);
+      const [searched, setSearched] = useState(false);
+      const [openWord, setOpenWord] = useState(null);
+      const [senses, setSenses] = useState(null);
+
+      useEffect(() => { if (initialLanguage) setLanguage(initialLanguage); }, [initialLanguage?.id]);
+      useEffect(() => { setRows([]); setSearched(false); setOpenWord(null); setSenses(null); }, [language?.id, mode]);
+
+      const search = async () => {
+        const q = term.trim();
+        if (!q || !language) return;
+        setBusy(true); setSearched(true); setOpenWord(null); setSenses(null);
+        try {
+          if (mode === "french") {
+            const data = await supaFetch("words", `select=id,french_word,senses(dialect_word)&language_id=eq.${language.id}&french_word=ilike.*${encodeURIComponent(q)}*&order=french_word&limit=40`);
+            setRows(data.map(w => ({ id: w.id, french: w.french_word, dialect: w.senses?.map(s => s.dialect_word).join(" · ") || "" })));
+          } else {
+            const data = await supaFetch("senses", `select=id,dialect_word,words!inner(id,french_word,language_id)&words.language_id=eq.${language.id}&dialect_word=ilike.*${encodeURIComponent(q)}*&limit=40`);
+            const seen = new Set(); const mapped = [];
+            for (const s of data) if (s.words && !seen.has(s.words.id)) { seen.add(s.words.id); mapped.push({ id: s.words.id, french: s.words.french_word, dialect: s.dialect_word }); }
+            setRows(mapped);
+          }
+        } catch (error) { console.error("landing dictionary:", error); setRows([]); }
+        setBusy(false);
+      };
+
+      const toggleWord = async (row) => {
+        if (openWord === row.id) { setOpenWord(null); setSenses(null); return; }
+        setOpenWord(row.id); setSenses(null);
+        try {
+          const data = await supaFetch("senses", `word_id=eq.${row.id}&select=*,examples(*)&order=sense_number`);
+          setSenses(data || []);
+        } catch (error) { console.error("landing sense:", error); setSenses([]); }
+      };
+
+      return <section className="m-landing-dictionary" id="landing-dictionary" aria-label="Dictionnaire">
+        <header>
+          <div>
+            <div className="m-kicker"><span>Libre d'accès</span></div>
+            <h2>Dictionnaire</h2>
+          </div>
+          <button className="m-landing-dict-close" onClick={onClose} aria-label="Fermer le dictionnaire"><UiIcon name="close"/></button>
+        </header>
+
+        {languages.length > 1 && <div className="m-landing-dict-langs">
+          {languages.map(item => (
+            <button key={item.id} className={language?.id === item.id ? "active" : ""} onClick={() => setLanguage(item)}>
+              {LANG_THEMES[item.name]?.emoji || "🌍"} {item.name}
+            </button>
+          ))}
+        </div>}
+
+        <div className="m-segmented">
+          <button className={mode === "french" ? "active" : ""} onClick={() => setMode("french")}>Français → {language?.name}</button>
+          <button className={mode === "dialect" ? "active" : ""} onClick={() => setMode("dialect")}>{language?.name} → Français</button>
+        </div>
+
+        <form className="m-search" onSubmit={event => { event.preventDefault(); search(); }}>
+          <UiIcon name="search"/>
+          <input value={term} onChange={event => setTerm(event.target.value)}
+                 placeholder={mode === "french" ? "Tapez un mot en français…" : `Tapez un mot en ${(language?.name || "").toLowerCase()}…`}
+                 aria-label="Rechercher un mot"/>
+          <button type="submit" aria-label="Chercher"><UiIcon name="arrow"/></button>
+        </form>
+
+        {busy && <p className="m-landing-dict-note">Recherche…</p>}
+        {!busy && searched && rows.length === 0 && <p className="m-landing-dict-note">Aucun résultat pour « {term.trim()} ».</p>}
+        {!busy && !searched && <p className="m-landing-dict-note">{(language?.wordCount || 0).toLocaleString("fr-FR")} mots vérifiés par un professeur.</p>}
+
+        {rows.length > 0 && <div className="m-landing-dict-results">
+          {rows.map(row => (
+            <div key={row.id} className={`m-landing-dict-row ${openWord === row.id ? "open" : ""}`}>
+              <button onClick={() => toggleWord(row)} aria-expanded={openWord === row.id}>
+                <span><strong>{row.french}</strong>{row.dialect && <small>{row.dialect}</small>}</span>
+                <UiIcon name="chevron"/>
+              </button>
+              {openWord === row.id && (
+                senses === null ? <p className="m-landing-dict-note">Chargement…</p>
+                : senses.length === 0 ? <p className="m-landing-dict-note">Aucun détail disponible.</p>
+                : <div className="m-landing-dict-senses">
+                    {senses.map((sense, index) => (
+                      <div key={sense.id || index} className="m-landing-sense">
+                        <div className="m-landing-sense-head">
+                          <b>{sense.dialect_word}</b>
+                          <AudioButton src={sense.audio_url} title={`Écouter ${sense.dialect_word}`}/>
+                        </div>
+                        {sense.examples?.[0] && (
+                          <div className="m-landing-sense-example">
+                            <i>« {sense.examples[0].sentence_dialect} »</i>
+                            <span>{sense.examples[0].sentence_french}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+              )}
+            </div>
+          ))}
+        </div>}
+      </section>;
+    }
+
+    function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, currentUser }) {
+      // Closed on arrival: on a phone the description pushed the map off the
+      // screen, and the map is what tells a visitor this is about Africa.
+      const [noteOpen, setNoteOpen] = useState(false);
+      const [dictionaryFor, setDictionaryFor] = useState(null);
+      const openDictionary = language => {
+        setDictionaryFor(language || languages[0] || null);
+        window.setTimeout(() => document.querySelector("#landing-dictionary")?.scrollIntoView({ behavior:"smooth", block:"start" }), 60);
+      };
       const selectedName = selectedMapLang || "Lingala";
       const geo = LANG_GEO[selectedName] || LANG_GEO.Lingala;
       const selectedLanguage = languages.find(language => language.name === selectedName);
@@ -3820,7 +3938,7 @@
             <span className="m-landing-brand"><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></span>
             <nav aria-label="Navigation publique">
               <button onClick={scrollToLanguages}>Langues</button>
-              <button onClick={() => onOpenDictionary(lingala)}>Dictionnaire</button>
+              <button onClick={() => openDictionary(lingala)}>Dictionnaire</button>
               <button className="primary" disabled={!lingala} onClick={() => openLanguage(lingala)}>{currentUser ? "Mon espace" : "Commencer"}</button>
             </nav>
           </header>
@@ -3831,15 +3949,23 @@
             <p>Apprenez le lingala à travers une méthode progressive, un dictionnaire vivant et la voix de locuteurs experts.</p>
             <div className="m-landing-actions">
               <button className="primary" disabled={!lingala} onClick={() => openLanguage(lingala)}><span>🇨🇩</span> Apprendre le lingala <UiIcon name="arrow"/></button>
-              <button className="secondary" onClick={() => onOpenDictionary(lingala)}><UiIcon name="book"/> Consulter le dictionnaire</button>
+              <button className="secondary" onClick={() => openDictionary(lingala)}><UiIcon name="book"/> Consulter le dictionnaire</button>
             </div>
           </div>
 
-          <aside className="m-landing-language-note" aria-live="polite">
-            <span className="flag">{LANG_THEMES[selectedName]?.emoji || "🌍"}</span>
-            <span><small>{geo.family}</small><strong>{selectedName}</strong><b>{geo.speakers} de locuteurs</b></span>
-            {selectedLanguage && <button onClick={() => openLanguage(selectedLanguage)} aria-label={`Ouvrir ${selectedName}`}><UiIcon name="arrow"/></button>}
-            {geo.description && <p className="m-landing-language-blurb">{geo.description}</p>}
+          <aside className={`m-landing-language-note ${noteOpen ? "open" : ""}`} aria-live="polite">
+            <button className="m-landing-note-toggle" onClick={() => setNoteOpen(value => !value)}
+                    aria-expanded={noteOpen} aria-controls="landing-language-blurb">
+              <span className="flag">{LANG_THEMES[selectedName]?.emoji || "🌍"}</span>
+              <span><small>{geo.family}</small><strong>{selectedName}</strong><b>{geo.speakers} de locuteurs</b></span>
+              <UiIcon name="chevron"/>
+            </button>
+            {noteOpen && geo.description && (
+              <div id="landing-language-blurb" className="m-landing-language-blurb">
+                <p>{geo.description}</p>
+                {selectedLanguage && <button onClick={() => openLanguage(selectedLanguage)}>Apprendre {selectedName}<UiIcon name="arrow"/></button>}
+              </div>
+            )}
           </aside>
 
           <div className="m-landing-map-tabs" aria-label="Langues sur la carte">
@@ -3870,13 +3996,15 @@
           </div>}
           <div className="m-language-dictionaries">
             {languages.map(language => (
-              <button key={`dict-${language.id}`} onClick={() => onOpenDictionary(language)}>
+              <button key={`dict-${language.id}`} onClick={() => openDictionary(language)}>
                 <UiIcon name="book"/>Dictionnaire {language.name}
               </button>
             ))}
           </div>
           <footer>Le dictionnaire est libre d'accès. Les cours demandent un compte.</footer>
         </section>
+
+        {dictionaryFor && <LandingDictionary languages={languages} initialLanguage={dictionaryFor} onClose={() => setDictionaryFor(null)}/>}
       </div>;
     }
 
@@ -6124,7 +6252,7 @@
             {view === "lang_select" && <PublicLanding
               languages={languages} loading={loadingLangs} selectedMapLang={mapLang}
               onSelectMapLang={name => setMapLang(name)} onSelectLanguage={selectLanguage}
-              onOpenDictionary={openPublicDictionary} currentUser={currentUser}
+              currentUser={currentUser}
             />}
 
             {/* Legacy selector retained as a rollback reference. */}

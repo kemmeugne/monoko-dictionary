@@ -136,11 +136,26 @@ Password reset uses `resetPasswordForEmail` and always reports the same message
 whether or not the address has an account — a different one would turn the form
 into a way to test which e-mail addresses are registered.
 
-**The dictionary is the one public screen.** `search` / `browse` / `detail` are
-not in `PRIVATE_VIEWS`, and the landing page routes into them directly
-(`openPublicDictionary`) from the hero action, the header nav and a per-language
-button — it is the SEO and goodwill engine, free forever per
-`PHASE3_LAUNCH_PLAN.md`. Signed out, `StandardPage` renders a visitor shell:
+**The dictionary is the one public screen, and it renders ON the landing page.**
+`LandingDictionary` unfolds in place — language tabs, direction toggle, search,
+and results that expand to their senses, audio and an example — rather than
+sending a visitor into the app shell to look up one word. It is the SEO and
+goodwill engine, free forever per `PHASE3_LAUNCH_PLAN.md`. `search` / `browse` /
+`detail` remain outside `PRIVATE_VIEWS` and `openPublicDictionary` still exists
+as the in-shell fallback. **The hero clips rather than scrolls.** `.m-landing-hero` is
+`overflow: hidden`, so anything wider than the viewport is silently cut off and
+`scrollWidth - clientWidth` stays 0 — a page-level overflow check cannot see it.
+Adding one nav button was enough to push the grid's `auto` track past 390px and
+cut off the end of every line in the hero. The track is pinned with
+`grid-template-columns: minmax(0,1fr)`, the header wraps, and the landing check
+now measures element right edges against `innerWidth` instead of trusting the
+page-level number.
+
+**The language card is folded on arrival.** On a phone the description pushed
+the map off screen, and the map is what tells a visitor this is about Africa.
+It is a disclosure: tap to open, tap to close, closed by default.
+
+Signed out, `StandardPage` renders a visitor shell:
 `signedIn={false}` turns the rail account block and the XP/streak/medal chips
 into a "Se connecter" call, the bottom nav says Dictionnaire/Connexion, and the
 dictionary's back button returns to the landing rather than bouncing off the
