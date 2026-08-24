@@ -106,6 +106,7 @@ api/mms-tts.js                    — Vercel serverless function (warm-up GET pi
 api/cron/keep-tts-warm.js         — Vercel cron handler (GET ping to MMS_SPACE_URL; requires Vercel Pro for sub-hourly schedule)
 api/_rate-limit.js                — shared per-IP rate limiter + CORS helper, used by every api/*.js endpoint (in-memory sliding window)
 api/leaderboard.js                — authenticated weekly country/world ranking; returns pseudonyms only, never user ids
+api/geo.js                        — GET → { country } from Vercel's own `x-vercel-ip-country` edge header. No third-party geo-IP service, no learner IP leaving the platform, and it returns the country code alone — never city, region or coordinates. Absent header (local dev) returns null so the client falls back rather than recording a guess
 monoko-ui.css                     — production learner shell: public landing, home, continuous course trail, lesson pages, profile, rewards, ranking and responsive navigation
 course-trail-meta.js              — mock-matched lesson preview descriptions and estimated durations, kept separate from the exercise/content records
 COURSE_TRAIL_PARITY.md            — production contract for every course-trail behavior carried over from the isolated mock
@@ -193,6 +194,18 @@ the table. If that function is missing the form lets the signup through rather
 than blocking it: the unique index still refuses the duplicate, and the profile
 insert retries without the name so the learner keeps a profile row. A missing
 migration costs the warning, never the ability to sign up.
+
+**The country is resolved once, at signup, and is read-only afterwards.**
+`detectCountry()` asks `/api/geo`, the value rides in auth metadata to the first
+`profiles` insert, and the settings form no longer sends `country_code` at all —
+so that form cannot move a learner between rankings. **Caveat worth knowing:**
+edge geolocation reports where the request came from, not where the learner
+lives. A VPN, a corporate proxy, a carrier routing through another country, or
+simply signing up while travelling all record the wrong country, and the core
+market is diaspora — exactly the people most likely to be somewhere other than
+"their" country. There is no self-service correction, so a wrong value is a
+support request today. If that becomes a burden, the fix is a one-time
+correction at signup rather than reopening the field in settings.
 
 **The public pseudonym is chosen once.** It is asked for at signup, carried
 from auth metadata into `profiles` on the first insert, and then fixed: the

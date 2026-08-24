@@ -4497,8 +4497,8 @@
       </div>;
     }
 
-    function AuthPage({ mode, email, password, displayName, pseudonym, error, submitting, returnTo,
-                        onMode, onEmail, onPassword, onDisplayName, onPseudonym, onSubmit, onForgot, onLanding }) {
+    function AuthPage({ mode, email, password, passwordConfirm, displayName, pseudonym, error, submitting, returnTo,
+                        onMode, onEmail, onPassword, onPasswordConfirm, onDisplayName, onPseudonym, onSubmit, onForgot, onLanding }) {
       const isSignup = mode === "signup";
       const isForgot = mode === "forgot";
       const submit = event => { event.preventDefault(); isForgot ? onForgot() : onSubmit(); };
@@ -4569,6 +4569,15 @@
               </label>
             )}
 
+            {isSignup && (
+              <label className="m-field">
+                <span>Confirmer le mot de passe</span>
+                <input type="password" value={passwordConfirm} autoComplete="new-password"
+                       placeholder="Retapez votre mot de passe"
+                       onChange={event => onPasswordConfirm(event.target.value)}/>
+              </label>
+            )}
+
             {error && <div className={`m-auth-message ${error.startsWith("✓") ? "ok" : ""}`} role="status">{error}</div>}
 
             <button className="m-auth-submit" type="submit" disabled={submitting}>
@@ -4618,7 +4627,8 @@
       const submit = () => {
         const values = {
           display_name: name.trim() || "Apprenant",
-          country_code: country,
+          // country_code is deliberately absent: it is resolved once at signup
+          // and this form must not be able to move a learner between rankings.
           leaderboard_opt_in: participates,
           phone: phone.trim() || null,
           address: address.trim() || null,
@@ -4694,11 +4704,10 @@
 
           <section className="m-settings-card">
             <h2>Communauté</h2>
-            <label className="m-field">
+            <label className="m-field readonly">
               <span>Pays</span>
-              <select value={country} onChange={event => setCountry(event.target.value)}>
-                {COUNTRY_OPTIONS.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
-              </select>
+              <input value={(COUNTRY_OPTIONS.find(([code]) => code === country) || [null, "—"])[1]} readOnly disabled/>
+              <small>Déterminé à l'inscription et non modifiable. Écrivez-nous si ce n'est pas le bon.</small>
             </label>
             <label className="m-toggle-row">
               <span>Participer au classement hebdomadaire</span>
@@ -4847,6 +4856,7 @@
       const [authPassword, setAuthPassword] = useState("");
       const [authDisplayName, setAuthDisplayName] = useState("");
       const [authPseudonym, setAuthPseudonym] = useState("");
+      const [authPasswordConfirm, setAuthPasswordConfirm] = useState("");
       const [authError, setAuthError] = useState("");
       const [authSubmitting, setAuthSubmitting] = useState(false);
       const [authReturnTo, setAuthReturnTo] = useState(null); // "chat" | "courses"
@@ -4955,6 +4965,7 @@
             user_id: user.id,
             display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Apprenant",
             preferred_language_id: languageId,
+            country_code: user.user_metadata?.country_code || "CA",
           };
           const { error: insertError } = await supabaseClient
             .from("profiles").insert({ ...base, ...(chosen ? { public_pseudonym: chosen } : {}) });
@@ -5774,7 +5785,7 @@
       const requireAuth = (returnTo) => {
         setAuthReturnTo(returnTo);
         setAuthMode("login");
-        setAuthEmail(""); setAuthPassword(""); setAuthDisplayName(""); setAuthPseudonym(""); setAuthError("");
+        setAuthEmail(""); setAuthPassword(""); setAuthPasswordConfirm(""); setAuthDisplayName(""); setAuthPseudonym(""); setAuthError("");
         setView("auth");
       };
 
@@ -5803,6 +5814,11 @@
               setAuthSubmitting(false);
               return;
             }
+            if (authPassword !== authPasswordConfirm) {
+              setAuthError("Les deux mots de passe ne correspondent pas.");
+              setAuthSubmitting(false);
+              return;
+            }
             // Asked of the database, not of `profiles` directly: RLS is
             // `auth.uid() = user_id`, so someone still signing up reads back an
             // empty set for every name and every check would pass. The unique
@@ -5828,6 +5844,7 @@
                 data: {
                   display_name: authDisplayName.trim() || authEmail.trim().split("@")[0],
                   public_pseudonym: wantedPseudonym,
+                  country_code: await detectCountry(),
                 },
                 emailRedirectTo: "https://monoko-dictionary.vercel.app",
               },
@@ -5864,6 +5881,19 @@
       // signed in, and leaving them on screen shows the next person someone
       // else's streak. Resetting the resume guard matters too, or the next
       // learner to sign in on this device is not sent to their own language.
+      // Resolved once, at signup, from Vercel's edge geolocation — no
+      // third-party geo-IP service and no learner IP leaving the platform.
+      // A failure here must never block a signup, so it falls back to the
+      // default rather than surfacing an error.
+      const detectCountry = async () => {
+        try {
+          const response = await fetch("/api/geo");
+          if (!response.ok) return "CA";
+          const data = await response.json();
+          return data?.country || "CA";
+        } catch (error) { console.error("detectCountry:", error); return "CA"; }
+      };
+
       const handleForgotPassword = async () => {
         const address = authEmail.trim();
         if (!address) { setAuthError("Indiquez votre adresse e-mail."); return; }
@@ -7311,10 +7341,10 @@
             {/* AUTH */}
             {view === "auth" && (
               <AuthPage
-                mode={authMode} email={authEmail} password={authPassword}
+                mode={authMode} email={authEmail} password={authPassword} passwordConfirm={authPasswordConfirm}
                 displayName={authDisplayName} pseudonym={authPseudonym}
                 error={authError} submitting={authSubmitting} returnTo={authReturnTo}
-                onMode={setAuthMode} onEmail={setAuthEmail} onPassword={setAuthPassword}
+                onMode={setAuthMode} onEmail={setAuthEmail} onPassword={setAuthPassword} onPasswordConfirm={setAuthPasswordConfirm}
                 onDisplayName={setAuthDisplayName} onPseudonym={setAuthPseudonym}
                 onSubmit={handleAuthSubmit} onForgot={handleForgotPassword}
                 onLanding={() => { setAuthError(""); setView("lang_select"); }}
