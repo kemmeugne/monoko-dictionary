@@ -17,9 +17,10 @@ Supabase progress records and the real 20-question exercise engine.
 | Enriched level | First 80% pass awards 300 XP and upgrades the level and medal permanently. |
 | Celebrations | Gift, capsule, medal, and first distinction reveals emit confetti. |
 | Reward horizon | Shows the nearest available gift, medal, challenge, or next reward. |
-| Developer controls | Presets rebuild real XP/rewards and leave the boundary reward claimable. |
+| Developer controls | Presets rebuild real XP/rewards; the next-lesson simulator animates completion and re-arms boundary ceremonies. |
 | Profile | Claimed medals, challenge upgrades, capsules, ranking, XP, and streak remain visible. |
 | Responsive UI | Desktop sheets are centered; mobile sheets rise from the bottom without overflow. |
 
-Prototype-only demo buttons and fake score setters are intentionally excluded.
-Production always launches and scores the real exercise engine.
+Fake learner score setters remain excluded. The mock's completion button exists
+only for accounts in `app_developers` and updates that developer's protected
+production snapshot; ordinary learners always launch and score the real engine.

@@ -13,8 +13,9 @@ order of Section 3. The deliverable of every session is **the component
 running green**, not code written.
 
 **Implementation status (2026-08-24)**: Sessions 1–5 are implemented. Vitest has
-306 passing tests; the compiled app passes Chromium smoke tests at desktop,
-390px and 320px, including an authenticated monoko-test trail/lesson run; the
+310 passing tests; the compiled app passes Chromium smoke tests at desktop,
+390px and 320px, including authenticated monoko-test trail/lesson runs and a
+developer completion/medal replay with a deterministic progress reset; the
 guardrail scans secrets, correction RLS, progression writes and API auth; and
 `.github/workflows/ci.yml` runs the gates. The first Vercel-preview PR run still
 needs to be observed before the preview portion can be called operationally

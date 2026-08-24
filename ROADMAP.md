@@ -68,10 +68,15 @@ separate maintainability task (`BUILD_AND_SPLIT_PLAN.md`).
   Supabase bearer token and use durable per-account quotas; corrections are
   private and server-mediated; competitive progression is recorded by trusted,
   idempotent database functions; country immutability is database-enforced.
-  The compiled build, secret/RLS guardrails, 306 unit tests, and Chromium smoke
+  The compiled build, secret/RLS guardrails, 310 unit tests, and Chromium smoke
   tests at desktop, 390px and 320px now run in GitHub Actions. The migration was
   verified on `monoko-test`, applied to production, and its anonymous boundaries
   rechecked on 2026-08-24. The exposed legacy key was revoked and Vercel was moved to a server-only `sb_secret_...` key on 2026-08-24.
+- **Developer progression simulator (2026-08-24)** — authorized developers can
+  now advance the next lesson from either its preview or the three-dot menu.
+  Production XP and reward state is rebuilt through the protected developer
+  RPC; the trail animates the completed and unlocked nodes, shows a status
+  confirmation, and replays the automatic medal sheet at a level boundary.
 
 ### Bugs this cycle worth remembering
 
@@ -330,7 +335,7 @@ Due items are served **below** breadth in `selectionOrder` — an unseen item ha
 no schedule row and cannot be due, so scheduling first would have undone the
 breadth-first coverage Slice 6 measured.
 
-**Verification grew with it.** `npm test` is **306** (was 228); the esbuild
+**Verification grew with it.** `npm test` is **310** (was 228); the esbuild
 production build parses the whole JSX block, so a stray bracket no unit test
 slices fails the release gate instead of shipping a blank page; and
 **`npm run verify:progression`** exercises the write path
@@ -356,7 +361,8 @@ open an automatic medal ceremony before the Grand défi becomes available.
 Home, profile, culture collection and the opt-in weekly pseudonym ranking share
 the same live progression state. Authorized developer presets rebuild real
 progress and prior rewards while leaving the selected boundary claimable for
-ceremony testing. The release is covered by a repeatable authenticated
+ceremony testing; a one-lesson simulator now exercises the real path animation
+and automatically replays a boundary medal. The release is covered by a repeatable authenticated
 real-Chrome check against monoko-test at desktop, 390px and 320px.
 
 ---

@@ -5,6 +5,21 @@ const credentialsPresent = Boolean(
   process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD
 );
 
+async function resetDeveloperBoundary(page) {
+  const rewardLater = page.locator(".m-trail-reward-modal button", { hasText: "Plus tard" });
+  if (await rewardLater.isVisible()) await rewardLater.click();
+  await page.locator(".m-developer-more").click();
+  page.once("dialog", dialog => dialog.accept());
+  await page.locator(".m-developer-menu button", { hasText: "Niveau 2 ouvert" }).click();
+  await expect(page.locator(".m-path-node.current")).toBeVisible();
+  try {
+    await rewardLater.waitFor({ state: "visible", timeout: 1_000 });
+    await rewardLater.click();
+  } catch {
+    // The session may already have acknowledged this boundary ceremony.
+  }
+}
+
 test.describe("authenticated learner", () => {
   test.skip(!credentialsPresent, "Authenticated smoke credentials are not configured");
 
@@ -36,9 +51,41 @@ test.describe("authenticated learner", () => {
     } catch {
       // No pending milestone ceremony for this seed state.
     }
-    const lesson = page.locator(".m-path-node:not(.reward):not(.gate):not(.locked)").first();
+    await resetDeveloperBoundary(page);
+    const lesson = page.locator(".m-path-node.current").first();
     await lesson.click();
     await expect(page.locator(".m-lesson-preview")).toBeVisible();
     await expect(page.locator(".m-lesson-preview")).toContainText("80 % pour avancer");
+    await expect(page.locator(".m-developer-complete")).toContainText("Simuler la leçon réussie");
+  });
+
+  test("developer can simulate the next lesson and replay the milestone", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "One shared test account mutates progression only once");
+
+    await page.goto("/");
+    await page.locator(".m-language-entry", { hasText: "Lingala" }).click();
+    await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
+    await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
+    await page.locator(".m-auth-submit").click();
+    await expect(page.locator(".m-home")).toBeVisible({ timeout: 20_000 });
+    await page.locator(".m-rail nav button", { hasText: "Apprendre" }).click();
+    await expect(page.locator(".m-path-trail")).toBeVisible({ timeout: 20_000 });
+
+    await resetDeveloperBoundary(page);
+
+    try {
+      const currentItem = page.locator("[data-trail-lesson-id]", { has: page.locator(".m-path-node.current") }).first();
+      const lessonId = await currentItem.getAttribute("data-trail-lesson-id");
+      const completedItem = page.locator(`[data-trail-lesson-id="${lessonId}"]`);
+      await currentItem.locator(".m-path-node").click();
+      await page.locator(".m-developer-complete").click();
+
+      await expect(page.locator(".m-developer-notice")).toContainText("progression mise à jour");
+      await expect(completedItem).toHaveClass(/just-completed/);
+      await expect(completedItem.locator(".m-path-node")).toHaveClass(/completed/);
+      await expect(page.locator(".m-trail-reward-modal")).toContainText("Niveau 2 terminé");
+    } finally {
+      await resetDeveloperBoundary(page);
+    }
   });
 });

@@ -28,7 +28,7 @@
     @keyframes waveC{0%{height:14px}100%{height:32px}}
     @keyframes micRing{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4),0 6px 24px rgba(0,0,0,0.2)}50%{box-shadow:0 0 0 16px rgba(22,163,74,0),0 6px 24px rgba(22,163,74,0.35)}}
   </style>
-  <link rel="stylesheet" href="/monoko-ui.css?v=20260822-7">
+  <link rel="stylesheet" href="/monoko-ui.css?v=20260824-1">
 </head>
 <body>
   <div id="root"></div>
@@ -3723,6 +3723,11 @@
     const courseDone = (course, progress) => !!course?.lessons?.length && course.lessons.every(lesson => progress.has(lesson.id));
     const totalLessons = (courses) => courses.reduce((sum, course) => sum + (course.lessons?.length || 0), 0);
     const completedLessons = (courses, progress) => courses.reduce((sum, course) => sum + (course.lessons || []).filter(lesson => progress.has(lesson.id)).length, 0);
+    const developerLessonTarget = (flatLessons, progress, lessonId) => {
+      const currentIndex = flatLessons.findIndex(item => !progress.has(item.lesson.id));
+      const selectedIndex = flatLessons.findIndex(item => item.lesson.id === lessonId);
+      return selectedIndex >= 0 && selectedIndex === currentIndex ? selectedIndex + 1 : null;
+    };
     const earnedMedals = (courses, progress, rewards) => rewards
       ? courses.filter(course => rewards.has(course.id)).length
       : courses.filter(course => courseDone(course, progress)).length;
@@ -4102,7 +4107,7 @@
       })}</div>;
     }
 
-    function TrailLessonModal({ selection, eligibility, onClose, onOpenLesson }) {
+    function TrailLessonModal({ selection, eligibility, isDeveloper, developerUpdating, onClose, onOpenLesson, onDeveloperComplete }) {
       if (!selection) return null;
       const { lesson, course, status, stage } = selection;
       const meta = trailLessonMeta(lesson);
@@ -4121,6 +4126,7 @@
             <span><UiIcon name="clock"/>{meta.minutes} min</span>
           </div>
           <button className="m-lesson-primary" onClick={() => onOpenLesson(lesson,course)}>{completed ? "Revoir la leçon" : "Continuer la leçon"}</button>
+          {isDeveloper && !completed && <button className="m-developer-complete" disabled={developerUpdating} onClick={onDeveloperComplete}><UiIcon name="sparkles"/>{developerUpdating ? "Simulation en cours…" : "Simuler la leçon réussie"}</button>}
           {completed && eligibility === true && <button className="m-lesson-elargir" onClick={() => onOpenLesson(lesson,course,"elargir")}>{stage?.elargir_best ? `Aller plus loin · record ${stage.elargir_best}%` : "Aller plus loin"}</button>}
           {completed && eligibility === "loading" && <div className="m-lesson-eligibility">Vérification du défi…</div>}
         </section>
@@ -4223,7 +4229,9 @@
       const [claimingReward,setClaimingReward] = useState(false);
       const [selectedTrailLesson,setSelectedTrailLesson] = useState(null);
       const [lessonEligibility,setLessonEligibility] = useState(false);
+      const [developerNotice,setDeveloperNotice] = useState(null);
       const promptedMilestones = useRef(new Set());
+      const developerNoticeTimer = useRef(null);
       const route = [];
       let lessonIndex = -1;
       const levelRouteStarts = {};
@@ -4258,13 +4266,39 @@
         const result = await onSetDeveloperProgress(preset.count);
         if (result) setDeveloperMenuOpen(false);
       };
+      const simulateDeveloperCompletion = async item => {
+        const target = developerLessonTarget(flat,visibleProgress,item?.lesson?.id);
+        if (!isDeveloper || !target || developerUpdating) return;
+        const finishedLevel = target === courseEnds[item.courseIndex];
+        if (finishedLevel) {
+          const promptKey = `monoko_medal_prompt_${currentUser?.id || "user"}_${item.course.id}`;
+          window.sessionStorage.removeItem(promptKey);
+          promptedMilestones.current.delete(item.course.id);
+        }
+        setDeveloperMenuOpen(false);
+        const result = await onSetDeveloperProgress(target);
+        if (!result) return;
+        const nextItem = flat[target] || null;
+        setSelectedTrailLesson(null);
+        setFocusedLevel(item.courseIndex+1);
+        window.clearTimeout(developerNoticeTimer.current);
+        setDeveloperNotice({ lessonId:item.lesson.id, nextLessonId:nextItem?.lesson?.id || null, title:item.lesson.title });
+        developerNoticeTimer.current = window.setTimeout(() => setDeveloperNotice(null),2800);
+        window.setTimeout(() => {
+          const destination = finishedLevel
+            ? document.querySelector(`#reward-node-${item.lesson.id}`)
+            : document.querySelector(`[data-trail-lesson-id="${nextItem?.lesson?.id}"]`);
+          destination?.scrollIntoView({behavior:"smooth",block:"center"});
+        },140);
+      };
+      useEffect(() => () => window.clearTimeout(developerNoticeTimer.current), []);
       const openTrailReward = (item,capsule,status,xpAmount) => {
         setSelectedReward({ lesson:item.lesson, course:item.course, capsule, xp:xpAmount, milestone:item.milestone, levelNumber:item.courseIndex+1 });
         setRewardStep(status === "completed" ? "revealed" : "closed");
       };
       const openTrailLessonPreview = async (item,status) => {
         setFocusedLevel(item.courseIndex+1);
-        setSelectedTrailLesson({ lesson:item.lesson, course:item.course, status, stage:stageByLesson[item.lesson.id] });
+        setSelectedTrailLesson({ lesson:item.lesson, course:item.course, courseIndex:item.courseIndex, lessonIndex:item.lessonIndex, status, stage:stageByLesson[item.lesson.id] });
         if (status !== "completed") { setLessonEligibility(false); return; }
         setLessonEligibility("loading");
         try {
@@ -4365,7 +4399,7 @@
       return <div className="m-course-layout">
         <CourseLevelRail courses={courses} userProgress={visibleProgress} levelRewards={levelRewards} levelChallenges={levelChallenges} focusedLevel={focusedLevel} displayName={displayName} xp={xp} onHome={onHome} onLevel={scrollLevel} onProfile={onProfile} onSettings={onSettings} onSignOut={onSignOut}/>
         <main className="m-course-main">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile} onSettings={onSettings} onMore={isDeveloper ? () => setDeveloperMenuOpen(value => !value) : null} moreOpen={developerMenuOpen} moreContent={<div className="m-developer-menu" role="menu" aria-label="Progression développeur"><header><strong>Mode développeur</strong><small>XP et récompenses réels</small></header>{developerPresets.map((preset,index) => <button key={`${preset.label}-${index}`} role="menuitem" disabled={developerUpdating} className={preset.count === actualCompleted ? "current" : ""} onClick={() => applyDeveloperPreset(preset)}><span>{preset.label}</span><b>{preset.count}</b></button>)}</div>}/>
+          <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile} onSettings={onSettings} onMore={isDeveloper ? () => setDeveloperMenuOpen(value => !value) : null} moreOpen={developerMenuOpen} moreContent={<div className="m-developer-menu" role="menu" aria-label="Progression développeur"><header><strong>Mode développeur</strong><small>XP et récompenses réels</small></header>{currentIndex < flat.length && <button className="simulate" role="menuitem" disabled={developerUpdating} onClick={() => simulateDeveloperCompletion(flat[currentIndex])}><span>{developerUpdating ? "Simulation en cours…" : "Simuler la prochaine leçon"}</span><b>+1</b></button>}{developerPresets.map((preset,index) => <button key={`${preset.label}-${index}`} role="menuitem" disabled={developerUpdating} className={preset.count === actualCompleted ? "current" : ""} onClick={() => applyDeveloperPreset(preset)}><span>{preset.label}</span><b>{preset.count}</b></button>)}</div>}/>
           <div className="m-course-body">
             <header className="m-journey-heading">
               <div className="m-level-kicker"><span>Niveau {focusedLevel}</span><span>{focusedMeta.cefr}</span></div>
@@ -4387,7 +4421,7 @@
                 if (item.type === "lesson") {
                   const enriched = (stageByLesson[item.lesson.id]?.elargir_best || 0) >= 80;
                   const sub = enriched ? `Approfondie · record ${stageByLesson[item.lesson.id].elargir_best}%` : status === "completed" ? "Maîtrisée" : status === "current" ? `${item.lesson.itemCount || 0} expressions` : "Verrouillée";
-                  return <div key={`lesson-${item.lesson.id}`} id={levelRouteStarts[levelNumber] === routeIndex ? `course-level-${levelNumber}` : undefined} className={`m-path-item ${status} ${side}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
+                  return <div key={`lesson-${item.lesson.id}`} id={levelRouteStarts[levelNumber] === routeIndex ? `course-level-${levelNumber}` : undefined} data-trail-lesson-id={item.lesson.id} className={`m-path-item ${status} ${side} ${developerNotice?.lessonId === item.lesson.id ? "just-completed" : ""} ${developerNotice?.nextLessonId === item.lesson.id ? "just-unlocked" : ""}`} style={{"--x":`${item.x}%`,"--y":`${y}px`}}>
                     <button className={`m-path-node ${status} ${enriched ? "elargir-passed" : ""}`} disabled={status === "locked"} onClick={() => openTrailLessonPreview(item,status)}><UiIcon name={status === "completed" ? "check" : status === "locked" ? "lock" : "book"}/>{status === "completed" && <span className="m-node-check"><UiIcon name="check"/></span>}{enriched && <span className="m-node-elargir"><UiIcon name="sparkles"/></span>}</button>
                     <span className="m-path-label"><strong>{item.lesson.title}</strong><span>{sub}</span>{status === "current" && <span className="m-current-tag">À vous</span>}</span>
                   </div>;
@@ -4414,7 +4448,8 @@
           <BottomNav active="courses" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
         {mobileLevelsOpen && <div className="m-level-drawer" role="dialog" aria-modal="true" aria-label="Choisir un niveau" onClick={() => setMobileLevelsOpen(false)}><div onClick={event => event.stopPropagation()}><header><strong>Choisir un niveau</strong><button className="m-icon-button" onClick={() => setMobileLevelsOpen(false)} aria-label="Fermer"><UiIcon name="close"/></button></header><div className="m-mobile-level-list">{courses.map((course,index) => { const meta = LEVEL_META[index] || LEVEL_META[0]; const unlocked = index === 0 || courses.slice(0,index).every(value => courseDone(value,visibleProgress)); const completeHere = (course.lessons || []).filter(lesson => visibleProgress.has(lesson.id)).length; return <button key={course.id} className={focusedLevel === index+1 ? "active" : ""} disabled={!unlocked} onClick={() => scrollLevel(index+1)}><span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {unlocked ? `${completeHere}/${course.lessons?.length || 0} leçons` : "Verrouillé"}</small></span><UiIcon name={unlocked ? "chevron" : "lock"}/></button>; })}</div></div></div>}
-        <TrailLessonModal selection={selectedTrailLesson} eligibility={lessonEligibility} onClose={() => setSelectedTrailLesson(null)} onOpenLesson={(lesson,course,stage) => { setSelectedTrailLesson(null); onOpenLesson(lesson,course,stage); }}/>
+        {developerNotice && <div className="m-developer-notice" role="status"><UiIcon name="check"/><span><strong>{developerNotice.title}</strong><small>Leçon simulée · progression mise à jour</small></span></div>}
+        <TrailLessonModal selection={selectedTrailLesson} eligibility={lessonEligibility} isDeveloper={isDeveloper} developerUpdating={developerUpdating} onClose={() => setSelectedTrailLesson(null)} onOpenLesson={(lesson,course,stage) => { setSelectedTrailLesson(null); onOpenLesson(lesson,course,stage); }} onDeveloperComplete={() => simulateDeveloperCompletion(selectedTrailLesson)}/>
         <TrailRewardModal reward={selectedReward} step={rewardStep} claiming={claimingReward} onOpen={claimSelectedReward} onClose={closeTrailReward} onCapsule={onCapsule} onContinue={() => { const reward = selectedReward; closeTrailReward(); if (reward?.levelNumber < courses.length) scrollLevel(reward.levelNumber+1); else onProfile(); }} onChallenge={() => { const reward = selectedReward; closeTrailReward(); if (reward?.course) onLevelChallenge(reward.course); }}/>
       </div>;
     }

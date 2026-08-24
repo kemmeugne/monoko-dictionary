@@ -485,7 +485,10 @@ ceremony rather than also creating an ordinary gift.
 `sql/developer_course_tools.sql` authorizes developer accounts separately from
 normal learners. Its presets rebuild that developer's real progress, XP and
 prior claims atomically, but leave the selected level boundary unclaimed so the
-production ceremony and reward flow can be tested repeatedly.
+production ceremony and reward flow can be tested repeatedly. The developer-only
+lesson simulator calls that same protected snapshot function for the next
+incomplete lesson, then marks the transitioned nodes for animation and clears
+only the relevant session medal prompt so a level ceremony can be replayed.
 
 `sql/culture_capsules.sql` keeps capsule copy, source, review status and image
 URL editable independently of the frontend. The initial seed deliberately

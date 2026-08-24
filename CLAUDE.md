@@ -275,9 +275,13 @@ accounts in `app_developers` and exposes protected progress preset RPCs. An
 authorized developer sees the three-dot menu in `Apprendre`; its presets rebuild
 that developer's real lesson progress, XP and prior milestone claims atomically,
 while leaving the reward at the selected boundary available for ceremony testing.
+The menu and the current-lesson preview also expose a one-lesson simulator. It
+advances through the same protected snapshot RPC, animates the completed and
+newly unlocked nodes, and deliberately re-arms a level-boundary medal ceremony
+so the full progression flow can be replayed without running 20 questions.
 The table has no client policies, so developer access must be granted with SQL.
 
-HARNESS_SPRINT.md                 — spec + status for the verification harness (unit tests, test Supabase, Playwright, lints, CI) — Sessions 1–2 done, 3–5 pending
+HARNESS_SPRINT.md                 — implemented verification harness: unit tests, test Supabase, Playwright, guardrails and CI
 tts_space/app.py                  — HuggingFace Space: ESPnet2 VITS Lingala TTS (Gradio 6.x, served at kemz42-monoko-lingala-tts.hf.space)
 tts_space/requirements.txt        — Space deps: git+espnet, huggingface_hub, numpy, soundfile, nltk
 tts_space/README.md               — Space metadata: sdk=gradio 6.13.0, python=3.10, app_file=app.py
@@ -470,7 +474,7 @@ both hard-refuse to run unless pointed at that exact test project ref.
 
 - Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
   and fill in real values, or ask for them.
-- `npm test` — Vitest, **306 tests, no network calls, fully mocked**. Covers
+- `npm test` — Vitest, **310 tests, no network calls, fully mocked**. Covers
   every `api/*.js` handler plus the exercise engine: the tokenizer, the
   exercise builders, the audio hand-off and the progression maths (SM-2,
   streaks, medals, levels). Engine tests slice the code out of
