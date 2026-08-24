@@ -111,6 +111,34 @@ monoko-ui.css                     — production learner shell: public landing, 
 course-trail-meta.js              — mock-matched lesson preview descriptions and estimated durations, kept separate from the exercise/content records
 COURSE_TRAIL_PARITY.md            — production contract for every course-trail behavior carried over from the isolated mock
 
+Phase 2 — the session, chat, live and dictionary (2026-08-24). The last of the
+retired cream/purple surface moved onto the design system. It was a palette and
+geometry conversion, not a rewrite: the six exercise screens, the session shell,
+briefing and summary, the chat, live translation, the in-app dictionary and word
+detail are all still inline-styled JSX, but every colour literal is now a design
+token and every radius is 8–10px.
+
+`--m-correct` / `--m-wrong` (and their `-soft` / `-line` variants) were added for
+this: the exercise screens need a right/wrong pair the rest of the app never had,
+and both are drawn from the app's own family so a correct answer reads as
+Monɔkɔ's green rather than a system green. `STAGE_BRIEF` accents are now
+`--m-purple-dark` (Pratiquer), `--m-forest` (Élargir) and `--m-gold` (Grand
+défi). Every `linear-gradient(135deg, …)` in the session and dictionary is a flat
+fill — the design system has no gradients anywhere else. The only retired
+literals left in the file are the two `LANG_THEMES` / `LANG_GEO` entries, which
+are per-language brand colours for the map markers and are meant to stay.
+
+The chat carried a third copy of sign out — a "Connecté / Déconnexion" card in
+the middle of a conversation screen, from before the rail and settings had it.
+Removed.
+
+**Verifying the exercise screens needs a richer pool than the seed provides.**
+`scripts/seed_test_data.js` leaves lesson 277 with four `lesson_pool` rows, which
+only ever builds listen-and-type. Inserting a dozen short native rows with audio
+into that lesson makes match-pairs and choose-the-audio reachable; re-seed
+afterwards. Without that step a session playthrough silently exercises one screen
+out of six.
+
 Auth and navigation (2026-08-23). There are now three distinct front doors and
 one rule about who sees what.
 

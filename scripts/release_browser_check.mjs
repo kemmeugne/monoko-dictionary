@@ -298,7 +298,10 @@ await waitFor(`document.querySelector(".m-home")`, "home after dictionary shell"
 await clickByText(".m-rail nav button", "Parler");
 await waitFor(`document.querySelector(".m-secondary-content.conversation")`, "chat shell");
 await assertPage("desktop chat shell", `() => ({
-  chat: document.body.textContent.includes("Parler avec Monoko"),
+  // Read the rendered heading: document.body.textContent also contains the
+  // inline babel source, so a text assertion can match the code that produces
+  // the string rather than the string on screen.
+  chat: [...document.querySelectorAll("h2")].some(h => h.textContent.includes("Parler avec Mon\u0254k\u0254")),
   rail: getComputedStyle(document.querySelector(".m-rail")).display !== "none",
   active: document.querySelector(".m-rail .m-nav-button.active")?.textContent.includes("Parler"),
   medals: !!document.querySelector(".m-chip.medals")

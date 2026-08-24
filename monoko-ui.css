@@ -15,6 +15,15 @@
   --m-gold-soft: #fff4d7;
   --m-coral: #dc6d55;
   --m-shadow: 0 8px 28px rgba(31, 47, 37, .1);
+  /* Exercise feedback. The session needs a right/wrong pair the rest of the
+     app never had; both are drawn from the same family as the palette so a
+     correct answer reads as the app's green rather than a system green. */
+  --m-correct: #2f7d54;
+  --m-correct-soft: #e5f2e9;
+  --m-correct-line: #9ccbb1;
+  --m-wrong: #c2452c;
+  --m-wrong-soft: #fdece7;
+  --m-wrong-line: #edab97;
 }
 
 .m-frame { min-height: 100dvh; margin: 0 auto; background: #f7f3ed; font-family: "DM Sans", sans-serif; }

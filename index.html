@@ -14,7 +14,7 @@
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#F7F3ED}
-    input::placeholder{color:#B8A88C}
+    input::placeholder{color:var(--m-muted)}
     ::-webkit-scrollbar{width:4px}
     ::-webkit-scrollbar-thumb{background:#D4C8B4;border-radius:4px}
     @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -76,7 +76,7 @@
         speakers: "~45 million",
         family: "Langue bantoue",
         description: "Langue véhiculaire majeure de l'Afrique centrale, parlée principalement le long du fleuve Congo. Lingua franca à Kinshasa et Brazzaville.",
-        color: "#2C5F2D",
+        color: "var(--m-forest)",
         center: [-2, 22],
         cities: [
           { name: "Kinshasa", lat: -4.32, lon: 15.31, main: true },
@@ -211,17 +211,17 @@
           style.textContent = `
             .clean-tooltip {
               background: white !important;
-              border: 1px solid #E8E0D4 !important;
+              border: 1px solid var(--m-line) !important;
               border-radius: 8px !important;
               box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
               padding: 4px 8px !important;
               font-family: 'DM Sans', sans-serif !important;
             }
-            .clean-tooltip:before { border-top-color: #E8E0D4 !important; }
+            .clean-tooltip:before { border-top-color: var(--m-line) !important; }
             .leaflet-control-zoom a {
               background: white !important;
-              color: #2D2118 !important;
-              border-color: #E8E0D4 !important;
+              color: var(--m-ink) !important;
+              border-color: var(--m-line) !important;
               font-family: 'DM Sans', sans-serif !important;
             }
           `;
@@ -274,9 +274,9 @@
     const ChatIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>);
     const SendIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>);
     const FlagIcon = () => (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>);
-    const CheckCircle = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C5F2D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>);
+    const CheckCircle = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m-correct)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>);
     const CloseIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>);
-    const Spinner = () => (<div style={{display:"flex",justifyContent:"center",padding:40}}><div style={{width:32,height:32,border:"3px solid #E8E0D4",borderTopColor:"#2C5F2D",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/></div>);
+    const Spinner = () => (<div style={{display:"flex",justifyContent:"center",padding:40}}><div style={{width:32,height:32,border:"3px solid var(--m-line)",borderTopColor:"var(--m-forest)",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/></div>);
 
     const AudioButton = ({ src, title }) => {
       const [playing, setPlaying] = useState(false);
@@ -301,7 +301,7 @@
         <button
           onClick={playAudio}
           style={{
-            background: playing ? "#2C5F2D" : "#F0EBE3",
+            background: playing ? "var(--m-forest)" : "var(--m-green-soft)",
             border: "none",
             borderRadius: "50%",
             width: 32,
@@ -310,7 +310,7 @@
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
-            color: playing ? "white" : "#8B6D47",
+            color: playing ? "white" : "var(--m-forest-2)",
             flexShrink: 0
           }}
           title={title}
@@ -1437,10 +1437,10 @@
             aria-pressed={picked}
             disabled={done}
             style={{
-              minHeight: 60, padding: "12px 10px", borderRadius: 14,
-              border: `1.5px solid ${shaking ? "#DC2626" : picked ? "#6B21A8" : "#E8E0D4"}`,
-              background: shaking ? "#FDF0F0" : picked ? "#F3F0FF" : "white",
-              color: done ? "#9B8A6E" : side === "ln" ? "#2C5F2D" : "#2D2118",
+              minHeight: 60, padding: "12px 10px", borderRadius: 8,
+              border: `1.5px solid ${shaking ? "var(--m-wrong)" : picked ? "var(--m-purple-dark)" : "var(--m-line)"}`,
+              background: shaking ? "var(--m-wrong-soft)" : picked ? "var(--m-purple-soft)" : "white",
+              color: done ? "var(--m-muted)" : side === "ln" ? "var(--m-forest)" : "var(--m-ink)",
               fontFamily: side === "ln" ? "'Playfair Display', serif" : "'DM Sans', sans-serif",
               fontWeight: side === "ln" ? 700 : 500,
               fontSize: side === "ln" ? 17 : 15,
@@ -1470,11 +1470,11 @@
           </div>
           <div style={{ flex: 1, minHeight: 12 }} />
           {wrong && (
-            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-              <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 15, color: "#DC2626" }}>✕ Pas tout à fait</p>
+            <div style={{ background: "var(--m-wrong-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 15, color: "var(--m-wrong)" }}>✕ Pas tout à fait</p>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
                 « {wrong.fr} » se dit{" "}
-                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{wrong.truth}</b>.
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "var(--m-forest)" }}>{wrong.truth}</b>.
               </p>
             </div>
           )}
@@ -1579,13 +1579,13 @@
       return (
         <div style={{
           display: "flex", alignItems: "center", gap: 14,
-          padding: "16px 18px", borderRadius: 18, background: "white",
-          border: "1px solid #E8E0D4",
+          padding: "16px 18px", borderRadius: 10, background: "white",
+          border: "1px solid var(--m-line)",
         }}>
           <button onClick={play} aria-label={playing ? "En lecture" : "Écouter"}
             style={{
               flex: "0 0 auto", width: 64, height: 64, borderRadius: 32, border: "none",
-              background: "linear-gradient(135deg, #6B21A8, #9333EA)",
+              background: "var(--m-forest)",
               color: "white", fontSize: 24, cursor: "pointer",
               boxShadow: "0 6px 18px rgba(107,33,168,0.28)",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -1598,7 +1598,7 @@
               return (
                 <div key={i} style={{
                   flex: 1, height: `${h * 100}%`, minWidth: 2, borderRadius: 2,
-                  background: passed ? "#6B21A8" : "#E8E0D4",
+                  background: passed ? "var(--m-purple-dark)" : "var(--m-line)",
                   transform: passed ? "scaleY(1)" : "scaleY(0.82)",
                   transition: "background .12s linear, transform .12s linear",
                 }} />
@@ -1647,9 +1647,9 @@
             // Sentences run to ten tokens in this pool; at 20px a long one eats
             // the options below it on a 375px screen.
             fontSize: exercise.answer.ln.length > 40 ? 17 : 20,
-            fontFamily: "'Playfair Display', serif", color: "#2C5F2D", lineHeight: 1.3,
+            fontFamily: "'Playfair Display', serif", color: "var(--m-forest)", lineHeight: 1.3,
           }}>{exercise.answer.ln}</p>
-          <p style={{ textAlign: "center", fontSize: 12, color: "#9B8A6E",
+          <p style={{ textAlign: "center", fontSize: 12, color: "var(--m-muted)",
                       fontFamily: "'DM Mono', monospace", margin: "0 0 20px" }}>
             Touchez ▶ pour écouter
           </p>
@@ -1661,10 +1661,10 @@
               return (
                 <button key={o.id} onClick={() => choose(o)} disabled={isWrong || solved}
                   style={{
-                    minHeight: 56, padding: "12px 16px", borderRadius: 14,
-                    border: `1.5px solid ${isRight ? "#16A34A" : isWrong ? "#DC2626" : "#E8E0D4"}`,
-                    background: isRight ? "#EAF7EE" : isWrong ? "#FDF0F0" : "white",
-                    color: isRight ? "#16A34A" : isWrong ? "#DC2626" : "#2D2118",
+                    minHeight: 56, padding: "12px 16px", borderRadius: 8,
+                    border: `1.5px solid ${isRight ? "var(--m-correct)" : isWrong ? "var(--m-wrong)" : "var(--m-line)"}`,
+                    background: isRight ? "var(--m-green-soft)" : isWrong ? "var(--m-wrong-soft)" : "white",
+                    color: isRight ? "var(--m-correct)" : isWrong ? "var(--m-wrong)" : "var(--m-ink)",
                     fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 500,
                     opacity: isWrong ? 0.55 : 1,
                     cursor: (isWrong || solved) ? "default" : "pointer",
@@ -1679,15 +1679,15 @@
           {/* The Lingala is already on screen above, so the confirmation carries
               the French alone rather than reprinting the pair. */}
           {solved && (
-            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, color: "#16A34A", fontWeight: 600 }}>
+            <div style={{ background: "var(--m-green-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45, color: "var(--m-correct)", fontWeight: 600 }}>
                 ✓ {exercise.answer.fr}
               </p>
             </div>
           )}
           {wrongIds.length > 0 && !solved && (
-            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-              <p style={{ margin: 0, fontSize: 14, color: "#DC2626", fontWeight: 600 }}>
+            <div style={{ background: "var(--m-wrong-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--m-wrong)", fontWeight: 600 }}>
                 Réécoutez et réessayez.
               </p>
             </div>
@@ -1744,10 +1744,10 @@
       const Tile = ({ tile, onTap, muted }) => (
         <button onClick={() => onTap(tile)} disabled={solved || wrong}
           style={{
-            minHeight: 44, padding: "10px 14px", borderRadius: 12,
-            border: `1.5px solid ${muted ? "#EFE8DC" : "#E8E0D4"}`,
-            background: muted ? "#F7F2E9" : "white",
-            color: muted ? "transparent" : "#2D2118",
+            minHeight: 44, padding: "10px 14px", borderRadius: 8,
+            border: `1.5px solid ${muted ? "var(--m-line)" : "var(--m-line)"}`,
+            background: muted ? "var(--m-canvas)" : "white",
+            color: muted ? "transparent" : "var(--m-ink)",
             fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600,
             cursor: solved || wrong ? "default" : "pointer",
             transition: "border-color .15s, background .15s",
@@ -1756,7 +1756,7 @@
 
       return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          <p style={{ fontSize: 13, color: "#9B8A6E", margin: "0 0 6px",
+          <p style={{ fontSize: 13, color: "var(--m-muted)", margin: "0 0 6px",
                       fontFamily: "'DM Mono', monospace", letterSpacing: ".06em",
                       textTransform: "uppercase" }}>
             Remettez les mots dans l'ordre
@@ -1769,9 +1769,9 @@
               tiles move between the two areas. */}
           <div style={{
             display: "flex", flexWrap: "wrap", gap: 8, alignContent: "flex-start",
-            minHeight: 108, padding: 12, borderRadius: 14,
-            border: `1.5px solid ${wrong ? "#DC2626" : solved ? "#16A34A" : "#E8E0D4"}`,
-            background: wrong ? "#FDF0F0" : solved ? "#EAF7EE" : "white",
+            minHeight: 108, padding: 12, borderRadius: 8,
+            border: `1.5px solid ${wrong ? "var(--m-wrong)" : solved ? "var(--m-correct)" : "var(--m-line)"}`,
+            background: wrong ? "var(--m-wrong-soft)" : solved ? "var(--m-green-soft)" : "white",
             transition: "border-color .15s, background .15s",
           }}>
             {placed.map(t => <Tile key={t.key} tile={t} onTap={tapPlaced} />)}
@@ -1790,16 +1790,16 @@
           <div style={{ flex: 1, minHeight: 12 }} />
 
           {solved && (
-            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-              <p style={{ margin: 0, fontSize: 14, color: "#16A34A", fontWeight: 600 }}>
+            <div style={{ background: "var(--m-green-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--m-correct)", fontWeight: 600 }}>
                 ✓ {exercise.item.ln}
               </p>
             </div>
           )}
           {wrong && (
-            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+            <div style={{ background: "var(--m-wrong-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
-                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{exercise.item.ln}</b>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "var(--m-forest)" }}>{exercise.item.ln}</b>
               </p>
             </div>
           )}
@@ -1837,11 +1837,11 @@
         }
       };
 
-      const border = wrong ? "#DC2626" : solved ? "#16A34A" : "#C9BCA6";
+      const border = wrong ? "var(--m-wrong)" : solved ? "var(--m-correct)" : "var(--m-muted)";
 
       return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          <p style={{ fontSize: 13, color: "#9B8A6E", margin: "0 0 6px",
+          <p style={{ fontSize: 13, color: "var(--m-muted)", margin: "0 0 6px",
                       fontFamily: "'DM Mono', monospace", letterSpacing: ".06em",
                       textTransform: "uppercase" }}>
             Complétez la phrase
@@ -1854,12 +1854,12 @@
               context rather than as a detached quiz prompt. */}
           <div style={{
             display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px 6px",
-            padding: 14, borderRadius: 14, border: "1px solid #E8E0D4", background: "white",
-            fontFamily: "'Playfair Display', serif", fontSize: 18, color: "#2D2118",
+            padding: 14, borderRadius: 8, border: "1px solid var(--m-line)", background: "white",
+            fontFamily: "'Playfair Display', serif", fontSize: 18, color: "var(--m-ink)",
           }}>
             {exercise.tokens.map((t, i) => i === exercise.blankIndex ? (
               solved ? (
-                <b key={i} style={{ color: "#16A34A" }}>{exercise.answer}</b>
+                <b key={i} style={{ color: "var(--m-correct)" }}>{exercise.answer}</b>
               ) : (
                 <input key={i} value={typed} onChange={e => setTyped(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
@@ -1875,8 +1875,8 @@
                     minHeight: 44, fontSize: 16, padding: "4px 8px",
                     fontFamily: "'DM Sans', sans-serif",
                     border: "none", borderBottom: `2px solid ${border}`,
-                    background: wrong ? "#FDF0F0" : "transparent",
-                    color: "#2D2118", outline: "none", textAlign: "center",
+                    background: wrong ? "var(--m-wrong-soft)" : "transparent",
+                    color: "var(--m-ink)", outline: "none", textAlign: "center",
                     transition: "border-color .15s, background .15s",
                   }} />
               )
@@ -1888,9 +1888,9 @@
           {!solved && (
             <button onClick={submit} disabled={!typed.trim() || wrong}
               style={{
-                marginTop: 14, width: "100%", minHeight: 52, borderRadius: 14, border: "none",
-                background: !typed.trim() || wrong ? "#E8E0D4" : "linear-gradient(135deg, #6B21A8, #9333EA)",
-                color: !typed.trim() || wrong ? "#9B8A6E" : "white",
+                marginTop: 14, width: "100%", minHeight: 52, borderRadius: 8, border: "none",
+                background: !typed.trim() || wrong ? "var(--m-line)" : "var(--m-forest)",
+                color: !typed.trim() || wrong ? "var(--m-muted)" : "white",
                 fontSize: 16, fontWeight: 700, fontFamily: "'DM Sans', sans-serif",
                 cursor: !typed.trim() || wrong ? "default" : "pointer",
               }}>Vérifier</button>
@@ -1899,14 +1899,14 @@
           <div style={{ flex: 1, minHeight: 12 }} />
 
           {solved && (
-            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
-              <p style={{ margin: 0, fontSize: 14, color: "#16A34A", fontWeight: 600 }}>
+            <div style={{ background: "var(--m-green-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--m-correct)", fontWeight: 600 }}>
                 ✓ {exercise.item.ln}
               </p>
               {showedAccent && (
-                <p style={{ margin: "6px 0 0", fontSize: 13, color: "#8B6D47" }}>
+                <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--m-muted)" }}>
                   Avec les accents&nbsp;:{" "}
-                  <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>
+                  <b style={{ fontFamily: "'Playfair Display', serif", color: "var(--m-forest)" }}>
                     {exercise.answer}
                   </b>
                 </p>
@@ -1914,9 +1914,9 @@
             </div>
           )}
           {wrong && (
-            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+            <div style={{ background: "var(--m-wrong-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
-                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{exercise.answer}</b>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "var(--m-forest)" }}>{exercise.answer}</b>
                 {" — réessayez."}
               </p>
             </div>
@@ -1977,7 +1977,7 @@
 
       return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-          <p style={{ fontSize: 13, color: "#9B8A6E", margin: "0 0 6px",
+          <p style={{ fontSize: 13, color: "var(--m-muted)", margin: "0 0 6px",
                       fontFamily: "'DM Mono', monospace", letterSpacing: ".06em",
                       textTransform: "uppercase" }}>
             Écrivez ce que vous entendez
@@ -2002,10 +2002,10 @@
                       disabled={!tile || solved || wrong}
                       style={{
                         width: slots > 10 ? 26 : 30, height: 44, borderRadius: 8, border: "none",
-                        borderBottom: `2px solid ${wrong ? "#DC2626" : solved ? "#16A34A" : "#C9BCA6"}`,
+                        borderBottom: `2px solid ${wrong ? "var(--m-wrong)" : solved ? "var(--m-correct)" : "var(--m-muted)"}`,
                         background: "transparent", cursor: tile && !solved ? "pointer" : "default",
                         fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700,
-                        color: wrong ? "#DC2626" : solved ? "#16A34A" : "#2D2118",
+                        color: wrong ? "var(--m-wrong)" : solved ? "var(--m-correct)" : "var(--m-ink)",
                         padding: 0, transition: "border-color .15s, color .15s",
                       }}>{tile ? tile.ch : ""}</button>
                   );
@@ -2023,9 +2023,9 @@
                 <button key={t.key} onClick={() => tapTile(t)} disabled={used || solved || wrong}
                   style={{
                     minWidth: 44, minHeight: 44, padding: "8px 10px", borderRadius: 10,
-                    border: `1.5px solid ${used ? "#EFE8DC" : "#E8E0D4"}`,
-                    background: used ? "#F7F2E9" : "white",
-                    color: used ? "transparent" : "#2D2118",
+                    border: `1.5px solid ${used ? "var(--m-line)" : "var(--m-line)"}`,
+                    background: used ? "var(--m-canvas)" : "white",
+                    color: used ? "transparent" : "var(--m-ink)",
                     fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 600,
                     cursor: used || solved || wrong ? "default" : "pointer",
                     transition: "background .15s, border-color .15s",
@@ -2039,24 +2039,24 @@
           {/* The reveal is where the real orthography is taught: the learner
               built plain letters, and this is how the word is actually written. */}
           {solved && (
-            <div style={{ background: "#EAF7EE", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+            <div style={{ background: "var(--m-green-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
               <p style={{ margin: 0, fontSize: 15, fontWeight: 700,
-                          fontFamily: "'Playfair Display', serif", color: "#16A34A" }}>
+                          fontFamily: "'Playfair Display', serif", color: "var(--m-correct)" }}>
                 ✓ {real}
               </p>
-              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>{exercise.item.fr}</p>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--m-muted)" }}>{exercise.item.fr}</p>
               {accented && (
-                <p style={{ margin: "8px 0 0", fontSize: 13, color: "#8B6D47" }}>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--m-muted)" }}>
                   Vous avez écrit <i>{plain}</i> — avec les tons, cela s'écrit{" "}
-                  <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{real}</b>
+                  <b style={{ fontFamily: "'Playfair Display', serif", color: "var(--m-forest)" }}>{real}</b>
                 </p>
               )}
             </div>
           )}
           {wrong && (
-            <div style={{ background: "#FDF0F0", borderRadius: 16, padding: "14px 16px", marginBottom: 12 }}>
+            <div style={{ background: "var(--m-wrong-soft)", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.45 }}>
-                <b style={{ fontFamily: "'Playfair Display', serif", color: "#2C5F2D" }}>{real}</b>
+                <b style={{ fontFamily: "'Playfair Display', serif", color: "var(--m-forest)" }}>{real}</b>
                 {" — "}{exercise.item.fr}
               </p>
             </div>
@@ -2253,18 +2253,18 @@
         <div style={{ minHeight: "calc(100dvh - 172px)", display: "flex", flexDirection: "column",
                       textAlign: "center", padding: "10px 0 0" }}>
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
-                      textTransform: "uppercase", color: "#9B8A6E", marginBottom: 10 }}>
+                      textTransform: "uppercase", color: "var(--m-muted)", marginBottom: 10 }}>
             Comparez votre prononciation
           </p>
           <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, lineHeight: 1.2,
-                      fontWeight: 700, color: "#2D2118", margin: "0 10px 6px" }}>
+                      fontWeight: 700, color: "var(--m-ink)", margin: "0 10px 6px" }}>
             {exercise.item.ln}
           </p>
-          <p style={{ fontSize: 14, color: "#9B8A6E", marginBottom: 22 }}>{exercise.item.fr}</p>
+          <p style={{ fontSize: 14, color: "var(--m-muted)", marginBottom: 22 }}>{exercise.item.fr}</p>
 
           <button onClick={playProfessor} disabled={phase === "requesting" || phase === "recording" || phase === "comparing"}
-            style={{ alignSelf: "center", minHeight: 48, padding: "10px 18px", borderRadius: 12,
-                     border: "1.5px solid #D8CCBA", background: "white", color: "#2C5F2D",
+            style={{ alignSelf: "center", minHeight: 48, padding: "10px 18px", borderRadius: 8,
+                     border: "1.5px solid var(--m-line)", background: "white", color: "var(--m-forest)",
                      fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
             ▶ Écouter le professeur
           </button>
@@ -2274,10 +2274,10 @@
           {phase === "recording" ? (
             <div>
               <button onClick={stopRecording} aria-label="Arrêter l'enregistrement" style={{
-                width: 88, height: 88, borderRadius: "50%", border: "none", background: "#DC2626",
+                width: 88, height: 88, borderRadius: "50%", border: "none", background: "var(--m-wrong)",
                 color: "white", fontSize: 29, cursor: "pointer", boxShadow: "0 8px 24px rgba(220,38,38,.25)",
               }}>■</button>
-              <p style={{ marginTop: 12, fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+              <p style={{ marginTop: 12, fontSize: 14, fontWeight: 700, color: "var(--m-wrong)" }}>
                 Enregistrement · {seconds} s
               </p>
             </div>
@@ -2285,12 +2285,12 @@
             <button onClick={startRecording} aria-label={recorded ? "Réenregistrer" : "Commencer l'enregistrement"}
               disabled={phase === "requesting" || phase === "comparing"} style={{
                 alignSelf: "center", width: 88, height: 88, borderRadius: "50%",
-                border: "8px solid #F4EEFB", background: "#6B21A8", color: "white",
+                border: "8px solid var(--m-purple-soft)", background: "var(--m-purple-dark)", color: "white",
                 fontSize: 32, cursor: (phase === "requesting" || phase === "comparing") ? "default" : "pointer",
                 boxShadow: "0 8px 24px rgba(107,33,168,.22)",
               }}>●</button>
           )}
-          <p style={{ margin: "12px 0 16px", minHeight: 21, fontSize: 14, color: "#8B6D47" }}>
+          <p style={{ margin: "12px 0 16px", minHeight: 21, fontSize: 14, color: "var(--m-muted)" }}>
             {phase === "ready" ? "Enregistrez votre voix" :
              phase === "requesting" ? "Ouverture du microphone…" :
              phase === "recording" ? "Touchez le carré lorsque vous avez terminé" :
@@ -2298,13 +2298,13 @@
           </p>
 
           {error && (
-            <div role="alert" style={{ background: "#FDF0F0", color: "#B91C1C", borderRadius: 12,
+            <div role="alert" style={{ background: "var(--m-wrong-soft)", color: "var(--m-wrong)", borderRadius: 8,
                                        padding: "11px 13px", fontSize: 13, lineHeight: 1.4, marginBottom: 12 }}>
               {error}
               {recorded && (
                 <button onClick={() => rate(false)} style={{ display: "block", margin: "8px auto 0",
                   minHeight: 44, padding: "8px 12px", border: "none", background: "transparent",
-                  color: "#8B6D47", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                  color: "var(--m-muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                   Passer cette question
                 </button>
               )}
@@ -2314,22 +2314,22 @@
           {recorded && (
             <div style={{ display: "grid", gap: 10 }}>
               <button onClick={playComparison} disabled={phase === "comparing"} style={{
-                minHeight: 52, borderRadius: 12, border: "none", background: "#2D2118", color: "white",
+                minHeight: 52, borderRadius: 8, border: "none", background: "var(--m-ink)", color: "white",
                 fontSize: 16, fontWeight: 700, cursor: "pointer",
               }}>{phase === "comparing" ? "Écoute en cours…" : "▶ Comparer les deux voix"}</button>
               <button onClick={startRecording} disabled={phase === "comparing"} style={{
-                minHeight: 48, borderRadius: 12, border: "1.5px solid #D8CCBA", background: "white",
-                color: "#6B21A8", fontSize: 15, fontWeight: 700,
+                minHeight: 48, borderRadius: 8, border: "1.5px solid var(--m-line)", background: "white",
+                color: "var(--m-purple-dark)", fontSize: 15, fontWeight: 700,
                 cursor: phase === "comparing" ? "default" : "pointer",
               }}>↻ Réessayer</button>
               {hasCompared && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <button onClick={() => rate(false)} disabled={phase === "comparing"} style={{
-                    minHeight: 52, borderRadius: 12, border: "1.5px solid #D8CCBA", background: "white",
-                    color: "#8B6D47", fontSize: 15, fontWeight: 700, cursor: "pointer",
+                    minHeight: 52, borderRadius: 8, border: "1.5px solid var(--m-line)", background: "white",
+                    color: "var(--m-muted)", fontSize: 15, fontWeight: 700, cursor: "pointer",
                   }}>À retravailler</button>
                   <button onClick={() => rate(true)} disabled={phase === "comparing"} style={{
-                    minHeight: 52, borderRadius: 12, border: "none", background: "#2C5F2D",
+                    minHeight: 52, borderRadius: 8, border: "none", background: "var(--m-forest)",
                     color: "white", fontSize: 15, fontWeight: 700, cursor: "pointer",
                   }}>Ça va</button>
                 </div>
@@ -2339,7 +2339,7 @@
 
           {phase === "error" && (
             <button onClick={() => rate(false)} style={{ minHeight: 48, border: "none", background: "none",
-                                                        color: "#8B6D47", fontSize: 14, fontWeight: 700,
+                                                        color: "var(--m-muted)", fontSize: 14, fontWeight: 700,
                                                         cursor: "pointer" }}>Passer</button>
           )}
         </div>
@@ -2375,22 +2375,22 @@
         label: "Maîtriser la leçon",
         short: "Maîtriser",
         blurb: "À vous de jouer. 20 questions tirées de cette leçon, et rien d'autre. Obtenez 80\u202F% de bonnes réponses du premier coup, et vous débloquerez le prochain niveau",
-        accent: "#6B21A8",
-        soft: "#F4EEFB",
+        accent: "var(--m-purple-dark)",
+        soft: "var(--m-purple-soft)",
       },
       elargir: {
         label: "Aller plus loin",
         short: "Aller plus loin",
         blurb: "Mbote ! On va voir si tu maitrise le lingala ! 20 questions sur le même thème, tirées du corpus et non enseignées dans cette leçon. Evalue ton niveau par rapports aux autres participants !",
-        accent: "#2C5F2D",
-        soft: "#EAF7EE",
+        accent: "var(--m-forest)",
+        soft: "var(--m-green-soft)",
       },
       level_challenge: {
         label: "Grand défi du niveau",
         short: "Grand défi",
         blurb: "20 questions puisées dans tout ce niveau. Obtenez 80 % de bonnes réponses du premier coup pour enrichir votre médaille et recevoir le bonus unique de 300 XP.",
-        accent: "#B27A0A",
-        soft: "#FFF4D8",
+        accent: "var(--m-gold)",
+        soft: "var(--m-gold-soft)",
       },
     };
 
@@ -2504,13 +2504,13 @@
         const runs = stats?.runs || 0, best = stats?.best || 0;
         return (
           <div style={{
-            minHeight: "100dvh", background: "#FDFBF7",
+            minHeight: "100dvh", background: "var(--m-canvas)",
             display: "flex", flexDirection: "column",
             padding: "calc(env(safe-area-inset-top) + 14px) 0 calc(env(safe-area-inset-bottom) + 16px)",
           }} className="m-session-shell">
             <button onClick={onExit} aria-label="Quitter" style={{
               width: 44, height: 44, marginLeft: -10, border: "none", background: "none",
-              color: "#9B8A6E", fontSize: 26, lineHeight: 1, cursor: "pointer", textAlign: "left",
+              color: "var(--m-muted)", fontSize: 26, lineHeight: 1, cursor: "pointer", textAlign: "left",
             }}>×</button>
 
             {/* Scrolls rather than overflowing: title + blurb + tiles + best score
@@ -2538,13 +2538,13 @@
               <span style={{
                 alignSelf: "flex-start", background: brief.soft, color: brief.accent,
                 fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
-                textTransform: "uppercase", padding: "6px 12px", borderRadius: 20, marginBottom: 14,
+                textTransform: "uppercase", padding: "6px 12px", borderRadius: 10, marginBottom: 14,
               }}>{brief.label}</span>
 
               <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 800,
                            margin: "0 0 14px", lineHeight: 1.2 }}>{lesson.title}</h2>
 
-              <p style={{ margin: "0 0 22px", fontSize: 15, lineHeight: 1.55, color: "#6B5B45" }}>
+              <p style={{ margin: "0 0 22px", fontSize: 15, lineHeight: 1.55, color: "var(--m-muted)" }}>
                 {brief.blurb}
               </p>
 
@@ -2558,11 +2558,11 @@
                   .map(([text]) => {
                     const [n, ...rest] = text.split("\u00A0");
                     return (
-                      <div key={text} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14,
+                      <div key={text} style={{ flex: 1, border: "1px solid var(--m-line)", borderRadius: 8,
                                                padding: "13px 8px", background: "white", textAlign: "center" }}>
                         <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
                                     fontVariantNumeric: "tabular-nums", color: brief.accent }}>{n}</b>
-                        <span style={{ display: "block", marginTop: 3, fontSize: 11, color: "#9B8A6E",
+                        <span style={{ display: "block", marginTop: 3, fontSize: 11, color: "var(--m-muted)",
                                        letterSpacing: ".05em", textTransform: "uppercase",
                                        fontFamily: "'DM Mono', monospace" }}>{rest.join(" ")}</span>
                       </div>
@@ -2576,10 +2576,10 @@
               {best > 0 && (
                 <div style={{
                   display: "flex", alignItems: "center", gap: 10, marginBottom: 10,
-                  padding: "12px 16px", borderRadius: 14, background: brief.soft,
+                  padding: "12px 16px", borderRadius: 8, background: brief.soft,
                 }}>
                   <span style={{ fontSize: 18 }}>{medalFor(best)?.icon || "📈"}</span>
-                  <span style={{ fontSize: 14, color: "#5C4A2E" }}>
+                  <span style={{ fontSize: 14, color: "var(--m-ink)" }}>
                     Meilleur score&nbsp;: <b style={{ color: brief.accent }}>{best}%</b>
                     {medalFor(best) ? ` · ${medalFor(best).label}` : ""}
                     {stage === "pratiquer" && stats?.passed ? " · leçon validée ✓" : ""}
@@ -2596,7 +2596,7 @@
               {(() => {
                 const chips = [
                   streak > 0 && { key: "streak", icon: "🔥", text: `${plural(streak, "jour", "jours")} d'affilée`,
-                                  fg: "#B45309", bg: "#FFF4E5" },
+                                  fg: "var(--m-gold)", bg: "var(--m-gold-soft)" },
                   (stats?.due || 0) > 0 &&
                     { key: "due", icon: "🔁", text: `${plural(stats.due, "à revoir", "à revoir")}`,
                       fg: brief.accent, bg: brief.soft },
@@ -2610,8 +2610,8 @@
                     {chips.map(c => (
                       <span key={c.key} style={{
                         display: "inline-flex", alignItems: "center", gap: 6,
-                        padding: "8px 12px", borderRadius: 20, background: c.bg,
-                        fontSize: 13, color: "#5C4A2E", whiteSpace: "nowrap",
+                        padding: "8px 12px", borderRadius: 10, background: c.bg,
+                        fontSize: 13, color: "var(--m-ink)", whiteSpace: "nowrap",
                       }}>
                         <span style={{ fontSize: 14 }}>{c.icon}</span>
                         <b style={{ color: c.fg, fontWeight: 700 }}>{c.text}</b>
@@ -2624,16 +2624,16 @@
               {programme.length > 0 && (
                 <div>
                   <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
-                              textTransform: "uppercase", color: "#9B8A6E", margin: "0 0 10px" }}>
+                              textTransform: "uppercase", color: "var(--m-muted)", margin: "0 0 10px" }}>
                     Au programme
                   </p>
-                  <div style={{ border: "1px solid #E8E0D4", borderRadius: 14, background: "white",
+                  <div style={{ border: "1px solid var(--m-line)", borderRadius: 8, background: "white",
                                 overflow: "hidden" }}>
                     {programme.filter(row => row.label).map((row, i) => (
                       <div key={row.type} style={{
                         display: "flex", alignItems: "center", gap: 10,
-                        padding: "12px 14px", fontSize: 14, color: "#5C4A2E",
-                        borderTop: i === 0 ? "none" : "1px solid #F4EFE7",
+                        padding: "12px 14px", fontSize: 14, color: "var(--m-ink)",
+                        borderTop: i === 0 ? "none" : "1px solid var(--m-line)",
                       }}>
                         <span style={{ width: 6, height: 6, borderRadius: 3, background: brief.accent,
                                        flex: "0 0 auto" }} />
@@ -2647,8 +2647,8 @@
             </div>
 
             <button onClick={() => setStarted(true)} style={{
-              width: "100%", minHeight: 56, border: "none", borderRadius: 14,
-              background: `linear-gradient(135deg, ${brief.accent}, ${stage === "elargir" ? "#4A8B4C" : "#9333EA"})`,
+              width: "100%", minHeight: 56, border: "none", borderRadius: 8,
+              background: brief.accent,
               color: "white", fontSize: 17, fontWeight: 700, cursor: "pointer",
               fontFamily: "'DM Sans', sans-serif", marginTop: 18,
               boxShadow: `0 6px 18px ${stage === "elargir" ? "rgba(44,95,45,.28)" : "rgba(107,33,168,.28)"}`,
@@ -2659,20 +2659,20 @@
 
       return (
         <div style={{
-          minHeight: "100dvh", background: "#FDFBF7",
+          minHeight: "100dvh", background: "var(--m-canvas)",
           display: "flex", flexDirection: "column",
           padding: "calc(env(safe-area-inset-top) + 14px) 0 calc(env(safe-area-inset-bottom) + 16px)",
         }} className="m-session-shell">
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <button onClick={onExit} aria-label="Quitter la session" style={{
               width: 44, height: 44, marginLeft: -10, border: "none", background: "none",
-              color: "#9B8A6E", fontSize: 26, lineHeight: 1, cursor: "pointer",
+              color: "var(--m-muted)", fontSize: 26, lineHeight: 1, cursor: "pointer",
             }}>×</button>
-            <div style={{ flex: 1, height: 10, borderRadius: 5, background: "#E8E0D4", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${pct}%`, background: "#6B21A8", borderRadius: 5,
+            <div style={{ flex: 1, height: 10, borderRadius: 5, background: "var(--m-line)", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: "var(--m-purple-dark)", borderRadius: 5,
                             transition: "width .45s cubic-bezier(.4,0,.2,1)" }} />
             </div>
-            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#6B21A8",
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "var(--m-purple-dark)",
                            fontVariantNumeric: "tabular-nums", minWidth: 46, textAlign: "right" }}>
               {xp} XP
             </span>
@@ -2683,17 +2683,17 @@
               <button onClick={() => setReporting(r => !r)} aria-label="Signaler un problème"
                 style={{
                   width: 44, height: 44, marginRight: -10, border: "none", background: "none",
-                  color: reporting ? "#DC2626" : "#9B8A6E", fontSize: 18, cursor: "pointer",
+                  color: reporting ? "var(--m-wrong)" : "var(--m-muted)", fontSize: 18, cursor: "pointer",
                 }}>⚑</button>
             )}
           </div>
 
           {reporting && !done && (
-            <div style={{ border: "1px solid #E8E0D4", borderRadius: 14, background: "white",
+            <div style={{ border: "1px solid var(--m-line)", borderRadius: 8, background: "white",
                           marginBottom: 14, overflow: "hidden" }}>
-              <p style={{ margin: 0, padding: "11px 14px", borderBottom: "1px solid #E8E0D4",
+              <p style={{ margin: 0, padding: "11px 14px", borderBottom: "1px solid var(--m-line)",
                           fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
-                          textTransform: "uppercase", color: "#9B8A6E" }}>
+                          textTransform: "uppercase", color: "var(--m-muted)" }}>
                 Ne va pas avec cette leçon&nbsp;?
               </p>
               {screenItems(current).map(it => {
@@ -2703,13 +2703,13 @@
                     onClick={() => { onReport(it); setReported(r => [...r, it.id]); }}
                     style={{
                       display: "flex", width: "100%", gap: 10, alignItems: "center", textAlign: "left",
-                      minHeight: 48, padding: "10px 14px", border: "none", borderBottom: "1px solid #F4EFE7",
-                      background: sent ? "#EAF7EE" : "white", cursor: sent ? "default" : "pointer",
+                      minHeight: 48, padding: "10px 14px", border: "none", borderBottom: "1px solid var(--m-line)",
+                      background: sent ? "var(--m-green-soft)" : "white", cursor: sent ? "default" : "pointer",
                       fontFamily: "'DM Sans', sans-serif", fontSize: 14,
                     }}>
                     <span style={{ flex: 1 }}>{it.fr}</span>
-                    <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: "#2C5F2D" }}>{it.ln}</span>
-                    <span style={{ fontSize: 12, color: sent ? "#16A34A" : "#9B8A6E" }}>{sent ? "✓ envoyé" : "Signaler"}</span>
+                    <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: "var(--m-forest)" }}>{it.ln}</span>
+                    <span style={{ fontSize: 12, color: sent ? "var(--m-correct)" : "var(--m-muted)" }}>{sent ? "✓ envoyé" : "Signaler"}</span>
                   </button>
                 );
               })}
@@ -2718,7 +2718,7 @@
 
           {!done && (
             <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".12em",
-                        textTransform: "uppercase", color: "#9B8A6E", margin: "0 0 6px" }}>
+                        textTransform: "uppercase", color: "var(--m-muted)", margin: "0 0 6px" }}>
               {brief.short} · {lesson.title}
             </p>
           )}
@@ -2728,31 +2728,31 @@
               <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 30, fontWeight: 800, margin: 0 }}>
                 Session terminée
               </h2>
-              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 46, fontWeight: 800, color: "#6B21A8",
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 46, fontWeight: 800, color: "var(--m-purple-dark)",
                           fontVariantNumeric: "tabular-nums", margin: "8px 0 0" }}>{xp + bonus + milestoneBonus} XP</p>
               {/* The bonus is shown as its own line, not folded into the total:
                   a number the learner cannot account for reads as a bug. */}
               {bonus > 0 && (
-                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 700, color: "#B45309" }}>
+                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 700, color: "var(--m-gold)" }}>
                   ✨ Sans faute — bonus de {bonus} XP
                 </p>
               )}
               {milestoneBonus > 0 && (
-                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 700, color: "#B27A0A" }}>
+                <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 700, color: "var(--m-gold)" }}>
                   Médaille enrichie · bonus unique de {milestoneBonus} XP
                 </p>
               )}
-              <p style={{ color: "#9B8A6E", fontSize: 14, margin: 0 }}>{lesson.title}</p>
+              <p style={{ color: "var(--m-muted)", fontSize: 14, margin: 0 }}>{lesson.title}</p>
 
               {/* A medal is a high-water mark, so it is announced only when this
                   session actually beat the previous best. */}
               {medalFor(firstTryPct()) && firstTryPct() > bestAtStart.current && (
-                <p style={{ margin: "10px 0 0", fontSize: 15, fontWeight: 700, color: "#5C4A2E" }}>
+                <p style={{ margin: "10px 0 0", fontSize: 15, fontWeight: 700, color: "var(--m-ink)" }}>
                   {medalFor(firstTryPct()).icon} {medalFor(firstTryPct()).label} — nouveau record
                 </p>
               )}
               {streak > 0 && (
-                <p style={{ margin: "6px 0 0", fontSize: 14, color: "#B45309", fontWeight: 700 }}>
+                <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--m-gold)", fontWeight: 700 }}>
                   🔥 {plural(streak, "jour", "jours")} d'affilée
                 </p>
               )}
@@ -2761,16 +2761,16 @@
                   endless and replayable, so it reports a score and nothing else. */}
               {stage === "pratiquer" && (
                 <div style={{
-                  marginTop: 18, padding: "13px 16px", borderRadius: 14,
-                  background: firstTryPct() >= PASS_PCT ? "#EAF7EE" : "#FDF6EC",
-                  border: `1.5px solid ${firstTryPct() >= PASS_PCT ? "#16A34A" : "#D4A843"}`,
+                  marginTop: 18, padding: "13px 16px", borderRadius: 8,
+                  background: firstTryPct() >= PASS_PCT ? "var(--m-green-soft)" : "var(--m-gold-soft)",
+                  border: `1.5px solid ${firstTryPct() >= PASS_PCT ? "var(--m-correct)" : "var(--m-gold)"}`,
                 }}>
                   <p style={{ margin: 0, fontSize: 15, fontWeight: 700,
-                              color: firstTryPct() >= PASS_PCT ? "#16A34A" : "#8B6D47" }}>
+                              color: firstTryPct() >= PASS_PCT ? "var(--m-correct)" : "var(--m-muted)" }}>
                     {firstTryPct() >= PASS_PCT ? "✓ Leçon maîtrisée — « Aller plus loin » débloqué" : `${firstTryPct()}% — il en faut ${PASS_PCT}%`}
                   </p>
                   {firstTryPct() < PASS_PCT && (
-                    <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>
+                    <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--m-muted)" }}>
                       Recommencez quand vous voulez, rien n'est perdu.
                     </p>
                   )}
@@ -2778,38 +2778,38 @@
               )}
               {stage === "level_challenge" && (
                 <div style={{
-                  marginTop: 18, padding: "13px 16px", borderRadius: 14,
-                  background: firstTryPct() >= PASS_PCT ? "#EAF7EE" : "#FDF6EC",
-                  border: `1.5px solid ${firstTryPct() >= PASS_PCT ? "#16A34A" : "#D4A843"}`,
+                  marginTop: 18, padding: "13px 16px", borderRadius: 8,
+                  background: firstTryPct() >= PASS_PCT ? "var(--m-green-soft)" : "var(--m-gold-soft)",
+                  border: `1.5px solid ${firstTryPct() >= PASS_PCT ? "var(--m-correct)" : "var(--m-gold)"}`,
                 }}>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: firstTryPct() >= PASS_PCT ? "#167047" : "#8B6D47" }}>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: firstTryPct() >= PASS_PCT ? "var(--m-forest-2)" : "var(--m-muted)" }}>
                     {firstTryPct() >= PASS_PCT ? "Niveau enrichi · distinction obtenue" : `${firstTryPct()}% · il en faut ${PASS_PCT}%`}
                   </p>
-                  {firstTryPct() < PASS_PCT && <p style={{ margin: "4px 0 0", fontSize: 13, color: "#9B8A6E" }}>Votre record est conservé. Vous pouvez recommencer librement.</p>}
+                  {firstTryPct() < PASS_PCT && <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--m-muted)" }}>Votre record est conservé. Vous pouvez recommencer librement.</p>}
                 </div>
               )}
 
               <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
                 {[[totalQuestions, "questions"], [`${firstTryPct()}%`, "du premier coup"]].map(([v, l]) => (
-                  <div key={l} style={{ flex: 1, border: "1px solid #E8E0D4", borderRadius: 14, padding: "13px 8px", background: "white" }}>
+                  <div key={l} style={{ flex: 1, border: "1px solid var(--m-line)", borderRadius: 8, padding: "13px 8px", background: "white" }}>
                     <b style={{ display: "block", fontFamily: "'DM Mono', monospace", fontSize: 20,
                                 fontVariantNumeric: "tabular-nums" }}>{v}</b>
-                    <span style={{ fontSize: 11, color: "#9B8A6E", letterSpacing: ".05em",
+                    <span style={{ fontSize: 11, color: "var(--m-muted)", letterSpacing: ".05em",
                                    textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>{l}</span>
                   </div>
                 ))}
               </div>
               {missed.length > 0 && (
-                <div style={{ marginTop: 18, textAlign: "left", border: "1px solid #E8E0D4",
-                              borderRadius: 14, background: "white", overflow: "hidden" }}>
+                <div style={{ marginTop: 18, textAlign: "left", border: "1px solid var(--m-line)",
+                              borderRadius: 8, background: "white", overflow: "hidden" }}>
                   <h3 style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, letterSpacing: ".1em",
-                               textTransform: "uppercase", color: "#9B8A6E", margin: 0,
-                               padding: "11px 14px", borderBottom: "1px solid #E8E0D4" }}>À revoir</h3>
+                               textTransform: "uppercase", color: "var(--m-muted)", margin: 0,
+                               padding: "11px 14px", borderBottom: "1px solid var(--m-line)" }}>À revoir</h3>
                   {missed.slice(0, 6).map(m => (
                     <div key={m.id} style={{ display: "flex", justifyContent: "space-between", gap: 12,
-                                             padding: "10px 14px", fontSize: 14, borderBottom: "1px solid #F4EFE7" }}>
+                                             padding: "10px 14px", fontSize: 14, borderBottom: "1px solid var(--m-line)" }}>
                       <span>{m.fr}</span>
-                      <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: "#2C5F2D" }}>{m.ln}</span>
+                      <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, color: "var(--m-forest)" }}>{m.ln}</span>
                     </div>
                   ))}
                 </div>
@@ -2821,13 +2821,13 @@
 
           {done ? (
             <button onClick={onExit} style={{
-              width: "100%", minHeight: 52, border: "none", borderRadius: 14, background: "#6B21A8",
+              width: "100%", minHeight: 52, border: "none", borderRadius: 8, background: "var(--m-purple-dark)",
               color: "white", fontSize: 16, fontWeight: 700, cursor: "pointer", marginTop: 18,
             }}>Continuer</button>
           ) : (
             <button onClick={onSeeLesson} style={{
-              width: "100%", minHeight: 48, borderRadius: 14, background: "transparent",
-              border: "1.5px solid #E8E0D4", color: "#9B8A6E", fontSize: 14, fontWeight: 600, cursor: "pointer",
+              width: "100%", minHeight: 48, borderRadius: 8, background: "transparent",
+              border: "1.5px solid var(--m-line)", color: "var(--m-muted)", fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}>{secondaryLabel}</button>
           )}
         </div>
@@ -2898,21 +2898,21 @@
     );
 
     const SenseCard = ({ sense, index }) => (
-      <div style={{ background:"white", borderRadius:16, padding:"20px 24px", marginBottom:12, border:"1px solid #E8E0D4", boxShadow:"0 1px 3px rgba(139,109,71,0.06)" }}>
+      <div style={{ background:"white", borderRadius:8, padding:"20px 24px", marginBottom:12, border:"1px solid var(--m-line)", boxShadow:"0 1px 3px rgba(139,109,71,0.06)" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
-          <span style={{ background:"#2C5F2D", color:"white", fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20, letterSpacing:"0.05em", fontFamily:"'DM Mono', monospace" }}>SENS {index+1}</span>
-          <span style={{ fontSize:22, fontWeight:700, color:"#2C5F2D", fontFamily:"'Playfair Display', serif" }}>{sense.dialect_word}</span>
+          <span style={{ background:"var(--m-forest)", color:"white", fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:10, letterSpacing:"0.05em", fontFamily:"'DM Mono', monospace" }}>SENS {index+1}</span>
+          <span style={{ fontSize:22, fontWeight:700, color:"var(--m-forest)", fontFamily:"'Playfair Display', serif" }}>{sense.dialect_word}</span>
           <div style={{ marginLeft:"auto" }}>
             <AudioButton src={sense.audio_url} title={`Ecouter ${sense.dialect_word}`} />
           </div>
         </div>
         {sense.examples && sense.examples.length > 0 && (
-          <div style={{ background:"#FDFBF7", borderRadius:12, padding:"14px 18px", borderLeft:"3px solid #D4A843" }}>
+          <div style={{ background:"var(--m-canvas)", borderRadius:8, padding:"14px 18px", borderLeft:"3px solid var(--m-gold)" }}>
             <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-              <p style={{ margin:0, fontSize:15, color:"#5C4A2E", fontStyle:"italic", lineHeight:1.5, fontFamily:"'Source Serif 4', serif", flex:1 }}>« {sense.examples[0].sentence_dialect} »</p>
+              <p style={{ margin:0, fontSize:15, color:"var(--m-ink)", fontStyle:"italic", lineHeight:1.5, fontFamily:"'DM Sans', sans-serif", flex:1 }}>« {sense.examples[0].sentence_dialect} »</p>
               <AudioButton src={sense.examples[0].audio_url} title="Ecouter l'exemple" />
             </div>
-            <p style={{ margin:"8px 0 0", fontSize:13, color:"#9B8A6E", lineHeight:1.4, fontFamily:"'DM Sans', sans-serif" }}>{sense.examples[0].sentence_french}</p>
+            <p style={{ margin:"8px 0 0", fontSize:13, color:"var(--m-muted)", lineHeight:1.4, fontFamily:"'DM Sans', sans-serif" }}>{sense.examples[0].sentence_french}</p>
           </div>
         )}
       </div>
@@ -2933,11 +2933,11 @@
         })();
       }, [wordId]);
       if (loading) return <Spinner />;
-      if (!data) return <p style={{textAlign:"center",color:"#9B8A6E",padding:40}}>Erreur de chargement</p>;
+      if (!data) return <p style={{textAlign:"center",color:"var(--m-muted)",padding:40}}>Erreur de chargement</p>;
       return (
         <div style={{ animation:"slideIn 0.25s ease-out" }}>
-          <button onClick={onBack} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:8, fontFamily:"'DM Sans', sans-serif" }}><ArrowLeft /> Retour</button>
-          <div style={{ background:"linear-gradient(135deg, #2C5F2D 0%, #1A3D1B 100%)", borderRadius:20, padding:"28px 28px 24px", marginBottom:20, position:"relative", overflow:"hidden" }}>
+          <button onClick={onBack} style={{ display:"flex", alignItems:"center", gap:6, background:"none", border:"none", color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:8, fontFamily:"'DM Sans', sans-serif" }}><ArrowLeft /> Retour</button>
+          <div style={{ background:"var(--m-forest)", borderRadius:10, padding:"28px 28px 24px", marginBottom:20, position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.04)" }}/>
             <div style={{ position:"absolute", bottom:-20, left:40, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.03)" }}/>
             <span style={{ fontSize:12, color:"rgba(255,255,255,0.5)", fontWeight:600, letterSpacing:"0.12em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>Français → {langName}</span>
@@ -2950,14 +2950,14 @@
     };
 
     const ResultRow = ({ word, onClick }) => (
-      <button onClick={onClick} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"16px 20px", marginBottom:8, cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:"0 1px 2px rgba(139,109,71,0.04)" }}
-        onMouseOver={e => { e.currentTarget.style.borderColor="#D4A843"; e.currentTarget.style.boxShadow="0 2px 8px rgba(212,168,67,0.12)"; }}
-        onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}>
+      <button onClick={onClick} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", background:"white", border:"1px solid var(--m-line)", borderRadius:8, padding:"16px 20px", marginBottom:8, cursor:"pointer", textAlign:"left", transition:"all 0.15s", boxShadow:"0 1px 2px rgba(139,109,71,0.04)" }}
+        onMouseOver={e => { e.currentTarget.style.borderColor="var(--m-gold)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(212,168,67,0.12)"; }}
+        onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}>
         <div>
-          <div style={{ fontSize:17, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>{word.french_word}</div>
-          {word.dialect_words && <div style={{ fontSize:14, color:"#2C5F2D", marginTop:3, fontFamily:"'DM Sans', sans-serif", fontWeight:500 }}>{word.dialect_words}</div>}
+          <div style={{ fontSize:17, fontWeight:700, color:"var(--m-ink)", fontFamily:"'Playfair Display', serif" }}>{word.french_word}</div>
+          {word.dialect_words && <div style={{ fontSize:14, color:"var(--m-forest)", marginTop:3, fontFamily:"'DM Sans', sans-serif", fontWeight:500 }}>{word.dialect_words}</div>}
         </div>
-        <div style={{ color:"#C4B8A4", flexShrink:0 }}><ChevronRight /></div>
+        <div style={{ color:"var(--m-muted)", flexShrink:0 }}><ChevronRight /></div>
       </button>
     );
 
@@ -3495,14 +3495,14 @@
           <div style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <button onClick={() => { stopAll(); onBack(); }} style={{
               display:"flex", alignItems:"center", gap:5, background:"none", border:"none",
-              color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"6px 0",
+              color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"6px 0",
               fontFamily:"'DM Sans', sans-serif",
             }}><ArrowLeft size={16} /> Accueil</button>
 
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
 {segments.length > 0 && (
                 <button onClick={() => { setSegments([]); setLiveText(""); }} style={{
-                  background:"none", border:"none", color:"#C4B8A4", fontSize:12,
+                  background:"none", border:"none", color:"var(--m-muted)", fontSize:12,
                   cursor:"pointer", fontFamily:"'DM Sans', sans-serif", padding:"6px 0",
                 }}>Effacer</button>
               )}
@@ -3512,29 +3512,29 @@
           {/* ── Language switcher ── */}
           <div style={{
             flexShrink:0, display:"flex", alignItems:"center",
-            background:"white", borderRadius:18, border:"1px solid #E8E0D4",
+            background:"white", borderRadius:10, border:"1px solid var(--m-line)",
             boxShadow:"0 2px 8px rgba(0,0,0,0.06)", marginBottom:12, overflow:"hidden",
           }}>
             <div style={{ flex:1, textAlign:"center", padding:"14px 10px" }}>
-              <div style={{ fontSize:10, fontWeight:700, color:"#9B8A6E", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Je parle</div>
-              <div style={{ fontSize:17, fontWeight:800, color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}>{sourceLang}</div>
+              <div style={{ fontSize:10, fontWeight:700, color:"var(--m-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Je parle</div>
+              <div style={{ fontSize:17, fontWeight:800, color:"var(--m-ink)", fontFamily:"'DM Sans', sans-serif" }}>{sourceLang}</div>
             </div>
             <button onClick={swapDirection} title="Inverser" style={{
               flexShrink:0, width:44, height:44, borderRadius:"50%",
-              background:"linear-gradient(135deg, #2D2118, #4A3728)",
+              background:"var(--m-forest)",
               border:"none", color:"white", fontSize:18, cursor:"pointer",
               display:"flex", alignItems:"center", justifyContent:"center",
               boxShadow:"0 2px 8px rgba(0,0,0,0.18)", transition:"transform 0.2s",
             }}>⇄</button>
             <div style={{ flex:1, textAlign:"center", padding:"14px 10px" }}>
-              <div style={{ fontSize:10, fontWeight:700, color:"#9B8A6E", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Traduction</div>
-              <div style={{ fontSize:17, fontWeight:800, color:"#16A34A", fontFamily:"'DM Sans', sans-serif" }}>{targetLang}</div>
+              <div style={{ fontSize:10, fontWeight:700, color:"var(--m-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Traduction</div>
+              <div style={{ fontSize:17, fontWeight:800, color:"var(--m-correct)", fontFamily:"'DM Sans', sans-serif" }}>{targetLang}</div>
             </div>
           </div>
 
           {/* ── Error banner ── */}
           {error && (
-            <div style={{ flexShrink:0, background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:12, padding:"10px 14px", marginBottom:10, fontSize:13, color:"#DC2626" }}>
+            <div style={{ flexShrink:0, background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"10px 14px", marginBottom:10, fontSize:13, color:"var(--m-wrong)" }}>
               ⚠️ {error}
             </div>
           )}
@@ -3544,7 +3544,7 @@
 
             {/* Empty state */}
             {segments.length === 0 && !liveText && !translating && (
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:12, color:"#C4B8A4" }}>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:12, color:"var(--m-muted)" }}>
                 <div style={{ fontSize:40 }}>🎙️</div>
                 <p style={{ fontSize:14, fontStyle:"italic", textAlign:"center", lineHeight:1.6, maxWidth:220 }}>
                   {isListening ? `Parlez en ${sourceLang}…` : "Appuyez sur le micro et parlez — la traduction s'affiche en temps réel"}
@@ -3562,33 +3562,33 @@
                   marginLeft: isRight ? "auto" : 0,
                   marginRight: isRight ? 0 : "auto",
                   background: isRight ? "#F0FDF4" : "white",
-                  borderRadius:16,
-                  border: `1px solid ${isRight ? "#BBF7D0" : "#E8E0D4"}`,
+                  borderRadius:8,
+                  border: `1px solid ${isRight ? "#BBF7D0" : "var(--m-line)"}`,
                   boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
                   overflow:"hidden", animation:"slideIn 0.25s ease-out",
                 }}>
                   {/* Source text */}
                   <div style={{ padding:"10px 14px 6px", borderBottom:`1px solid ${isRight ? "#DCFCE7" : "#F2EDE6"}` }}>
-                    <span style={{ fontSize:11, fontWeight:700, color: isRight ? "#16A34A" : "#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sFromLang}</span>
-                    <span style={{ fontSize:13, color:"#9B8A6E", fontFamily:"'Source Serif 4', serif" }}>{s.source}</span>
+                    <span style={{ fontSize:11, fontWeight:700, color: isRight ? "var(--m-correct)" : "var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sFromLang}</span>
+                    <span style={{ fontSize:13, color:"var(--m-muted)", fontFamily:"'DM Sans', sans-serif" }}>{s.source}</span>
                   </div>
                   {/* Translation */}
                   <div style={{ padding:"10px 14px 12px", display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ flex:1, fontSize:17, fontWeight:700, color:"#2D2118", lineHeight:1.5, fontFamily:"'DM Sans', sans-serif" }}>
+                    <div style={{ flex:1, fontSize:17, fontWeight:700, color:"var(--m-ink)", lineHeight:1.5, fontFamily:"'DM Sans', sans-serif" }}>
                       {s.translation}
                     </div>
                     {!s.audioFailed ? (
                       <button onClick={() => playAudio(s)} style={{
                         flexShrink:0, width:38, height:38, borderRadius:"50%", border:"none",
                         cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center",
-                        background: playingId === s.id ? "#16A34A" : "#F0F9F0",
-                        color: playingId === s.id ? "white" : "#16A34A",
+                        background: playingId === s.id ? "var(--m-correct)" : "#F0F9F0",
+                        color: playingId === s.id ? "white" : "var(--m-correct)",
                         transition:"all 0.15s",
                       }}>
                         {playingId === s.id ? "■" : "▶"}
                       </button>
                     ) : (
-                      <span style={{ fontSize:11, color:"#C4B8A4" }}>—</span>
+                      <span style={{ fontSize:11, color:"var(--m-muted)" }}>—</span>
                     )}
                   </div>
                 </div>
@@ -3597,17 +3597,17 @@
 
             {/* Live interim text while speaking */}
             {liveText && (
-              <div style={{ padding:"8px 14px", borderRadius:12, background:"#FAFAF8", border:"1px dashed #E8E0D4", marginBottom:8 }}>
-                <span style={{ fontSize:11, fontWeight:700, color:"#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sourceLang}</span>
-                <span style={{ fontSize:14, color:"#9B8A6E", fontStyle:"italic" }}>{liveText}</span>
+              <div style={{ padding:"8px 14px", borderRadius:8, background:"var(--m-canvas)", border:"1px dashed var(--m-line)", marginBottom:8 }}>
+                <span style={{ fontSize:11, fontWeight:700, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sourceLang}</span>
+                <span style={{ fontSize:14, color:"var(--m-muted)", fontStyle:"italic" }}>{liveText}</span>
               </div>
             )}
 
             {/* Translating spinner */}
             {translating && (
-              <div style={{ padding:"10px 14px", borderRadius:12, background:"#F0FDF4", border:"1px solid #BBF7D0", marginBottom:8, display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ fontSize:13, color:"#16A34A", animation:"spin 1s linear infinite", display:"inline-block" }}>⟳</span>
-                <span style={{ fontSize:13, color:"#16A34A", fontStyle:"italic" }}>Traduction en cours…</span>
+              <div style={{ padding:"10px 14px", borderRadius:8, background:"#F0FDF4", border:"1px solid #BBF7D0", marginBottom:8, display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:13, color:"var(--m-correct)", animation:"spin 1s linear infinite", display:"inline-block" }}>⟳</span>
+                <span style={{ fontSize:13, color:"var(--m-correct)", fontStyle:"italic" }}>Traduction en cours…</span>
               </div>
             )}
 
@@ -3622,7 +3622,7 @@
               {Array.from({length:9}).map((_, i) => (
                 <div key={i} ref={el => barRefs.current[i] = el} style={{
                   width:4, borderRadius:3,
-                  background: isListening ? "#16A34A" : "#E8E0D4",
+                  background: isListening ? "var(--m-correct)" : "var(--m-line)",
                   height:"4px",
                   transition:"background 0.3s",
                 }} />
@@ -3634,8 +3634,8 @@
               <button onClick={toggleListening} style={{
                 width:80, height:80, borderRadius:"50%", border:"none", cursor:"pointer",
                 background: isListening
-                  ? "linear-gradient(135deg, #16A34A, #15803D)"
-                  : "linear-gradient(135deg, #2D2118, #4A3728)",
+                  ? "var(--m-correct)"
+                  : "var(--m-forest)",
                 color:"white", fontSize:30,
                 display:"flex", alignItems:"center", justifyContent:"center",
                 animation: isListening ? "micRing 1.8s ease-in-out infinite" : "none",
@@ -3648,7 +3648,7 @@
 
             {/* Status label */}
             <div style={{ textAlign:"center", fontSize:12, fontWeight:600, fontFamily:"'DM Sans', sans-serif", paddingBottom:4,
-              color: translating ? "#16A34A" : isListening ? "#16A34A" : "#9B8A6E" }}>
+              color: translating ? "var(--m-correct)" : isListening ? "var(--m-correct)" : "var(--m-muted)" }}>
               {translating ? "Traduction…" : isListening ? `En écoute — ${sourceLang}` : "Appuyer pour parler"}
             </div>
 
@@ -6317,21 +6317,21 @@
               <div style={{ animation:"fadeIn 0.3s ease-out" }}>
                 <div style={{ textAlign:"center", paddingTop:40, paddingBottom:20 }}>
                   <div style={{
-                    width:56, height:56, borderRadius:16,
-                    background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                    width:56, height:56, borderRadius:8,
+                    background:"var(--m-forest)",
                     display:"flex", alignItems:"center", justifyContent:"center",
                     margin:"0 auto 12px", boxShadow:"0 6px 20px rgba(44,95,45,0.25)",
                     animation:"float 4s ease-in-out infinite",
                   }}><span style={{ fontSize:26 }}>📖</span></div>
-                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:30, fontWeight:800, color:"#2D2118", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
-                  <p style={{ color:"#9B8A6E", fontSize:14, margin:0, fontWeight:500 }}>Dictionnaire des langues africaines</p>
+                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:30, fontWeight:800, color:"var(--m-ink)", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
+                  <p style={{ color:"var(--m-muted)", fontSize:14, margin:0, fontWeight:500 }}>Dictionnaire des langues africaines</p>
                 </div>
 
                 {/* MAP - Hero element */}
                 <div style={{ marginBottom:16 }}>
                   <div style={{
-                    background:"white", borderRadius:20, overflow:"hidden",
-                    border:"1px solid #E8E0D4", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
+                    background:"white", borderRadius:10, overflow:"hidden",
+                    border:"1px solid var(--m-line)", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
                   }}>
                     <LeafletMap
                       selectedMapLang={mapLang}
@@ -6346,8 +6346,8 @@
                         style={{
                           display:"flex", alignItems:"center", gap:5,
                           background: mapLang === name ? geo.color + "15" : "white",
-                          border: mapLang === name ? `2px solid ${geo.color}` : "2px solid #E8E0D4",
-                          borderRadius:20, padding:"6px 12px", cursor:"pointer",
+                          border: mapLang === name ? `2px solid ${geo.color}` : "2px solid var(--m-line)",
+                          borderRadius:10, padding:"6px 12px", cursor:"pointer",
                           transition:"all 0.2s",
                         }}>
                         <div style={{ width:8, height:8, borderRadius:"50%", background:geo.color }} />
@@ -6365,8 +6365,8 @@
                   const matchedLang = languages.find(l => l.name === mapLang);
                   return (
                     <div style={{
-                      background:"white", borderRadius:16, overflow:"hidden",
-                      border:"1px solid #E8E0D4", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
+                      background:"white", borderRadius:8, overflow:"hidden",
+                      border:"1px solid var(--m-line)", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
                       animation:"slideIn 0.25s ease-out", marginBottom:16,
                     }}>
                       <div style={{ background:t.gradient, padding:"16px 20px", display:"flex", alignItems:"center", gap:12 }}>
@@ -6377,17 +6377,17 @@
                         </div>
                       </div>
                       <div style={{ padding:"14px 20px" }}>
-                        <p style={{ fontSize:13, color:"#5C4A2E", lineHeight:1.5, margin:"0 0 12px", fontFamily:"'Source Serif 4', serif" }}>
+                        <p style={{ fontSize:13, color:"var(--m-ink)", lineHeight:1.5, margin:"0 0 12px", fontFamily:"'DM Sans', sans-serif" }}>
                           {geo.description}
                         </p>
                         <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-                          <div style={{ flex:1, background:"#FDFBF7", borderRadius:10, padding:"8px 10px", textAlign:"center" }}>
+                          <div style={{ flex:1, background:"var(--m-canvas)", borderRadius:10, padding:"8px 10px", textAlign:"center" }}>
                             <div style={{ fontSize:15, fontWeight:800, color:geo.color, fontFamily:"'Playfair Display', serif" }}>{geo.speakers}</div>
-                            <div style={{ fontSize:9, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.06em", fontWeight:600 }}>Locuteurs</div>
+                            <div style={{ fontSize:9, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.06em", fontWeight:600 }}>Locuteurs</div>
                           </div>
-                          <div style={{ flex:1, background:"#FDFBF7", borderRadius:10, padding:"8px 10px", textAlign:"center" }}>
+                          <div style={{ flex:1, background:"var(--m-canvas)", borderRadius:10, padding:"8px 10px", textAlign:"center" }}>
                             <div style={{ fontSize:15, fontWeight:800, color:geo.color, fontFamily:"'Playfair Display', serif" }}>{matchedLang?.wordCount?.toLocaleString() || "—"}</div>
-                            <div style={{ fontSize:9, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.06em", fontWeight:600 }}>Mots</div>
+                            <div style={{ fontSize:9, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.06em", fontWeight:600 }}>Mots</div>
                           </div>
                         </div>
                         <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:12 }}>
@@ -6416,7 +6416,7 @@
                 })()}
 
                 {/* Language list */}
-                <p style={{ fontSize:11, color:"#9B8A6E", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase",
+                <p style={{ fontSize:11, color:"var(--m-muted)", fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase",
                   margin:"0 0 10px", fontFamily:"'DM Mono', monospace" }}>
                   Langues disponibles
                 </p>
@@ -6427,29 +6427,29 @@
                       return (
                         <button key={lang.id} onClick={() => selectLanguage(lang)} style={{
                           display:"flex", alignItems:"center", gap:14, width:"100%",
-                          background:"white", border:"1px solid #E8E0D4", borderRadius:14,
+                          background:"white", border:"1px solid var(--m-line)", borderRadius:8,
                           padding:"16px 20px", cursor:"pointer", textAlign:"left",
                           transition:"all 0.2s", boxShadow:"0 1px 4px rgba(139,109,71,0.04)",
                         }}
                         onMouseOver={e => { e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow="0 4px 12px rgba(139,109,71,0.08)"; }}
                         onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 1px 4px rgba(139,109,71,0.04)"; }}>
-                          <div style={{ width:40, height:40, borderRadius:12, background:t.gradient, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:20 }}>{t.emoji}</div>
+                          <div style={{ width:40, height:40, borderRadius:8, background:t.gradient, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:20 }}>{t.emoji}</div>
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:16, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>
+                            <div style={{ fontSize:16, fontWeight:700, color:"var(--m-ink)", fontFamily:"'Playfair Display', serif" }}>
                               Français — {lang.name}
                             </div>
-                            <div style={{ fontSize:12, color:"#9B8A6E", marginTop:1 }}>
+                            <div style={{ fontSize:12, color:"var(--m-muted)", marginTop:1 }}>
                               {lang.wordCount?.toLocaleString() || 0} mots
                             </div>
                           </div>
-                          <div style={{ color:"#C4B8A4" }}><ChevronRight /></div>
+                          <div style={{ color:"var(--m-muted)" }}><ChevronRight /></div>
                         </button>
                       );
                     })}
                   </div>
                 )}
 
-                <p style={{ textAlign:"center", color:"#B8A88C", fontSize:12, marginTop:24, fontStyle:"italic" }}>
+                <p style={{ textAlign:"center", color:"var(--m-muted)", fontSize:12, marginTop:24, fontStyle:"italic" }}>
                   D'autres langues arrivent bientôt...
                 </p>
               </div>
@@ -6460,20 +6460,20 @@
               <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20 }}>
                 <button onClick={() => { setView("lang_select"); setMapLang(null); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
+                  color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
                   fontFamily:"'DM Sans', sans-serif",
                 }}><ArrowLeft /> Retour</button>
 
-                <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>
+                <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:800, color:"var(--m-ink)", margin:"0 0 4px" }}>
                   Carte des langues
                 </h2>
-                <p style={{ fontSize:13, color:"#9B8A6E", margin:"0 0 20px" }}>
+                <p style={{ fontSize:13, color:"var(--m-muted)", margin:"0 0 20px" }}>
                   Touchez une région pour en savoir plus
                 </p>
 
                 <div style={{
-                  background:"white", borderRadius:20, padding:"0",
-                  border:"1px solid #E8E0D4", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
+                  background:"white", borderRadius:10, padding:"0",
+                  border:"1px solid var(--m-line)", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
                   marginBottom:16, overflow:"hidden",
                 }}>
                   <LeafletMap
@@ -6490,8 +6490,8 @@
                       style={{
                         display:"flex", alignItems:"center", gap:6,
                         background: mapLang === name ? geo.color + "15" : "white",
-                        border: mapLang === name ? `2px solid ${geo.color}` : "2px solid #E8E0D4",
-                        borderRadius:20, padding:"8px 14px", cursor:"pointer",
+                        border: mapLang === name ? `2px solid ${geo.color}` : "2px solid var(--m-line)",
+                        borderRadius:10, padding:"8px 14px", cursor:"pointer",
                         transition:"all 0.2s",
                       }}>
                       <div style={{ width:10, height:10, borderRadius:"50%", background:geo.color }} />
@@ -6508,8 +6508,8 @@
                   const matchedLang = languages.find(l => l.name === mapLang);
                   return (
                     <div style={{
-                      background:"white", borderRadius:20, overflow:"hidden",
-                      border:"1px solid #E8E0D4", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
+                      background:"white", borderRadius:10, overflow:"hidden",
+                      border:"1px solid var(--m-line)", boxShadow:"0 2px 12px rgba(139,109,71,0.08)",
                       animation:"slideIn 0.25s ease-out",
                     }}>
                       {/* Header */}
@@ -6529,25 +6529,25 @@
 
                       {/* Body */}
                       <div style={{ padding:"20px 24px" }}>
-                        <p style={{ fontSize:14, color:"#5C4A2E", lineHeight:1.6, margin:"0 0 16px", fontFamily:"'Source Serif 4', serif" }}>
+                        <p style={{ fontSize:14, color:"var(--m-ink)", lineHeight:1.6, margin:"0 0 16px", fontFamily:"'DM Sans', sans-serif" }}>
                           {geo.description}
                         </p>
 
                         {/* Stats */}
                         <div style={{ display:"flex", gap:12, marginBottom:16 }}>
-                          <div style={{ flex:1, background:"#FDFBF7", borderRadius:12, padding:"12px 14px", textAlign:"center" }}>
+                          <div style={{ flex:1, background:"var(--m-canvas)", borderRadius:8, padding:"12px 14px", textAlign:"center" }}>
                             <div style={{ fontSize:18, fontWeight:800, color:geo.color, fontFamily:"'Playfair Display', serif" }}>{geo.speakers}</div>
-                            <div style={{ fontSize:10, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginTop:2 }}>Locuteurs</div>
+                            <div style={{ fontSize:10, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginTop:2 }}>Locuteurs</div>
                           </div>
-                          <div style={{ flex:1, background:"#FDFBF7", borderRadius:12, padding:"12px 14px", textAlign:"center" }}>
+                          <div style={{ flex:1, background:"var(--m-canvas)", borderRadius:8, padding:"12px 14px", textAlign:"center" }}>
                             <div style={{ fontSize:18, fontWeight:800, color:geo.color, fontFamily:"'Playfair Display', serif" }}>{matchedLang?.wordCount?.toLocaleString() || "—"}</div>
-                            <div style={{ fontSize:10, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginTop:2 }}>Mots</div>
+                            <div style={{ fontSize:10, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600, marginTop:2 }}>Mots</div>
                           </div>
                         </div>
 
                         {/* Regions */}
                         <div style={{ marginBottom:16 }}>
-                          <span style={{ fontSize:11, color:"#9B8A6E", fontWeight:600, letterSpacing:"0.08em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>
+                          <span style={{ fontSize:11, color:"var(--m-muted)", fontWeight:600, letterSpacing:"0.08em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>
                             Régions
                           </span>
                           <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:8 }}>
@@ -6566,7 +6566,7 @@
                           <button onClick={() => selectLanguage(matchedLang)} style={{
                             width:"100%", padding:"14px",
                             background:t.gradient, color:"white",
-                            border:"none", borderRadius:12, fontSize:15, fontWeight:700,
+                            border:"none", borderRadius:8, fontSize:15, fontWeight:700,
                             cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
                             boxShadow:`0 4px 12px ${geo.color}30`,
                           }}>
@@ -6579,7 +6579,7 @@
                 })()}
 
                 {!mapLang && (
-                  <div style={{ textAlign:"center", padding:"20px", color:"#9B8A6E" }}>
+                  <div style={{ textAlign:"center", padding:"20px", color:"var(--m-muted)" }}>
                     <p style={{ fontSize:14, fontStyle:"italic" }}>
                       Sélectionnez une langue sur la carte pour voir les détails
                     </p>
@@ -6608,19 +6608,19 @@
               <div style={{ animation:"fadeIn 0.3s ease-out" }}>
                 <div style={{ textAlign:"center", paddingTop:48, paddingBottom:32 }}>
                   <div style={{
-                    width:72, height:72, borderRadius:20, background:theme.gradient,
+                    width:72, height:72, borderRadius:10, background:theme.gradient,
                     display:"flex", alignItems:"center", justifyContent:"center",
                     margin:"0 auto 16px", boxShadow:`0 8px 24px ${theme.accent}40`,
                     animation:"float 4s ease-in-out infinite",
                   }}><span style={{ fontSize:32 }}>📖</span></div>
-                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:800, color:"#2D2118", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
-                  <p style={{ color:"#9B8A6E", fontSize:14, margin:0, fontWeight:500 }}>Dictionnaire Français — {langName}</p>
+                  <h1 style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:800, color:"var(--m-ink)", margin:"0 0 4px", lineHeight:1.1 }}>Monɔkɔ</h1>
+                  <p style={{ color:"var(--m-muted)", fontSize:14, margin:0, fontWeight:500 }}>Dictionnaire Français — {langName}</p>
 
                   {/* Switch language button */}
                   <button onClick={switchLanguage} style={{
                     display:"inline-flex", alignItems:"center", gap:6, marginTop:12,
-                    background:"#F0EBE3", border:"1px solid #E8E0D4", borderRadius:20,
-                    padding:"6px 14px", fontSize:12, fontWeight:600, color:"#8B6D47",
+                    background:"var(--m-line)", border:"1px solid var(--m-line)", borderRadius:10,
+                    padding:"6px 14px", fontSize:12, fontWeight:600, color:"var(--m-muted)",
                     cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
                   }}>
                     <GlobeIcon /> Changer de langue
@@ -6630,20 +6630,20 @@
                   <div style={{ marginTop:12, display:"flex", justifyContent:"center" }}>
                     {currentUser ? (
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontSize:12, color:"#5C4A2E", fontWeight:600 }}>
+                        <span style={{ fontSize:12, color:"var(--m-ink)", fontWeight:600 }}>
                           👤 {currentUser.user_metadata?.display_name || currentUser.email}
                         </span>
                         <button onClick={handleSignOut} style={{
-                          background:"none", border:"1px solid #E8E0D4", borderRadius:12,
-                          padding:"3px 10px", fontSize:11, color:"#9B8A6E", cursor:"pointer",
+                          background:"none", border:"1px solid var(--m-line)", borderRadius:8,
+                          padding:"3px 10px", fontSize:11, color:"var(--m-muted)", cursor:"pointer",
                           fontFamily:"'DM Sans', sans-serif", fontWeight:600,
                         }}>Déconnexion</button>
                       </div>
                     ) : (
                       <button onClick={() => requireAuth(null)} style={{
                         display:"inline-flex", alignItems:"center", gap:6,
-                        background:"#F0EBE3", border:"1px solid #E8E0D4", borderRadius:20,
-                        padding:"6px 14px", fontSize:12, fontWeight:600, color:"#8B6D47",
+                        background:"var(--m-line)", border:"1px solid var(--m-line)", borderRadius:10,
+                        padding:"6px 14px", fontSize:12, fontWeight:600, color:"var(--m-muted)",
                         cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
                       }}>
                         🔑 Se connecter
@@ -6654,7 +6654,7 @@
 
                 <div style={{
                   display:"flex", justifyContent:"center", gap:24, marginBottom:32,
-                  padding:"14px 0", borderTop:"1px solid #E8E0D4", borderBottom:"1px solid #E8E0D4",
+                  padding:"14px 0", borderTop:"1px solid var(--m-line)", borderBottom:"1px solid var(--m-line)",
                 }}>
                   {[
                     { n: stats.words.toLocaleString(), label: "mots" },
@@ -6663,7 +6663,7 @@
                   ].map((s,i) => (
                     <div key={i} style={{ textAlign:"center" }}>
                       <div style={{ fontSize:22, fontWeight:800, color:theme.accent, fontFamily:"'Playfair Display', serif" }}>{s.n}</div>
-                      <div style={{ fontSize:11, color:"#9B8A6E", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600 }}>{s.label}</div>
+                      <div style={{ fontSize:11, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.08em", fontWeight:600 }}>{s.label}</div>
                     </div>
                   ))}
                 </div>
@@ -6677,12 +6677,12 @@
                 {currentUser && streakDisplay(streak, localDay()) > 0 && (
                   <div style={{
                     display:"flex", alignItems:"center", gap:14, width:"100%",
-                    background:"linear-gradient(135deg, #7C2D12, #B45309)",
-                    borderRadius:18, padding:"16px 22px", marginBottom:12,
+                    background:"linear-gradient(135deg, #7C2D12, var(--m-gold))",
+                    borderRadius:10, padding:"16px 22px", marginBottom:12,
                     boxShadow:"0 4px 16px rgba(180,83,9,0.2)",
                   }}>
                     <div style={{
-                      width:44, height:44, borderRadius:12, background:"rgba(255,255,255,0.14)",
+                      width:44, height:44, borderRadius:8, background:"rgba(255,255,255,0.14)",
                       display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:22,
                     }}>🔥</div>
                     <div style={{ flex:1, minWidth:0 }}>
@@ -6703,15 +6703,15 @@
                 {currentUser && lastLesson && lastLesson.langId === langId && (
                   <button onClick={resumeLesson} style={{
                     display:"flex", alignItems:"center", gap:14, width:"100%",
-                    background:"linear-gradient(135deg, #1A3A1A, #2C5F2D)",
-                    border:"none", borderRadius:18, padding:"18px 22px",
+                    background:"linear-gradient(135deg, #1A3A1A, var(--m-forest))",
+                    border:"none", borderRadius:10, padding:"18px 22px",
                     cursor:"pointer", textAlign:"left", marginBottom:12,
                     boxShadow:"0 4px 16px rgba(44,95,45,0.2)", transition:"all 0.2s",
                   }}
                   onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 8px 24px rgba(44,95,45,0.28)"; }}
                   onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 16px rgba(44,95,45,0.2)"; }}>
                     <div style={{
-                      width:44, height:44, borderRadius:12, background:"rgba(255,255,255,0.12)",
+                      width:44, height:44, borderRadius:8, background:"rgba(255,255,255,0.12)",
                       display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:20,
                     }}>▶</div>
                     <div style={{ flex:1, minWidth:0 }}>
@@ -6725,10 +6725,10 @@
 
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   {[
-                    { icon:<SearchIcon/>, title:"Rechercher un mot", sub:`Français → ${langName} ou ${langName} → Français`, grad:"linear-gradient(135deg, #D4A843, #C4912E)", v:"search" },
+                    { icon:<SearchIcon/>, title:"Rechercher un mot", sub:`Français → ${langName} ou ${langName} → Français`, grad:"linear-gradient(135deg, var(--m-gold), #C4912E)", v:"search" },
                     { icon:<BookIcon/>, title:"Parcourir A — Z", sub:"Explorer le dictionnaire par lettre", grad:theme.gradient, v:"browse" },
-                    { icon:<GradIcon/>, title:"Apprendre", sub:"Cours de grammaire, phrases utiles, vocabulaire", grad:"linear-gradient(135deg, #6B21A8, #9333EA)", v:"courses" },
-                    { icon:<ChatIcon/>, title:"Parler avec Monoko", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
+                    { icon:<GradIcon/>, title:"Apprendre", sub:"Cours de grammaire, phrases utiles, vocabulaire", grad:"linear-gradient(135deg, var(--m-purple-dark), var(--m-purple))", v:"courses" },
+                    { icon:<ChatIcon/>, title:"Parler avec Monɔkɔ", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
                     { icon:<HeadphonesIcon/>, title:"Traduction en direct", sub:"Traduction vocale en temps réel", grad:"linear-gradient(135deg, #0F766E, #14B8A6)", v:"live" },
                   ].map((c,i) => (
                     <button key={i} onClick={async () => {
@@ -6746,32 +6746,32 @@
                       }
                     }} style={{
                       display:"flex", alignItems:"center", gap:16, width:"100%",
-                      background:"white", border:"1px solid #E8E0D4", borderRadius:18,
+                      background:"white", border:"1px solid var(--m-line)", borderRadius:10,
                       padding:"22px 24px", cursor:"pointer", textAlign:"left",
                       transition:"all 0.2s", boxShadow:"0 2px 8px rgba(139,109,71,0.06)",
                     }}
                     onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 6px 20px rgba(139,109,71,0.1)"; }}
                     onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(139,109,71,0.06)"; }}>
-                      <div style={{ width:48, height:48, borderRadius:14, background:c.grad, display:"flex", alignItems:"center", justifyContent:"center", color:"white", flexShrink:0 }}>{c.icon}</div>
+                      <div style={{ width:48, height:48, borderRadius:8, background:c.grad, display:"flex", alignItems:"center", justifyContent:"center", color:"white", flexShrink:0 }}>{c.icon}</div>
                       <div>
-                        <div style={{ fontSize:17, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>{c.title}</div>
-                        <div style={{ fontSize:13, color:"#9B8A6E", marginTop:2 }}>{c.sub}</div>
+                        <div style={{ fontSize:17, fontWeight:700, color:"var(--m-ink)", fontFamily:"'Playfair Display', serif" }}>{c.title}</div>
+                        <div style={{ fontSize:13, color:"var(--m-muted)", marginTop:2 }}>{c.sub}</div>
                       </div>
-                      <div style={{ marginLeft:"auto", color:"#C4B8A4" }}><ChevronRight /></div>
+                      <div style={{ marginLeft:"auto", color:"var(--m-muted)" }}><ChevronRight /></div>
                     </button>
                   ))}
                 </div>
 
                 {wordOfDay && (
                   <div style={{
-                    marginTop:24, background:"linear-gradient(135deg, #2D2118, #4A3828)",
-                    borderRadius:20, padding:"24px 28px", cursor:"pointer",
+                    marginTop:24, background:"linear-gradient(135deg, var(--m-ink), #4A3828)",
+                    borderRadius:10, padding:"24px 28px", cursor:"pointer",
                     position:"relative", overflow:"hidden",
                   }} onClick={() => openWord(wordOfDay.id, "home")}>
                     <div style={{ position:"absolute", top:0, right:0, width:"40%", height:"100%", background:"linear-gradient(135deg, transparent, rgba(212,168,67,0.08))" }}/>
-                    <span style={{ fontSize:10, color:"#D4A843", fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>✦ MOT DU JOUR</span>
+                    <span style={{ fontSize:10, color:"var(--m-gold)", fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", fontFamily:"'DM Mono', monospace" }}>✦ MOT DU JOUR</span>
                     <h3 style={{ color:"white", fontSize:26, margin:"8px 0 4px", fontFamily:"'Playfair Display', serif", fontWeight:700 }}>{wordOfDay.french_word}</h3>
-                    <p style={{ color:"#D4A843", fontSize:18, margin:0, fontFamily:"'Source Serif 4', serif", fontStyle:"italic" }}>{wordOfDay.dialect_word}</p>
+                    <p style={{ color:"var(--m-gold)", fontSize:18, margin:0, fontFamily:"'DM Sans', sans-serif", fontStyle:"italic" }}>{wordOfDay.dialect_word}</p>
                   </div>
                 )}
               </div>
@@ -6785,33 +6785,33 @@
                   setView(currentUser ? "home" : "lang_select");
                 }}><UiIcon name="back"/>{currentUser ? "Accueil" : "Retour"}</button>
 
-                <div style={{ display:"flex", background:"#E8E0D4", borderRadius:12, padding:3, marginBottom:16 }}>
+                <div style={{ display:"flex", background:"var(--m-line)", borderRadius:8, padding:3, marginBottom:16 }}>
                   {[{ key:"french", label:`Français → ${langName}` },{ key:"dialect", label:`${langName} → Français` }].map(m => (
                     <button key={m.key} onClick={() => { setSearchMode(m.key); setResults([]); setHasSearched(false); setQuery(""); }} style={{
                       flex:1, padding:"10px 0", border:"none", borderRadius:10, fontSize:12,
                       fontWeight:600, cursor:"pointer", transition:"all 0.2s", fontFamily:"'DM Sans', sans-serif",
                       background: searchMode===m.key ? "white" : "transparent",
-                      color: searchMode===m.key ? "#2D2118" : "#9B8A6E",
+                      color: searchMode===m.key ? "var(--m-ink)" : "var(--m-muted)",
                       boxShadow: searchMode===m.key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                     }}>{m.label}</button>
                   ))}
                 </div>
 
                 <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-                  <div style={{ flex:1, display:"flex", alignItems:"center", background:"white", borderRadius:14, border:"2px solid #E8E0D4", padding:"0 16px" }}>
-                    <span style={{ color:"#B8A88C", marginRight:10, display:"flex" }}><SearchIcon /></span>
+                  <div style={{ flex:1, display:"flex", alignItems:"center", background:"white", borderRadius:8, border:"2px solid var(--m-line)", padding:"0 16px" }}>
+                    <span style={{ color:"var(--m-muted)", marginRight:10, display:"flex" }}><SearchIcon /></span>
                     <input ref={inputRef} value={query}
                       onChange={e => setQuery(e.target.value)}
                       onKeyDown={e => e.key==="Enter" && doSearch()}
                       placeholder={searchMode==="french" ? "Tapez un mot en français..." : `Tapez un mot en ${langName.toLowerCase()}...`}
-                      style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"14px 0", background:"transparent", color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}
-                      onFocus={e => e.target.parentElement.style.borderColor="#D4A843"}
-                      onBlur={e => e.target.parentElement.style.borderColor="#E8E0D4"}
+                      style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"14px 0", background:"transparent", color:"var(--m-ink)", fontFamily:"'DM Sans', sans-serif" }}
+                      onFocus={e => e.target.parentElement.style.borderColor="var(--m-gold)"}
+                      onBlur={e => e.target.parentElement.style.borderColor="var(--m-line)"}
                     />
                   </div>
                   <button onClick={doSearch} style={{
-                    background:"linear-gradient(135deg, #D4A843, #C4912E)", color:"white",
-                    border:"none", borderRadius:14, padding:"0 20px", fontSize:15,
+                    background:"linear-gradient(135deg, var(--m-gold), #C4912E)", color:"white",
+                    border:"none", borderRadius:8, padding:"0 20px", fontSize:15,
                     fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
                     boxShadow:"0 2px 8px rgba(212,168,67,0.3)", whiteSpace:"nowrap",
                   }}>Chercher</button>
@@ -6819,15 +6819,15 @@
 
                 {loading && <Spinner />}
                 {!loading && hasSearched && results.length===0 && (
-                  <div style={{ textAlign:"center", padding:"40px 20px", color:"#9B8A6E" }}>
+                  <div style={{ textAlign:"center", padding:"40px 20px", color:"var(--m-muted)" }}>
                     <div style={{ fontSize:40, marginBottom:12 }}>🔍</div>
-                    <p style={{ fontSize:16, fontWeight:600, margin:"0 0 4px", color:"#5C4A2E" }}>Aucun résultat</p>
+                    <p style={{ fontSize:16, fontWeight:600, margin:"0 0 4px", color:"var(--m-ink)" }}>Aucun résultat</p>
                     <p style={{ fontSize:14, margin:0 }}>Essayez un autre mot ou vérifiez l'orthographe</p>
                   </div>
                 )}
                 {!loading && results.length > 0 && (
                   <div>
-                    <p style={{ fontSize:12, color:"#9B8A6E", fontWeight:600, letterSpacing:"0.08em", textTransform:"uppercase", margin:"0 0 12px", fontFamily:"'DM Mono', monospace" }}>
+                    <p style={{ fontSize:12, color:"var(--m-muted)", fontWeight:600, letterSpacing:"0.08em", textTransform:"uppercase", margin:"0 0 12px", fontFamily:"'DM Mono', monospace" }}>
                       {results.length} résultat{results.length>1?"s":""}
                     </p>
                     {results.map(w => <ResultRow key={w.id} word={w} onClick={() => openWord(w.id, "search")} />)}
@@ -6844,21 +6844,21 @@
                   else { setView("home"); }
                 }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
+                  color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
                 }}><ArrowLeft /> {browseLetter ? "Lettres" : "Accueil"}</button>
 
                 {!browseLetter ? (
                   <React.Fragment>
-                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:800, color:"#2D2118", margin:"0 0 20px" }}>Parcourir</h2>
+                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:800, color:"var(--m-ink)", margin:"0 0 20px" }}>Parcourir</h2>
                     <div style={{ display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:10 }}>
                       {LETTERS.map(l => (
                         <button key={l} onClick={() => loadBrowse(l)} style={{
-                          background:"white", border:"1px solid #E8E0D4", borderRadius:16,
+                          background:"white", border:"1px solid var(--m-line)", borderRadius:8,
                           padding:"18px 8px 14px", cursor:"pointer", textAlign:"center",
                           transition:"all 0.15s", boxShadow:"0 1px 3px rgba(139,109,71,0.04)",
                         }}
                         onMouseOver={e => { e.currentTarget.style.borderColor=theme.accent; e.currentTarget.style.transform="translateY(-2px)"; }}
-                        onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.transform="translateY(0)"; }}>
+                        onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.transform="translateY(0)"; }}>
                           <div style={{ fontSize:28, fontWeight:800, color:theme.accent, fontFamily:"'Playfair Display', serif" }}>{l}</div>
                         </button>
                       ))}
@@ -6866,8 +6866,8 @@
                   </React.Fragment>
                 ) : (
                   <React.Fragment>
-                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>Lettre {browseLetter}</h2>
-                    <p style={{ fontSize:13, color:"#9B8A6E", margin:"0 0 20px", fontWeight:500 }}>{browseWords.length} mot{browseWords.length>1?"s":""}</p>
+                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:800, color:"var(--m-ink)", margin:"0 0 4px" }}>Lettre {browseLetter}</h2>
+                    <p style={{ fontSize:13, color:"var(--m-muted)", margin:"0 0 20px", fontWeight:500 }}>{browseWords.length} mot{browseWords.length>1?"s":""}</p>
                     {loading ? <Spinner /> : browseWords.map(w => <ResultRow key={w.id} word={w} onClick={() => openWord(w.id, "browse")} />)}
                   </React.Fragment>
                 )}
@@ -6948,22 +6948,22 @@
               <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
                 <button onClick={() => { setView("home"); setCourses([]); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
+                  color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
                   fontFamily:"'DM Sans', sans-serif",
                 }}><ArrowLeft /> Accueil</button>
 
-                <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>
+                <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:800, color:"var(--m-ink)", margin:"0 0 4px" }}>
                   Apprendre le {langName}
                 </h2>
-                <p style={{ fontSize:13, color:"#9B8A6E", margin:"0 0 24px" }}>
+                <p style={{ fontSize:13, color:"var(--m-muted)", margin:"0 0 24px" }}>
                   {courses.length} cours disponibles
                 </p>
 
                 {loading ? <Spinner /> : courses.length === 0 ? (
                   <div style={{ textAlign:"center", padding:"40px 20px" }}>
                     <div style={{ fontSize:40, marginBottom:12 }}>📚</div>
-                    <p style={{ fontSize:16, fontWeight:600, color:"#5C4A2E", margin:"0 0 4px" }}>Cours bientôt disponibles</p>
-                    <p style={{ fontSize:14, color:"#9B8A6E" }}>Les cours pour le {langName} sont en préparation</p>
+                    <p style={{ fontSize:16, fontWeight:600, color:"var(--m-ink)", margin:"0 0 4px" }}>Cours bientôt disponibles</p>
+                    <p style={{ fontSize:14, color:"var(--m-muted)" }}>Les cours pour le {langName} sont en préparation</p>
                   </div>
                 ) : (
                   <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -6979,23 +6979,23 @@
                         setView("course_detail");
                       }} style={{
                         display:"flex", alignItems:"center", gap:16, width:"100%",
-                        background:"white", border:"1px solid #E8E0D4", borderRadius:18,
+                        background:"white", border:"1px solid var(--m-line)", borderRadius:10,
                         padding:"20px 24px", cursor:"pointer", textAlign:"left",
                         transition:"all 0.2s", boxShadow:"0 2px 8px rgba(139,109,71,0.06)",
                       }}
                       onMouseOver={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 6px 20px rgba(139,109,71,0.1)"; }}
                       onMouseOut={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(139,109,71,0.06)"; }}>
                         <div style={{
-                          width:48, height:48, borderRadius:14,
-                          background:"linear-gradient(135deg, #6B21A8, #9333EA)",
+                          width:48, height:48, borderRadius:8,
+                          background:"linear-gradient(135deg, var(--m-purple-dark), var(--m-purple))",
                           display:"flex", alignItems:"center", justifyContent:"center",
                           fontSize:22, flexShrink:0,
                         }}>{course.icon || "📚"}</div>
                         <div style={{ flex:1 }}>
-                          <div style={{ fontSize:16, fontWeight:700, color:"#2D2118", fontFamily:"'Playfair Display', serif" }}>
+                          <div style={{ fontSize:16, fontWeight:700, color:"var(--m-ink)", fontFamily:"'Playfair Display', serif" }}>
                             {course.title}
                           </div>
-                          <div style={{ fontSize:12, color:"#9B8A6E", marginTop:3, lineHeight:1.4 }}>
+                          <div style={{ fontSize:12, color:"var(--m-muted)", marginTop:3, lineHeight:1.4 }}>
                             {course.description}
                           </div>
                         </div>
@@ -7006,17 +7006,17 @@
                           return (
                             <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:5, flexShrink:0 }}>
                               <div style={{
-                                background: done ? "#E8F5E9" : "#F3F0FF",
-                                color: done ? "#2C5F2D" : "#6B21A8",
-                                fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:12,
+                                background: done ? "var(--m-green-soft)" : "var(--m-purple-soft)",
+                                color: done ? "var(--m-forest)" : "var(--m-purple-dark)",
+                                fontSize:11, fontWeight:700, padding:"4px 10px", borderRadius:8,
                                 fontFamily:"'DM Mono', monospace",
                               }}>
                                 {done ? "✓ " : ""}{prog.done}/{prog.total}
                               </div>
                               {prog.total > 0 && (
-                                <div style={{ width:52, height:4, background:"#E8E0D4", borderRadius:4, overflow:"hidden" }}>
+                                <div style={{ width:52, height:4, background:"var(--m-line)", borderRadius:4, overflow:"hidden" }}>
                                   <div style={{ height:"100%", borderRadius:4, transition:"width 0.4s",
-                                    background: done ? "#2C5F2D" : "linear-gradient(90deg, #6B21A8, #9333EA)",
+                                    background: done ? "var(--m-forest)" : "linear-gradient(90deg, var(--m-purple-dark), var(--m-purple))",
                                     width:`${pct}%`,
                                   }}/>
                                 </div>
@@ -7036,13 +7036,13 @@
               <div style={{ animation:"slideIn 0.25s ease-out", paddingTop:20 }}>
                 <button onClick={() => { setView("courses"); setSelectedCourse(null); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
+                  color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
                   fontFamily:"'DM Sans', sans-serif",
                 }}><ArrowLeft /> Cours</button>
 
                 <div style={{
-                  background:"linear-gradient(135deg, #6B21A8, #9333EA)",
-                  borderRadius:20, padding:"24px 28px", marginBottom:20,
+                  background:"linear-gradient(135deg, var(--m-purple-dark), var(--m-purple))",
+                  borderRadius:10, padding:"24px 28px", marginBottom:20,
                   position:"relative", overflow:"hidden",
                 }}>
                   <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.06)" }}/>
@@ -7075,25 +7075,25 @@
                         setView("lesson");
                       }} style={{
                         display:"flex", alignItems:"center", width:"100%",
-                        background:"white", border:"1px solid #E8E0D4", borderRadius:14,
+                        background:"white", border:"1px solid var(--m-line)", borderRadius:8,
                         padding:"16px 20px", cursor:"pointer", textAlign:"left",
                         transition:"all 0.15s", boxShadow:"0 1px 2px rgba(139,109,71,0.04)",
                         gap:14,
                       }}
-                      onMouseOver={e => { e.currentTarget.style.borderColor="#9333EA"; e.currentTarget.style.boxShadow="0 2px 8px rgba(107,33,168,0.1)"; }}
-                      onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}>
+                      onMouseOver={e => { e.currentTarget.style.borderColor="var(--m-purple)"; e.currentTarget.style.boxShadow="0 2px 8px rgba(107,33,168,0.1)"; }}
+                      onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.boxShadow="0 1px 2px rgba(139,109,71,0.04)"; }}>
                         <div style={{
                           width:36, height:36, borderRadius:10, flexShrink:0,
-                          background: userProgress.has(lesson.id) ? "#E8F5E9" : "#F3F0FF",
+                          background: userProgress.has(lesson.id) ? "var(--m-green-soft)" : "var(--m-purple-soft)",
                           display:"flex", alignItems:"center", justifyContent:"center",
                           fontSize:14, fontWeight:800, fontFamily:"'DM Mono', monospace",
-                          color: userProgress.has(lesson.id) ? "#2C5F2D" : "#6B21A8",
+                          color: userProgress.has(lesson.id) ? "var(--m-forest)" : "var(--m-purple-dark)",
                         }}>{userProgress.has(lesson.id) ? "✓" : i + 1}</div>
                         <div style={{ flex:1 }}>
-                          <div style={{ fontSize:15, fontWeight:600, color:"#2D2118" }}>{lesson.title}</div>
-                          <div style={{ fontSize:12, color:"#9B8A6E", marginTop:2 }}>{lesson.itemCount} expressions</div>
+                          <div style={{ fontSize:15, fontWeight:600, color:"var(--m-ink)" }}>{lesson.title}</div>
+                          <div style={{ fontSize:12, color:"var(--m-muted)", marginTop:2 }}>{lesson.itemCount} expressions</div>
                         </div>
-                        <div style={{ color:"#C4B8A4" }}><ChevronRight /></div>
+                        <div style={{ color:"var(--m-muted)" }}><ChevronRight /></div>
                       </button>
                     ))}
                   </div>
@@ -7292,28 +7292,28 @@
             {/* EMAIL CONFIRMED */}
             {emailConfirmed && (
               <div style={{
-                position:"fixed", inset:0, background:"#F7F3ED", zIndex:999,
+                position:"fixed", inset:0, background:"var(--m-canvas)", zIndex:999,
                 display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
                 animation:"fadeIn 0.4s ease-out", padding:32,
               }}>
                 {/* Logo mark */}
                 <div style={{
                   width:80, height:80, borderRadius:24, marginBottom:28,
-                  background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                  background:"var(--m-forest)",
                   display:"flex", alignItems:"center", justifyContent:"center", fontSize:40,
                   boxShadow:"0 12px 32px rgba(44,95,45,0.25)",
                 }}>📖</div>
 
                 {/* Checkmark circle */}
                 <div style={{
-                  width:64, height:64, borderRadius:"50%", background:"#E8F5E9",
-                  border:"3px solid #2C5F2D", display:"flex", alignItems:"center", justifyContent:"center",
+                  width:64, height:64, borderRadius:"50%", background:"var(--m-green-soft)",
+                  border:"3px solid var(--m-forest)", display:"flex", alignItems:"center", justifyContent:"center",
                   fontSize:30, marginBottom:24,
                 }}>✓</div>
 
                 <h1 style={{
                   fontFamily:"'Playfair Display', serif", fontSize:28, fontWeight:800,
-                  color:"#2D2118", margin:"0 0 10px", textAlign:"center", lineHeight:1.2,
+                  color:"var(--m-ink)", margin:"0 0 10px", textAlign:"center", lineHeight:1.2,
                 }}>Compte créé avec succès !</h1>
 
                 <p style={{
@@ -7324,16 +7324,16 @@
                 </p>
 
                 <p style={{
-                  fontSize:13, color:"#9B8A6E", textAlign:"center",
+                  fontSize:13, color:"var(--m-muted)", textAlign:"center",
                   fontFamily:"'DM Sans', sans-serif",
                 }}>
                   Redirection en cours…
                 </p>
 
                 {/* Progress bar */}
-                <div style={{ width:200, height:3, background:"#E8E0D4", borderRadius:4, marginTop:20, overflow:"hidden" }}>
+                <div style={{ width:200, height:3, background:"var(--m-line)", borderRadius:4, marginTop:20, overflow:"hidden" }}>
                   <div style={{
-                    height:"100%", background:"linear-gradient(90deg, #2C5F2D, #4A8B4C)",
+                    height:"100%", background:"linear-gradient(90deg, var(--m-forest), #4A8B4C)",
                     borderRadius:4, animation:"confirmProgress 3s linear forwards",
                   }} />
                 </div>
@@ -7348,8 +7348,8 @@
                 <button
                   onClick={() => setEmailConfirmed(false)}
                   style={{
-                    marginTop:28, padding:"12px 28px", borderRadius:14,
-                    background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)",
+                    marginTop:28, padding:"12px 28px", borderRadius:8,
+                    background:"var(--m-forest)",
                     border:"none", color:"white", fontSize:15, fontWeight:700,
                     cursor:"pointer", fontFamily:"'DM Sans', sans-serif",
                     boxShadow:"0 4px 12px rgba(44,95,45,0.3)",
@@ -7382,20 +7382,20 @@
               <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
                 <button onClick={() => { setView("home"); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
+                  color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
                   fontFamily:"'DM Sans', sans-serif",
                 }}><ArrowLeft /> Accueil</button>
 
-                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:20, padding:"24px 20px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
+                <div style={{ background:"white", border:"1px solid var(--m-line)", borderRadius:10, padding:"24px 20px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-                    <div style={{ width:48, height:48, borderRadius:14, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🧪</div>
+                    <div style={{ width:48, height:48, borderRadius:8, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🧪</div>
                     <div>
-                      <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"#2D2118", margin:0, lineHeight:1.1 }}>Nom du testeur</h2>
-                      <p style={{ fontSize:13, color:"#9B8A6E", margin:"4px 0 0" }}>Cette information est requise avant d'ouvrir le chat.</p>
+                      <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"var(--m-ink)", margin:0, lineHeight:1.1 }}>Nom du testeur</h2>
+                      <p style={{ fontSize:13, color:"var(--m-muted)", margin:"4px 0 0" }}>Cette information est requise avant d'ouvrir le chat.</p>
                     </div>
                   </div>
 
-                  <p style={{ fontSize:14, color:"#5C4A2E", lineHeight:1.6, marginBottom:12 }}>
+                  <p style={{ fontSize:14, color:"var(--m-ink)", lineHeight:1.6, marginBottom:12 }}>
                     Le nom du testeur sera envoyé avec chaque message et chaque correction pour suivre correctement le travail effectué.
                   </p>
 
@@ -7404,15 +7404,15 @@
                     onChange={e => setPendingTesterName(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); saveTesterNameAndOpenChat(); } }}
                     placeholder="Nom du professeur ou du testeur"
-                    style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:14, outline:"none", fontSize:16, padding:"13px 14px", color:"#2D2118", fontFamily:"'DM Sans', sans-serif", background:"#FCFBF8", marginBottom:14 }}
+                    style={{ width:"100%", border:"2px solid var(--m-line)", borderRadius:8, outline:"none", fontSize:16, padding:"13px 14px", color:"var(--m-ink)", fontFamily:"'DM Sans', sans-serif", background:"#FCFBF8", marginBottom:14 }}
                   />
 
                   <button
                     onClick={saveTesterNameAndOpenChat}
                     disabled={!pendingTesterName.trim()}
                     style={{
-                      width:"100%", border:"none", borderRadius:14, padding:"14px 18px",
-                      background: pendingTesterName.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
+                      width:"100%", border:"none", borderRadius:8, padding:"14px 18px",
+                      background: pendingTesterName.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "var(--m-line)",
                       color:"white", fontSize:14, fontWeight:700, cursor: pendingTesterName.trim() ? "pointer" : "default",
                       fontFamily:"'DM Sans', sans-serif",
                     }}
@@ -7428,33 +7428,16 @@
               <StandardPage {...pageShellProps} active="chat"><div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", minHeight:"calc(100dvh - 148px)" }}>
                 <button onClick={() => { setView("home"); }} style={{
                   display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
+                  color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
                   fontFamily:"'DM Sans', sans-serif",
                 }}><ArrowLeft /> Accueil</button>
 
                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-                  <div style={{ width:44, height:44, borderRadius:14, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🗣️</div>
+                  <div style={{ width:44, height:44, borderRadius:8, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🗣️</div>
                   <div>
-                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"#2D2118", margin:0, lineHeight:1.1 }}>Parler avec Monoko</h2>
-                    <p style={{ fontSize:12, color:"#9B8A6E", margin:"2px 0 0" }}>IA conversationnelle en {langName}</p>
+                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"var(--m-ink)", margin:0, lineHeight:1.1 }}>Parler avec Monɔkɔ</h2>
+                    <p style={{ fontSize:12, color:"var(--m-muted)", margin:"2px 0 0" }}>IA conversationnelle en {langName}</p>
                   </div>
-                </div>
-
-                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:14, padding:"10px 14px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
-                  <div>
-                    <p style={{ fontSize:11, fontWeight:600, color:"#8B6D47", margin:"0 0 2px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>
-                      Connecté
-                    </p>
-                    <p style={{ fontSize:14, color:"#2D2118", margin:0, fontWeight:600 }}>
-                      {currentUser ? (currentUser.user_metadata?.display_name || currentUser.email) : (testerName || "Non renseigné")}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleSignOut}
-                    style={{ background:"none", border:"1px solid #E8E0D4", borderRadius:10, padding:"8px 12px", fontSize:12, color:"#8B6D47", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", fontWeight:600 }}
-                  >
-                    Déconnexion
-                  </button>
                 </div>
 
                 <React.Fragment>
@@ -7463,19 +7446,19 @@
                       {chatMessages.length === 0 && (
                         <div style={{ textAlign:"center", padding:"40px 20px" }}>
                           <div style={{ fontSize:48, marginBottom:12 }}>🗣️</div>
-                          <p style={{ fontSize:16, fontWeight:700, color:"#2D2118", margin:"0 0 8px", fontFamily:"'Playfair Display', serif" }}>Mbote!</p>
-                          <p style={{ fontSize:14, color:"#9B8A6E", lineHeight:1.5, maxWidth:280, margin:"0 auto" }}>
+                          <p style={{ fontSize:16, fontWeight:700, color:"var(--m-ink)", margin:"0 0 8px", fontFamily:"'Playfair Display', serif" }}>Mbote!</p>
+                          <p style={{ fontSize:14, color:"var(--m-muted)", lineHeight:1.5, maxWidth:280, margin:"0 auto" }}>
                             Posez une question en français ou en {langName}. Demandez une traduction, de la grammaire, ou discutez directement.
                           </p>
                           <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center", marginTop:16 }}>
                             {["Comment dit-on bonjour ?", "Traduis: je vais au marché", "Mbote na yo!", "Les pronoms en " + langName].map((s, i) => (
                               <button key={i} onClick={() => { setChatInput(s); }} style={{
-                                background:"white", border:"1px solid #E8E0D4", borderRadius:20,
-                                padding:"8px 14px", fontSize:12, color:"#5C4A2E", cursor:"pointer",
+                                background:"white", border:"1px solid var(--m-line)", borderRadius:10,
+                                padding:"8px 14px", fontSize:12, color:"var(--m-ink)", cursor:"pointer",
                                 fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s",
                               }}
                               onMouseOver={e => { e.currentTarget.style.borderColor="#0EA5E9"; e.currentTarget.style.background="#F0F9FF"; }}
-                              onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.background="white"; }}>
+                              onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.background="white"; }}>
                                 {s}
                               </button>
                             ))}
@@ -7493,11 +7476,11 @@
                             background: msg.role === "user"
                               ? "linear-gradient(135deg, #0EA5E9, #2563EB)"
                               : "white",
-                            color: msg.role === "user" ? "white" : "#2D2118",
+                            color: msg.role === "user" ? "white" : "var(--m-ink)",
                             padding: "12px 16px",
                             borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                             fontSize: 14, lineHeight: 1.6,
-                            border: msg.role === "user" ? "none" : "1px solid #E8E0D4",
+                            border: msg.role === "user" ? "none" : "1px solid var(--m-line)",
                             fontFamily: "'DM Sans', sans-serif",
                             whiteSpace: "pre-wrap",
                           }}>
@@ -7507,9 +7490,9 @@
                           {msg.role === "assistant" && !msg.content.startsWith("⚠️") && !chatLoading && (
                             <div style={{ display:"flex", gap:6, marginTop:4, marginLeft:4 }}>
                               <button onClick={() => { setCorrectionMsg(idx); setCorrectionSent(false); setCorrectionText(""); setCorrectionExample(""); }}
-                                style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid #E8E0D4", borderRadius:8, padding:"4px 10px", fontSize:11, color:"#9B8A6E", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
+                                style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid var(--m-line)", borderRadius:8, padding:"4px 10px", fontSize:11, color:"var(--m-muted)", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
                                 onMouseOver={e => { e.currentTarget.style.borderColor="#E57373"; e.currentTarget.style.color="#E57373"; }}
-                                onMouseOut={e => { e.currentTarget.style.borderColor="#E8E0D4"; e.currentTarget.style.color="#9B8A6E"; }}>
+                                onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.color="var(--m-muted)"; }}>
                                 <FlagIcon /> Corriger
                               </button>
                               {extractLingalaFragments(msg.content).length > 0 && (
@@ -7517,9 +7500,9 @@
                                   onClick={() => playChatLingala(idx, msg.content)}
                                   disabled={chatPlayingIdx !== null && chatPlayingIdx !== idx}
                                   title="Écouter les traductions en Lingala"
-                                  style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid #E8E0D4", borderRadius:8, padding:"4px 10px", fontSize:11, color: chatPlayingIdx === idx ? "#16A34A" : "#9B8A6E", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
-                                  onMouseOver={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="#16A34A"; }}
-                                  onMouseOut={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="#E8E0D4"; }}>
+                                  style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid var(--m-line)", borderRadius:8, padding:"4px 10px", fontSize:11, color: chatPlayingIdx === idx ? "var(--m-correct)" : "var(--m-muted)", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
+                                  onMouseOver={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="var(--m-correct)"; }}
+                                  onMouseOut={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="var(--m-line)"; }}>
                                   {chatPlayingIdx === idx ? "⏳" : "🔊"}
                                 </button>
                               )}
@@ -7530,16 +7513,16 @@
 
                       {chatLoading && chatMessages[chatMessages.length - 1]?.content === "" && chatCorpusPairs.length > 0 && (
                         <div style={{ alignSelf:"flex-start", maxWidth:"90%", animation:"fadeIn 0.3s ease-out" }}>
-                          <div style={{ background:"#FAFAF8", border:"1px solid #E8E0D4", borderRadius:12, padding:"10px 14px", marginBottom:6 }}>
-                            <p style={{ fontSize:10, fontWeight:700, color:"#C4B8A4", textTransform:"uppercase", letterSpacing:"0.07em", margin:"0 0 8px", fontFamily:"'DM Mono', monospace" }}>
+                          <div style={{ background:"var(--m-canvas)", border:"1px solid var(--m-line)", borderRadius:8, padding:"10px 14px", marginBottom:6 }}>
+                            <p style={{ fontSize:10, fontWeight:700, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.07em", margin:"0 0 8px", fontFamily:"'DM Mono', monospace" }}>
                               Trouvé dans le corpus
                             </p>
                             {chatCorpusPairs.map((p, i) => (
-                              <div key={i} style={{ fontSize:12, color:"#9B8A6E", lineHeight:1.8, fontFamily:"'DM Sans', sans-serif" }}>
-                                <span style={{ color:"#5C4A2E" }}>{p.fr}</span>
-                                <span style={{ color:"#C4B8A4", margin:"0 5px" }}>→</span>
-                                <span style={{ color:"#5C4A2E" }}>{p.ln}</span>
-                                {p.quality === "vérifié" && <span style={{ color:"#16A34A", marginLeft:4, fontSize:10 }}>✓</span>}
+                              <div key={i} style={{ fontSize:12, color:"var(--m-muted)", lineHeight:1.8, fontFamily:"'DM Sans', sans-serif" }}>
+                                <span style={{ color:"var(--m-ink)" }}>{p.fr}</span>
+                                <span style={{ color:"var(--m-muted)", margin:"0 5px" }}>→</span>
+                                <span style={{ color:"var(--m-ink)" }}>{p.ln}</span>
+                                {p.quality === "vérifié" && <span style={{ color:"var(--m-correct)", marginLeft:4, fontSize:10 }}>✓</span>}
                               </div>
                             ))}
                           </div>
@@ -7548,7 +7531,7 @@
 
                       {chatLoading && chatMessages[chatMessages.length - 1]?.content === "" && (
                         <div style={{ alignSelf:"flex-start", maxWidth:"85%" }}>
-                          <div style={{ background:"white", border:"1px solid #E8E0D4", padding:"12px 20px", borderRadius:"16px 16px 16px 4px" }}>
+                          <div style={{ background:"white", border:"1px solid var(--m-line)", padding:"12px 20px", borderRadius:"16px 16px 16px 4px" }}>
                             <div style={{ display:"flex", gap:4 }}>
                               {[0,1,2].map(i => (
                                 <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:"#0EA5E9", animation:`float 1.2s ease-in-out ${i*0.2}s infinite` }} />
@@ -7562,20 +7545,20 @@
 
                     {/* Chat input */}
                     <div style={{ display:"flex", gap:8, paddingBottom:8 }}>
-                      <div style={{ flex:1, display:"flex", alignItems:"center", background:"white", borderRadius:14, border:"2px solid #E8E0D4", padding:"0 14px" }}>
+                      <div style={{ flex:1, display:"flex", alignItems:"center", background:"white", borderRadius:8, border:"2px solid var(--m-line)", padding:"0 14px" }}>
                         <input value={chatInput}
                           onChange={e => setChatInput(e.target.value)}
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
                           placeholder={`Écrivez en français ou ${langName.toLowerCase()}...`}
-                          style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"13px 0", background:"transparent", color:"#2D2118", fontFamily:"'DM Sans', sans-serif" }}
+                          style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"13px 0", background:"transparent", color:"var(--m-ink)", fontFamily:"'DM Sans', sans-serif" }}
                           onFocus={e => e.target.parentElement.style.borderColor="#0EA5E9"}
-                          onBlur={e => e.target.parentElement.style.borderColor="#E8E0D4"}
+                          onBlur={e => e.target.parentElement.style.borderColor="var(--m-line)"}
                           disabled={chatLoading}
                         />
                       </div>
                       <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()} style={{
-                        background: chatInput.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
-                        color: "white", border:"none", borderRadius:14, width:48, height:48,
+                        background: chatInput.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "var(--m-line)",
+                        color: "white", border:"none", borderRadius:8, width:48, height:48,
                         display:"flex", alignItems:"center", justifyContent:"center", cursor: chatInput.trim() ? "pointer" : "default",
                         transition:"all 0.2s", flexShrink:0,
                       }}><SendIcon /></button>
@@ -7585,21 +7568,21 @@
                 {/* Correction modal */}
                 {correctionMsg !== null && (
                   <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:999, animation:"fadeIn 0.2s" }}>
-                    <div style={{ background:"#F7F3ED", borderRadius:"20px 20px 0 0", width:"100%", maxWidth:480, padding:"24px 20px 32px", animation:"slideIn 0.25s ease-out" }}>
+                    <div style={{ background:"var(--m-canvas)", borderRadius:"20px 20px 0 0", width:"100%", maxWidth:480, padding:"24px 20px 32px", animation:"slideIn 0.25s ease-out" }}>
                       {correctionSent ? (
                         <div style={{ textAlign:"center", padding:"20px 0" }}>
                           <CheckCircle />
-                          <p style={{ fontSize:16, fontWeight:700, color:"#2C5F2D", marginTop:12, fontFamily:"'Playfair Display', serif" }}>Merci pour votre correction !</p>
-                          <p style={{ fontSize:13, color:"#9B8A6E" }}>Elle sera examinée par l'administrateur.</p>
+                          <p style={{ fontSize:16, fontWeight:700, color:"var(--m-forest)", marginTop:12, fontFamily:"'Playfair Display', serif" }}>Merci pour votre correction !</p>
+                          <p style={{ fontSize:13, color:"var(--m-muted)" }}>Elle sera examinée par l'administrateur.</p>
                         </div>
                       ) : (
                         <React.Fragment>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-                            <h3 style={{ fontSize:18, fontWeight:700, color:"#2D2118", margin:0, fontFamily:"'Playfair Display', serif" }}>Corriger Monoko</h3>
-                            <button onClick={() => setCorrectionMsg(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"#9B8A6E", padding:4 }}><CloseIcon /></button>
+                            <h3 style={{ fontSize:18, fontWeight:700, color:"var(--m-ink)", margin:0, fontFamily:"'Playfair Display', serif" }}>Corriger Monoko</h3>
+                            <button onClick={() => setCorrectionMsg(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--m-muted)", padding:4 }}><CloseIcon /></button>
                           </div>
 
-                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Type d'erreur</p>
+                          <p style={{ fontSize:12, fontWeight:600, color:"var(--m-muted)", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Type d'erreur</p>
                           <div style={{ display:"flex", gap:6, marginBottom:16, flexWrap:"wrap" }}>
                             {[
                               { key:"incorrect", label:"Incorrecte" },
@@ -7610,46 +7593,46 @@
                                 padding:"8px 14px", borderRadius:10, fontSize:12, fontWeight:600, cursor:"pointer",
                                 fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s",
                                 background: correctionType === t.key ? "#0EA5E920" : "white",
-                                border: correctionType === t.key ? "2px solid #0EA5E9" : "1px solid #E8E0D4",
-                                color: correctionType === t.key ? "#0EA5E9" : "#5C4A2E",
+                                border: correctionType === t.key ? "2px solid #0EA5E9" : "1px solid var(--m-line)",
+                                color: correctionType === t.key ? "#0EA5E9" : "var(--m-ink)",
                               }}>{t.label}</button>
                             ))}
                           </div>
 
-                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Traduction correcte en {langName} *</p>
+                          <p style={{ fontSize:12, fontWeight:600, color:"var(--m-muted)", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Traduction correcte en {langName} *</p>
                           <textarea value={correctionText} onChange={e => setCorrectionText(e.target.value)}
                             placeholder={`Écrivez la traduction correcte en ${langName}...`}
                             rows={2}
-                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid var(--m-line)", borderRadius:8, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
                             onFocus={e => e.target.style.borderColor="#0EA5E9"}
-                            onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                            onBlur={e => e.target.style.borderColor="var(--m-line)"}
                           />
 
-                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Traduction française correspondante *</p>
+                          <p style={{ fontSize:12, fontWeight:600, color:"var(--m-muted)", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Traduction française correspondante *</p>
                           <textarea value={correctionFrench} onChange={e => setCorrectionFrench(e.target.value)}
                             placeholder="Écrivez la phrase en français correspondante..."
                             rows={2}
-                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid var(--m-line)", borderRadius:8, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
                             onFocus={e => e.target.style.borderColor="#0EA5E9"}
-                            onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                            onBlur={e => e.target.style.borderColor="var(--m-line)"}
                           />
 
-                          <p style={{ fontSize:12, fontWeight:600, color:"#8B6D47", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Phrase d'exemple (optionnel)</p>
+                          <p style={{ fontSize:12, fontWeight:600, color:"var(--m-muted)", margin:"0 0 8px", textTransform:"uppercase", letterSpacing:"0.06em", fontFamily:"'DM Mono', monospace" }}>Phrase d'exemple (optionnel)</p>
                           <textarea value={correctionExample} onChange={e => setCorrectionExample(e.target.value)}
                             placeholder="Une phrase utilisant ce mot en contexte..."
                             rows={2}
-                            style={{ width:"100%", padding:"12px 14px", border:"2px solid #E8E0D4", borderRadius:12, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:16 }}
+                            style={{ width:"100%", padding:"12px 14px", border:"2px solid var(--m-line)", borderRadius:8, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:16 }}
                             onFocus={e => e.target.style.borderColor="#0EA5E9"}
-                            onBlur={e => e.target.style.borderColor="#E8E0D4"}
+                            onBlur={e => e.target.style.borderColor="var(--m-line)"}
                           />
 
                           <button onClick={() => submitCorrection(correctionMsg)}
                             disabled={!correctionText.trim() || !correctionFrench.trim()}
                             style={{
-                              width:"100%", padding:"14px", border:"none", borderRadius:12, fontSize:15, fontWeight:700,
+                              width:"100%", padding:"14px", border:"none", borderRadius:8, fontSize:15, fontWeight:700,
                               cursor: (correctionText.trim() && correctionFrench.trim()) ? "pointer" : "default",
                               fontFamily:"'DM Sans', sans-serif",
-                              background: (correctionText.trim() && correctionFrench.trim()) ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "#E8E0D4",
+                              background: (correctionText.trim() && correctionFrench.trim()) ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "var(--m-line)",
                               color: "white",
                             }}>
                             Envoyer la correction

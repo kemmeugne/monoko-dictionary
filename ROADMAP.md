@@ -34,6 +34,13 @@ Last updated: 2026-08-22
   instead of rendering signed-out and only challenging at Parcours; the trail
   page carries Paramètres and Déconnexion; and changing a password asks for the
   current one plus the new one twice.
+- **Phase 2 — session, chat, live and dictionary redesigned (2026-08-24)** —
+  the six exercise screens, the session shell, briefing and summary, Parler avec
+  Monɔkɔ, Traduction en direct, the in-app dictionary and word detail all moved
+  off the retired cream/purple palette onto the design tokens, with 8–10px radii
+  and no gradients. Added `--m-correct` / `--m-wrong` tokens for exercise
+  feedback. The app now has no retired colour literals outside the two
+  intentional per-language brand entries.
 - **Signup confirmation and resolved country (2026-08-24)** — signup asks for
   the password twice, and the ranking country is resolved once from Vercel's
   edge geolocation (`api/geo.js`, no third-party service). It is shown and
