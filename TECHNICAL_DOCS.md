@@ -291,7 +291,7 @@ One row per authenticated user.
 | `preferred_language_id` | INT FK → languages | Written when the learner picks a language, and read on load to resume them there (2026-08-22). Until then only `saveLearnerProfile` set it, so it was a side effect of editing a pseudonym and nothing read it back |
 | `public_pseudonym` | TEXT | Public name shown in rankings. **Unique across every learner and immutable once set** (`sql/account_settings.sql`): asked at signup, enforced by a full unique index on `lower(trim(...))` and the `profiles_pseudonym_immutable` trigger, which refuses changes and blanking alike |
 | `phone` / `address` / `ethnicity` | TEXT | Optional personal details offered in settings. Never required, never published, and deliberately outside the leaderboard endpoint's column list |
-| `country_code` | TEXT | Learner-selected ranking country |
+| `country_code` | TEXT | Learner-selected ranking country. Chosen at signup and immutable afterwards in the database (`security_hardening.sql`) |
 | `leaderboard_opt_in` | BOOLEAN | False by default; no ranking exposure without consent |
 | `created_at` | TIMESTAMPTZ | Auto |
 
@@ -313,7 +313,9 @@ One row per (user, lesson) pair. Tracks which modules a user has completed.
 
 Unique constraint: `(user_id, lesson_id)` — one completion row per lesson per user.
 Index: `(user_id, language_id)` for fast per-user progress queries.
-RLS: users can only read/write their own rows.
+RLS: users can read their own rows. Completion writes are derived by the
+`record_learning_session` security-definer RPC; browsers cannot insert or alter
+completion rows directly.
 
 ---
 
@@ -357,8 +359,9 @@ The substrate for the 80% gate, the mastery counter, and SM-2 in Slice 7.
 
 Indexes: `(user_id, lesson_id, answered_at DESC)` for the gate and counter;
 `(user_id, pool_item_id, answered_at DESC)` for SM-2's per-item history.
-Written in **one batched insert at session end**, not per question. An abandoned
-session still flushes; only a completed one may move the gate.
+Written by `record_learning_session` in **one transaction at session end**, not
+per question. An abandoned session still flushes; only a completed one may move
+the gate. The browser can read its own rows but cannot insert attempts directly.
 
 ---
 
@@ -378,9 +381,10 @@ asked on every render and must not aggregate an ever-growing attempt log.
 | `pratiquer_runs` / `elargir_runs` | INT | Completed sessions only. **Existed in production from Slice 5 but in no `sql/` file until 2026-08-18** — the app wrote them and the briefing read them while every migration file said they did not exist. Only a rebuilt environment would have noticed, and it would have failed the whole upsert on an unknown column, taking `pratiquer_passed` and the scores with it. |
 | `updated_at` | TIMESTAMPTZ | |
 
-RLS on both tables mirrors `user_progress`: own rows only, read and write. They
-are written from the client with the user's session token, so the policy is the
-only thing between one learner's progress and another's.
+RLS on both tables is own-row read only. `record_learning_session` validates the
+lesson, pool tier, formats, item-format uniqueness, question count and local day,
+then derives score and bounded XP before updating attempts, stage state, review
+schedule, streak and lesson completion atomically.
 
 ---
 
@@ -465,11 +469,11 @@ shell without deriving durable rewards from presentation state:
 | `lesson_reward_claims` | One-time ordinary lesson gift claims, including any linked culture unlock |
 
 Level completion is still derived from every lesson having a `user_progress`
-row. RLS checks that condition before a level reward or Grand défi state can
-be written. Database triggers create the fixed 500-XP completion event and the
-one-time 300-XP enriched-level event, so replaying cannot duplicate either.
-Ordinary challenge-session XP remains cumulative and the best score never
-decreases.
+row. The browser cannot write challenge state or XP events; the trusted reward
+and challenge RPCs validate that condition first. Database triggers create the
+fixed 500-XP completion event and one-time 300-XP enriched-level event, so
+replaying cannot duplicate either. Ordinary challenge-session XP remains
+cumulative and the best score never decreases.
 
 `sql/trail_rewards.sql` keeps reward eligibility and XP issuance on the server.
 `claim_lesson_reward` derives an ordinary gift from completed lesson progress;
@@ -590,6 +594,26 @@ languages
 **`sql/conjugation_lesson_tenses.sql`** (applied 2026-08-18) — adds `lesson_conjugation_tables.tenses text[]`.
 
 **`sql/lesson_pool_conjugation_source.sql`** (applied 2026-08-18) — widens `lesson_pool.source_table`'s CHECK to admit `conjugation_forms`. Before it ran, `populate_conjugation_forms.py` could not write pool rows at all; the insert failed the CHECK.
+
+**`sql/culture_capsules.sql`** / **`sql/culture_capsules_seed.sql`** (applied 2026-08-22) — editable lesson-linked culture capsules and their one-time claims.
+
+**`sql/community_experience.sql`** (applied 2026-08-22) — profile pseudonym/country/opt-in, `user_xp_events`, `user_level_rewards`, `level_challenge_state`.
+
+**`sql/trail_rewards.sql`** (applied 2026-08-22) — `lesson_reward_claims` plus the protected `claim_lesson_reward` / `claim_level_reward` RPCs.
+
+**`sql/developer_course_tools.sql`** (applied 2026-08-22) — `app_developers` and the protected progress-preset RPCs.
+
+**`sql/account_settings.sql`** (applied 2026-08-23) — optional `phone` / `address` / `ethnicity` on `profiles`; a **full** unique index on `lower(trim(public_pseudonym))` replacing the old partial one that only applied to opted-in learners; and the `profiles_pseudonym_immutable` trigger, which refuses both a change and a blanking once a pseudonym is set.
+
+**`sql/pseudonym_availability.sql`** (applied 2026-08-23) — `pseudonym_available(text)`, `SECURITY DEFINER`, granted to `anon`. Needed because `profiles` RLS is `auth.uid() = user_id`: a visitor who is still signing up reads an empty set for *every* name, so a check that queries the table directly always reports "free". Returns a boolean and nothing else. Requires `notify pgrst, 'reload schema';` afterwards or PostgREST will not see the function.
+
+**`sql/security_hardening.sql`** (verified on `monoko-test` and applied to
+production 2026-08-24) — removes direct browser writes to competitive
+progression, adds idempotent `record_learning_session` and
+`record_level_challenge_session` RPCs, private correction policies, immutable
+country enforcement, durable `api_usage_events` quotas, and session receipts.
+The production check confirmed anonymous corrections return no rows, direct XP
+insertion is denied, and the session RPC is unavailable to `anon`.
 
 The full list of migration files, with what each one is for, lives in `CLAUDE.md` under "Key files in this repo".
 
@@ -767,11 +791,14 @@ python step1_download_data.py  # downloads flores dev/devtest splits
 
 ### `index.html`
 
-Single-file React app served statically from Vercel. No build step — uses Babel standalone for JSX transpilation in the browser.
+The editable source remains a single React app in `index.html`. `npm run build`
+extracts its JSX, compiles and minifies it with esbuild, and writes an ignored
+`dist/` artifact for Vercel. Production HTML loads `app.js`; it contains neither
+the Babel CDN nor a `text/babel` block.
 
 **Dependencies** (CDN):
 - React 18.2 + ReactDOM
-- Babel standalone 7.23.9
+- esbuild (build-time JSX compilation)
 - Leaflet.js 1.9.4 (map)
 - Google Fonts (Playfair Display, DM Sans, Source Serif 4, DM Mono)
 
@@ -779,21 +806,27 @@ Single-file React app served statically from Vercel. No build step — uses Babe
 
 ### Views / routing
 
-State-based routing with a `view` variable:
+State-based routing with a `view` variable. Since 2026-08-23 there are three
+front doors and one rule about who sees what: `lang_select` is public,
+`auth` is the way in, and everything in `PRIVATE_VIEWS` requires a learner —
+an effect redirects to `auth` when `currentUser` is absent, checked only once
+`authLoading` has cleared.
 
-| View | Description |
-|---|---|
-| `lang_select` | Home — map + language cards |
-| `home` | Language home — search, word of day, stats |
-| `search` | Search results |
-| `browse` | A–Z letter browser |
-| `detail` | Word detail with senses and examples |
-| `courses` | Course list (with per-level progress bars) |
-| `course_detail` | Lesson list within a course (with completion checkmarks) |
-| `lesson` | Lesson items table (FR ↔ dialect), Pratiquer / Élargir CTAs, "J'ai terminé" |
-| `lesson` + `sessionExercises` | Full-screen practice session (see below) — same `view`, different render branch |
-| `chat` | AI chat with Monoko |
-| `auth` | Login / signup form |
+| View | Access | Description |
+|---|---|---|
+| `lang_select` | public | **Marketing landing** (`PublicLanding`) — immersive map, folding language card, language directory, and `LandingDictionary` rendered in place |
+| `auth` | public | **Login page** (`AuthPage`) — sign in, sign up, password reset. Signing out lands here, not on the landing |
+| `search` / `browse` / `detail` | public | Dictionary. Reachable signed-out; `StandardPage` then renders a visitor shell (`signedIn={false}`) |
+| `home` | private | Learner home (`HomeHub`) — resume card, dictionary panel, streak, tools |
+| `courses` | private | Continuous six-level course trail (`CourseTrail`) |
+| `lesson` | private | Lesson content — cards on a phone, two-column table from 760px |
+| `lesson` + `sessionExercises` | private | Full-screen practice session — same `view`, different render branch |
+| `level_challenge` | private | Grand défi session for a whole level |
+| `profile` | private | Medals, culture collection, weekly ranking |
+| `settings` | private | **Account** (`SettingsHub`) — email, password, name, pseudonym, country, ranking opt-in, optional details, language, sign out |
+| `chat` | private | AI chat with Monɔkɔ |
+| `live` | private | Live translation |
+| `*_legacy` | — | Retired pre-redesign views kept as rollback references; not routed to |
 
 ---
 
@@ -961,8 +994,11 @@ Quality indicators:
    - Corresponding French translation (required)
    - Optional example sentence
 3. Frontend includes `tester_name` + `session_id` on the correction payload
-4. Submitted to `POST /rest/v1/corrections` with `status: "pending"`
-5. Admin reviews in `admin.html`
+4. Submitted to authenticated `POST /api/corrections`
+5. The endpoint validates lengths and type, forces `status: "pending"`, records
+   the authenticated `submitted_by`, and applies the durable account quota
+6. Admin reviews in `admin.html`; its correction reads and writes go through
+   password-protected `/api/admin-action`, never browser table access
 
 ### Tester tracking
 
@@ -983,7 +1019,10 @@ State: `userProgress` (React `Set` of completed lesson IDs), `lastLesson` (cache
 
 **Load**: `useEffect` fires `loadUserProgress(userId, languageId)` via `supabaseClient` whenever the logged-in user or selected language changes. Clears to an empty Set on logout.
 
-**Complete a module**: `markLessonComplete()` — upserts a `user_progress` row using the authenticated session token. RLS guarantees the user can only insert their own rows. Optimistically updates `userProgress` state on success.
+**Complete a module**: after Pratiquer, the client submits the attempt ledger to
+`record_learning_session`. The database computes first-try score and XP and adds
+`user_progress` only for a completed session scoring at least 80%. The returned
+receipt updates `userProgress`; direct browser completion writes are denied.
 
 **Resume**: `resumeLesson()` — reads `localStorage["monoko_last_lesson"]` (set whenever any lesson is opened), fetches the course + lesson from Supabase, and navigates directly to that lesson view.
 
@@ -1032,6 +1071,16 @@ Click "Approuver"
 
 > **Note (2026-03-31)**: The Railway/FastAPI backend (`rag_api.py`) was decommissioned. All vector search now runs on Supabase pgvector via Vercel serverless functions. The sections below document the current Vercel API.
 
+### Shared authentication and quotas
+
+The paid/private endpoints (`chat`, both RAG context endpoints, ElevenLabs STT
+and TTS, MMS TTS, and corrections) call `authorizeApiRequest` from
+`api/_auth.js`. The browser sends its current Supabase access token as a bearer
+token. The helper verifies it with Supabase Auth, then consumes a durable
+per-user quota through `check_api_quota`; in-memory IP limiting remains an
+additional burst guard, not the source of truth. Missing auth returns 401,
+exhausted quota 429, and unavailable quota storage fails closed with 503.
+
 ### `POST /api/rag-context`
 
 Embeds the user query with OpenAI `text-embedding-3-small` (384 dim) and calls the `match_parallel_sentences` Supabase RPC to retrieve semantically relevant FR↔Lingala pairs.
@@ -1054,12 +1103,10 @@ Embeds the user query with OpenAI `text-embedding-3-small` (384 dim) and calls t
 ```
 
 **Internal flow**:
-1. Detect language (`fr` or `ln`)
-2. Embed query with `paraphrase-multilingual-MiniLM-L12-v2`
-3. Search appropriate FAISS index (pool_size=300)
-4. Partition into high-quality vs auto
-5. Re-rank auto by `sim_score + 0.5 * vocab_score`
-6. Return top `top_k` formatted as context string
+1. Verify the learner and consume the `rag-context` quota
+2. Embed the query with OpenAI `text-embedding-3-small` at 384 dimensions
+3. Call Supabase `match_parallel_sentences` with the server secret key
+4. Format the returned verified pairs as context
 
 ---
 
@@ -1090,9 +1137,16 @@ Proxies chat completions to OpenAI so the API key never touches the browser.
 | Variable | Value |
 |---|---|
 | `OPENAI_API_KEY` | OpenAI API key (`sk-proj-...`) |
-| `SUPABASE_SERVICE_KEY` | Supabase service role key for chat tracking (optional but recommended) |
+| `SUPABASE_SERVICE_KEY` | Supabase `sb_secret_...` key for Auth verification, durable quotas, RAG and chat tracking (required; server only) |
 
 **Model**: `gpt-4o-mini`, `temperature: 0.2`, `max_tokens: 512`
+
+### `POST /api/corrections`
+
+Authenticated correction submission. Accepts the learner correction fields but
+never trusts ownership or workflow state from the payload: `submitted_by` comes
+from the verified token and `status` is always `pending`. The corrections table
+has no direct browser read or insert policy.
 
 ---
 
@@ -1105,8 +1159,44 @@ All write operations to Supabase go through here. Service role key lives in Verc
 **Environment variables required**:
 | Variable | Value |
 |---|---|
-| `SUPABASE_SERVICE_KEY` | Supabase service role key |
+| `SUPABASE_SERVICE_KEY` | Supabase `sb_secret_...` server key |
 | `ADMIN_PASSWORD` | Admin panel password |
+
+---
+
+### `api/leaderboard.js` — Vercel Serverless Function  (added 2026-08-22)
+
+**URL**: `/api/leaderboard?scope=country|world`
+
+Authenticated weekly ranking. Aggregates `user_xp_events` over a seven-day
+window with a service credential and returns **pseudonyms only** — never a
+`user_id`, never an e-mail. A learner who has not opted in does not appear.
+
+---
+
+### `api/geo.js` — Vercel Serverless Function  (added 2026-08-24)
+
+**URL**: `GET /api/geo` → `{ "country": "CA" }`
+
+Resolves the ranking country once, at signup, from Vercel's own
+`x-vercel-ip-country` edge header. There is deliberately **no third-party geo-IP
+service** in the path: no extra latency, no external dependency, and no learner
+IP address handed to anyone else. It returns the two-letter code alone — never
+city, region or coordinates — maps anything outside the app's country list to
+`OTHER`, and stores nothing.
+
+The header is absent in local development, where it returns `null` so the client
+falls back to its default rather than recording a guess as fact.
+
+**Caveat that matters for this product:** edge geolocation reports where the
+*request* came from, not where the learner lives. A VPN, a carrier routing
+through another country, or simply signing up while travelling all report the
+wrong one — and the core market is diaspora, exactly the people most likely to
+be somewhere other than "their" country. That is why the value is shown on the
+signup form and can be corrected there before the account exists, and only then
+becomes fixed.
+
+**No environment variables.** Rate-limited to 30 requests per 10 minutes per IP.
 
 ---
 
@@ -1476,21 +1566,22 @@ Runbook for the full Lingala audio ingestion flow:
 **Repo**: `https://github.com/kemmeugne/monoko-dictionary`
 **Live URL**: `https://monoko-dictionary.vercel.app`
 
-**Files served**:
-- `index.html` — main app
-- `admin.html` — admin panel
+**Build and files served**:
+- `npm run build` — compiles source JSX and creates `dist/`
+- `dist/index.html` + `dist/app.js` — main app
+- `dist/admin.html` + `dist/admin.js` — admin panel
 - `api/admin-action.js` — serverless function (auto-detected by Vercel)
 
 **Environment variables** (set in Vercel dashboard → Settings → Environment Variables):
 | Variable | Description |
 |---|---|
-| `SUPABASE_SERVICE_KEY` | Supabase service role key |
+| `SUPABASE_SERVICE_KEY` | Supabase `sb_secret_...` server key |
 | `ADMIN_PASSWORD` | Password for admin.html |
 | `OPENAI_API_KEY` | OpenAI API key for `/api/chat.js` |
 
-**Deploy process**:
+**Deploy process** (Vercel runs `npm run build` from `vercel.json`):
 ```bash
-git add index.html admin.html api/admin-action.js api/chat.js
+git add <reviewed files>
 git commit -m "your message"
 git push
 # Vercel auto-deploys on push to main

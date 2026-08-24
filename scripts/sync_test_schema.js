@@ -75,6 +75,7 @@ const FILES = [
   "lesson_exercise_policy.sql",           // per-lesson exercise-type allow-list
   "account_settings.sql",                 // optional profile fields + one-time unique pseudonym
   "pseudonym_availability.sql",           // anon-callable availability check (RLS hides profiles at signup)
+  "security_hardening.sql",               // private corrections, quotas, immutable country, trusted XP
 ];
 
 console.log(`Applying ${FILES.length} SQL files to test project (${ref})...\n`);

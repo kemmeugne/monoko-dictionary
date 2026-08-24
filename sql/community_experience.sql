@@ -83,36 +83,12 @@ create policy "Users read their own level rewards" on user_level_rewards
   for select using (auth.uid() = user_id);
 
 drop policy if exists "Users claim completed level rewards" on user_level_rewards;
-create policy "Users claim completed level rewards" on user_level_rewards
-  for insert with check (
-    auth.uid() = user_id and xp = 500
-    and not exists (
-      select 1 from lessons lesson
-      where lesson.course_id = user_level_rewards.course_id
-        and not exists (
-          select 1 from user_progress progress
-          where progress.user_id = auth.uid() and progress.lesson_id = lesson.id
-        )
-    )
-  );
 
 drop policy if exists "Users read their own level challenges" on level_challenge_state;
 create policy "Users read their own level challenges" on level_challenge_state
   for select using (auth.uid() = user_id);
 
 drop policy if exists "Users manage completed level challenges" on level_challenge_state;
-create policy "Users manage completed level challenges" on level_challenge_state
-  for all using (auth.uid() = user_id) with check (
-    auth.uid() = user_id
-    and not exists (
-      select 1 from lessons lesson
-      where lesson.course_id = level_challenge_state.course_id
-        and not exists (
-          select 1 from user_progress progress
-          where progress.user_id = auth.uid() and progress.lesson_id = lesson.id
-        )
-    )
-  );
 
 create or replace function record_level_reward_xp()
 returns trigger language plpgsql security definer set search_path = public as $$
@@ -160,8 +136,6 @@ create policy "Users read their own XP events" on user_xp_events
   for select using (auth.uid() = user_id);
 
 drop policy if exists "Users record their own XP events" on user_xp_events;
-create policy "Users record their own XP events" on user_xp_events
-  for insert with check (auth.uid() = user_id);
 
 commit;
 

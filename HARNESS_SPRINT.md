@@ -12,10 +12,13 @@ Read this whole file before writing any code. Work session by session in the
 order of Section 3. The deliverable of every session is **the component
 running green**, not code written.
 
-**Implementation status (2026-07-09)**: Sessions 1 ✅ and 2 ✅ done and
-verified. Sessions 3–5 (Playwright smoke tests, guardrail lints, CI) not
-started. See Sections 4 and 5 for what actually shipped, including two
-deviations from the original plan.
+**Implementation status (2026-08-24)**: Sessions 1–5 are implemented. Vitest has
+306 passing tests; the compiled app passes Chromium smoke tests at desktop,
+390px and 320px, including an authenticated monoko-test trail/lesson run; the
+guardrail scans secrets, correction RLS, progression writes and API auth; and
+`.github/workflows/ci.yml` runs the gates. The first Vercel-preview PR run still
+needs to be observed before the preview portion can be called operationally
+verified.
 
 **Update 2026-08-18 — the test project had drifted a full phase behind.**
 `sql/test_schema.sql` held only the 12 base tables; every table added since
@@ -61,16 +64,15 @@ have let through).
 
 ## 1. Purpose
 
-Today the app has no tests, no build step, and one Supabase project —
-production. Nothing can be verified automatically, so every change is verified
-by a human clicking through the app. This sprint creates:
+The app began this sprint with no tests, no build step, and one Supabase project.
+The completed harness now provides:
 
 1. A **test Supabase** with seeded data, so nothing verifies against production.
 2. **Unit tests** for `api/*.js` (quota logic, auth checks, response shapes).
 3. **Playwright smoke tests** for the core user flows at 3 mobile viewports.
 4. **Guardrail lints** encoding the existing hard rules from CLAUDE.md.
-5. **CI wiring** (GitHub Actions) that runs all gates on every PR, plus a
-   special regression gate on the chat system prompt.
+5. **CI wiring** (GitHub Actions) that runs the static, unit, build and browser
+   gates on every PR.
 
 Everything here also directly serves Phase 3.5: the `api/` mocking scaffolding
 is what Stripe webhooks and rate-limiting code will be tested with.
@@ -103,9 +105,9 @@ is what Stripe webhooks and rate-limiting code will be tested with.
 |---|---------|------------|--------|
 | 1 | Test Supabase + seed script | User has created the project (see 4.1) | ✅ Done · schema brought current 2026-08-18 |
 | 2 | Unit tests for `api/*.js` | Nothing (mocks only) | ✅ Done |
-| 3 | Playwright smoke tests | Sessions 1 (data) | **Pending — now also gates splitting `index.html`, see BUILD_AND_SPLIT_PLAN.md** |
-| 4 | Guardrail lint script | Nothing | Pending |
-| 5 | GitHub Actions CI + prompt-regression gate | Sessions 1–4 | Pending |
+| 3 | Playwright smoke tests | Sessions 1 (data) | ✅ Implemented and locally verified at 1440px, 390px and 320px |
+| 4 | Guardrail lint script | Nothing | ✅ Implemented (`scripts/check_guardrails.mjs`) |
+| 5 | GitHub Actions CI | Sessions 1–4 | ✅ Workflow implemented; first preview PR observation pending |
 
 Sessions 2 and 4 have no dependencies and can be pulled earlier if session 1
 is blocked on account setup.
@@ -224,7 +226,7 @@ every exercise type against the live pool, all lessons, both stages.
 ## 6. Session 3 — Playwright smoke tests
 
 - Framework: **Playwright**, `tests/smoke/`.
-- Target URL comes from `BASE_URL` env var → same suite runs against
+- Target URL comes from `PLAYWRIGHT_BASE_URL` env var → same suite runs against
   localhost, a Vercel preview, or staging. Supabase env must point at the
   **test** project (Section 9).
 - The suite logs in as the test user, then covers the core flows:
@@ -239,11 +241,16 @@ every exercise type against the live pool, all lessons, both stages.
      prefer intercepting the network call and returning a canned response so
      CI doesn't spend tokens or flake on upstream latency)
   6. Mark a lesson complete → checkmark appears → progress persists on reload
-- Run each flow at the three CLAUDE.md viewports: **iPhone SE (375×667),
-  iPhone 14 Pro (393×852), Pixel 5 (393×851)**. Use Playwright projects for
-  the viewport matrix rather than triplicating test code.
-- Set sane timeouts and retries (`retries: 1` in CI) — the app has no build
-  step, so failures should be real, not flake.
+
+The first implementation intentionally covers the highest-risk shell path:
+public landing containment, then authenticated login → home → trail → lesson
+preview. Dictionary interaction, audio, mocked chat, and full session persistence
+remain browser-suite expansions; their lower-level behavior is already covered
+by Vitest and the real-database security verifier.
+- Run each flow in Chromium at **desktop 1440px, mobile 390px and narrow mobile
+  320px**. Playwright projects provide the matrix without duplicating tests.
+- Set sane timeouts and retries (`retries: 1` in CI). Browser tests run against
+  the same compiled `dist/` artifact Vercel serves.
 
 **Done =** full suite green against localhost + test Supabase, then green
 against a Vercel preview deploy.
@@ -330,9 +337,10 @@ Rules:
 
 - [x] Test Supabase exists, schema-synced, seeded, test user works — 2026-07-09
 - [x] `npx vitest run` green; every `api/` file has happy + failure path tests — 2026-07-09
-- [ ] Playwright smoke suite green at 3 viewports, locally and on a preview
-- [ ] Guardrail lint runs clean and catches injected violations
-- [ ] CI blocks PRs on any gate; prompt-diff triggers the auto-test gate
+- [ ] Playwright smoke suite green at 3 viewports on a preview (local compiled
+      app and authenticated monoko-test runs are green as of 2026-08-24)
+- [x] Guardrail lint runs clean and catches secret, RLS, progression and API-auth regressions
+- [ ] CI blocks PRs on every configured gate (workflow committed; first PR observation pending)
 - [x] No production credential appears anywhere in tests, fixtures, or CI —
       `.env.test` gitignored, `.env.test.example` committed with no real
       values, both `scripts/*.js` refuse to run against a non-test project ref

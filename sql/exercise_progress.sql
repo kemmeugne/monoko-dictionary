@@ -76,17 +76,17 @@ create table if not exists lesson_stage_state (
 );
 
 -- ── RLS ──────────────────────────────────────────────────────────────────────
--- Mirrors user_progress in progress_tracking.sql: own rows only, read and
--- write. These are written from the client with the user's session token, not
--- through a service-key endpoint, so the policy is the only thing standing
--- between one learner's progress and another's.
+-- Learners may read their own state. Session writes go through the trusted
+-- record_learning_session RPC so scores and XP cannot be supplied directly.
 alter table exercise_attempts  enable row level security;
 alter table lesson_stage_state enable row level security;
 
 drop policy if exists "Users manage their own attempts" on exercise_attempts;
-create policy "Users manage their own attempts" on exercise_attempts
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users read their own attempts" on exercise_attempts;
+create policy "Users read their own attempts" on exercise_attempts
+  for select using (auth.uid() = user_id);
 
 drop policy if exists "Users manage their own stage state" on lesson_stage_state;
-create policy "Users manage their own stage state" on lesson_stage_state
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users read their own stage state" on lesson_stage_state;
+create policy "Users read their own stage state" on lesson_stage_state
+  for select using (auth.uid() = user_id);

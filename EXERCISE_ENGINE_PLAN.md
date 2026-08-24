@@ -28,9 +28,8 @@ A briefing screen now opens every session and lists what is in it (2026-08-18).
 | 7 · Progression + retention | ✅ 2026-08-18 | XP, streaks, medals, SM-2 (both stages from 2026-08-20), Élargir topic levels · `sql/progression.sql` applied |
 | 8 · Monetization | ⬜ | daily cap on Élargir, never on mistakes |
 
-**Verify engine work with all three:** `npm run check:syntax` (the babel block
-parses — no build step means a stray bracket is otherwise caught by nothing),
-`npm test` (279 tests, builders on hand-made rows) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
+**Verify engine work with both:** `npm run verify` (guardrails, 306 tests and the
+production esbuild) and `node scripts/audit_exercise_types.mjs` (every shipped type against the
 live 6,196-row pool, all lessons, both stages; exits non-zero on a violation).
 
 ---
@@ -1294,11 +1293,8 @@ not change. That was the design goal of Slice 2 and it should hold.
 
 ### Definition of done for each slice
 
-- `npm run check:syntax` passes — parses the whole babel block with oxc. (This
-  line used to say "`npx esbuild` syntax check"; esbuild was never installed, so
-  the step was unrunnable as written. `scripts/check_syntax.mjs` is the real one,
-  and it uses a parser already on disk via vitest.)
-- `npm test` passes (279 tests as of 2026-08-18)
+- `npm run verify` passes — guardrails, Vitest and the production esbuild
+- `npm test` passes (306 tests as of 2026-08-24)
 - `npm run verify:progression` passes, if the change touches anything a session
   writes — it runs the real write path against monoko-test as a signed-in
   learner, which no unit test does

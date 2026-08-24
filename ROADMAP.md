@@ -1,103 +1,95 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-08-22
+Last updated: 2026-08-24
 
 ---
 
 ## Current state
 
-- Live app at https://monoko-dictionary.vercel.app
-- Lingala dictionary (public) with audio, professor-verified
-- 31-module CEFR-aligned curriculum (A1 → B2+), 49 lessons live — **content complete for Lingala**
-  (100% audio, no missing translations) as of 2026-08-04
-- **Lesson structure reorganized & deduped (2026-07-27)** — mega-lessons split into
-  focused ones, duplicates removed, pronouns consolidated. Full record in
-  `LESSON_STRUCTURE_AUDIT.md`; backup-first scripts + rollback JSONs in
-  `artifacts/lesson_backups/`. The content it was waiting on landed 2026-08-04
-  (see Phase 1).
-- Monoko AI chat (RAG-backed, pgvector, gpt-4o-mini) — the **dictionary was added
-  to the RAG index on 2026-08-07**; before that the two retrieval RPCs reached
-  5,238 of the ~10,066 verified FR↔LN pairs the app owns, and the model answered
-  the other half from its own Lingala knowledge
-- Supabase Auth — dictionary public, courses + chat require login
-- Admin panel for professor corrections at `/admin.html`
-- User progress tracking — lesson completion, per-level progress bars, "Continuer" home shortcut
-- **Learner experience redesign shipped (2026-08-22)** — quiet
-  persistent shell, integrated home dictionary, continuous locked 49-lesson
-  trail, mock-matched lesson and challenge previews, responsive top/bottom
-  navigation, full profile, medals and 16 editable Lingala/Congolese culture
-  capsules. Claimable gifts, capsule reveals and medal ceremonies use the live
-  progression state and include their production celebrations.
-- **Auth and navigation reworked (2026-08-23)** — a real login page in the
-  redesigned template with password reset; signing out lands there rather than
-  on the marketing landing; home and every learner screen now require a session
-  instead of rendering signed-out and only challenging at Parcours; the trail
-  page carries Paramètres and Déconnexion; and changing a password asks for the
-  current one plus the new one twice.
-- **Phase 2 — session, chat, live and dictionary redesigned (2026-08-24)** —
-  the six exercise screens, the session shell, briefing and summary, Parler avec
-  Monɔkɔ, Traduction en direct, the in-app dictionary and word detail all moved
-  off the retired cream/purple palette onto the design tokens, with 8–10px radii
-  and no gradients. Added `--m-correct` / `--m-wrong` tokens for exercise
-  feedback. The app now has no retired colour literals outside the two
-  intentional per-language brand entries.
-- **Signup confirmation and resolved country (2026-08-24)** — signup asks for
-  the password twice, and the ranking country is resolved once from Vercel's
-  edge geolocation (`api/geo.js`, no third-party service). It is shown and
-  correctable on the signup form — geolocation reports where the request came
-  from, not where a learner lives, and the market is diaspora — then fixed, and
-  read-only in settings thereafter.
-- **Landing dictionary and folding language card (2026-08-24)** — the dictionary
-  renders on the landing page itself (language tabs, direction, search, results
-  that expand to senses with audio) instead of pushing a visitor into the app
-  shell. The language description is folded on arrival and toggles open, so the
-  map stays visible on a phone. Fixed hero clipping: `.m-landing-hero` is
-  `overflow: hidden`, so content wider than the viewport was cut off while
-  page-level overflow still read 0.
-- **Public dictionary + account actions everywhere (2026-08-24)** — the landing
-  page routes straight into the dictionary for signed-out visitors (hero action,
-  header nav, one button per language) and the shell renders a visitor variant
-  with a « Se connecter » call instead of an empty account. Paramètres et
-  Déconnexion were dead on Accueil and Profil because those hubs build their own
-  shells and were never handed the handlers; both now work from every screen,
-  covered by a check that clicks them on all five.
-- **Account settings, sign out and the weekly ranking (2026-08-22)** — a
-  settings screen for every personal detail (password, display name, one-time
-  pseudonym, country, ranking opt-in, optional phone/address/ethnicity), sign
-  out from both the rail and settings, and the language switch finally
-  reachable on a phone via the top-bar gear. The pseudonym is now unique across
-  all learners and fixed once chosen. The ranking gained the dark standing
-  card, a Rang/Apprenant/XP header and the gold "Vous" row. Exercise sessions
-  are constrained to a 760px column instead of stretching across a desktop.
-  `sql/account_settings.sql` applied 2026-08-23.
-- **Post-ship verification pass (2026-08-23)** — found and fixed five bugs in
-  the above: the signup pseudonym check queried `profiles` directly and RLS
-  made it always pass, so uniqueness was never warned about and a collision
-  left the learner with no profile row at all; the profile insert now retries
-  without the name; signing in from the settings gate landed on home; the
-  signup pseudonym field kept a stale value; and the auth gate called every
-  destination "cours". Needs `sql/pseudonym_availability.sql`.
-- **Public landing and lesson pages redesigned (2026-08-22)** — the three views
-  the redesign had left behind now share the shell and the design tokens. `/` is
-  a signed-out marketing landing with an immersive (non-interactive) hero map;
-  signed-in learners resume in their own language via `preferred_language_id`
-  and switch language from a sheet instead of the landing page. Lesson pages run
-  inside the standard shell: entries are stacked cards on a phone and a
-  two-column table from 760px, and the conjugation paradigm, the Sons-et-alphabet
-  tiles and the practice block all moved off the retired cream/purple palette.
-- **Level milestones and community loop shipped (2026-08-22)** — fixed 500-XP
-  level completion rewards, optional 20-question Grand défi with permanent
-  enriched-level distinction, and opt-in pseudonymous weekly country/world ranking.
-- **The practice loop is complete (2026-08-18)** — all six exercise types, plus
-  XP, medals, streaks, SM-2 review scheduling and Élargir topic levels. Only the
-  daily session cap (the paywall) is left in Phase 3.
-- **A build step is now a Phase 4 prerequisite** — `index.html` is ~6,700 lines
-  transpiled in the browser on every load. See `BUILD_AND_SPLIT_PLAN.md`.
-- **Content that was in the database but not on screen was surfaced 2026-08-18** —
-  181 example sentences across 9 lessons, 179 of them already carrying the
-  professor's audio (two rendering bugs, nothing added), plus the first professor's complete *ko linga* conjugation
-  paradigm, 30 forms with 24 of his clips, lost in the original row-wise import
-  of a workbook that was a matrix. See Phase 3 below.
+Last full review: 2026-08-24.
+
+**The product.** Live at https://monoko-dictionary.vercel.app. A public Lingala
+dictionary with professor-verified audio, a 49-lesson CEFR curriculum (A1 → B2+)
+that is content-complete for Lingala, a six-type practice loop with XP, medals,
+streaks and SM-2 review, an opt-in weekly ranking, and a RAG-backed AI chat.
+Supabase Auth throughout.
+
+**Who sees what.** `lang_select` is a public marketing landing with the
+dictionary rendered on it. `auth` is the login page. Everything else — home,
+the course trail, lessons, sessions, profile, settings, chat, live translation —
+requires a learner. The dictionary stays free forever; it is the SEO and
+goodwill engine, not a revenue line.
+
+**The design system.** One shell (rail on desktop, top bar + bottom nav on
+mobile), one palette in `monoko-ui.css`, 8–10px radii, no gradients. As of
+2026-08-24 no screen carries a retired colour literal, the two per-language
+brand colours for the map markers aside.
+
+**What is still open.** The daily session cap — the paywall — is the last item
+in Phase 3. The production build prerequisite for Phase 4 is now implemented:
+esbuild compiles the single-file JSX into `dist/app.js`, so deployed clients no
+longer download or run Babel. Splitting the source into modules remains a
+separate maintainability task (`BUILD_AND_SPLIT_PLAN.md`).
+
+### Recent history
+
+- **Content completion (2026-08-04)** — all 39 professor ZIPs ingested; Lingala
+  audio coverage 70% → 100%. Full record in Phase 1.
+- **Structure and hidden content (2026-07-27 → 2026-08-18)** — mega-lessons
+  split and deduped (`LESSON_STRUCTURE_AUDIT.md`); 181 example sentences and the
+  first complete *ko linga* conjugation paradigm surfaced from data that was
+  already in the database but never rendered.
+- **The practice loop completed (2026-08-18)** — all six exercise types, XP,
+  medals, streaks, SM-2 scheduling and Élargir topic levels.
+- **Learner experience redesign (2026-08-22)** — persistent shell, continuous
+  locked 49-lesson trail, lesson and challenge previews, profile, medals, 16
+  culture capsules, level milestones, the Grand défi and the weekly ranking.
+- **Landing and lesson pages (2026-08-22)** — the three views the redesign had
+  left behind. `/` became a marketing landing; lesson pages moved into the shell
+  as cards on a phone and a two-column table from 760px.
+- **Account, settings and ranking (2026-08-22 → 08-23)** — a settings screen for
+  every personal detail, sign out (which did not exist in the app), the language
+  switch (unreachable on mobile), a pseudonym that is unique across all learners
+  and chosen once, and the ranking's standing card and gold "Vous" row.
+- **Auth and navigation (2026-08-23)** — a real login page with password reset;
+  signing out lands there rather than on the marketing landing; every learner
+  screen now requires a session instead of rendering signed-out and only
+  challenging at Parcours; password change requires the current password.
+- **Public dictionary and the landing (2026-08-24)** — the dictionary renders on
+  the landing page itself, and the shell has a signed-out visitor variant. The
+  language description folds so the map stays visible on a phone.
+- **Signup and country (2026-08-24)** — password confirmed twice; the ranking
+  country resolved once from Vercel's edge geolocation, correctable on the
+  signup form, fixed thereafter.
+- **Phase 2 design pass (2026-08-24)** — the six exercise screens, session shell,
+  chat, live translation, dictionary and word detail moved onto the design
+  tokens. `--m-correct` / `--m-wrong` added for exercise feedback.
+- **Security and release hardening (2026-08-24)** — paid APIs now require a
+  Supabase bearer token and use durable per-account quotas; corrections are
+  private and server-mediated; competitive progression is recorded by trusted,
+  idempotent database functions; country immutability is database-enforced.
+  The compiled build, secret/RLS guardrails, 306 unit tests, and Chromium smoke
+  tests at desktop, 390px and 320px now run in GitHub Actions. The migration was
+  verified on `monoko-test`, applied to production, and its anonymous boundaries
+  rechecked on 2026-08-24. The exposed legacy key was revoked and Vercel was moved to a server-only `sb_secret_...` key on 2026-08-24.
+
+### Bugs this cycle worth remembering
+
+- **The signup pseudonym check could never see a collision.** It queried
+  `profiles`, whose RLS is `auth.uid() = user_id`, so a visitor still signing up
+  read an empty set for every name. The account was created, the duplicate
+  failed later on the profile insert, and that error was only logged — leaving
+  the learner with no profile row, no pseudonym and no message. Fixed with a
+  `SECURITY DEFINER` availability function and a resilient insert.
+- **Paramètres and Déconnexion did nothing on Accueil and Profil.** Those hubs
+  build their own shells and were never handed the handlers; an undefined
+  `onClick` fails silently.
+- **Hero content was clipped, not overflowing.** `.m-landing-hero` is
+  `overflow: hidden`, so `scrollWidth - clientWidth` stayed 0 while the end of
+  every line was cut off. Checks now measure element edges against `innerWidth`.
+- **`document.body.textContent` includes the inline babel source**, so text
+  assertions can match the code rather than the screen. Three checks passed
+  while the feature underneath was broken. Assert on rendered elements.
 
 ---
 
@@ -338,10 +330,10 @@ Due items are served **below** breadth in `selectionOrder` — an unseen item ha
 no schedule row and cannot be due, so scheduling first would have undone the
 breadth-first coverage Slice 6 measured.
 
-**Verification grew with it.** `npm test` is **286** (was 228);
-**`npm run check:syntax`** parses the whole babel block, which nothing else did
-— a stray bracket in the React no unit test slices used to pass every gate and
-ship a blank page; and **`npm run verify:progression`** exercises the write path
+**Verification grew with it.** `npm test` is **306** (was 228); the esbuild
+production build parses the whole JSX block, so a stray bracket no unit test
+slices fails the release gate instead of shipping a blank page; and
+**`npm run verify:progression`** exercises the write path
 against monoko-test **as a signed-in learner**, catching what pure-function
 tests structurally cannot (a column the schema lacks, an unresolvable
 `on_conflict`, a type that will not round-trip, a policy missing its
@@ -382,16 +374,14 @@ Rationale:
 - Can ship in weeks vs months compared to React Native rewrite
 - Upgrade path: migrate specific screens to native later if needed
 
-**Prerequisite — a build step, before anything here.** `index.html` is ~6,700
-lines transpiled in the browser by Babel standalone: ~700 KB gzipped for the
-compiler plus 350–650 ms of transpile on a phone, on every cold load, before
-first paint. Wrapping that in Capacitor pays it again on every app launch, on
-top of the slower WebView startup — and undoing it afterwards means another
-store review. **See `BUILD_AND_SPLIT_PLAN.md`**, which also explains why adding
-the bundler and splitting the file are separate changes with different risk.
+**Prerequisite completed 2026-08-24 — production build.** Source remains in
+`index.html`, but `npm run build` compiles it with esbuild and Vercel serves the
+generated `dist/app.js`; Babel standalone is absent from the deployed artifact.
+**See `BUILD_AND_SPLIT_PLAN.md`** for why splitting the source remains a separate
+change with a different risk profile.
 
 **Steps:**
-0. **Build step** (`BUILD_AND_SPLIT_PLAN.md` Stage A) — hard gate
+0. ✅ **Build step** (`BUILD_AND_SPLIT_PLAN.md` Stage A) — implemented and tested
 1. Make `index.html` fully responsive / touch-friendly (large tap targets, no hover dependencies)
 2. Install Capacitor, wrap the web app
 3. Add native microphone plugin for speaking exercises

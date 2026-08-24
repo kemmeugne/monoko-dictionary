@@ -7,6 +7,7 @@ vi.mock("../../api/_rate-limit.js", () => ({
   getClientIp: vi.fn(() => "1.2.3.4"),
   setCorsHeaders: vi.fn(),
 }));
+vi.mock("../../api/_auth.js", () => ({ authorizeApiRequest: vi.fn(async () => ({ id: "user-1" })) }));
 
 const { checkRateLimit } = await import("../../api/_rate-limit.js");
 const { default: handler } = await import("../../api/elevenlabs-tts.js");

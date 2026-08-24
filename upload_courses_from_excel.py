@@ -15,7 +15,7 @@ USAGE:
        - Lingala_Cours_3_Phrases_utiles.xlsx
        - Lingala_Cours_4_Dictionnaire_mots_par_the_me.xlsx
 
-  2. Update LANGUAGE_NAME below
+  2. Export SUPABASE_SERVICE_KEY and update LANGUAGE_NAME below
 
   3. Run:  python3 upload_courses_from_excel.py
 """
@@ -30,7 +30,7 @@ from supabase import create_client
 # CONFIGURATION — Update these values
 # ══════════════════════════════════════════
 SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co"
-SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaW9pY2N1am5jc2VoYWRpcHpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTAxNzMyMCwiZXhwIjoyMDg2NTkzMzIwfQ.qnYD2HHFHOOm-o-DUvHRDlfKyR5wzU1OfxbK266YuJw"
+SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 LANGUAGE_NAME = "Yoruba"  # <-- Change this for each language
 INPUT_DIR = "input"  # Folder containing the Excel files
 # ══════════════════════════════════════════
@@ -329,8 +329,8 @@ def upload_course(supabase, language_id, course_data):
 
 
 def main():
-    if SERVICE_ROLE_KEY == "YOUR_SERVICE_ROLE_KEY_HERE":
-        print("ERROR: Please set your SERVICE_ROLE_KEY in the script!")
+    if not SERVICE_ROLE_KEY:
+        print("ERROR: Export SUPABASE_SERVICE_KEY before running this script.")
         sys.exit(1)
 
     # Find course files

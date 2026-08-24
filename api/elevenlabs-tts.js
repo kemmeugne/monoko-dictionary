@@ -15,6 +15,7 @@
  * and host on our own HuggingFace Space. No pre-trained Lingala TTS model exists publicly.
  */
 
+import { authorizeApiRequest } from "./_auth.js";
 import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
 
 const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "21m00Tcm4TlvDq8ikWAM"; // Rachel
@@ -34,6 +35,8 @@ export default async function handler(req, res) {
   if (!checkRateLimit(ip, { limit: TTS_LIMIT, windowMs: TTS_WINDOW })) {
     return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
+
+  if (!await authorizeApiRequest(req, res, { scope: "elevenlabs-tts", limit: TTS_LIMIT, windowMs: TTS_WINDOW })) return;
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {

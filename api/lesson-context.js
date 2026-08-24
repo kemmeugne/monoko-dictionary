@@ -12,10 +12,12 @@
  *
  * Environment variables:
  *   OPENAI_API_KEY      — OpenAI key (sk-proj-...)
- *   SUPABASE_SERVICE_KEY — Supabase service role key (for RPC access)
+ *   SUPABASE_SERVICE_KEY — Supabase secret/server key (for RPC access)
  */
 
+import { authorizeApiRequest } from "./_auth.js";
 import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+import { supabaseServiceHeaders } from "./_supabase.js";
 
 const SUPABASE_URL  = "https://haioiccujncsehadipzb.supabase.co";
 const EMBED_MODEL   = "text-embedding-3-small";
@@ -55,8 +57,7 @@ async function matchLessonItems(embedding, languageId, matchCount) {
     method: "POST",
     headers: {
       "Content-Type":  "application/json",
-      "apikey":        process.env.SUPABASE_SERVICE_KEY,
-      "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+      ...supabaseServiceHeaders(),
     },
     body: JSON.stringify({
       query_embedding: embedding,
@@ -79,10 +80,7 @@ async function fetchFullLessons(lessonIds) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/lesson_items?lesson_id=in.(${ids})&select=id,lesson_id,french,dialect,example_french,example_dialect,audio_url,example_audio_url&order=lesson_id,item_order`,
     {
-      headers: {
-        "apikey":        process.env.SUPABASE_SERVICE_KEY,
-        "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
-      },
+      headers: supabaseServiceHeaders(),
     }
   );
 
@@ -120,6 +118,8 @@ export default async function handler(req, res) {
   if (!checkRateLimit(ip, { limit: LESSON_LIMIT, windowMs: LESSON_WINDOW })) {
     return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
+
+  if (!await authorizeApiRequest(req, res, { scope: "lesson-context", limit: LESSON_LIMIT, windowMs: LESSON_WINDOW })) return;
 
   const { query, language_id, match_count } = req.body;
 

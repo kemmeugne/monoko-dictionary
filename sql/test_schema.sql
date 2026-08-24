@@ -180,10 +180,10 @@ create table if not exists user_progress (
 alter table user_progress enable row level security;
 
 drop policy if exists "Users manage their own progress" on user_progress;
-create policy "Users manage their own progress"
-  on user_progress for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+drop policy if exists "Users read their own progress" on user_progress;
+create policy "Users read their own progress"
+  on user_progress for select
+  using (auth.uid() = user_id);
 
 create index if not exists user_progress_user_lang_idx
   on user_progress (user_id, language_id);
@@ -295,13 +295,12 @@ create policy "Public read" on lessons for select using (true);
 drop policy if exists "Public read" on lesson_items;
 create policy "Public read" on lesson_items for select using (true);
 
--- 3. Corrections — public insert + select; approve/reject via service key
+-- 3. Corrections — service endpoints only. security_hardening.sql adds the
+-- submitted_by column and keeps browser roles without direct table policies.
 alter table corrections enable row level security;
 
 drop policy if exists "Public read" on corrections;
-create policy "Public read" on corrections for select using (true);
 drop policy if exists "Public insert" on corrections;
-create policy "Public insert" on corrections for insert with check (true);
 
 -- 4. Chat events — no public access (service key only, bypasses RLS)
 alter table chat_events enable row level security;

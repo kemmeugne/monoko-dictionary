@@ -1,4 +1,5 @@
 import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+import { supabaseServiceHeaders } from "./_supabase.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://haioiccujncsehadipzb.supabase.co";
 const LIMIT = 60;
@@ -9,8 +10,7 @@ async function supabaseJson(path, options = {}) {
   const response = await fetch(`${SUPABASE_URL}${path}`, {
     ...options,
     headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
+      ...supabaseServiceHeaders(key),
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },

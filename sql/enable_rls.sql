@@ -33,16 +33,27 @@ CREATE POLICY "Public read" ON lessons       FOR SELECT USING (true);
 CREATE POLICY "Public read" ON lesson_items  FOR SELECT USING (true);
 
 
--- ── 3. Corrections — public INSERT + SELECT, service key for writes ──────────
--- Users submit corrections with anon key (INSERT).
--- admin.html reads corrections with anon key (SELECT) — if this is ever
--- moved to a serverless function, remove the SELECT policy and lock down further.
--- Approve/reject go through /api/admin-action (service key, bypasses RLS).
+-- ── 3. Corrections — service endpoints only ─────────────────────────────────
+-- Learners submit through /api/corrections and the admin page reads and writes
+-- through /api/admin-action. Both endpoints use the service role after their
+-- own authentication checks, so browser roles need no table policy.
 
 ALTER TABLE corrections ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public read"   ON corrections FOR SELECT USING (true);
-CREATE POLICY "Public insert" ON corrections FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public read"   ON corrections;
+DROP POLICY IF EXISTS "Public insert" ON corrections;
+
+DO $$
+DECLARE policy_name text;
+BEGIN
+  FOR policy_name IN
+    SELECT policyname FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'corrections'
+  LOOP
+    EXECUTE format('DROP POLICY %I ON public.corrections', policy_name);
+  END LOOP;
+END;
+$$;
 
 
 -- ── 4. Chat events — NO public access ───────────────────────────────────────
@@ -58,4 +69,4 @@ ALTER TABLE chat_events ENABLE ROW LEVEL SECURITY;
 -- ── 5. Profiles + user_progress — already have RLS from progress_tracking.sql
 -- No changes needed here. Included for reference:
 -- profiles:      SELECT/UPDATE for auth.uid() = user_id
--- user_progress: SELECT/INSERT/UPDATE for auth.uid() = user_id
+-- user_progress: SELECT for auth.uid() = user_id; trusted RPCs record progress

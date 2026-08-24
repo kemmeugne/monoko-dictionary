@@ -1,6 +1,6 @@
 # Monɔkɔ — Build step, then splitting `index.html`
 
-Written 2026-08-18, after Slice 7.
+Written 2026-08-18, after Slice 7. Updated 2026-08-24.
 
 **Decision: add a build step before Capacitor (Phase 4). Split the file after
 Playwright (Harness Session 3). They are two separate changes and must not be
@@ -52,7 +52,7 @@ a *native rewrite*, not against bundling.
 
 ---
 
-## 3. Stage A — the build step  ⬜
+## 3. Stage A — the build step  ✅ Implemented 2026-08-24
 
 **Hard gate: this must land before the Capacitor wrap (Phase 4).** Shipping
 browser-Babel inside an app-store binary is the version of this that is
@@ -70,26 +70,34 @@ the transpile, and fixing it afterwards means a new store review.
   too, or the smoke tests test something that is not shipped.
 
 **Done =** the built page renders identically, the Babel CDN tag is gone, cold
-load drops by roughly the numbers in §1 (measure, don't assume), and
-`npm run check:syntax` is replaced by the build itself failing on a syntax error.
+load drops by roughly the numbers in §1 (measure, don't assume), and the build
+itself fails on a syntax error.
 
-**Note:** the build step *subsumes* `scripts/check_syntax.mjs`. That script
-exists only because nothing else catches a stray bracket in a no-build-step app.
-Once the build runs in CI, delete it rather than maintaining two answers to the
-same question.
+**Implementation record.** `scripts/build.mjs` extracts the JSX from
+`index.html` and `admin.html`, compiles it with esbuild to ES2020, removes Babel
+from the generated HTML, and copies the CSS, metadata and assets into ignored
+`dist/`. `vercel.json` sets that build and output directory. The app block fell
+from roughly 432 KB of source JSX to a 245 KB minified bundle, before transport
+compression, and no longer downloads the 2.3 MB Babel compiler. The compiled
+artifact passed public and authenticated Chromium checks at 1440px, 390px and
+320px. A real-device cold-load measurement remains useful but is not a build
+correctness blocker.
+
+**Completed cleanup:** the build subsumed and replaced
+`scripts/check_syntax.mjs`; CI now has one authoritative JSX parse.
 
 ---
 
 ## 4. Stage B — splitting the file  ⬜
 
-**Prerequisite: Harness Session 3 (Playwright smoke tests).** This is the
-sequencing point that matters most in this document.
+**Prerequisite satisfied: Harness Session 3 (Playwright smoke tests).** This is
+the sequencing point that matters most in this document.
 
-Breaking up a 2,417-line component is safe when a smoke suite can tell you the
-lesson screen still renders. Today nothing can: `npm test` slices *engine*
-sections and asserts on pure functions, and `check:syntax` proves only that the
-file parses. **Neither would notice if the courses view stopped rendering.**
-Splitting untested UI is where this goes wrong, not the file size.
+Breaking up a 2,417-line component is safe now that the smoke suite can tell us
+the lesson screen still renders. Before Playwright, `npm test` sliced *engine*
+sections and asserted on pure functions while a syntax check proved only that
+the file parsed. **Neither would have noticed if the courses view stopped
+rendering.** The new browser gate is what changes the risk profile.
 
 ### The seams already exist
 
@@ -148,14 +156,13 @@ public dictionary path no longer downloads the exercise engine.
 ## 5. Sequencing
 
 ```
-Slice 8 (session cap / paywall)          ← finishes Phase 3
+Harness Session 3 — Playwright          ✅ unblocks the split
   ↓
-Harness Session 3 — Playwright            ← unblocks the split, already a
-                                             Phase 3.5 prerequisite
+Stage A — build step                    ✅ hard gate before Capacitor satisfied
   ↓
-Stage A — build step                      ← HARD GATE before Capacitor
+Slice 8 (session cap / paywall)         ← finishes Phase 3
   ↓
-Stage B — split index.html                ← safe once Playwright exists
+Stage B — split index.html              ← now technically safe; schedule separately
   ↓
 Phase 4 — Capacitor wrap
 ```

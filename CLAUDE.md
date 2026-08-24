@@ -72,7 +72,7 @@ This app will be wrapped with Capacitor and shipped to the App Store and Play St
 
 | Layer | Technology | Where |
 |---|---|---|
-| Frontend | Single-file React (Babel standalone, no build step) | Vercel |
+| Frontend | Single-file React source, esbuild production artifact | Vercel (`dist/`) |
 | Database | Supabase (PostgreSQL + pgvector) | `haioiccujncsehadipzb.supabase.co` |
 | LLM | OpenAI `gpt-4o-mini` | via Vercel serverless `/api/chat.js` |
 | Admin writes | Vercel serverless function | `api/admin-action.js` |
@@ -296,8 +296,10 @@ sql/culture_capsules_seed.sql     — 16 sourced Lingala/Congolese capsule draft
 sql/community_experience.sql      — profile pseudonyms/country, XP events, 500-XP level rewards and Grand défi state (applied 2026-08-22)
 sql/trail_rewards.sql             — protected ordinary-gift and medal-ceremony claims, culture unlocks, and developer reward rebuild helper (applied 2026-08-22, verified against production 2026-08-22)
 sql/account_settings.sql          — optional profile fields (phone/address/ethnicity) + pseudonym unique across ALL learners and immutable once chosen (applied 2026-08-23)
-sql/pseudonym_availability.sql    — `pseudonym_available(text)` SECURITY DEFINER check, granted to anon. **NOT YET APPLIED to production.** Without it the signup form loses its early warning and falls back to the unique index (see below)
-scripts/check_syntax.mjs          — parses index.html's babel block with oxc and fails on a syntax error; `npm run check:syntax`. There is no build step, so nothing else catches a stray bracket in the ~6,700 lines of React that no unit test slices
+sql/pseudonym_availability.sql    — `pseudonym_available(text)` SECURITY DEFINER check, granted to anon (applied 2026-08-23)
+sql/security_hardening.sql        — private corrections, immutable country, durable API quotas and trusted/idempotent progression RPCs (verified on monoko-test and applied to production 2026-08-24)
+scripts/build.mjs                 — compiles the index/admin JSX with esbuild into ignored `dist/`; removes browser Babel. `npm run build`, also the authoritative whole-app syntax check
+scripts/check_guardrails.mjs      — scans tracked files for committed secrets, unsafe correction RLS, browser progression writes and missing API auth guards
 make_alphabet_cut_tool.py         — builds alphabet_cut_tool.html: confirm where the WORD starts in each of L346's 46 clips. The clips read the sound before the word ('O ... Motoki'), and the structure varies (1-4 speech segments), so the tool proposes the last segment and a human confirms. Audio is base64-embedded because R2 sends no CORS header
 apply_alphabet_cuts.py            — cuts each clip to the confirmed word, uploads to R2 as <name>_word.mp3 (never overwriting the original), repoints lesson_pool. Needs .env.r2. Rollback JSON first
 populate_alphabet_pool.py         — makes L346 'Sons et alphabet' usable as exercise material: trims the teaching label off lesson_pool.french ('Consonne B — Maladie' -> 'Maladie'), swaps in the DICTIONARY's clean word audio where the word exists there (21/46), and deletes the lesson's mis-routed Élargir rows. Rollback JSON first; lesson_items untouched
@@ -445,7 +447,7 @@ GROUP BY day ORDER BY day DESC;
 ## Environment variables
 
 **Vercel**:
-- `SUPABASE_SERVICE_KEY` — service role key for admin writes, `/api/rag-context.js`, and `/api/lesson-context.js` RPC calls
+- `SUPABASE_SERVICE_KEY` — server-only `sb_secret_...` key for admin writes, quotas, RAG and lesson-context RPC calls. `api/_supabase.js` sends opaque keys as `apikey` only; never as a bearer token
 - `ADMIN_PASSWORD` — password for admin.html
 - `OPENAI_API_KEY` — OpenAI API key for `/api/chat.js`, `/api/rag-context.js`, and `/api/lesson-context.js`
 - `MMS_SPACE_URL` — base URL of the HuggingFace Space, e.g. `https://kemz42-monoko-lingala-tts.hf.space` (used only by warm-up ping in `api/mms-tts.js`; client calls Space directly)
@@ -468,16 +470,20 @@ both hard-refuse to run unless pointed at that exact test project ref.
 
 - Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
   and fill in real values, or ask for them.
-- `npm test` — Vitest, **286 tests, no network calls, fully mocked**. Covers
+- `npm test` — Vitest, **306 tests, no network calls, fully mocked**. Covers
   every `api/*.js` handler plus the exercise engine: the tokenizer, the
   exercise builders, the audio hand-off and the progression maths (SM-2,
   streaks, medals, levels). Engine tests slice the code out of
   `index.html` and evaluate it, so they run against the source the browser runs.
   See `tests/README.md`.
-- `npm run check:syntax` — parses the whole babel block and fails on a syntax
-  error. **Run it before every deploy.** There is no build step, so a stray
-  bracket in the ~6,700 lines of React that no unit test slices is caught by
-  nothing else — it passes every gate and ships a blank page.
+- `npm run verify` — secret/RLS/API guardrails, all Vitest tests, then the
+  production esbuild. **Run it before every deploy.** The build parses the whole
+  JSX block and fails before a stray bracket can ship a blank page.
+- `npm run test:browser` — Chromium smoke tests against the compiled `dist/`
+  artifact at desktop, 390px and 320px. Authenticated coverage uses monoko-test
+  credentials only.
+- `npm run verify:security:test` — trusted session receipt, direct-XP denial,
+  private corrections, fixed country and durable quota against monoko-test.
 - `npm run verify:progression` — the Slice 7 write path end to end against
   monoko-test, **as the test user with a real session token**, so it exercises
   RLS rather than bypassing it with the service key. Catches what unit tests
@@ -552,10 +558,10 @@ Supabase Auth v2 is integrated into `index.html`. Dictionary is fully public; co
 
 ## Important conventions
 
-- `index.html` uses the **anon key** (public, read-only by default) for Supabase reads and correction inserts
-- Admin **writes** (approve/reject corrections) go through `/api/admin-action.js` (service key never in client code)
-- **User progress writes** (`user_progress` inserts/upserts) go directly through `supabaseClient` with the authenticated user's session token — RLS enforces that users can only write their own rows
-- All **LLM calls** go through `/api/chat.js` (OpenAI key never in client code; no user-entered API key)
+- `index.html` uses the **anon key** for public content and authenticated own-row reads; correction submissions go through `/api/corrections`
+- All correction reads and admin writes go through `/api/admin-action.js` (service key never in client code)
+- **Competitive progress writes are RPC-only.** `record_learning_session` and `record_level_challenge_session` validate and derive attempts, scores, XP, streak and completion atomically; browser roles have read-only own-row policies
+- All **LLM and paid voice calls** go through authenticated Vercel APIs with durable per-account quotas (provider keys never enter client code)
 - Dictionary is public; courses + chat require Supabase Auth login
 - `testerName` is now auto-populated from the authenticated user — manual tester setup flow is bypassed for logged-in users
 - `session_id` is still generated locally and reused for that browser session
@@ -704,15 +710,17 @@ Artifacts and scripts:
 
 Phase 2 of the product roadmap. Users can now track their advancement through the CEFR curriculum.
 
-**Database** (`sql/progress_tracking.sql`):
+**Database** (`sql/progress_tracking.sql`, hardened by `sql/security_hardening.sql`):
 - `profiles (user_id PK, display_name, preferred_language_id, created_at)` — one row per auth user
 - `user_progress (id, user_id, lesson_id, language_id, completed_at, exam_score)` — one row per completed lesson per user; `UNIQUE(user_id, lesson_id)` prevents duplicates
-- Both tables have RLS enabled: users can only read/write their own rows
-- `exam_score` is `null` for now — populated in Phase 3 when the exam system ships
+- Profiles remain own-row read/write. Progress is own-row read only; trusted
+  progression RPCs create completion rows after a validated 80% Pratiquer pass
+- `exam_score` is retained but unused; the old exam system was dropped
 
 **Frontend mechanics:**
 - `loadUserProgress(userId, languageId)` — called automatically via `useEffect` whenever the logged-in user or active language changes; populates `userProgress` state (a `Set` of completed lesson IDs)
-- `markLessonComplete()` — called when user taps "J'ai terminé ce module"; upserts a row into `user_progress` via `supabaseClient` (uses the authenticated session, not the anon key)
+- `record_learning_session` — called once at session end with the attempt ledger;
+  the database computes score and XP and records completion transactionally
 - `resumeLesson()` — called from the "Continuer" home card; navigates directly to the last opened lesson using `courseId`+`lessonId` stored in `localStorage`
 - Last opened lesson is persisted to `localStorage` key `monoko_last_lesson` every time a lesson is opened
 
@@ -720,8 +728,8 @@ Phase 2 of the product roadmap. Users can now track their advancement through th
 - **Home screen**: Dark green "Continuer ▶" card shows the last visited lesson (logged-in users only, same language)
 - **Level list**: Each level card shows `X/Y` completed modules + a mini progress bar (purple → green when level complete)
 - **Module list**: Completed lesson rows show a green `✓` instead of the step number
-- **Lesson bottom**: "✓ J'ai terminé ce module" button for logged-in users; turns into green "Module terminé" confirmation once pressed
-- No level locking yet — deferred to Phase 3 with the exam system
+- **Course trail**: passing Pratiquer unlocks the next lesson; completing a niveau
+  awards its medal and opens the optional Grand défi
 
 ---
 
@@ -1050,10 +1058,11 @@ tables with the client's publishable key (rejected `42501`). Rules that matter:
   for Élargir level 1**, and at 0 the arithmetic is exactly Slice 6's — that is
   what keeps the measured per-lesson session sizes true. Verify with the audit,
   not by eye.
-- **Session-end writes are individually isolated.** They were one `try` block;
-  a throw from a new write skipped every write after it, so an unapplied
-  migration would have silently stopped the 80% gate from recording. Keep them
-  isolated when adding a seventh write.
+- **Session-end writes are one trusted database transaction.** The browser sends
+  attempts and scheduling state to `record_learning_session`; the function
+  validates the session, derives score and bounded XP, and atomically updates
+  attempts, scheduling, stage state, streak, XP and completion. Do not restore
+  direct client writes to any competitive table.
 - **Days are the learner's local days.** `last_day` and `due_on` are dates and
   the client sends its own `YYYY-MM-DD`. `now()::date` is UTC and would award a
   Montreal learner two streak days for one evening.
@@ -1061,11 +1070,11 @@ tables with the client's publishable key (rejected `42501`). Rules that matter:
 `EXERCISE_ENGINE_PLAN.md` **§4c is the executable task list**.
 Read it before touching engine code.
 
-**Verifying engine work:** `npm run check:syntax` proves the page still parses;
-`npm test` covers the builders on hand-made rows;
+**Verifying engine work:** `npm run verify` proves the page builds and covers the
+builders on hand-made rows;
 **`node scripts/audit_exercise_types.mjs`** checks every shipped type against the
 live 6,196-row pool across all 50 lessons and both stages, and exits non-zero on
-a violation. Run all three. The audit is what found the `/` placeholder rows and the
+a violation. Run both. The audit is what found the `/` placeholder rows and the
 947 rows whose stored `token_count` disagrees with the tokenizer.
 
 **Tokenizer rules that other code must not re-invent:**

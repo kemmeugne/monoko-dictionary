@@ -19,12 +19,23 @@
  * → Current model (DigitalUmuganda) is a step in the right direction (71.6h Lingala).
  */
 
+import { authorizeApiRequest } from "./_auth.js";
+import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+
 const SPACE_URL = process.env.MMS_SPACE_URL || "";
 const FN = "synthesise"; // matches api_name in tts_space/app.py
+const MMS_LIMIT = 30;
+const MMS_WINDOW = 60 * 60 * 1000;
 
 export const maxDuration = 60;
 
 export default async function handler(req, res) {
+  setCorsHeaders(res, req);
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (!checkRateLimit(getClientIp(req), { limit: MMS_LIMIT, windowMs: MMS_WINDOW })) {
+    return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
+  }
+  if (!await authorizeApiRequest(req, res, { scope: "mms-tts", limit: MMS_LIMIT, windowMs: MMS_WINDOW })) return;
 
   // ── Warm-up ping ────────────────────────────────────────────────────────────
   if (req.method === "GET") {

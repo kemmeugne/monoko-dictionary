@@ -27,6 +27,8 @@
  * Creates its own fixtures and deletes them again. Refuses to run against any
  * project but monoko-test.
  */
+import { supabaseServiceHeaders } from "../api/_supabase.js";
+
 const TEST_PROJECT_REF = "bdejouumyzovfirqxmdr";
 
 const URL_ = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
@@ -57,8 +59,10 @@ const rest = async (path, { token, service, method = "GET", body, prefer } = {})
   const res = await fetch(`${URL_}/rest/v1/${path}`, {
     method,
     headers: {
-      apikey: key,
-      Authorization: `Bearer ${service ? SERVICE : (token || ANON)}`,
+      ...(service ? supabaseServiceHeaders(key) : {
+        apikey: key,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      }),
       "Content-Type": "application/json",
       ...(prefer ? { Prefer: prefer } : {}),
     },

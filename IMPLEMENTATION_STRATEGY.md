@@ -281,10 +281,10 @@ gate), Capacitor/mobile.
    whether the soft launch must *measure paywall demand* (→ waitlist) or *let real
    testers use paid content* (→ manual unlock). Possibly both. (Phase 2 decision —
    surface it before Step 5.)
-2. **Split `index.html` or keep monolithic?** After reading the file, recommend
-   splitting into a few `<script>` includes (widens parallel work, shrinks blast
-   radius, still no build step) vs. keeping it single. One-time refactor before
-   §8.1 if splitting, verified by the harness. (Phase 2 decision.)
+2. **Split `index.html` or keep monolithic?** Stage A now compiles the monolithic
+   source with esbuild. Any split should use real ES modules and follow
+   `BUILD_AND_SPLIT_PLAN.md` Stage B, verified by the Playwright harness; do not
+   introduce multiple global `<script>` files. (Phase 2 decision.)
 
 ---
 

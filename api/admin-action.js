@@ -9,7 +9,9 @@
  *   ADMIN_PASSWORD        — the admin panel password
  */
 
+import { timingSafeEqual } from "node:crypto";
 import { checkRateLimit, getClientIp } from "./_rate-limit.js";
+import { supabaseServiceHeaders } from "./_supabase.js";
 
 const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
 
@@ -22,8 +24,7 @@ async function supaWrite(method, table, body, filter = "") {
   const res = await fetch(url, {
     method,
     headers: {
-      apikey: process.env.SUPABASE_SERVICE_KEY,
-      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+      ...supabaseServiceHeaders(),
       "Content-Type": "application/json",
       Prefer: "return=minimal",
     },
@@ -33,6 +34,29 @@ async function supaWrite(method, table, body, filter = "") {
     const text = await res.text();
     throw new Error(`Supabase ${method} ${table}: ${text}`);
   }
+}
+
+async function supaRead(path, { count = false } = {}) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      ...supabaseServiceHeaders(),
+      ...(count ? { Prefer: "count=exact", Range: "0-0" } : {}),
+    },
+  });
+  if (!response.ok) throw new Error(`Supabase GET: ${await response.text()}`);
+  if (count) {
+    const range = response.headers.get("content-range");
+    return range ? Number(range.split("/")[1]) : 0;
+  }
+  return response.json();
+}
+
+function passwordMatches(value) {
+  const expected = process.env.ADMIN_PASSWORD || "";
+  const supplied = typeof value === "string" ? value : "";
+  const a = Buffer.from(expected);
+  const b = Buffer.from(supplied);
+  return a.length > 0 && a.length === b.length && timingSafeEqual(a, b);
 }
 
 export default async function handler(req, res) {
@@ -45,7 +69,7 @@ export default async function handler(req, res) {
 
   const { action, password, ...params } = req.body;
 
-  if (password !== process.env.ADMIN_PASSWORD) {
+  if (!passwordMatches(password)) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -53,6 +77,38 @@ export default async function handler(req, res) {
     if (action === "verify") {
       // Just a password check — used by the Login screen
       return res.status(200).json({ ok: true });
+    }
+
+    if (action === "stats") {
+      const statuses = ["pending", "approved", "rejected"];
+      const values = await Promise.all(statuses.map(status =>
+        supaRead(`corrections?select=id&status=eq.${status}`, { count: true })));
+      return res.status(200).json(Object.fromEntries(statuses.map((status, index) => [status, values[index]])));
+    }
+
+    if (action === "list" || action === "list_all_pending") {
+      const status = action === "list_all_pending" ? "pending" : params.status;
+      if (!["pending", "approved", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      const languageId = params.language_id === null || params.language_id === undefined
+        ? null : Number(params.language_id);
+      if (languageId !== null && (!Number.isInteger(languageId) || languageId <= 0)) {
+        return res.status(400).json({ error: "Invalid language" });
+      }
+      const limit = action === "list_all_pending" ? 5000 : Math.min(50, Math.max(1, Number(params.limit) || 10));
+      const offset = action === "list_all_pending" ? 0 : Math.max(0, Number(params.offset) || 0);
+      const order = status === "pending" ? "created_at.asc" : "reviewed_at.desc.nullslast";
+      const query = new URLSearchParams({
+        select: action === "list_all_pending" ? "*" : "*,languages(name)",
+        status: `eq.${status}`,
+        order,
+        limit: String(limit),
+        offset: String(offset),
+      });
+      if (languageId !== null) query.set("language_id", `eq.${languageId}`);
+      const rows = await supaRead(`corrections?${query.toString()}`);
+      return res.status(200).json({ rows });
     }
 
     if (action === "approve") {

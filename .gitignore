@@ -3,6 +3,9 @@ node_modules
 .env*
 !.env*.example
 coverage
+dist/
+test-results/
+playwright-report/
 keys/
 
 # Staged professor audio (70MB of transcoded mp3, regenerable from the ZIPs)

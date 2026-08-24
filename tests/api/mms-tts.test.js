@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createMockReq, createMockRes } from "../fixtures/mockRes.js";
 import { arrayBufferResponse, routeFetchByUrl } from "../fixtures/mockFetch.js";
 
+vi.mock("../../api/_rate-limit.js", () => ({
+  checkRateLimit: vi.fn(() => true),
+  getClientIp: vi.fn(() => "1.2.3.4"),
+  setCorsHeaders: vi.fn(),
+}));
+vi.mock("../../api/_auth.js", () => ({ authorizeApiRequest: vi.fn(async () => ({ id: "user-1" })) }));
+
 // mms-tts.js reads MMS_SPACE_URL into a module-level const at import time,
 // so each test that varies the env var must reset the module cache and
 // re-import after stubbing the env, rather than mutating process.env after

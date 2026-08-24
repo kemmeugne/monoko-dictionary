@@ -11,10 +11,13 @@ Scope: chat (`view === "chat"`) and live translation (`view === "live"`) only. D
 
 ## 0. Context an AI needs before editing
 
-- Frontend is a single file: `index.html` (~3000 lines, Babel-standalone React, no build step).
-- The chat flow (`sendChat`) lives at `index.html:1496-1587`. UI at `index.html:2779-2906`. System prompt template at `index.html:1507-1550`.
-- The live-translation component `LiveTranslationView` lives at `index.html:657-1131`. It is mounted at `index.html:2631-2637`.
-- Lingala TTS helper `lingalaTTS()` is at `index.html:590-654`. It calls the HF Space directly, bypassing Vercel's 10s timeout. **Do not move this back behind Vercel.**
+- Frontend source is still a single `index.html`, but production is compiled by
+  esbuild into `dist/app.js`; use `rg` for symbols because the historical line
+  numbers below have moved substantially.
+- The chat flow is `sendChat`; search for that symbol and its system prompt.
+- The live-translation component is `LiveTranslationView`.
+- Lingala TTS helper `lingalaTTS()` calls the HF Space directly, bypassing
+  Vercel's function timeout. **Do not move this back behind Vercel.**
 - Serverless endpoints in `api/`:
   - `api/chat.js` — gpt-4o-mini SSE proxy, 512 max_tokens. Streams deltas as `data: {"delta":"..."}` events; logs full content + `t_rag_ms` + `t_llm_ms` to `chat_events` after stream ends.
   - `api/rag-context.js` — embedding + `match_parallel_sentences` RPC, threshold 0.3 (configurable via `min_similarity`), top-30.

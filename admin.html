@@ -26,7 +26,7 @@
     const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
     const ANON_KEY     = "sb_publishable_W6hYzyecMTm06Cr9siLV1A_4qtR5ect";
     // Service key lives in Vercel env vars — never in client code.
-    // All writes go through /api/admin-action which verifies the password server-side.
+    // Corrections reads and writes go through /api/admin-action.
 
     const PAGE_SIZE = 10;
 
@@ -48,14 +48,6 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Server error");
       return data;
-    }
-
-    async function supaCount(table, filter = "") {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id${filter ? "&" + filter : ""}`, {
-        headers: { apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}`, Prefer: "count=exact", Range: "0-0" },
-      });
-      const range = res.headers.get("content-range");
-      return range ? parseInt(range.split("/")[1]) : 0;
     }
 
     // ── Icons ─────────────────────────────────────────────────────────────────
@@ -297,13 +289,8 @@
       };
 
       const loadStats = useCallback(async () => {
-        const [pending, approved, rejected] = await Promise.all([
-          supaCount("corrections", "status=eq.pending"),
-          supaCount("corrections", "status=eq.approved"),
-          supaCount("corrections", "status=eq.rejected"),
-        ]);
-        setStats({ pending, approved, rejected });
-      }, []);
+        setStats(await adminAction({ action: "stats" }, password));
+      }, [password]);
 
       const loadLanguages = useCallback(async () => {
         const langs = await supaRead("languages", "select=id,name&status=eq.active&order=name");
@@ -313,14 +300,17 @@
       const loadCorrections = useCallback(async () => {
         setLoading(true);
         try {
-          const order = filterStatus === "pending" ? "created_at.asc" : "reviewed_at.desc.nullslast";
-          let params = `select=*,languages(name)&status=eq.${filterStatus}&order=${order}&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`;
-          if (filterLang !== "all") params += `&language_id=eq.${filterLang}`;
-          const data = await supaRead("corrections", params);
-          setCorrections(data);
+          const data = await adminAction({
+            action: "list",
+            status: filterStatus,
+            language_id: filterLang === "all" ? null : Number(filterLang),
+            limit: PAGE_SIZE,
+            offset: page * PAGE_SIZE,
+          }, password);
+          setCorrections(data.rows || []);
         } catch(e) { showToast("Erreur de chargement: " + e.message, "error"); }
         setLoading(false);
-      }, [filterStatus, filterLang, page]);
+      }, [filterStatus, filterLang, page, password]);
 
       useEffect(() => {
         if (!authed) return;
@@ -366,9 +356,11 @@
         if (!window.confirm(`Approuver toutes les corrections en attente avec une paire FR↔LN complète ?`)) return;
         setBulkLoading(true);
         try {
-          let params = `select=*&status=eq.pending&order=created_at.desc`;
-          if (filterLang !== "all") params += `&language_id=eq.${filterLang}`;
-          const all = await supaRead("corrections", params);
+          const result = await adminAction({
+            action: "list_all_pending",
+            language_id: filterLang === "all" ? null : Number(filterLang),
+          }, password);
+          const all = result.rows || [];
 
           const complete = all.filter(c => c.correct_lingala?.trim() && c.correct_french?.trim());
           const skipped  = all.length - complete.length;
@@ -387,11 +379,11 @@
             quality:      "verified",
           }));
           const ids = complete.map(c => c.id);
-          const result = await adminAction({ action: "bulk_approve", rows, ids }, password);
+          const approved = await adminAction({ action: "bulk_approve", rows, ids }, password);
 
           const msg = skipped > 0
-            ? `✓ ${result.count} approuvées, ${skipped} ignorées (paire incomplète)`
-            : `✓ ${result.count} corrections approuvées et ajoutées au corpus !`;
+            ? `✓ ${approved.count} approuvées, ${skipped} ignorées (paire incomplète)`
+            : `✓ ${approved.count} corrections approuvées et ajoutées au corpus !`;
           showToast(msg);
           await Promise.all([loadCorrections(), loadStats()]);
         } catch(e) { showToast("Erreur: " + e.message, "error"); }

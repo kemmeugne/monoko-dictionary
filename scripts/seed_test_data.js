@@ -21,6 +21,8 @@
  * catch. Set real values in .env.test (gitignored).
  */
 
+import { supabaseServiceHeaders } from "../api/_supabase.js";
+
 const TEST_PROJECT_REF = "bdejouumyzovfirqxmdr"; // monoko-test
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -46,8 +48,7 @@ if (urlRef !== TEST_PROJECT_REF) {
 
 function headers() {
   return {
-    apikey: SERVICE_KEY,
-    Authorization: `Bearer ${SERVICE_KEY}`,
+    ...supabaseServiceHeaders(SERVICE_KEY),
     "Content-Type": "application/json",
   };
 }

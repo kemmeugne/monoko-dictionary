@@ -98,20 +98,20 @@ create index if not exists review_schedule_user_lesson_due
 -- ─────────────────────────────────────────────────────────────────────────────
 -- RLS
 -- ─────────────────────────────────────────────────────────────────────────────
--- Same shape as exercise_attempts and lesson_stage_state: own rows only, read
--- and write, enforced in the database because these are written from the
--- client with the user's session token rather than through a service-key
--- endpoint.
+-- Learners may read their own state. Completed sessions update these tables
+-- through record_learning_session, which validates and derives the result.
 alter table user_streak     enable row level security;
 alter table review_schedule enable row level security;
 
 drop policy if exists "Users manage their own streak" on user_streak;
-create policy "Users manage their own streak" on user_streak
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users read their own streak" on user_streak;
+create policy "Users read their own streak" on user_streak
+  for select using (auth.uid() = user_id);
 
 drop policy if exists "Users manage their own review schedule" on review_schedule;
-create policy "Users manage their own review schedule" on review_schedule
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Users read their own review schedule" on review_schedule;
+create policy "Users read their own review schedule" on review_schedule
+  for select using (auth.uid() = user_id);
 
 
 -- ── Verify ───────────────────────────────────────────────────────────────────

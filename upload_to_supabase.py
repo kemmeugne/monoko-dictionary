@@ -24,11 +24,11 @@ from supabase import create_client
 # Your Supabase credentials
 SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co"
 
-# ⚠️  IMPORTANT: Use the SERVICE ROLE key here (not the anon key).
+# IMPORTANT: Export the SERVICE ROLE key as SUPABASE_SERVICE_KEY.
 #     The service role key bypasses RLS so we can insert data.
 #     Find it in: Supabase Dashboard → Settings → API → service_role
 #     NEVER share or commit this key publicly.
-SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhaW9pY2N1am5jc2VoYWRpcHpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTAxNzMyMCwiZXhwIjoyMDg2NTkzMzIwfQ.qnYD2HHFHOOm-o-DUvHRDlfKyR5wzU1OfxbK266YuJw"
+SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 
 # Language name for this upload batch
 LANGUAGE_NAME = "Yoruba"
@@ -131,14 +131,14 @@ def upload(entries, supabase, language_id):
 
 def main():
     # Validate config
-    if SERVICE_ROLE_KEY == "PASTE_YOUR_SERVICE_ROLE_KEY_HERE":
+    if not SERVICE_ROLE_KEY:
         print("=" * 55)
-        print("  ERROR: You need to set your SERVICE_ROLE_KEY!")
+        print("  ERROR: Export SUPABASE_SERVICE_KEY before running this script.")
         print()
         print("  1. Go to Supabase Dashboard → Settings → API")
         print("  2. Copy the 'service_role' key (NOT the anon key)")
         print("  3. Paste it in this script where it says")
-        print("     PASTE_YOUR_SERVICE_ROLE_KEY_HERE")
+        print("     export SUPABASE_SERVICE_KEY='...'")
         print("=" * 55)
         sys.exit(1)
 

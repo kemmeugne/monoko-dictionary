@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 from pathlib import Path
 from typing import Dict, List
 
@@ -15,10 +14,13 @@ DEFAULT_CONFIG_PATH = Path("/Users/anthonykemmeugne/Desktop/dictionary-normalize
 
 
 def load_service_credentials(config_path: Path) -> Dict[str, str]:
-    text = config_path.read_text(encoding="utf-8")
+    del config_path  # Kept as a CLI-compatible argument for existing workflows.
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    if not key:
+        raise RuntimeError("SUPABASE_SERVICE_KEY is required")
     return {
-        "SUPABASE_URL": re.search(r'SUPABASE_URL = "([^"]+)"', text).group(1),
-        "SUPABASE_SERVICE_KEY": re.search(r'SERVICE_ROLE_KEY = "([^"]+)"', text).group(1),
+        "SUPABASE_URL": os.environ.get("SUPABASE_URL", "https://haioiccujncsehadipzb.supabase.co"),
+        "SUPABASE_SERVICE_KEY": key,
     }
 
 

@@ -56,6 +56,18 @@
       return range ? parseInt(range.split("/")[1]) : 0;
     }
 
+    async function apiFetch(url, options = {}) {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session?.access_token) throw new Error("Authentication required");
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+    }
+
     // Language colors/flags
     const LANG_THEMES = {
       "Lingala": { emoji: "🇨🇩", gradient: "linear-gradient(135deg, #2C5F2D, #4A8B4C)", accent: "#2C5F2D" },
@@ -3065,10 +3077,10 @@
 
       // Warm-up TTS Space + RAG endpoints on mount so the first segment is fast
       useEffect(() => {
-        fetch("/api/mms-tts").catch(() => {});
+        apiFetch("/api/mms-tts").catch(() => {});
         if (langId) {
-          fetch("/api/rag-context",    { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
-          fetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
+          apiFetch("/api/rag-context",    { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
+          apiFetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
         }
       }, []);
 
@@ -3291,7 +3303,7 @@
 
         try {
           const base64 = await blobToBase64(blob);
-          const res = await fetch("/api/elevenlabs-stt", {
+          const res = await apiFetch("/api/elevenlabs-stt", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ audio: base64, mimeType: mime }),
@@ -3358,14 +3370,14 @@
 
         try {
           const [ragRes, lessonRes] = await Promise.allSettled([
-            fetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId, min_similarity:0.5 }) }).then(r => r.ok ? r.json() : null),
-            fetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
+            apiFetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId, min_similarity:0.5 }) }).then(r => r.ok ? r.json() : null),
+            apiFetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
           ]);
           const ragContext    = ragRes.value?.context    || "";
           const lessonContext = lessonRes.value?.context || "";
 
           // Include last 4 turns so pronouns and continuations resolve correctly across segments
-          const chatRes = await fetch("/api/chat", {
+          const chatRes = await apiFetch("/api/chat", {
             method:"POST", headers:{"Content-Type":"application/json"},
             body: JSON.stringify({
               mode: "live-translation",
@@ -4772,6 +4784,8 @@
       const [languages, setLanguages] = useState([]);
       const [selectedLang, setSelectedLang] = useState(null);
       const [loadingLangs, setLoadingLangs] = useState(true);
+      const langId = selectedLang?.id;
+      const langName = selectedLang?.name || "";
 
       // Dictionary state
       const [view, setView] = useState("lang_select");
@@ -5550,38 +5564,23 @@
       const handleLevelChallengeEnd = async ({ completed, attempts, pct, xp }) => {
         if (!currentUser || !levelChallengeCourse || !completed) return;
         const course = levelChallengeCourse;
-        const previous = levelChallenges[course.id] || {};
-        const bonus = perfectBonus(pct);
-        const firstPass = pct >= PASS_PCT && !previous.passed;
-        const earnedXp = xp + bonus;
-        setLastBonus(bonus);
-        setLastMilestoneBonus(firstPass ? 300 : 0);
         try {
-          const { error } = await supabaseClient.from("level_challenge_state").upsert({
-            user_id: currentUser.id,
-            course_id: course.id,
-            language_id: langId,
-            best_score: Math.max(previous.best_score || 0, pct),
-            passed: previous.passed || pct >= PASS_PCT,
-            runs: (previous.runs || 0) + 1,
-            session_xp: (previous.session_xp || 0) + earnedXp,
-            reward_xp: previous.reward_xp || 0,
-            updated_at: new Date().toISOString(),
-          }, { onConflict: "user_id,course_id" });
-          if (error) throw error;
-          await supabaseClient.from("user_xp_events").insert({
-            user_id: currentUser.id, language_id: langId, stage: "level_challenge",
-            xp: earnedXp, event_key: crypto.randomUUID(),
+          const { data, error } = await supabaseClient.rpc("record_level_challenge_session", {
+            p_session_id: crypto.randomUUID(),
+            p_course_id: course.id,
+            p_language_id: langId,
+            p_attempts: attempts,
+            p_local_day: localDay(),
           });
-          const next = streakNext(streak, localDay());
-          await supabaseClient.from("user_streak").upsert({
-            user_id: currentUser.id, ...next, updated_at: new Date().toISOString(),
-          }, { onConflict: "user_id" });
-          setStreak({ user_id: currentUser.id, ...next });
-          setTotalXp(total => total + earnedXp + (firstPass ? 300 : 0));
-          if (firstPass) celebrate(36);
+          if (error) throw error;
+          setLastBonus(data?.bonus || 0);
+          setLastMilestoneBonus(data?.milestone_bonus || 0);
+          setTotalXp(total => total + (data?.xp || 0) + (data?.milestone_bonus || 0));
+          if (data?.milestone_bonus) celebrate(36);
         } catch (error) { console.error("handleLevelChallengeEnd:", error); }
-        finally { loadLearningSummary(currentUser, langId); }
+        finally {
+          await Promise.all([loadStreak(currentUser), loadLearningSummary(currentUser, langId)]);
+        }
       };
 
       // Called once per session, completed or abandoned. Attempts are written
@@ -5598,121 +5597,40 @@
         setLastBonus(bonus);
         setLastMilestoneBonus(0);
 
-        // EACH WRITE IS ISOLATED, AND THAT IS THE POINT.
-        // These four writes were one try block until Slice 7, which is fine
-        // while they all target tables that exist. The moment a new one does
-        // not — a migration not yet run in the SQL editor, which is how every
-        // migration in this repo lands — a throw from the new write skips every
-        // write after it. That would have meant an unapplied sql/progression.sql
-        // silently stopping the 80% gate from ever recording again: the feature
-        // failing is acceptable, the gate failing is not.
-        //
-        // So progression writes may fail alone, and the attempt log and the gate
-        // are ordered so that neither depends on them.
-        const step = async (what, fn) => {
-          try { await fn(); } catch (e) { console.error(`handleSessionEnd/${what}:`, e); }
-        };
-
         try {
-          if (attempts.length) {
-            await step("attempts", () =>
-              supabaseClient.from("exercise_attempts").insert(
-                attempts.map(a => ({
-                  user_id: currentUser.id, pool_item_id: a.pool_item_id, lesson_id: lessonId,
-                  stage, format: a.format, correct: a.correct,
-                }))));
-          }
-
-          // ── SM-2 ──
-          // BOTH stages. Élargir was excluded at first on the grounds that its
-          // material is not a finite set — which was wrong: the corpus is
-          // 4,788 rows across 49 lessons, but a learner only ever meets ONE
-          // lesson's slice, and that is a median of 80 items. Scheduling it is
-          // what turns Élargir from endless recycling into a pool the learner
-          // actually gets through.
-          //
-          // Written even for an ABANDONED session: the eight questions someone
-          // answered before quitting are still evidence about what they know,
-          // and throwing them away would mean a learner who never finishes is
-          // never scheduled. Only the GATE requires completion, not the
-          // scheduler.
-          if (attempts.length) {
-            await step("sm2", async () => {
-              const prior = await loadSchedule(lessonId);
-              const updates = scheduleUpdates(attempts, prior, today);
-              if (!updates.size) return;
-              await supabaseClient.from("review_schedule").upsert(
-                [...updates].map(([poolItemId, row]) => ({
-                  user_id: currentUser.id, pool_item_id: poolItemId, lesson_id: lessonId,
-                  ease: row.ease, interval_days: row.interval_days, reps: row.reps,
-                  due_on: row.due_on, updated_at: new Date().toISOString(),
-                })), { onConflict: "user_id,pool_item_id" });
-            });
-          }
-
-          // ── Streak ──
-          // Completed sessions only. A streak is a claim that the learner
-          // practised today, and two abandoned questions is not practice.
-          if (completed) {
-            await step("streak", async () => {
-              const next = streakNext(streak, today);
-              // Same-day repeat sessions leave the row untouched; skipping the
-              // write keeps the day's second session from costing a round trip.
-              if (streak && next.last_day === streak.last_day
-                         && next.current_streak === streak.current_streak) return;
-              await supabaseClient.from("user_streak").upsert({
-                user_id: currentUser.id, ...next, updated_at: new Date().toISOString(),
-              }, { onConflict: "user_id" });
-              setStreak({ user_id: currentUser.id, ...next });
-            });
-          }
-
-          // The module is granted by the same condition that opens the gate, so
-          // the two can never disagree. Isolated like the others: failing to
-          // record completion must not stop the gate itself being written.
-          if (completed && stage === "pratiquer" && pct >= PASS_PCT) {
-            await step("complete", () => markLessonComplete(lessonId));
-          }
-
-          if (completed) {
-            const prev = stageState || {};
-            const firstElargirPass = stage === "elargir" && pct >= PASS_PCT && (prev.elargir_best || 0) < PASS_PCT;
-            await supabaseClient.from("lesson_stage_state").upsert({
-              user_id: currentUser.id, lesson_id: lessonId, language_id: langId,
-              // Passing is a one-way door: a later weaker session must not take
-              // Élargir away from someone who has already earned it.
-              pratiquer_passed: prev.pratiquer_passed || (stage === "pratiquer" && pct >= PASS_PCT),
-              pratiquer_best: stage === "pratiquer" ? Math.max(prev.pratiquer_best || 0, pct) : (prev.pratiquer_best || 0),
-              elargir_best:   stage === "elargir"   ? Math.max(prev.elargir_best || 0, pct)   : (prev.elargir_best || 0),
-              pratiquer_xp:   (prev.pratiquer_xp || 0) + (stage === "pratiquer" ? xp + bonus : 0),
-              // The perfect-session bonus counts toward the topic level, which
-              // is the only thing Élargir XP drives.
-              elargir_xp:     (prev.elargir_xp || 0) + (stage === "elargir" ? xp + bonus : 0),
-              // Only completed sessions count as a play — quitting after two
-              // questions is not a game, and counting it would make the number
-              // dishonest to the person reading it.
-              pratiquer_runs: (prev.pratiquer_runs || 0) + (stage === "pratiquer" ? 1 : 0),
-              elargir_runs:   (prev.elargir_runs   || 0) + (stage === "elargir"   ? 1 : 0),
-              updated_at: new Date().toISOString(),
-            }, { onConflict: "user_id,lesson_id" });
-
-            const earnedXp = xp + bonus;
-            await step("xp-event", () => supabaseClient.from("user_xp_events").insert({
-              user_id: currentUser.id,
-              language_id: langId,
-              lesson_id: lessonId,
-              stage,
-              xp: earnedXp,
-              event_key: crypto.randomUUID(),
-            }));
-            setTotalXp(total => total + earnedXp);
-            if (firstElargirPass) celebrate(24);
-          }
+          const prior = attempts.length ? await loadSchedule(lessonId) : new Map();
+          const updates = attempts.length ? scheduleUpdates(attempts, prior, today) : new Map();
+          const schedule = [...updates].map(([poolItemId, row]) => ({
+            pool_item_id: poolItemId,
+            ease: row.ease,
+            interval_days: row.interval_days,
+            reps: row.reps,
+            due_on: row.due_on,
+          }));
+          const previousElargirBest = stageState?.elargir_best || 0;
+          const { data, error } = await supabaseClient.rpc("record_learning_session", {
+            p_session_id: crypto.randomUUID(),
+            p_lesson_id: lessonId,
+            p_language_id: langId,
+            p_stage: stage,
+            p_completed: completed,
+            p_attempts: attempts,
+            p_schedule: schedule,
+            p_local_day: today,
+          });
+          if (error) throw error;
+          setLastBonus(data?.bonus || 0);
+          if (data?.lesson_completed) setUserProgress(previous => new Set([...previous, lessonId]));
+          if (completed) setTotalXp(total => total + (data?.xp || 0));
+          if (completed && stage === "elargir" && (data?.score_pct || 0) >= PASS_PCT && previousElargirBest < PASS_PCT) celebrate(24);
         } catch (e) {
           console.error("handleSessionEnd:", e);
         } finally {
-          loadStageState(lessonId);      // refresh the gate and the counter
-          loadLearningSummary(currentUser, langId);
+          await Promise.all([
+            loadStageState(lessonId),
+            loadStreak(currentUser),
+            loadLearningSummary(currentUser, langId),
+          ]);
         }
       };
 
@@ -5724,11 +5642,10 @@
       const reportPoolItem = async (item) => {
         if (!item) return;
         try {
-          await fetch(`${SUPABASE_URL}/rest/v1/corrections`, {
+          const response = await apiFetch("/api/corrections", {
             method: "POST",
             headers: {
-              apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`,
-              "Content-Type": "application/json", Prefer: "return=minimal",
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               language_id: langId,
@@ -5739,33 +5656,10 @@
               correct_lingala: item.ln,
               tester_name: testerName.trim() || null,
               session_id: testerSessionId || null,
-              status: "pending",
             }),
           });
+          if (!response.ok) throw new Error(`correction ${response.status}`);
         } catch (e) { console.error("reportPoolItem:", e); }
-      };
-
-      // A module is COMPLETED BY PASSING PRATIQUER, never by declaring it.
-      // This used to be a "J'ai terminé ce module" button, so the checkmark, the
-      // level progress bars and the "Continuer" card all reported what a learner
-      // had *tapped* rather than what they had learned. Now the 80% first-try
-      // gate is the single thing that grants it, which makes the progress bar
-      // mean the same as the gate.
-      //
-      // Still stored in `user_progress` rather than read from
-      // `lesson_stage_state.pratiquer_passed`: the level cards need completion
-      // for EVERY lesson at once, and stage state is loaded one lesson at a
-      // time. This is the materialisation of the gate, the same way stage state
-      // is the materialisation of the attempt log.
-      const markLessonComplete = async (lessonId) => {
-        if (!currentUser || !lessonId || userProgress.has(lessonId)) return;
-        try {
-          const { error } = await supabaseClient.from("user_progress").upsert(
-            { user_id: currentUser.id, lesson_id: lessonId, language_id: langId },
-            { onConflict: "user_id,lesson_id" }
-          );
-          if (!error) setUserProgress(prev => new Set([...prev, lessonId]));
-        } catch(e) { console.error("markLessonComplete:", e); }
       };
 
       const resumeLesson = async () => {
@@ -5972,7 +5866,7 @@
 
       useEffect(() => {
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
-        if (view === "chat") fetch("/api/mms-tts").catch(() => {});
+        if (view === "chat") apiFetch("/api/mms-tts").catch(() => {});
         if (["home", "courses", "profile"].includes(view)) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       }, [view]);
 
@@ -6045,9 +5939,6 @@
         })();
         return () => { cancelled = true; };
       }, [selectedLesson?.id, langId]);
-
-      const langId = selectedLang?.id;
-      const langName = selectedLang?.name || "";
 
       // Derived per-course completion counts (requires courses to have been loaded with lessons(id))
       const courseProgress = (course) => {
@@ -6139,13 +6030,13 @@
 
         // Fire rag-context (parallel_sentences pgvector) and lesson-context in parallel
         const [ragResult, lessonResult] = await Promise.allSettled([
-          fetch("/api/rag-context", {
+          apiFetch("/api/rag-context", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: userMsg, language_id: langId }),
           }).then(r => r.ok ? r.json() : null).catch(() => null),
 
-          fetch("/api/lesson-context", {
+          apiFetch("/api/lesson-context", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: userMsg, language_id: langId }),
@@ -6184,7 +6075,7 @@
           const tRagMs = Math.round(performance.now() - t0);
           if (pairs.length) setChatCorpusPairs(pairs);
 
-          const res = await fetch("/api/chat", {
+          const res = await apiFetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -6252,13 +6143,10 @@
         const original = chatMessages[msgIndex];
         const userMsg = msgIndex > 0 ? chatMessages[msgIndex - 1]?.content : "";
         try {
-          await fetch(`${SUPABASE_URL}/rest/v1/corrections`, {
+          const response = await apiFetch("/api/corrections", {
             method: "POST",
             headers: {
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
               "Content-Type": "application/json",
-              Prefer: "return=minimal",
             },
             body: JSON.stringify({
               language_id: langId,
@@ -6270,9 +6158,9 @@
               example_sentence: correctionExample.trim() || null,
               tester_name: testerName.trim() || null,
               session_id: testerSessionId || null,
-              status: "pending",
             }),
           });
+          if (!response.ok) throw new Error(`correction ${response.status}`);
           setCorrectionSent(true);
           setTimeout(() => {
             setCorrectionMsg(null);

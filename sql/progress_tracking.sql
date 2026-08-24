@@ -30,10 +30,11 @@ CREATE TABLE IF NOT EXISTS user_progress (
 
 ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users manage their own progress"
-  ON user_progress FOR ALL
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users manage their own progress" ON user_progress;
+DROP POLICY IF EXISTS "Users read their own progress" ON user_progress;
+CREATE POLICY "Users read their own progress"
+  ON user_progress FOR SELECT
+  USING (auth.uid() = user_id);
 
 -- Index for fast per-user queries
 CREATE INDEX IF NOT EXISTS user_progress_user_lang_idx

@@ -304,7 +304,7 @@ def main() -> int:
                         help="Seconds to wait between Monoko API calls (default 0.6)")
     parser.add_argument("--supabase-url", default="https://haioiccujncsehadipzb.supabase.co")
     parser.add_argument("--supabase-key", default=None,
-                        help="Supabase key for inserting corrections (anon key works)")
+                        help="Supabase service key for inserting automated corrections")
     parser.add_argument("--dry-run",     action="store_true",
                         help="Skip Supabase inserts — only log failures")
     parser.add_argument("--output",      type=Path,

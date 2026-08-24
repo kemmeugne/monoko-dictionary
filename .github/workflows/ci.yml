@@ -1,0 +1,48 @@
+name: Monoko checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+
+  authenticated-smoke:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ secrets.MONOKO_PREVIEW_URL }}
+      TEST_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+      TEST_SUPABASE_ANON_KEY: ${{ secrets.TEST_SUPABASE_ANON_KEY }}
+      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run authenticated smoke when preview secrets are configured
+        run: |
+          if [ -n "$PLAYWRIGHT_BASE_URL" ] && [ -n "$TEST_USER_EMAIL" ]; then
+            npm run test:browser -- --grep "learner can"
+          else
+            echo "Preview smoke secrets are not configured; public browser gate already passed."
+          fi

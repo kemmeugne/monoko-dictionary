@@ -17,6 +17,7 @@
  * ElevenLabs Scribe's current "moderate" rating (20-50% WER on Lingala).
  */
 
+import { authorizeApiRequest } from "./_auth.js";
 import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
 
 const MODEL_ID = "scribe_v2";
@@ -38,6 +39,8 @@ export default async function handler(req, res) {
   if (!checkRateLimit(ip, { limit: STT_LIMIT, windowMs: STT_WINDOW })) {
     return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
+
+  if (!await authorizeApiRequest(req, res, { scope: "elevenlabs-stt", limit: STT_LIMIT, windowMs: STT_WINDOW })) return;
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {

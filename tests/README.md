@@ -1,8 +1,8 @@
 # Tests
 
-Status: Sessions 1 (test Supabase + seed data) and 2 (unit tests for
-`api/*.js`) of `HARNESS_SPRINT.md` are done. Sessions 3–5 (Playwright smoke
-tests, guardrail lints, CI) are not built yet.
+Status: all five sessions in `HARNESS_SPRINT.md` are implemented. The local
+compiled and authenticated smoke runs are green; the first Vercel-preview CI
+run still needs to be observed.
 
 ## Running the unit tests
 
@@ -10,12 +10,18 @@ tests, guardrail lints, CI) are not built yet.
 npm install
 npm test          # vitest run — single pass, used in CI
 npm run test:watch
+npm run verify          # guardrails + Vitest + production build
+npm run test:browser    # builds, then runs Chromium at three viewports
 ```
 
 No network calls are made. Every `api/*.js` handler is tested against a
 stubbed `global.fetch` and a mocked `api/_rate-limit.js`, so tests run
 offline and don't touch OpenAI, Supabase, ElevenLabs, or the HuggingFace
 Space.
+
+`tests/api/supabase-headers.test.js` protects the new API-key migration:
+`sb_secret_...` is sent only as `apikey`, while legacy service-role JWTs retain
+their bearer header until every non-production environment has migrated.
 
 ## Testing code that lives inside `index.html`
 
@@ -33,10 +39,21 @@ several sections and concatenate them, which is how a block that depends on an
 earlier helper (`scheduleUpdates` needs `scoreableAttempts`) still evaluates.
 
 **Slicing is not a syntax check.** These tests only evaluate the sections they
-name, so a syntax error anywhere in the ~4,000 lines of React that no test slices
-passes the whole suite and ships a blank page — there is no build step to catch
-it. `npm run check:syntax` parses the entire babel block with oxc and is the only
-thing that does. Run it before every deploy.
+name. `npm run build` compiles the entire JSX block with esbuild, so syntax in
+unsliced UI is covered by `npm run verify` before deployment.
+
+## Browser smoke tests
+
+`tests/smoke/landing.spec.js` verifies the public landing, map, CTA and horizontal
+containment. `tests/smoke/authenticated.spec.js` signs into monoko-test and opens
+home, the course trail and a lesson preview. Playwright runs both against the
+compiled `dist/` artifact at 1440px, 390px and 320px. The authenticated test is
+skipped unless `TEST_SUPABASE_URL`, `TEST_SUPABASE_ANON_KEY`,
+`TEST_USER_EMAIL` and `TEST_USER_PASSWORD` are present.
+
+`scripts/verify_security_hardening.mjs` is the real-database security check. It
+hard-refuses any project except monoko-test and verifies the trusted session RPC,
+direct-XP denial, private corrections, immutable country and durable quotas.
 
 One gotcha worth knowing: a string literal containing an accented character can
 be composed or decomposed depending on the editor that saved the file, and the

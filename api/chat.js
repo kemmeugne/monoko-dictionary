@@ -10,10 +10,12 @@
  *
  * Environment variables:
  *   OPENAI_API_KEY       — OpenAI key (sk-proj-...)
- *   SUPABASE_SERVICE_KEY — optional, used for tester activity logging
+ *   SUPABASE_SERVICE_KEY — required for auth-backed quotas, RAG and logging
  */
 
+import { authorizeApiRequest } from "./_auth.js";
 import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+import { supabaseServiceHeaders } from "./_supabase.js";
 
 const SUPABASE_URL = "https://haioiccujncsehadipzb.supabase.co";
 
@@ -124,8 +126,7 @@ async function supaWrite(table, body) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: "POST",
     headers: {
-      apikey: process.env.SUPABASE_SERVICE_KEY,
-      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+      ...supabaseServiceHeaders(),
       "Content-Type": "application/json",
       Prefer: "return=minimal",
     },
@@ -148,6 +149,8 @@ export default async function handler(req, res) {
   if (!checkRateLimit(ip, { limit: CHAT_LIMIT, windowMs: CHAT_WINDOW })) {
     return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
+
+  if (!await authorizeApiRequest(req, res, { scope: "chat", limit: CHAT_LIMIT, windowMs: CHAT_WINDOW })) return;
 
   const {
     messages,

@@ -3,14 +3,21 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check:syntax": "node scripts/check_syntax.mjs",
+    "pretest:browser": "npm run build",
+    "test:browser": "playwright test",
+    "check:guardrails": "node scripts/check_guardrails.mjs",
+    "verify": "npm run check:guardrails && npm test && npm run build",
     "db:sync-test-schema": "node scripts/sync_test_schema.js",
     "db:seed-test": "node scripts/seed_test_data.js",
-    "verify:progression": "node scripts/verify_progression.mjs"
+    "verify:progression": "node scripts/verify_progression.mjs",
+    "verify:security:test": "node scripts/verify_security_hardening.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "esbuild": "^0.28.2",
     "vitest": "^4.1.10"
   }
 }

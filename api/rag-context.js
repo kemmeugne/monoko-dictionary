@@ -23,10 +23,12 @@
  *
  * Environment variables:
  *   OPENAI_API_KEY       — OpenAI key (sk-proj-...)
- *   SUPABASE_SERVICE_KEY — Supabase service role key
+ *   SUPABASE_SERVICE_KEY — Supabase secret/server key
  */
 
+import { authorizeApiRequest } from "./_auth.js";
 import { checkRateLimit, getClientIp, setCorsHeaders } from "./_rate-limit.js";
+import { supabaseServiceHeaders } from "./_supabase.js";
 
 const SUPABASE_URL         = "https://haioiccujncsehadipzb.supabase.co";
 const EMBED_MODEL          = "text-embedding-3-small";
@@ -88,8 +90,7 @@ async function callMatchRpc(rpc, embedding, languageId, matchCount) {
     method: "POST",
     headers: {
       "Content-Type":  "application/json",
-      "apikey":        process.env.SUPABASE_SERVICE_KEY,
-      "Authorization": `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+      ...supabaseServiceHeaders(),
     },
     body: JSON.stringify({
       query_embedding: embedding,
@@ -164,6 +165,8 @@ export default async function handler(req, res) {
   if (!checkRateLimit(ip, { limit: RAG_LIMIT, windowMs: RAG_WINDOW })) {
     return res.status(429).json({ error: "Trop de requêtes. Veuillez patienter quelques minutes." });
   }
+
+  if (!await authorizeApiRequest(req, res, { scope: "rag", limit: RAG_LIMIT, windowMs: RAG_WINDOW })) return;
 
   const { query, language_id, match_count, min_similarity } = req.body;
 
