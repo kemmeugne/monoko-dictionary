@@ -751,6 +751,33 @@ button.m-chip { cursor: pointer; }
   .m-standing-stats > div { display: grid; gap: 2px; justify-items: end; }
 }
 
+/* ============================================================
+   Login / signup / password reset  (view: auth)
+   Signing out lands here, not on the marketing landing page.
+   ============================================================ */
+.m-auth { min-height: 100dvh; padding: calc(env(safe-area-inset-top) + 24px) 16px calc(env(safe-area-inset-bottom) + 32px); display: grid; background: var(--m-canvas); }
+/* Auto margins, never justify-content: centre — a centred flex/grid box
+   overflows in both directions once the content is taller than the viewport,
+   and the top becomes unreachable. The signup form with an error is exactly
+   that case on a small phone. */
+.m-auth-card { width: min(100%, 460px); margin: auto; padding: 26px 22px 22px; border: 1px solid var(--m-line); border-radius: 10px; background: var(--m-surface); box-shadow: var(--m-shadow); }
+.m-auth-brand { margin-bottom: 20px; padding: 0; border: 0; display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--m-ink); font: 800 19px "Playfair Display", serif; cursor: pointer; }
+.m-auth-card h1 { margin: 5px 0 0; font: 800 27px/1.1 "Playfair Display", serif; }
+.m-auth-blurb { margin: 9px 0 0; color: var(--m-muted); font-size: 13px; line-height: 1.5; }
+.m-auth-gate { margin: 14px 0 0; padding: 11px 13px; border-radius: 7px; background: var(--m-gold-soft); color: #7a5610; font-size: 12px; line-height: 1.45; }
+.m-auth-modes { margin-top: 18px; padding: 3px; border-radius: 8px; display: grid; grid-template-columns: repeat(2,1fr); background: #e9eee9; }
+.m-auth-modes button { min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: var(--m-muted); font: 700 12px "DM Sans", sans-serif; cursor: pointer; }
+.m-auth-modes button.active { background: white; color: var(--m-forest); box-shadow: 0 2px 7px rgba(31,47,37,.08); }
+.m-auth-form { margin-top: 18px; display: grid; gap: 13px; }
+.m-auth-message { padding: 11px 13px; border: 1px solid #e7b6a8; border-radius: 7px; background: #fdeee9; color: #9c3a22; font-size: 12px; font-weight: 600; line-height: 1.45; }
+.m-auth-message.ok { border-color: #a9cdb7; background: var(--m-green-soft); color: var(--m-forest); }
+.m-auth-submit { min-height: 54px; border: 0; border-radius: 8px; background: var(--m-forest); color: #fff; font: 800 14px "DM Sans", sans-serif; cursor: pointer; box-shadow: var(--m-shadow); }
+.m-auth-submit:disabled { background: #e4eae4; color: var(--m-muted); box-shadow: none; cursor: not-allowed; }
+.m-auth-links { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--m-line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.m-auth-links button { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--m-forest-2); font: 700 12px "DM Sans", sans-serif; text-decoration: underline; cursor: pointer; }
+.m-settings-note.warn { color: #9c3a22; }
+.m-settings-note.ok { color: var(--m-forest); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }

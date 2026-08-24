@@ -138,7 +138,15 @@ await send("Page.navigate", { url: APP_URL });
 
 await waitFor(`[...document.querySelectorAll("button")].some(button => button.textContent.includes("Français") && button.textContent.includes("Lingala"))`, "Lingala language button");
 await clickByText("button", "Français");
-await waitFor(`document.querySelector(".m-home")`, "redesigned home");
+// Signed out, a language now opens the login page rather than an empty home:
+// home shows a streak, XP and a next lesson, none of which exist without a
+// learner. Sign in first, then assert home.
+await waitFor(`document.querySelector(".m-auth-card")`, "login page");
+await fill('input[type="email"]', process.env.TEST_USER_EMAIL);
+await fill('input[type="password"]', process.env.TEST_USER_PASSWORD);
+await sleep(100);
+await evaluate(`document.querySelector(".m-auth-submit").click()`);
+await waitFor(`document.querySelector(".m-home")`, "redesigned home", 25000);
 await assertPage("desktop home", `() => ({
   home: !!document.querySelector(".m-home"),
   dictionary: document.body.textContent.includes("Dictionnaire"),
@@ -149,11 +157,6 @@ await assertPage("desktop home", `() => ({
 const homeShot = await screenshot("home-desktop");
 
 await evaluate(`document.querySelector(".m-rail-profile").click()`);
-await waitFor(`document.querySelector('input[type="email"]')`, "login form");
-await fill('input[type="email"]', process.env.TEST_USER_EMAIL);
-await fill('input[type="password"]', process.env.TEST_USER_PASSWORD);
-await sleep(100);
-await clickLastByText("button:not([disabled])", "Se connecter");
 await waitFor(`document.querySelector(".m-profile")`, "authenticated profile", 20000);
 await waitFor(`document.body.textContent.includes("MonokoTest") && document.body.textContent.includes("650 XP")`, "profile data before reward claims", 20000);
 await waitFor(`document.querySelector(".m-ranking-row.me")?.textContent.includes("650 XP")`, "weekly leaderboard row", 20000);

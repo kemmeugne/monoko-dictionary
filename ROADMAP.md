@@ -28,6 +28,13 @@ Last updated: 2026-08-22
   navigation, full profile, medals and 16 editable Lingala/Congolese culture
   capsules. Claimable gifts, capsule reveals and medal ceremonies use the live
   progression state and include their production celebrations.
+- **Auth and navigation reworked (2026-08-23)** — a real login page in the
+  redesigned template with password reset; signing out lands there rather than
+  on the marketing landing; home and every learner screen now require a session
+  instead of rendering signed-out and only challenging at Parcours; the trail
+  page carries Paramètres and Déconnexion; and changing a password asks for the
+  current one plus the new one twice. The public dictionary currently has no
+  route for a signed-out visitor — see CLAUDE.md.
 - **Account settings, sign out and the weekly ranking (2026-08-22)** — a
   settings screen for every personal detail (password, display name, one-time
   pseudonym, country, ranking opt-in, optional phone/address/ethnicity), sign

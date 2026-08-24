@@ -110,6 +110,38 @@ monoko-ui.css                     — production learner shell: public landing, 
 course-trail-meta.js              — mock-matched lesson preview descriptions and estimated durations, kept separate from the exercise/content records
 COURSE_TRAIL_PARITY.md            — production contract for every course-trail behavior carried over from the isolated mock
 
+Auth and navigation (2026-08-23). There are now three distinct front doors and
+one rule about who sees what.
+
+- **`lang_select`** is the public marketing landing, for anonymous visitors.
+- **`auth`** (`AuthPage`) is the login page: sign in, sign up and password
+  reset, in the redesigned template. **Signing out lands here, not on the
+  landing page** — a returning learner should meet a login form, not a pitch.
+  It keeps a "Découvrir Monɔkɔ" link back to the landing.
+- **`home` and everything behind it** require a learner. `PRIVATE_VIEWS` lists
+  them and an effect redirects to `auth` when there is no `currentUser`. The app
+  used to render home signed out and only challenge you at Parcours, on the
+  *previous design's* auth screen — inconsistent in both behaviour and styling.
+
+The gate is checked only once `authLoading` is false. Treating "session not
+resolved yet" as "signed out" would bounce a returning learner to the login page
+on every cold load.
+
+**Changing a password requires the old one.** Supabase's `updateUser` does not
+ask for it, so an unattended open session would be enough to take an account
+over; `changePassword` re-authenticates with `signInWithPassword` first, and the
+form asks for the new password twice.
+
+Password reset uses `resetPasswordForEmail` and always reports the same message
+whether or not the address has an account — a different one would turn the form
+into a way to test which e-mail addresses are registered.
+
+**Note for the dictionary:** `search` / `browse` / `detail` are deliberately not
+in `PRIVATE_VIEWS`, but today they are only reachable from home, so a signed-out
+visitor cannot get to the dictionary. If the public dictionary matters for SEO
+(`PHASE3_LAUNCH_PLAN.md` treats it as the goodwill engine), it needs its own
+route from the landing page.
+
 Account, settings and sign out (2026-08-22). `SettingsHub` (view `settings`)
 holds everything personal: read-only email, password change, display name,
 the one-time pseudonym, country, ranking opt-in, optional phone/address/

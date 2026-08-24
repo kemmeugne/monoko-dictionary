@@ -4020,7 +4020,7 @@
       </div>;
     }
 
-    function CourseLevelRail({ courses, userProgress, levelRewards, levelChallenges, focusedLevel, displayName, xp, onHome, onLevel, onProfile }) {
+    function CourseLevelRail({ courses, userProgress, levelRewards, levelChallenges, focusedLevel, displayName, xp, onHome, onLevel, onProfile, onSettings, onSignOut }) {
       return <aside className="m-course-level-rail" aria-label="Niveaux du parcours">
         <button className="m-course-brand" onClick={onHome}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
         <div className="m-course-rail-heading"><span>Parcours Lingala</span><strong>{courses.length || 6} niveaux</strong></div>
@@ -4036,11 +4036,17 @@
             <span className="m-course-level-index">{index+1}</span><span><strong>{meta.title}</strong><small>{meta.cefr} · {status}</small></span><UiIcon name={challenge?.passed ? "sparkles" : focusedLevel === index+1 ? "chevron" : unlocked ? "circle" : "lock"}/>
           </button>;
         })}</nav>
-        <button className="m-course-profile" onClick={onProfile}><span className="avatar">{initialsFor(displayName)}</span><span><strong>{displayName}</strong><small>{xp} XP</small></span><UiIcon name="chevron"/></button>
+        <div className="m-rail-account">
+          <button className="m-course-profile" onClick={onProfile}><span className="avatar">{initialsFor(displayName)}</span><span><strong>{displayName}</strong><small>{xp} XP</small></span><UiIcon name="chevron"/></button>
+          <div className="m-rail-account-links">
+            <button onClick={onSettings}><UiIcon name="settings"/>Paramètres</button>
+            <button onClick={onSignOut}><UiIcon name="logout"/>Déconnexion</button>
+          </div>
+        </div>
       </aside>;
     }
 
-    function CourseTrail({ courses, userProgress, stageByLesson, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, isDeveloper, developerUpdating, onSetDeveloperProgress, onClaimLessonReward, onClaimLevelReward, onCelebrate, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onOpenLesson, onLevelChallenge, onCapsule }) {
+    function CourseTrail({ courses, userProgress, stageByLesson, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, loading, isDeveloper, developerUpdating, onSetDeveloperProgress, onClaimLessonReward, onClaimLevelReward, onCelebrate, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut, onOpenLesson, onLevelChallenge, onCapsule }) {
       const displayName = displayNameFor(currentUser, profile);
       const flat = courses.flatMap((course,courseIndex) => (course.lessons || []).map(lesson => ({lesson,course,courseIndex})));
       const actualCompleted = flat.filter(item => userProgress.has(item.lesson.id)).length;
@@ -4199,7 +4205,7 @@
       }, [pendingMilestone?.course.id,currentUser?.id]);
 
       return <div className="m-course-layout">
-        <CourseLevelRail courses={courses} userProgress={visibleProgress} levelRewards={levelRewards} levelChallenges={levelChallenges} focusedLevel={focusedLevel} displayName={displayName} xp={xp} onHome={onHome} onLevel={scrollLevel} onProfile={onProfile}/>
+        <CourseLevelRail courses={courses} userProgress={visibleProgress} levelRewards={levelRewards} levelChallenges={levelChallenges} focusedLevel={focusedLevel} displayName={displayName} xp={xp} onHome={onHome} onLevel={scrollLevel} onProfile={onProfile} onSettings={onSettings} onSignOut={onSignOut}/>
         <main className="m-course-main">
           <TopBar xp={xp} streak={streak} medals={medals} onMenu={() => setMobileLevelsOpen(true)} onHome={onHome} onProfile={onProfile} onSettings={onSettings} onMore={isDeveloper ? () => setDeveloperMenuOpen(value => !value) : null} moreOpen={developerMenuOpen} moreContent={<div className="m-developer-menu" role="menu" aria-label="Progression développeur"><header><strong>Mode développeur</strong><small>XP et récompenses réels</small></header>{developerPresets.map((preset,index) => <button key={`${preset.label}-${index}`} role="menuitem" disabled={developerUpdating} className={preset.count === actualCompleted ? "current" : ""} onClick={() => applyDeveloperPreset(preset)}><span>{preset.label}</span><b>{preset.count}</b></button>)}</div>}/>
           <div className="m-course-body">
@@ -4345,6 +4351,94 @@
       </div>;
     }
 
+    function AuthPage({ mode, email, password, displayName, pseudonym, error, submitting, returnTo,
+                        onMode, onEmail, onPassword, onDisplayName, onPseudonym, onSubmit, onForgot, onLanding }) {
+      const isSignup = mode === "signup";
+      const isForgot = mode === "forgot";
+      const submit = event => { event.preventDefault(); isForgot ? onForgot() : onSubmit(); };
+      const title = isForgot ? "Mot de passe oublié" : isSignup ? "Créer un compte" : "Content de vous revoir";
+      const blurb = isForgot
+        ? "Indiquez votre adresse e-mail. Nous vous enverrons un lien pour choisir un nouveau mot de passe."
+        : isSignup
+        ? "Quelques secondes, et votre parcours en lingala commence."
+        : "Connectez-vous pour retrouver votre parcours, vos XP et votre série.";
+
+      return <div className="m-auth">
+        <div className="m-auth-card">
+          <button className="m-auth-brand" onClick={onLanding}>
+            <span className="m-brand-mark">M</span><strong>Monɔkɔ</strong>
+          </button>
+
+          <div className="m-kicker"><span>{isForgot ? "Récupération" : "Votre espace"}</span></div>
+          <h1>{title}</h1>
+          <p className="m-auth-blurb">{blurb}</p>
+
+          {returnTo && !isForgot && (
+            <p className="m-auth-gate">
+              Un compte est requis pour accéder {returnTo === "chat" ? "aux conversations"
+                : returnTo === "live" ? "à la traduction en direct"
+                : returnTo === "settings" ? "aux paramètres"
+                : returnTo === "profile" ? "à votre profil"
+                : "au parcours"}.
+            </p>
+          )}
+
+          {!isForgot && (
+            <div className="m-auth-modes" role="tablist">
+              <button role="tab" aria-selected={!isSignup} className={!isSignup ? "active" : ""} onClick={() => onMode("login")}>Se connecter</button>
+              <button role="tab" aria-selected={isSignup} className={isSignup ? "active" : ""} onClick={() => onMode("signup")}>Créer un compte</button>
+            </div>
+          )}
+
+          <form className="m-auth-form" onSubmit={submit}>
+            {isSignup && (
+              <label className="m-field">
+                <span>Prénom</span>
+                <input value={displayName} autoComplete="given-name" placeholder="Comment vous appelez-vous ?"
+                       onChange={event => onDisplayName(event.target.value)}/>
+              </label>
+            )}
+            {isSignup && (
+              <label className="m-field">
+                <span>Pseudonyme public</span>
+                <input value={pseudonym} maxLength="24" placeholder="Visible dans le classement"
+                       onChange={event => onPseudonym(event.target.value)}/>
+                <small>Unique et définitif : c'est le nom que les autres apprenants verront.</small>
+              </label>
+            )}
+
+            <label className="m-field">
+              <span>Adresse e-mail</span>
+              <input type="email" value={email} autoComplete="email" placeholder="votre@email.com"
+                     onChange={event => onEmail(event.target.value)}/>
+            </label>
+
+            {!isForgot && (
+              <label className="m-field">
+                <span>Mot de passe</span>
+                <input type="password" value={password}
+                       autoComplete={isSignup ? "new-password" : "current-password"}
+                       placeholder={isSignup ? "6 caractères minimum" : "Votre mot de passe"}
+                       onChange={event => onPassword(event.target.value)}/>
+              </label>
+            )}
+
+            {error && <div className={`m-auth-message ${error.startsWith("✓") ? "ok" : ""}`} role="status">{error}</div>}
+
+            <button className="m-auth-submit" type="submit" disabled={submitting}>
+              {submitting ? "Un instant…" : isForgot ? "Envoyer le lien" : isSignup ? "Créer mon compte" : "Se connecter"}
+            </button>
+          </form>
+
+          <div className="m-auth-links">
+            {!isForgot && !isSignup && <button onClick={() => onMode("forgot")}>Mot de passe oublié ?</button>}
+            {isForgot && <button onClick={() => onMode("login")}>Retour à la connexion</button>}
+            <button onClick={onLanding}>Découvrir Monɔkɔ</button>
+          </div>
+        </div>
+      </div>;
+    }
+
     const COUNTRY_OPTIONS = [
       ["CA","Canada"],["CD","République démocratique du Congo"],["CG","République du Congo"],
       ["FR","France"],["BE","Belgique"],["US","États-Unis"],["OTHER","Autre"],
@@ -4361,7 +4455,9 @@
       const [phone, setPhone] = useState(profile?.phone || "");
       const [address, setAddress] = useState(profile?.address || "");
       const [ethnicity, setEthnicity] = useState(profile?.ethnicity || "");
+      const [currentPassword, setCurrentPassword] = useState("");
       const [password, setPassword] = useState("");
+      const [confirmation, setConfirmation] = useState("");
 
       useEffect(() => {
         setName(profile?.display_name || "");
@@ -4407,15 +4503,29 @@
               <small>L'adresse e-mail ne peut pas être modifiée ici.</small>
             </label>
             <label className="m-field">
+              <span>Mot de passe actuel</span>
+              <input type="password" value={currentPassword} autoComplete="current-password"
+                     onChange={event => setCurrentPassword(event.target.value)}/>
+            </label>
+            <label className="m-field">
               <span>Nouveau mot de passe</span>
               <input type="password" value={password} autoComplete="new-password" placeholder="6 caractères minimum"
                      onChange={event => setPassword(event.target.value)}/>
             </label>
-            <button className="m-settings-secondary" disabled={passwordSaving || password.length < 6}
-                    onClick={async () => { const ok = await onChangePassword(password); if (ok) setPassword(""); }}>
+            <label className="m-field">
+              <span>Confirmer le nouveau mot de passe</span>
+              <input type="password" value={confirmation} autoComplete="new-password"
+                     onChange={event => setConfirmation(event.target.value)}/>
+            </label>
+            <button className="m-settings-secondary"
+                    disabled={passwordSaving || !currentPassword || password.length < 6 || !confirmation}
+                    onClick={async () => {
+                      const ok = await onChangePassword(currentPassword, password, confirmation);
+                      if (ok) { setCurrentPassword(""); setPassword(""); setConfirmation(""); }
+                    }}>
               {passwordSaving ? "Modification…" : "Modifier le mot de passe"}
             </button>
-            {passwordNote && <p className="m-settings-note">{passwordNote}</p>}
+            {passwordNote && <p className={`m-settings-note ${passwordNote.startsWith("✓") ? "ok" : "warn"}`}>{passwordNote}</p>}
           </section>
 
           <section className="m-settings-card">
@@ -4739,10 +4849,20 @@
         return () => { cancelled = true; };
       }, [currentUser?.id, languages.length, selectedLang?.id]);
 
+      // Views that belong to a signed-in learner. Home shows their streak, XP
+      // and next lesson; signed out there is nothing there to show. The app
+      // used to render it anyway and only challenge you at Parcours — on the
+      // previous design's auth screen — which is the inconsistency this fixes.
+      const PRIVATE_VIEWS = ["home", "courses", "profile", "settings", "lesson", "level_challenge", "chat", "live"];
+
       const selectLanguage = async (lang) => {
         setSelectedLang(lang);
         setHomeSection("home");
-        setView("home");
+        // Checked only once the session has resolved: `authLoading` is still
+        // true on a cold load, and treating "not known yet" as "signed out"
+        // would bounce a returning learner to the login page.
+        if (!authLoading && !currentUser) requireAuth("home");
+        else setView("home");
         // Load stats for this language
         try {
           const wc = await supaCount("words", `language_id=eq.${lang.id}`);
@@ -4973,14 +5093,27 @@
         finally { setProfileSaving(false); }
       };
 
-      const changePassword = async password => {
+      const changePassword = async (currentPassword, password, confirmation) => {
         setPasswordNote("");
-        if ((password || "").length < 6) { setPasswordNote("6 caractères minimum."); return false; }
+        if (!currentPassword) { setPasswordNote("Saisissez votre mot de passe actuel."); return false; }
+        if ((password || "").length < 6) { setPasswordNote("Le nouveau mot de passe doit faire 6 caractères minimum."); return false; }
+        if (password !== confirmation) { setPasswordNote("Les deux nouveaux mots de passe ne correspondent pas."); return false; }
+        if (password === currentPassword) { setPasswordNote("Le nouveau mot de passe doit être différent de l'actuel."); return false; }
         setPasswordSaving(true);
         try {
+          // Supabase's updateUser does not ask for the current password: an
+          // unattended open session would be enough to take the account over.
+          // Re-authenticating first is what makes the old password required.
+          const { error: reauthError } = await supabaseClient.auth.signInWithPassword({
+            email: currentUser?.email, password: currentPassword,
+          });
+          if (reauthError) {
+            setPasswordNote("Mot de passe actuel incorrect.");
+            return false;
+          }
           const { error } = await supabaseClient.auth.updateUser({ password });
           if (error) throw error;
-          setPasswordNote("Mot de passe mis à jour.");
+          setPasswordNote("✓ Mot de passe mis à jour.");
           return true;
         } catch (error) {
           console.error("changePassword:", error);
@@ -5567,6 +5700,26 @@
       // signed in, and leaving them on screen shows the next person someone
       // else's streak. Resetting the resume guard matters too, or the next
       // learner to sign in on this device is not sent to their own language.
+      const handleForgotPassword = async () => {
+        const address = authEmail.trim();
+        if (!address) { setAuthError("Indiquez votre adresse e-mail."); return; }
+        setAuthError(""); setAuthSubmitting(true);
+        try {
+          const { error } = await supabaseClient.auth.resetPasswordForEmail(address, {
+            redirectTo: `${window.location.origin}/`,
+          });
+          if (error) throw error;
+          // Deliberately the same message whether or not the address exists:
+          // a different one would turn this form into a way to test which
+          // e-mail addresses have accounts.
+          setAuthError("✓ Si un compte existe pour cette adresse, un lien vient d'être envoyé.");
+        } catch (error) {
+          console.error("resetPasswordForEmail:", error);
+          setAuthError("Envoi impossible. Réessayez dans un instant.");
+        }
+        setAuthSubmitting(false);
+      };
+
       const handleSignOut = async () => {
         await supabaseClient.auth.signOut();
         setTesterName("");
@@ -5583,8 +5736,18 @@
         resumedLanguageRef.current = false;
         clearLanguageState();
         setSelectedLang(null);
-        setView("lang_select");
+        setAuthMode("login");
+        setAuthEmail(""); setAuthPassword(""); setAuthDisplayName(""); setAuthPseudonym("");
+        setAuthError(""); setAuthReturnTo(null);
+        setView("auth");
       };
+
+      // One rule, one destination: a private view without a learner sends you
+      // to the login page rather than rendering an empty version of itself.
+      useEffect(() => {
+        if (authLoading || currentUser || !PRIVATE_VIEWS.includes(view)) return;
+        requireAuth(view === "home" ? "home" : view);
+      }, [authLoading, currentUser, view]);
 
       useEffect(() => {
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
@@ -5909,7 +6072,7 @@
       }, [chatMessages, chatLoading]);
 
       const activeStreak = streakDisplay(streak, localDay());
-      const redesignedView = ["lang_select", "home", "courses", "profile", "settings", "level_challenge", "lesson", "search", "browse", "detail", "chat", "live"].includes(view);
+      const redesignedView = ["lang_select", "auth", "home", "courses", "profile", "settings", "level_challenge", "lesson", "search", "browse", "detail", "chat", "live"].includes(view);
       const pageShellProps = {
         langName, currentUser, profile:learnerProfile, courses, userProgress, levelRewards, xp:totalXp, streak:activeStreak,
         onHome:openHome, onLearn:openCourseTrail, onDictionary:openDictionaryHome,
@@ -6507,7 +6670,7 @@
                 onSetDeveloperProgress={setDeveloperCourseProgress} onClaimLessonReward={claimLessonReward} onClaimLevelReward={claimLevelReward} onCelebrate={celebrate}
                 onHome={openHome} onLearn={openCourseTrail} onDictionary={openDictionaryHome}
                 onChat={openChat} onLive={() => setView("live")} onProfile={openProfile}
-                onLanguage={switchLanguage} onSettings={openSettings} onOpenLesson={openTrailLesson}
+                onLanguage={switchLanguage} onSettings={openSettings} onSignOut={handleSignOut} onOpenLesson={openTrailLesson}
                 onLevelChallenge={openLevelChallengeBrief} onCapsule={setSelectedCapsule}
               />
             )}
@@ -6983,112 +7146,15 @@
 
             {/* AUTH */}
             {view === "auth" && (
-              <div style={{ animation:"fadeIn 0.3s ease-out", paddingTop:20, maxWidth:520, margin:"0 auto" }}>
-                <button onClick={() => setView(authReturnTo ? "home" : "home")} style={{
-                  display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:16,
-                  fontFamily:"'DM Sans', sans-serif",
-                }}><ArrowLeft /> Accueil</button>
-
-                <div style={{ background:"white", border:"1px solid #E8E0D4", borderRadius:20, padding:"28px 24px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
-                  {/* Icon + title */}
-                  <div style={{ textAlign:"center", marginBottom:24 }}>
-                    <div style={{ width:56, height:56, borderRadius:16, background:"linear-gradient(135deg, #2C5F2D, #4A8B4C)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 12px", fontSize:26 }}>📖</div>
-                    <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:800, color:"#2D2118", margin:"0 0 4px" }}>
-                      {authMode === "login" ? "Se connecter" : "Créer un compte"}
-                    </h2>
-                    {authReturnTo && (
-                      <p style={{ fontSize:13, color:"#9B8A6E", margin:0 }}>
-                        Un compte est requis pour accéder aux {authReturnTo === "chat" ? "conversations" : authReturnTo === "live" ? "traductions en direct" : authReturnTo === "settings" ? "paramètres" : "cours"}.
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Toggle */}
-                  <div style={{ display:"flex", background:"#F0EBE3", borderRadius:12, padding:3, marginBottom:20 }}>
-                    {[["login","Se connecter"],["signup","Créer un compte"]].map(([m, label]) => (
-                      <button key={m} onClick={() => { setAuthMode(m); setAuthError(""); }} style={{
-                        flex:1, padding:"8px 0", border:"none", borderRadius:10, fontSize:13, fontWeight:600, cursor:"pointer",
-                        background: authMode === m ? "white" : "transparent",
-                        color: authMode === m ? "#2D2118" : "#9B8A6E",
-                        boxShadow: authMode === m ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
-                        fontFamily:"'DM Sans', sans-serif", transition:"all 0.2s",
-                      }}>{label}</button>
-                    ))}
-                  </div>
-
-                  {/* Display name (signup only) */}
-                  {authMode === "signup" && (
-                    <div style={{ marginBottom:12 }}>
-                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Prénom</label>
-                      <input value={authDisplayName} onChange={e => setAuthDisplayName(e.target.value)}
-                        placeholder="Comment vous appelez-vous ?"
-                        style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
-                        onFocus={e => e.target.style.borderColor="#2C5F2D"}
-                        onBlur={e => e.target.style.borderColor="#E8E0D4"}
-                      />
-                    </div>
-                  )}
-
-                  {/* Public pseudonym (signup only) — chosen once, never again */}
-                  {authMode === "signup" && (
-                    <div style={{ marginBottom:12 }}>
-                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Pseudonyme public</label>
-                      <input value={authPseudonym} onChange={e => setAuthPseudonym(e.target.value)}
-                        maxLength="24" placeholder="Visible dans le classement"
-                        style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:15, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
-                        onFocus={e => e.target.style.borderColor="#2C5F2D"}
-                        onBlur={e => e.target.style.borderColor="#E8E0D4"}
-                      />
-                      <p style={{ margin:"6px 0 0", fontSize:11, color:"#9B8A6E", lineHeight:1.45 }}>
-                        Unique et définitif : c'est le nom que les autres apprenants verront.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Email */}
-                  <div style={{ marginBottom:12 }}>
-                    <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Email</label>
-                    <input value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                      type="email" placeholder="votre@email.com"
-                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:16, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
-                      onFocus={e => e.target.style.borderColor="#2C5F2D"}
-                      onBlur={e => e.target.style.borderColor="#E8E0D4"}
-                    />
-                  </div>
-
-                  {/* Password */}
-                  <div style={{ marginBottom:20 }}>
-                    <label style={{ display:"block", fontSize:12, fontWeight:600, color:"#8B6D47", marginBottom:5, textTransform:"uppercase", letterSpacing:"0.06em" }}>Mot de passe</label>
-                    <input value={authPassword} onChange={e => setAuthPassword(e.target.value)}
-                      type="password" placeholder="••••••••"
-                      onKeyDown={e => { if (e.key === "Enter") handleAuthSubmit(); }}
-                      style={{ width:"100%", border:"2px solid #E8E0D4", borderRadius:12, padding:"12px 14px", fontSize:16, color:"#2D2118", fontFamily:"'DM Sans', sans-serif", outline:"none", background:"#FCFBF8" }}
-                      onFocus={e => e.target.style.borderColor="#2C5F2D"}
-                      onBlur={e => e.target.style.borderColor="#E8E0D4"}
-                    />
-                    {authMode === "signup" && <p style={{ fontSize:11, color:"#9B8A6E", margin:"4px 0 0" }}>6 caractères minimum</p>}
-                  </div>
-
-                  {/* Error */}
-                  {authError && (
-                    <div className="m-auth-message" role="status" style={{ background: authError.startsWith("✓") ? "#E8F5EE" : "#FFF0F0", border:`1px solid ${authError.startsWith("✓") ? "#2C5F2D" : "#FFC0C0"}`, borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13, color: authError.startsWith("✓") ? "#2C5F2D" : "#C62828", fontWeight:600 }}>
-                      {authError}
-                    </div>
-                  )}
-
-                  {/* Submit */}
-                  <button onClick={handleAuthSubmit} disabled={authSubmitting || !authEmail.trim() || !authPassword}
-                    style={{
-                      width:"100%", border:"none", borderRadius:14, padding:"14px 18px",
-                      background: (authSubmitting || !authEmail.trim() || !authPassword) ? "#E8E0D4" : "linear-gradient(135deg, #2C5F2D, #4A8B4C)",
-                      color:"white", fontSize:15, fontWeight:700, cursor: (authSubmitting || !authEmail.trim() || !authPassword) ? "default" : "pointer",
-                      fontFamily:"'DM Sans', sans-serif", transition:"all 0.2s",
-                    }}>
-                    {authSubmitting ? "..." : authMode === "login" ? "Se connecter" : "Créer mon compte"}
-                  </button>
-                </div>
-              </div>
+              <AuthPage
+                mode={authMode} email={authEmail} password={authPassword}
+                displayName={authDisplayName} pseudonym={authPseudonym}
+                error={authError} submitting={authSubmitting} returnTo={authReturnTo}
+                onMode={setAuthMode} onEmail={setAuthEmail} onPassword={setAuthPassword}
+                onDisplayName={setAuthDisplayName} onPseudonym={setAuthPseudonym}
+                onSubmit={handleAuthSubmit} onForgot={handleForgotPassword}
+                onLanding={() => { setAuthError(""); setView("lang_select"); }}
+              />
             )}
 
             {view === "tester_setup" && selectedLang && (
