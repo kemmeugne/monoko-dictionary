@@ -36,9 +36,10 @@ Last updated: 2026-08-22
   current one plus the new one twice.
 - **Signup confirmation and resolved country (2026-08-24)** — signup asks for
   the password twice, and the ranking country is resolved once from Vercel's
-  edge geolocation (`api/geo.js`, no third-party service) then shown read-only
-  in settings. Note the caveat in CLAUDE.md: edge geolocation reports where the
-  request came from, not where the learner lives.
+  edge geolocation (`api/geo.js`, no third-party service). It is shown and
+  correctable on the signup form — geolocation reports where the request came
+  from, not where a learner lives, and the market is diaspora — then fixed, and
+  read-only in settings thereafter.
 - **Landing dictionary and folding language card (2026-08-24)** — the dictionary
   renders on the landing page itself (language tabs, direction, search, results
   that expand to senses with audio) instead of pushing a visitor into the app

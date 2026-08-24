@@ -195,17 +195,23 @@ than blocking it: the unique index still refuses the duplicate, and the profile
 insert retries without the name so the learner keeps a profile row. A missing
 migration costs the warning, never the ability to sign up.
 
-**The country is resolved once, at signup, and is read-only afterwards.**
-`detectCountry()` asks `/api/geo`, the value rides in auth metadata to the first
-`profiles` insert, and the settings form no longer sends `country_code` at all —
-so that form cannot move a learner between rankings. **Caveat worth knowing:**
-edge geolocation reports where the request came from, not where the learner
-lives. A VPN, a corporate proxy, a carrier routing through another country, or
-simply signing up while travelling all record the wrong country, and the core
-market is diaspora — exactly the people most likely to be somewhere other than
-"their" country. There is no self-service correction, so a wrong value is a
-support request today. If that becomes a burden, the fix is a one-time
-correction at signup rather than reopening the field in settings.
+**The country is detected at signup, correctable there, and fixed afterwards.**
+`/api/geo` pre-fills the field when the signup form opens; the learner can
+change it before the account exists; the chosen value rides in auth metadata to
+the first `profiles` insert; and the settings form never sends `country_code`,
+so it cannot move a learner between rankings later.
+
+The correction step is the point, not a convenience. Edge geolocation reports
+where the *request* came from, not where someone lives — a VPN, a carrier
+routing through another country, or signing up while travelling all report the
+wrong one, and the core market is diaspora, exactly the people most likely to be
+somewhere other than "their" country. Locking a detected value with no recourse
+would have made every such case a support request. Correct-once-then-fix keeps
+the anti-gaming property (nobody hops rankings week to week) without permanent
+wrong data.
+
+Deliberately **not** enforced by a database trigger, unlike the pseudonym: the
+lock is in the UI so an operator can still repair a wrong value with SQL.
 
 **The public pseudonym is chosen once.** It is asked for at signup, carried
 from auth metadata into `profiles` on the first insert, and then fixed: the

@@ -4497,8 +4497,8 @@
       </div>;
     }
 
-    function AuthPage({ mode, email, password, passwordConfirm, displayName, pseudonym, error, submitting, returnTo,
-                        onMode, onEmail, onPassword, onPasswordConfirm, onDisplayName, onPseudonym, onSubmit, onForgot, onLanding }) {
+    function AuthPage({ mode, email, password, passwordConfirm, displayName, pseudonym, country, error, submitting, returnTo,
+                        onMode, onEmail, onPassword, onPasswordConfirm, onDisplayName, onPseudonym, onCountry, onSubmit, onForgot, onLanding }) {
       const isSignup = mode === "signup";
       const isForgot = mode === "forgot";
       const submit = event => { event.preventDefault(); isForgot ? onForgot() : onSubmit(); };
@@ -4575,6 +4575,16 @@
                 <input type="password" value={passwordConfirm} autoComplete="new-password"
                        placeholder="Retapez votre mot de passe"
                        onChange={event => onPasswordConfirm(event.target.value)}/>
+              </label>
+            )}
+
+            {isSignup && (
+              <label className="m-field">
+                <span>Pays</span>
+                <select value={country} onChange={event => onCountry(event.target.value)}>
+                  {COUNTRY_OPTIONS.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+                </select>
+                <small>Détecté automatiquement. Corrigez-le maintenant si besoin : il fixe votre classement et ne pourra plus être modifié.</small>
               </label>
             )}
 
@@ -4857,6 +4867,8 @@
       const [authDisplayName, setAuthDisplayName] = useState("");
       const [authPseudonym, setAuthPseudonym] = useState("");
       const [authPasswordConfirm, setAuthPasswordConfirm] = useState("");
+      const [authCountry, setAuthCountry] = useState("CA");
+      const countryDetectedRef = useRef(false);
       const [authError, setAuthError] = useState("");
       const [authSubmitting, setAuthSubmitting] = useState(false);
       const [authReturnTo, setAuthReturnTo] = useState(null); // "chat" | "courses"
@@ -5785,7 +5797,7 @@
       const requireAuth = (returnTo) => {
         setAuthReturnTo(returnTo);
         setAuthMode("login");
-        setAuthEmail(""); setAuthPassword(""); setAuthPasswordConfirm(""); setAuthDisplayName(""); setAuthPseudonym(""); setAuthError("");
+        setAuthEmail(""); setAuthPassword(""); setAuthPasswordConfirm(""); setAuthDisplayName(""); setAuthPseudonym(""); setAuthError(""); countryDetectedRef.current = false;
         setView("auth");
       };
 
@@ -5844,7 +5856,7 @@
                 data: {
                   display_name: authDisplayName.trim() || authEmail.trim().split("@")[0],
                   public_pseudonym: wantedPseudonym,
-                  country_code: await detectCountry(),
+                  country_code: authCountry || "CA",
                 },
                 emailRedirectTo: "https://monoko-dictionary.vercel.app",
               },
@@ -5893,6 +5905,21 @@
           return data?.country || "CA";
         } catch (error) { console.error("detectCountry:", error); return "CA"; }
       };
+
+      // Detected when the signup form opens, so the learner can see it and
+      // correct it before the account exists. Edge geolocation reports where
+      // the request came from, not where someone lives — a VPN, a carrier
+      // routing through another country, or signing up while travelling all
+      // report the wrong one, and the core market is diaspora. This is the only
+      // moment a correction costs nothing; afterwards it is fixed.
+      useEffect(() => {
+        if (authMode !== "signup" || countryDetectedRef.current) return;
+        countryDetectedRef.current = true;
+        (async () => {
+          const detected = await detectCountry();
+          if (detected) setAuthCountry(detected);
+        })();
+      }, [authMode]);
 
       const handleForgotPassword = async () => {
         const address = authEmail.trim();
@@ -7342,10 +7369,10 @@
             {view === "auth" && (
               <AuthPage
                 mode={authMode} email={authEmail} password={authPassword} passwordConfirm={authPasswordConfirm}
-                displayName={authDisplayName} pseudonym={authPseudonym}
+                displayName={authDisplayName} pseudonym={authPseudonym} country={authCountry}
                 error={authError} submitting={authSubmitting} returnTo={authReturnTo}
                 onMode={setAuthMode} onEmail={setAuthEmail} onPassword={setAuthPassword} onPasswordConfirm={setAuthPasswordConfirm}
-                onDisplayName={setAuthDisplayName} onPseudonym={setAuthPseudonym}
+                onDisplayName={setAuthDisplayName} onPseudonym={setAuthPseudonym} onCountry={setAuthCountry}
                 onSubmit={handleAuthSubmit} onForgot={handleForgotPassword}
                 onLanding={() => { setAuthError(""); setView("lang_select"); }}
               />
