@@ -3727,7 +3727,7 @@
       </div>;
     }
 
-    function GlobalRail({ active, langName, displayName, xp, completed, total, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut }) {
+    function GlobalRail({ active, langName, displayName, xp, completed, total, signedIn = true, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut }) {
       return <aside className="m-rail" aria-label="Navigation principale">
         <button className="m-nav-button" onClick={onHome} style={{display:"flex", fontFamily:"'Playfair Display',serif", fontSize:22, color:"white", padding:0, marginBottom:24}}>
           <span className="m-brand-mark">M</span><span>Monɔkɔ</span>
@@ -3742,26 +3742,36 @@
           <button className={`m-nav-button ${active === "live" ? "active" : ""}`} onClick={onLive}><UiIcon name="headphones"/><span>Traduction en direct</span></button>
         </nav>
         <div className="m-rail-account">
-          <button className="m-rail-profile" onClick={onProfile}>
-            <span className="avatar">{initialsFor(displayName)}</span>
-            <span><strong>{displayName}</strong><small>{xp} XP</small></span>
-            <UiIcon name="chevron"/>
-          </button>
-          <div className="m-rail-account-links">
-            <button onClick={onSettings}><UiIcon name="settings"/>Paramètres</button>
-            <button onClick={onSignOut}><UiIcon name="logout"/>Déconnexion</button>
-          </div>
+          {signedIn ? <React.Fragment>
+            <button className="m-rail-profile" onClick={onProfile}>
+              <span className="avatar">{initialsFor(displayName)}</span>
+              <span><strong>{displayName}</strong><small>{xp} XP</small></span>
+              <UiIcon name="chevron"/>
+            </button>
+            <div className="m-rail-account-links">
+              <button onClick={onSettings}><UiIcon name="settings"/>Paramètres</button>
+              <button onClick={onSignOut}><UiIcon name="logout"/>Déconnexion</button>
+            </div>
+          </React.Fragment> : (
+            <button className="m-rail-signin" onClick={onProfile}>
+              <UiIcon name="user"/><span><strong>Se connecter</strong><small>Pour suivre le parcours</small></span>
+            </button>
+          )}
         </div>
       </aside>;
     }
 
-    function TopBar({ xp, streak, medals, onMenu, onHome, onProfile, onSettings, onMore, moreOpen, moreContent }) {
+    function TopBar({ xp, streak, medals, signedIn = true, onMenu, onHome, onProfile, onSettings, onMore, moreOpen, moreContent }) {
       return <header className="m-topbar">
         <button className="m-icon-button" onClick={onMenu} aria-label="Ouvrir le parcours"><UiIcon name="map"/></button>
         <button className="m-top-brand" onClick={onHome} style={{border:0, background:"transparent"}}><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></button>
         <div className="m-top-actions">
-          <ProgressChips xp={xp} streak={streak} medals={medals} onProfile={onProfile}/>
-          {onSettings && <button className="m-icon-button m-top-settings" onClick={onSettings} aria-label="Paramètres"><UiIcon name="settings"/></button>}
+          {/* A visitor has no XP, no streak and no medals; showing three zeroes
+              would read as a broken account rather than an absent one. */}
+          {signedIn
+            ? <ProgressChips xp={xp} streak={streak} medals={medals} onProfile={onProfile}/>
+            : <button className="m-top-signin" onClick={onProfile}>Se connecter</button>}
+          {signedIn && onSettings && <button className="m-icon-button m-top-settings" onClick={onSettings} aria-label="Paramètres"><UiIcon name="settings"/></button>}
           {onMore && <div className="m-developer-menu-wrap">
             <button className={`m-icon-button m-developer-more ${moreOpen ? "active" : ""}`} onClick={onMore} aria-label="Outils développeur" aria-expanded={moreOpen}><UiIcon name="more"/></button>
             {moreOpen && moreContent}
@@ -3770,12 +3780,12 @@
       </header>;
     }
 
-    function BottomNav({ active, onHome, onLearn, onReview, onProfile }) {
+    function BottomNav({ active, signedIn = true, onHome, onLearn, onReview, onProfile }) {
       return <nav className="m-bottom-nav" aria-label="Navigation principale">
         <button className={active === "home" ? "active" : ""} onClick={onHome}><UiIcon name="home"/><span>Accueil</span></button>
         <button className={active === "courses" ? "active" : ""} onClick={onLearn}><UiIcon name="map"/><span>Parcours</span></button>
-        <button className={active === "dictionary" ? "active" : ""} onClick={onReview}><UiIcon name="book"/><span>Réviser</span></button>
-        <button className={active === "profile" ? "active" : ""} onClick={onProfile}><UiIcon name="user"/><span>Profil</span></button>
+        <button className={active === "dictionary" ? "active" : ""} onClick={onReview}><UiIcon name="book"/><span>{signedIn ? "Réviser" : "Dictionnaire"}</span></button>
+        <button className={active === "profile" ? "active" : ""} onClick={onProfile}><UiIcon name="user"/><span>{signedIn ? "Profil" : "Connexion"}</span></button>
       </nav>;
     }
 
@@ -3785,16 +3795,16 @@
       const total = totalLessons(courses) || 49;
       const medals = earnedMedals(courses,userProgress,levelRewards);
       return <div className="m-app">
-        <GlobalRail active={active} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage} onSettings={onSettings} onSignOut={onSignOut}/>
+        <GlobalRail active={active} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} signedIn={!!currentUser} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage} onSettings={onSettings} onSignOut={onSignOut}/>
         <main className="m-page">
-          <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
+          <TopBar xp={xp} streak={streak} medals={medals} signedIn={!!currentUser} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
           <div className={`m-secondary-content ${active === "chat" || active === "live" ? "conversation" : ""}`}>{children}</div>
-          <BottomNav active={active} onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
+          <BottomNav active={active} signedIn={!!currentUser} onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
       </div>;
     }
 
-    function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, currentUser }) {
+    function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, onOpenDictionary, currentUser }) {
       const selectedName = selectedMapLang || "Lingala";
       const geo = LANG_GEO[selectedName] || LANG_GEO.Lingala;
       const selectedLanguage = languages.find(language => language.name === selectedName);
@@ -3810,6 +3820,7 @@
             <span className="m-landing-brand"><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></span>
             <nav aria-label="Navigation publique">
               <button onClick={scrollToLanguages}>Langues</button>
+              <button onClick={() => onOpenDictionary(lingala)}>Dictionnaire</button>
               <button className="primary" disabled={!lingala} onClick={() => openLanguage(lingala)}>{currentUser ? "Mon espace" : "Commencer"}</button>
             </nav>
           </header>
@@ -3820,7 +3831,7 @@
             <p>Apprenez le lingala à travers une méthode progressive, un dictionnaire vivant et la voix de locuteurs experts.</p>
             <div className="m-landing-actions">
               <button className="primary" disabled={!lingala} onClick={() => openLanguage(lingala)}><span>🇨🇩</span> Apprendre le lingala <UiIcon name="arrow"/></button>
-              <button className="secondary" onClick={scrollToLanguages}>Explorer les langues</button>
+              <button className="secondary" onClick={() => onOpenDictionary(lingala)}><UiIcon name="book"/> Consulter le dictionnaire</button>
             </div>
           </div>
 
@@ -3857,7 +3868,14 @@
               </button>;
             })}
           </div>}
-          <footer>D'autres langues africaines rejoindront bientôt Monɔkɔ.</footer>
+          <div className="m-language-dictionaries">
+            {languages.map(language => (
+              <button key={`dict-${language.id}`} onClick={() => onOpenDictionary(language)}>
+                <UiIcon name="book"/>Dictionnaire {language.name}
+              </button>
+            ))}
+          </div>
+          <footer>Le dictionnaire est libre d'accès. Les cours demandent un compte.</footer>
         </section>
       </div>;
     }
@@ -3881,7 +3899,7 @@
       </section>;
     }
 
-    function HomeHub({ activeSection, langName, stats, wordOfDay, currentUser, profile, courses, userProgress, levelRewards, xp, streak, lastLesson, onHome, onLearn, onDictionary, onBrowse, onSearch, onChat, onLive, onProfile, onLanguage, onSettings, onWord, onResume }) {
+    function HomeHub({ activeSection, langName, stats, wordOfDay, currentUser, profile, courses, userProgress, levelRewards, xp, streak, lastLesson, onHome, onLearn, onDictionary, onBrowse, onSearch, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut, onWord, onResume }) {
       const [direction, setDirection] = useState("french");
       const [term, setTerm] = useState("");
       const displayName = displayNameFor(currentUser, profile);
@@ -3890,7 +3908,7 @@
       const medals = earnedMedals(courses, userProgress,levelRewards);
       const nextLesson = lastLesson?.langId ? lastLesson : null;
       return <div className="m-app">
-        <GlobalRail active={activeSection} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <GlobalRail active={activeSection} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage} onSettings={onSettings} onSignOut={onSignOut} signedIn={!!currentUser}/>
         <main className="m-page">
           <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
           <div className="m-home">
@@ -4273,7 +4291,7 @@
       "art-conversation":"assets/culture/capsules-1.jpg",
     }[capsule?.visual_key] || "assets/culture/capsules-1.jpg");
 
-    function ProfileHub({ courses, userProgress, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onCapsule, onLevelChallenge }) {
+    function ProfileHub({ courses, userProgress, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onSignOut, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onCapsule, onLevelChallenge }) {
       const [cultureLevel,setCultureLevel] = useState(1);
       const [country,setCountry] = useState(profile?.country_code || "CA");
       const [participates,setParticipates] = useState(!!profile?.leaderboard_opt_in);
@@ -4291,7 +4309,7 @@
       const me = rows.find(row => row.me) || leaderboard?.current || null;
       const countryLabel = { CA:"Canada", CD:"RDC", CG:"République du Congo", FR:"France", BE:"Belgique", US:"États-Unis", OTHER:"Autre" }[country] || "Pays";
       return <div className="m-course-layout">
-        <GlobalRail active="profile" langName="Lingala" displayName={displayName} xp={xp} completed={completedLessons(courses,userProgress)} total={totalLessons(courses)||49} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage}/>
+        <GlobalRail active="profile" langName="Lingala" displayName={displayName} xp={xp} completed={completedLessons(courses,userProgress)} total={totalLessons(courses)||49} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage} onSettings={onSettings} onSignOut={onSignOut} signedIn={!!currentUser}/>
         <main className="m-course-main">
           <TopBar xp={xp} streak={streak} medals={medals} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
           <div className="m-profile">
@@ -5124,6 +5142,23 @@
         } finally { setPasswordSaving(false); }
       };
 
+      // The dictionary is free and public by design — it is the SEO and goodwill
+      // engine, not a revenue line — so it is the one learner-facing screen a
+      // visitor may open without signing in. Everything else stays gated, and
+      // in the Capacitor build the landing page is not shown at all.
+      const openPublicDictionary = async (lang) => {
+        if (!lang) return;
+        setSelectedLang(lang);
+        setHomeSection("dictionary");
+        clearLanguageState();
+        setView("search");
+        try {
+          const words = await supaCount("words", `language_id=eq.${lang.id}`);
+          const senses = await supaCount("senses", `words.language_id=eq.${lang.id}`, "id,words!inner(id)");
+          setStats({ words, senses: senses || words });
+        } catch (error) { console.error("openPublicDictionary:", error); }
+      };
+
       const openSettings = () => {
         if (!currentUser) { requireAuth("settings"); return; }
         setView("settings");
@@ -5147,6 +5182,7 @@
       };
 
       const openDictionaryHome = () => {
+        if (!currentUser) { openPublicDictionary(selectedLang); return; }
         setHomeSection("dictionary");
         setView("home");
         window.setTimeout(() => document.querySelector("#home-dictionary")?.scrollIntoView({ behavior:"smooth", block:"start" }), 40);
@@ -6088,7 +6124,7 @@
             {view === "lang_select" && <PublicLanding
               languages={languages} loading={loadingLangs} selectedMapLang={mapLang}
               onSelectMapLang={name => setMapLang(name)} onSelectLanguage={selectLanguage}
-              currentUser={currentUser}
+              onOpenDictionary={openPublicDictionary} currentUser={currentUser}
             />}
 
             {/* Legacy selector retained as a rollback reference. */}
@@ -6377,7 +6413,7 @@
                 onBrowse={() => { setHomeSection("dictionary"); setView("browse"); }}
                 onSearch={(term, mode) => { setHomeSection("dictionary"); setView("search"); doSearch(term, mode); }}
                 onChat={openChat} onLive={() => currentUser ? setView("live") : requireAuth("live")}
-                onProfile={openProfile} onLanguage={switchLanguage} onSettings={openSettings}
+                onProfile={openProfile} onLanguage={switchLanguage} onSettings={openSettings} onSignOut={handleSignOut}
                 onWord={() => openWord(wordOfDay.id, "home")} onResume={resumeLesson}
               />
             )}
@@ -6559,10 +6595,10 @@
             {/* SEARCH */}
             {view === "search" && selectedLang && (
               <StandardPage {...pageShellProps} active="dictionary"><div style={{ animation:"slideIn 0.25s ease-out" }}>
-                <button onClick={() => { setView("home"); setQuery(""); setResults([]); setHasSearched(false); }} style={{
-                  display:"flex", alignItems:"center", gap:6, background:"none", border:"none",
-                  color:"#8B6D47", fontSize:14, fontWeight:600, cursor:"pointer", padding:"8px 0", marginBottom:12,
-                }}><ArrowLeft /> Accueil</button>
+                <button className="m-dict-back" onClick={() => {
+                  setQuery(""); setResults([]); setHasSearched(false);
+                  setView(currentUser ? "home" : "lang_select");
+                }}><UiIcon name="back"/>{currentUser ? "Accueil" : "Retour"}</button>
 
                 <div style={{ display:"flex", background:"#E8E0D4", borderRadius:12, padding:3, marginBottom:16 }}>
                   {[{ key:"french", label:`Français → ${langName}` },{ key:"dialect", label:`${langName} → Français` }].map(m => (
@@ -6697,7 +6733,7 @@
                 leaderboard={leaderboard} leaderboardScope={leaderboardScope}
                 onLeaderboardScope={setLeaderboardScope} onHome={openHome} onLearn={openCourseTrail}
                 onDictionary={openDictionaryHome} onChat={openChat} onLive={() => setView("live")}
-                onProfile={openProfile} onLanguage={switchLanguage} onSettings={openSettings} onCapsule={setSelectedCapsule} onLevelChallenge={openLevelChallengeBrief}
+                onProfile={openProfile} onLanguage={switchLanguage} onSettings={openSettings} onSignOut={handleSignOut} onCapsule={setSelectedCapsule} onLevelChallenge={openLevelChallengeBrief}
               />
             )}
 

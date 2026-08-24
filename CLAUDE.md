@@ -136,11 +136,25 @@ Password reset uses `resetPasswordForEmail` and always reports the same message
 whether or not the address has an account — a different one would turn the form
 into a way to test which e-mail addresses are registered.
 
-**Note for the dictionary:** `search` / `browse` / `detail` are deliberately not
-in `PRIVATE_VIEWS`, but today they are only reachable from home, so a signed-out
-visitor cannot get to the dictionary. If the public dictionary matters for SEO
-(`PHASE3_LAUNCH_PLAN.md` treats it as the goodwill engine), it needs its own
-route from the landing page.
+**The dictionary is the one public screen.** `search` / `browse` / `detail` are
+not in `PRIVATE_VIEWS`, and the landing page routes into them directly
+(`openPublicDictionary`) from the hero action, the header nav and a per-language
+button — it is the SEO and goodwill engine, free forever per
+`PHASE3_LAUNCH_PLAN.md`. Signed out, `StandardPage` renders a visitor shell:
+`signedIn={false}` turns the rail account block and the XP/streak/medal chips
+into a "Se connecter" call, the bottom nav says Dictionnaire/Connexion, and the
+dictionary's back button returns to the landing rather than bouncing off the
+home gate. Any learner destination from that shell asks for an account, which
+is the intended funnel. **This is web-only in spirit**: the Capacitor build
+never shows the landing page, so everything there is behind login.
+
+**Every shell must be handed the account actions.** `HomeHub`, `CourseTrail` and
+`ProfileHub` build their own shells rather than going through `StandardPage`, so
+each one needs `onSettings` / `onSignOut` passed to its rail explicitly. They
+were missed on the first pass and Paramètres/Déconnexion silently did nothing
+from Accueil and Profil — an undefined `onClick` fails quietly. If you add a
+component that renders `GlobalRail`, `TopBar` or `CourseLevelRail` directly,
+wire both handlers and check them from that screen.
 
 Account, settings and sign out (2026-08-22). `SettingsHub` (view `settings`)
 holds everything personal: read-only email, password change, display name,

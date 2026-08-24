@@ -33,8 +33,14 @@ Last updated: 2026-08-22
   on the marketing landing; home and every learner screen now require a session
   instead of rendering signed-out and only challenging at Parcours; the trail
   page carries Paramètres and Déconnexion; and changing a password asks for the
-  current one plus the new one twice. The public dictionary currently has no
-  route for a signed-out visitor — see CLAUDE.md.
+  current one plus the new one twice.
+- **Public dictionary + account actions everywhere (2026-08-24)** — the landing
+  page routes straight into the dictionary for signed-out visitors (hero action,
+  header nav, one button per language) and the shell renders a visitor variant
+  with a « Se connecter » call instead of an empty account. Paramètres et
+  Déconnexion were dead on Accueil and Profil because those hubs build their own
+  shells and were never handed the handlers; both now work from every screen,
+  covered by a check that clicks them on all five.
 - **Account settings, sign out and the weekly ranking (2026-08-22)** — a
   settings screen for every personal detail (password, display name, one-time
   pseudonym, country, ranking opt-in, optional phone/address/ethnicity), sign
