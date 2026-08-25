@@ -59,6 +59,36 @@ test.describe("authenticated learner", () => {
     await expect(page.locator(".m-developer-complete")).toContainText("Simuler la leçon réussie");
   });
 
+  // The landing page is a pitch. A learner who is already signed in must never
+  // see it flash on the way to their own home — which is what happened while the
+  // session, the language list and the stored preference resolved.
+  test("a returning learner reloads straight into the app, never the landing", async ({ page }) => {
+    await page.addInitScript(() => {
+      // Observe `document`, never `document.documentElement`: an init script runs
+      // before the DOM exists, so documentElement is null there and observe()
+      // throws — which silently turns this whole assertion into a no-op.
+      window.__sawLanding = false;
+      new MutationObserver(() => {
+        if (document.querySelector(".m-landing")) window.__sawLanding = true;
+      }).observe(document, { childList: true, subtree: true });
+    });
+
+    await page.goto("/");
+    await page.locator(".m-language-entry", { hasText: "Lingala" }).click();
+    await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
+    await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
+    await page.locator(".m-auth-submit").click();
+    await expect(page.locator(".m-home")).toBeVisible({ timeout: 20_000 });
+
+    // Twice: the first reload has only the session hint to go on, the second
+    // also has the remembered language and should never leave the app shell.
+    for (const attempt of [1, 2]) {
+      await page.reload();
+      await expect(page.locator(".m-home")).toBeVisible({ timeout: 20_000 });
+      expect(await page.evaluate(() => window.__sawLanding), `landing flashed on reload ${attempt}`).toBe(false);
+    }
+  });
+
   test("developer can simulate the next lesson and replay the milestone", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "One shared test account mutates progression only once");
 

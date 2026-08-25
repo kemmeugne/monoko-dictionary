@@ -260,6 +260,40 @@ of editing a profile, and nothing read it back, so every returning learner met
 the chooser again. `lang_select_legacy` holds the retired chooser as a rollback
 reference and is not routed to.
 
+**"Never sees it" is now true at the first paint, not a second later
+(2026-08-25).** Resuming was correct but slow: the landing page is the default
+`view`, and it stayed on screen through three round trips — `getSession()`, the
+language list with its per-language word counts, then
+`profiles.preferred_language_id`. A returning learner watched the marketing page
+for about a second before the app replaced it.
+
+Two synchronous localStorage reads at module load decide the first paint:
+`hasStoredSession()` looks for supabase's own `sb-<project-ref>-auth-token` key,
+and `readLastLanguage()` reads `monoko_last_language`, written by
+`selectLanguage` and cleared by `handleSignOut`. With both, the app opens on
+`home` with the language already in state. With a session but no remembered
+language — every existing learner's first load after this shipped — `BootSplash`
+(`.m-boot`) holds the screen until the resume settles. With neither, the landing
+page renders immediately, as before.
+
+Rules that fall out of it:
+
+- **These are hints, never authority.** `getSession()` and the `PRIVATE_VIEWS`
+  guard still decide what a visitor gets; a stale hint costs one redirect to the
+  login form, not access. This is also why the localStorage rule above is not
+  broken — the source of truth stays `profiles.preferred_language_id`, and a
+  cleared key just restores the old three-round-trip path.
+- **The cached language is a stale copy.** When the real list loads, the fresh
+  row replaces it, and a language that is no longer active drops the hint and
+  falls back to the chooser.
+- **Nothing may strand a visitor on the splash.** `resumeChecked` is set on every
+  branch of the resume effect including the failures, and a 4s `bootTimedOut`
+  falls through to the landing page regardless.
+- **The regression test must observe `document`, not `document.documentElement`.**
+  A Playwright init script runs before the DOM exists, so `documentElement` is
+  null there and `MutationObserver.observe()` throws — which turned the first
+  version of this test into a silent no-op that passed against the bug.
+
 The hero map is a backdrop, not a control: at full-viewport height Leaflet's own
 touch handlers would swallow a vertical swipe and trap a phone reader on the
 first screen, so every interaction handler is off for `immersive` and the
