@@ -4502,6 +4502,9 @@
     }
 
     const capsuleImage = capsule => capsule?.image_url || ({
+      "liboke":"assets/culture/liboke.jpg",
+      "lingala-brazzaville":"assets/culture/lingala-brazzaville.jpg",
+    }[capsule?.id]) || ({
       "art-rumble":"assets/culture/rumble-in-the-jungle.jpg",
       "art-lumumba":"assets/culture/patrice-lumumba.jpg",
       "art-river":"assets/culture/capsules-1.jpg",
@@ -4513,13 +4516,13 @@
       "art-conversation":"assets/culture/capsules-1.jpg",
     }[capsule?.visual_key] || "assets/culture/capsules-1.jpg");
 
-    const topAlignedCapsuleIds = new Set([
-      "deux-capitales-face-a-face",
-      "rumba-congolaise",
-      "patrice-lumumba-independance",
-      "okapi-ituri",
-    ]);
-    const capsuleImagePosition = capsule => topAlignedCapsuleIds.has(capsule?.id) ? "center top" : "center";
+    const capsuleImagePositions = {
+      "deux-capitales-face-a-face":"center top",
+      "rumba-congolaise":"center 8%",
+      "patrice-lumumba-independance":"center 10%",
+      "okapi-ituri":"center top",
+    };
+    const capsuleImagePosition = capsule => capsuleImagePositions[capsule?.id] || "center";
 
     function ProfileHub({ courses, userProgress, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onSignOut, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onCapsule, onLevelChallenge }) {
       const [cultureLevel,setCultureLevel] = useState(1);

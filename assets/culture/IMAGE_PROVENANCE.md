@@ -19,6 +19,8 @@ commercial launch.
 | `lingala-langue-rencontres.jpg` | `une_langue_nee_de_rencontre.jpg` | To confirm |
 | `radio-okapi.jpg` | `Radio_Okapi.png` | To confirm; browser tooltip removed with OpenAI image editing |
 | `rumba-congolaise.jpg` | `Rumba_congolaise.png` | To confirm |
+| `liboke.jpg` | `Liboke.webp` | To confirm |
+| `lingala-brazzaville.jpg` | `lingala_brazzaville_et_nord.jpg` | To confirm |
 | `mobile-money-rdc.jpg` | `Telephone_portefeuille.png` | To confirm |
 
 Existing assets not replaced in this delivery retain their existing provenance

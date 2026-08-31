@@ -102,6 +102,8 @@
     367: "assets/culture/lingala-langue-rencontres.jpg",
     369: "assets/culture/radio-okapi.jpg",
     371: "assets/culture/rumba-congolaise.jpg",
+    372: "assets/culture/liboke.jpg",
+    374: "assets/culture/lingala-brazzaville.jpg",
     395: "assets/culture/mobile-money-rdc.jpg",
   };
 
