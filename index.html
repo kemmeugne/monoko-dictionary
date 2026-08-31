@@ -4225,7 +4225,7 @@
           </div>}
           {!milestone && step === "opening" && <div className="m-gift-stage opening"><div className="m-reward-burst"><UiIcon name="gift"/></div><h2 id="trail-reward-title">Ouverture du cadeau…</h2></div>}
           {!milestone && step === "revealed" && <div className="m-reward-reveal">
-            {hasCapsule && <div className="m-reward-culture-art" style={{backgroundImage:`url("${capsuleImage(reward.capsule)}")`}}/>}{!hasCapsule && <div className="m-reward-burst xp"><UiIcon name="sparkles"/></div>}<div className="m-kicker"><span>Récompense obtenue</span></div><h2 id="trail-reward-title">{hasCapsule ? reward.capsule.title : `+${reward.xp} XP`}</h2><p>{hasCapsule ? reward.capsule.short_copy : `${reward.xp} XP ont été ajoutés à votre progression.`}</p><div className="m-reward-earned"><UiIcon name="sparkles"/><strong>+{reward.xp} XP</strong><small>Ajoutés au profil</small></div>{hasCapsule && <button className="m-reward-primary" onClick={() => { onClose(); onCapsule(reward.capsule); }}>Découvrir la capsule</button>}<button className="m-reward-secondary" onClick={onClose}>Fermer</button>
+            {hasCapsule && <div className="m-reward-culture-art" style={{backgroundImage:`url("${capsuleImage(reward.capsule)}")`,backgroundPosition:capsuleImagePosition(reward.capsule)}}/>}{!hasCapsule && <div className="m-reward-burst xp"><UiIcon name="sparkles"/></div>}<div className="m-kicker"><span>Récompense obtenue</span></div><h2 id="trail-reward-title">{hasCapsule ? reward.capsule.title : `+${reward.xp} XP`}</h2><p>{hasCapsule ? reward.capsule.short_copy : `${reward.xp} XP ont été ajoutés à votre progression.`}</p><div className="m-reward-earned"><UiIcon name="sparkles"/><strong>+{reward.xp} XP</strong><small>Ajoutés au profil</small></div>{hasCapsule && <button className="m-reward-primary" onClick={() => { onClose(); onCapsule(reward.capsule); }}>Découvrir la capsule</button>}<button className="m-reward-secondary" onClick={onClose}>Fermer</button>
           </div>}
         </section>
       </div>;
@@ -4513,6 +4513,14 @@
       "art-conversation":"assets/culture/capsules-1.jpg",
     }[capsule?.visual_key] || "assets/culture/capsules-1.jpg");
 
+    const topAlignedCapsuleIds = new Set([
+      "deux-capitales-face-a-face",
+      "rumba-congolaise",
+      "patrice-lumumba-independance",
+      "okapi-ituri",
+    ]);
+    const capsuleImagePosition = capsule => topAlignedCapsuleIds.has(capsule?.id) ? "center top" : "center";
+
     function ProfileHub({ courses, userProgress, lessonRewards, levelRewards, levelChallenges, cultureCapsules, currentUser, profile, xp, streak, leaderboard, leaderboardScope, onLeaderboardScope, onSignOut, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onCapsule, onLevelChallenge }) {
       const [cultureLevel,setCultureLevel] = useState(1);
       const [country,setCountry] = useState(profile?.country_code || "CA");
@@ -4584,7 +4592,7 @@
               <p className="m-privacy"><UiIcon name="shield"/>Seuls les pseudonymes apparaissent dans le classement.</p>
               <button className="m-ranking-settings" onClick={onSettings}><UiIcon name="settings"/>Pseudonyme, pays et participation</button>
             </section>
-            <section className="m-collection"><div className="m-collection-heading"><div><span>Collection</span><h2>Culture des Congo</h2></div><strong>{unlockedCapsules.length}/{cultureCapsules.length}</strong></div><div className="m-culture-tabs">{LEVEL_META.map((_,index) => <button className={cultureLevel === index+1 ? "active" : ""} onClick={() => setCultureLevel(index+1)} key={index}>N{index+1}</button>)}</div><div className="m-culture-grid">{visibleCapsules.map(capsule => { const unlocked = capsuleUnlocked(capsule); return <button key={capsule.id} className={`m-culture-card ${unlocked ? "" : "locked"}`} disabled={!unlocked} onClick={() => onCapsule(capsule)}><span className="m-culture-art" style={{backgroundImage:`linear-gradient(rgba(22,60,50,.08),rgba(22,60,50,.28)),url("${capsuleImage(capsule)}")`}}>{!unlocked && <UiIcon name="lock"/>}</span><span className="m-culture-copy"><strong>{unlocked ? capsule.title : "Capsule à découvrir"}</strong><small>{unlocked ? capsule.region : "Ouvrez son cadeau sur le parcours"}</small></span></button>; })}</div></section>
+            <section className="m-collection"><div className="m-collection-heading"><div><span>Collection</span><h2>Culture des Congo</h2></div><strong>{unlockedCapsules.length}/{cultureCapsules.length}</strong></div><div className="m-culture-tabs">{LEVEL_META.map((_,index) => <button className={cultureLevel === index+1 ? "active" : ""} onClick={() => setCultureLevel(index+1)} key={index}>N{index+1}</button>)}</div><div className="m-culture-grid">{visibleCapsules.map(capsule => { const unlocked = capsuleUnlocked(capsule); return <button key={capsule.id} className={`m-culture-card ${unlocked ? "" : "locked"}`} disabled={!unlocked} onClick={() => onCapsule(capsule)}><span className="m-culture-art" style={{backgroundImage:`linear-gradient(rgba(22,60,50,.08),rgba(22,60,50,.28)),url("${capsuleImage(capsule)}")`,backgroundPosition:capsuleImagePosition(capsule)}}>{!unlocked && <UiIcon name="lock"/>}</span><span className="m-culture-copy"><strong>{unlocked ? capsule.title : "Capsule à découvrir"}</strong><small>{unlocked ? capsule.region : "Ouvrez son cadeau sur le parcours"}</small></span></button>; })}</div></section>
           </div>
           <BottomNav active="profile" onHome={onHome} onLearn={onLearn} onReview={onDictionary} onProfile={onProfile}/>
         </main>
@@ -4858,7 +4866,7 @@
     function CultureModal({ capsule, onClose, onCelebrate }) {
       useEffect(() => { if (capsule) onCelebrate(22); }, [capsule?.id]);
       if (!capsule) return null;
-      return <div className="m-modal-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section className="m-modal m-culture-modal" role="dialog" aria-modal="true" aria-labelledby="culture-modal-title"><button className="m-modal-close over-art" onClick={onClose} aria-label="Fermer"><UiIcon name="close"/></button><div className="m-modal-art" style={{backgroundImage:`url("${capsuleImage(capsule)}")`}}/><div className="m-modal-body"><div className="m-kicker"><span>{capsule.region}</span><span>{capsule.review_status === "draft" ? "Brouillon éditorial" : "Vérifié"}</span></div><h2 id="culture-modal-title">{capsule.title}</h2><p>{capsule.body_copy || capsule.short_copy}</p><div className="m-modal-actions"><button onClick={onClose}>Fermer</button>{capsule.source_url && <a href={capsule.source_url} target="_blank" rel="noreferrer">Voir la source</a>}</div></div></section></div>;
+      return <div className="m-modal-scrim" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section className="m-modal m-culture-modal" role="dialog" aria-modal="true" aria-labelledby="culture-modal-title"><button className="m-modal-close over-art" onClick={onClose} aria-label="Fermer"><UiIcon name="close"/></button><div className="m-modal-art" style={{backgroundImage:`url("${capsuleImage(capsule)}")`,backgroundPosition:capsuleImagePosition(capsule)}}/><div className="m-modal-body"><div className="m-kicker"><span>{capsule.region}</span><span>{capsule.review_status === "draft" ? "Brouillon éditorial" : "Vérifié"}</span></div><h2 id="culture-modal-title">{capsule.title}</h2><p>{capsule.body_copy || capsule.short_copy}</p><div className="m-modal-actions"><button onClick={onClose}>Fermer</button>{capsule.source_url && <a href={capsule.source_url} target="_blank" rel="noreferrer">Voir la source</a>}</div></div></section></div>;
     }
 
     function App() {
