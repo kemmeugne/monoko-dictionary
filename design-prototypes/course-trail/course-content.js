@@ -76,7 +76,7 @@
     350: capsule("fleuve-congo-en-nombres", "Le fleuve Congo en nombres", "Géographie de la RDC", "Environ 4 700 km de longueur, au moins 220 m de profondeur et un débit moyen de 45 000 m³/s.", "Le ministère congolais de l'Environnement présente le Congo comme le deuxième plus long fleuve d'Afrique après le Nil. Son débit moyen est le deuxième au monde après l'Amazone, et des mesures dépassant 220 mètres en font le fleuve le plus profond mesuré.", "art-river", "ruler", "Ministère de l'Environnement de la RDC", "https://medd.gouv.cd/wp-content/uploads/2022/07/magazine_COP_env_anglais1.pdf"),
     378: capsule("foret-fabrique-pluie", "La forêt fabrique une partie de sa pluie", "Bassin du Congo", "Plus de la moitié de la pluie du bassin central provient de l'eau recyclée par la forêt.", "Un rapport de l'UNESCO explique que plus de 50 % de la pluie qui tombe sur le bassin central du Congo vient de l'évaporation et de l'évapotranspiration de la forêt elle-même. La forêt participe donc directement au rythme des saisons et du climat régional.", "art-river", "cloud-rain-wind", "UNESCO · Patrimoine mondial dans le bassin du Congo", "https://whc.unesco.org/uploads/activities/documents/activity-43-10.pdf"),
     353: capsule("mikate-kinshasa", "Le mikate, une douceur de rue", "Cuisine kinoise", "Ces petits beignets sucrés sont populaires au petit-déjeuner ou comme collation à Kinshasa.", "Le mikate est préparé avec une pâte à base de farine, puis frit. Le ministère congolais de la Culture le présente comme une spécialité de rue très appréciée à Kinshasa, consommée au petit-déjeuner ou au cours de la journée.", "art-liboke", "donut", "Ministère de la Culture, Arts et Patrimoine de la RDC", "https://www.culture.gouv.cd/discover.html"),
-    356: capsule("deux-capitales-face-a-face", "Deux capitales face à face", "Kinshasa · Brazzaville", "Kinshasa et Brazzaville se regardent depuis les rives opposées du fleuve Congo.", "La capitale de la RDC et celle de la République du Congo sont établies de part et d'autre du Pool Malebo. Le fleuve forme ici une frontière internationale, mais aussi un repère central pour les déplacements, les échanges et la vie des deux villes.", "art-river", "map-pinned", "Encyclopaedia Britannica", "https://www.britannica.com/place/Brazzaville"),
+    356: capsule("deux-capitales-face-a-face", "Deux capitales face à face", "Kinshasa · Brazzaville", "Séparées par le fleuve Congo, Kinshasa et Brazzaville sont les capitales de deux pays distincts les plus proches au monde.", "La capitale de la RDC et celle de la République du Congo se font face de part et d'autre du Pool Malebo. Elles sont généralement présentées comme les capitales de deux pays distincts les plus proches au monde ; seule la paire Rome–Cité du Vatican est plus rapprochée si l'on compte le Vatican. Le fleuve forme ici une frontière internationale, mais aussi un lien essentiel pour les déplacements, les échanges et la vie des deux villes.", "art-river", "map-pinned", "Ambassade de la République du Congo · Géographie", "https://ambacongo-us.org/en/about-congo/geography"),
     362: capsule("combat-ali-foreman-kinshasa", "Le combat à 10 millions de dollars", "Kinshasa · 1974", "Mobutu fit garantir une bourse de 10 millions de dollars pour attirer Muhammad Ali et George Foreman à Kinshasa.", "Le 30 octobre 1974, Kinshasa accueille le premier championnat du monde des poids lourds jamais organisé en Afrique. Mobutu veut placer le Zaïre sous les projecteurs et fait garantir une bourse record de 10 millions de dollars, soit 5 millions pour chaque boxeur. Devant environ 60 000 personnes, Muhammad Ali met George Foreman KO au huitième round et reprend le titre mondial.", "art-rumble", "trophy", "TIME · The Rumble in the Jungle", "https://time.com/4637842/muhammed-ali-george-foreman/"),
     363: capsule("okapi-ituri", "L'okapi, girafe de la forêt", "Forêt de l'Ituri · RDC", "La Réserve de faune à okapis abrite environ 5 000 individus de cette espèce endémique.", "L'okapi est une girafe forestière propre à la RDC. La réserve qui porte son nom protège une partie de la forêt de l'Ituri et abrite aussi 101 espèces de mammifères et 376 espèces d'oiseaux documentées.", "art-okapi", "paw-print", "UNESCO · Réserve de faune à okapis", "https://whc.unesco.org/en/list/718/"),
     388: capsule("biodiversite-bassin-congo", "Une forêt que l'on ne trouve nulle part ailleurs", "Bassin du Congo", "Les forêts de basse altitude comptent environ 10 000 plantes supérieures, dont 30 % sont endémiques.", "Le bassin du Congo est l'une des dernières régions où de vastes forêts tropicales restent interconnectées. L'UNESCO souligne qu'une part importante de sa flore et de sa faune n'existe nulle part ailleurs dans le monde.", "art-river", "trees", "UNESCO · Patrimoine mondial dans le bassin du Congo", "https://whc.unesco.org/uploads/activities/documents/activity-43-10.pdf"),
@@ -90,7 +90,25 @@
     395: capsule("mobile-money-rdc", "Le téléphone est aussi un portefeuille", "Économie numérique · RDC", "En 2020, les transactions de mobile money en RDC ont atteint 10 milliards de dollars.", "Selon la Banque mondiale, les transactions de mobile money ont augmenté de 67 % en 2020 pour atteindre l'équivalent de 21,6 % du PIB. Le téléphone sert ainsi à envoyer, recevoir, retirer et payer, en plus de communiquer.", "art-conversation", "smartphone", "Banque mondiale · Économie numérique en RDC", "https://thedocs.worldbank.org/en/doc/61714f214ed04bcd6e9623ad0e215897-0400012021/related/P1715680ca8d5f0240a0e006d4be3b0e45f.pdf"),
   };
 
-  lessons.forEach(item => { item.capsule = curatedCapsules[item.id] || null; });
+  const curatedCapsuleImages = {
+    346: "assets/culture/locuteurs-lingala-monde.jpg",
+    350: "assets/culture/fleuve-congo-en-nombres.jpg",
+    378: "assets/culture/foret-fabrique-pluie.jpg",
+    353: "assets/culture/mikate-kinshasa.jpg",
+    356: "assets/culture/deux-capitales-face-a-face.jpg",
+    363: "assets/culture/okapi-ituri.jpg",
+    388: "assets/culture/biodiversite-bassin-congo.jpg",
+    366: "assets/culture/textiles-kuba.jpg",
+    367: "assets/culture/lingala-langue-rencontres.jpg",
+    369: "assets/culture/radio-okapi.jpg",
+    371: "assets/culture/rumba-congolaise.jpg",
+    395: "assets/culture/mobile-money-rdc.jpg",
+  };
+
+  lessons.forEach(item => {
+    item.capsule = curatedCapsules[item.id] || null;
+    if (item.capsule) item.capsule.imageUrl = curatedCapsuleImages[item.id] || null;
+  });
 
   const lessonCountByLevel = lessons.reduce((counts, item) => {
     counts[item.level] = (counts[item.level] || 0) + 1;

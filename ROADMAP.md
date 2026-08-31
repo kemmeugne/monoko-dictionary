@@ -77,6 +77,11 @@ separate maintainability task (`BUILD_AND_SPLIT_PLAN.md`).
   Production XP and reward state is rebuilt through the protected developer
   RPC; the trail animates the completed and unlocked nodes, shows a status
   confirmation, and replays the automatic medal sheet at a level boundary.
+- **Culture artwork refresh (2026-08-31)** — 12 of the 16 cultural capsules now
+  have subject-specific optimized artwork rather than sharing two generic
+  montages. Kinshasa–Brazzaville also identifies the pair as the closest
+  capitals of distinct countries, with the Rome–Vatican exception stated. Image
+  source and licence provenance remains a pre-launch clearance item.
 
 ### Bugs this cycle worth remembering
 

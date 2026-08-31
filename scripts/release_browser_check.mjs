@@ -250,7 +250,7 @@ await waitFor(`document.querySelector(".m-trail-reward-modal .m-reward-earned") 
 await waitFor(`document.querySelectorAll(".m-celebration span").length >= 20`, "gift confetti");
 await clickByText(".m-trail-reward-modal button", "Découvrir la capsule");
 await waitFor(`document.querySelector(".m-culture-modal") && document.querySelectorAll(".m-celebration span").length >= 20`, "culture capsule modal and confetti");
-await waitFor(`getComputedStyle(document.querySelector(".m-modal-art")).backgroundImage.includes("assets/culture/capsules-1.jpg")`, "culture capsule artwork");
+await waitFor(`getComputedStyle(document.querySelector(".m-modal-art")).backgroundImage.includes("assets/culture/locuteurs-lingala-monde.jpg")`, "culture capsule artwork");
 const cultureShot = await screenshot("culture-desktop");
 await clickByText(".m-modal button", "Fermer");
 await evaluate(`document.querySelector(".m-path-node.reward.gift.completed").click()`);

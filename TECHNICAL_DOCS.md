@@ -495,6 +495,15 @@ URL editable independently of the frontend. The initial seed deliberately
 selects 16 of 49 lessons; gifts without a relevant cultural connection remain
 plain XP rather than forcing filler content.
 
+**Culture artwork refresh (2026-08-31).** Twelve capsules now have individual
+1440 × 900 JPEG assets under `assets/culture/`, mapped from the canonical
+`design-prototypes/course-trail/course-content.js` source and persisted by
+`scripts/generate_culture_capsules_sql.mjs`. The other four retain their existing
+fallback artwork. `assets/culture/IMAGE_PROVENANCE.md` records the supplied
+source filenames; original URLs, authors and commercial reuse licences remain a
+pre-launch rights check. The Radio Okapi browser-tooltip artifact was removed
+with an image edit before compression.
+
 ---
 
 ### `conjugation_forms`  (added 2026-08-18)

@@ -21,7 +21,7 @@ const values = capsuleLessons.map(lesson => {
   return `  (${[
     sql(item.id), lesson.id, lesson.level, lessons.indexOf(lesson) + 1,
     sql(item.title), sql(item.region), sql(item.short), sql(item.body),
-    sql(item.icon), sql(item.art), "null", sql(item.sourceLabel), sql(item.sourceUrl),
+    sql(item.icon), sql(item.art), sql(item.imageUrl), sql(item.sourceLabel), sql(item.sourceUrl),
     sql("draft"), rewardXp, "true",
   ].join(", ")})`;
 });
