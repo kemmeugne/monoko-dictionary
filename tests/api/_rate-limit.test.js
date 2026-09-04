@@ -80,11 +80,37 @@ describe("setCorsHeaders", () => {
     expect(res.headers["Access-Control-Allow-Origin"]).toBe("https://monoko-dictionary.vercel.app");
   });
 
-  it("allows any *.vercel.app preview origin", () => {
+  it.each([
+    "https://monoko.africa",
+    "https://www.monoko.africa",
+    "https://monoko.ca",
+    "https://www.monoko.ca",
+    "https://monoko-app.vercel.app",
+  ])("allows the production origin %s", (origin) => {
+    const res = createMockRes();
+    setCorsHeaders(res, { headers: { origin } });
+    expect(res.headers["Access-Control-Allow-Origin"]).toBe(origin);
+  });
+
+  it("allows this project's own preview origins", () => {
     const res = createMockRes();
     const req = { headers: { origin: "https://monoko-git-feature-anthony.vercel.app" } };
     setCorsHeaders(res, req);
     expect(res.headers["Access-Control-Allow-Origin"]).toBe("https://monoko-git-feature-anthony.vercel.app");
+  });
+
+  it("rejects a *.vercel.app origin belonging to someone else", () => {
+    const res = createMockRes();
+    const req = { headers: { origin: "https://attacker.vercel.app" } };
+    setCorsHeaders(res, req);
+    expect(res.headers["Access-Control-Allow-Origin"]).toBeUndefined();
+  });
+
+  it("rejects a look-alike domain that merely ends with an allowed one", () => {
+    const res = createMockRes();
+    const req = { headers: { origin: "https://evil-monoko.africa" } };
+    setCorsHeaders(res, req);
+    expect(res.headers["Access-Control-Allow-Origin"]).toBeUndefined();
   });
 
   it("allows localhost", () => {

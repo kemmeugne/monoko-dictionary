@@ -38,15 +38,31 @@ export function getClientIp(req) {
   return req.headers["x-real-ip"] || req.socket?.remoteAddress || "unknown";
 }
 
+// Origins the app is served from. Both .vercel.app aliases stay live alongside
+// the custom domains, so they keep their entries — listed here rather than left
+// to PREVIEW_ORIGIN below, which exists for throwaway deployments.
+const ALLOWED_ORIGINS = new Set([
+  "https://monoko.africa",
+  "https://www.monoko.africa",
+  "https://monoko.ca",
+  "https://www.monoko.ca",
+  "https://monoko-app.vercel.app",
+  "https://monoko-dictionary.vercel.app",
+]);
+
+// This project's own preview deployments only. A bare `.vercel.app` suffix test
+// let any site hosted on Vercel call the API from a browser.
+const PREVIEW_ORIGIN = /^https:\/\/monoko-[a-z0-9-]+\.vercel\.app$/;
+
 /**
- * Sets CORS headers restricting API access to the Monoko app origin.
- * Allows Vercel preview deployments and local dev.
+ * Sets CORS headers restricting API access to the Monoko app origins.
+ * Allows this project's Vercel preview deployments and local dev.
  */
 export function setCorsHeaders(res, req) {
   const origin = req.headers.origin || "";
   const allowed =
-    origin === "https://monoko-dictionary.vercel.app" ||
-    origin.endsWith(".vercel.app") ||
+    ALLOWED_ORIGINS.has(origin) ||
+    PREVIEW_ORIGIN.test(origin) ||
     origin.startsWith("http://localhost");
 
   if (allowed) {

@@ -5887,7 +5887,7 @@
                   public_pseudonym: wantedPseudonym,
                   country_code: authCountry || "CA",
                 },
-                emailRedirectTo: "https://monoko-dictionary.vercel.app",
+                emailRedirectTo: `${window.location.origin}/`,
               },
             });
             if (error) throw error;
