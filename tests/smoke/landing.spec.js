@@ -25,8 +25,19 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
   await expect(landing).toBeVisible();
   await expect(page.getByRole("heading", { name: "Monɔkɔ", level: 1 })).toBeVisible();
   await expect(page.getByRole("button", { name: /Commencer|Mon espace/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Un point de départ, plusieurs voix" })).toBeVisible();
   await expect(page.locator(".m-language-map.immersive")).toBeVisible();
+
+  // The "Un point de départ" directory used to be asserted here. It listed the
+  // same languages the map already offers and was removed; the caption under the
+  // tabs is what now names the selection, so that is what the landing must show.
+  await expect(page.locator(".m-landing-map-caption")).toBeVisible();
+  await expect(page.locator(".m-landing-map-caption strong")).toHaveText(/Lingala|Yoruba/);
+
+  // The dictionary is a permanent section, not something a visitor summons. It
+  // used to mount only on click, which hid the one screen usable without an
+  // account — assert it is present with nothing clicked, or that can regress
+  // silently back to click-to-mount.
+  await expect(page.locator("#landing-dictionary")).toBeVisible();
 
   const report = await page.evaluate(() => {
     const viewport = document.documentElement.clientWidth;
@@ -36,8 +47,11 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
       ".m-landing-copy",
       ".m-landing-copy h1",
       ".m-landing-copy p",
-      ".m-language-directory > header",
-      ".m-language-entry",
+      ".m-landing-map-tabs",
+      ".m-landing-map-caption",
+      ".m-landing-map-caption > button",
+      ".m-landing-dictionary",
+      ".m-landing-foot",
     ];
     const failures = [];
     for (const selector of selectors) {
