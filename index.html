@@ -126,6 +126,18 @@
       } catch (error) { return false; }
     })();
 
+    // A recovery link is a callback too, but it must NOT be treated like one:
+    // it carries a real session, so signing the visitor in and dropping them on
+    // the home screen is exactly the wrong outcome — they came to set a
+    // password and never get asked for one. Supabase puts `type=recovery` in
+    // the fragment it redirects with.
+    const AUTH_RECOVERY = (() => {
+      try {
+        return /(?:^|[#&])type=recovery(?:&|$)/.test(window.location.hash || "")
+          || new URLSearchParams(window.location.search).get("type") === "recovery";
+      } catch (error) { return false; }
+    })();
+
     // Views a history entry can restore on its own. Everything else — a lesson,
     // a word detail, a running session — also needs state the entry does not
     // carry, so back falls through to a safe root instead of a broken screen.
@@ -4623,12 +4635,24 @@
     }
 
     function AuthPage({ mode, email, password, passwordConfirm, displayName, pseudonym, country, error, submitting, returnTo,
-                        onMode, onEmail, onPassword, onPasswordConfirm, onDisplayName, onPseudonym, onCountry, onSubmit, onForgot, onLanding }) {
+                        onMode, onEmail, onPassword, onPasswordConfirm, onDisplayName, onPseudonym, onCountry, onSubmit, onForgot, onRecover, onLanding }) {
       const isSignup = mode === "signup";
       const isForgot = mode === "forgot";
-      const submit = event => { event.preventDefault(); isForgot ? onForgot() : onSubmit(); };
-      const title = isForgot ? "Mot de passe oublié" : isSignup ? "Créer un compte" : "Content de vous revoir";
-      const blurb = isForgot
+      // Arriving from a recovery e-mail. The session already exists, so there is
+      // nothing to sign in with and no e-mail to re-enter — only a password to
+      // choose.
+      const isRecover = mode === "recover";
+      const submit = event => {
+        event.preventDefault();
+        if (isRecover) onRecover();
+        else if (isForgot) onForgot();
+        else onSubmit();
+      };
+      const title = isRecover ? "Choisissez un nouveau mot de passe"
+        : isForgot ? "Mot de passe oublié" : isSignup ? "Créer un compte" : "Content de vous revoir";
+      const blurb = isRecover
+        ? "Votre lien est valide. Choisissez le mot de passe qui protégera votre compte."
+        : isForgot
         ? "Indiquez votre adresse e-mail. Nous vous enverrons un lien pour choisir un nouveau mot de passe."
         : isSignup
         ? "Quelques secondes, et votre parcours en lingala commence."
@@ -4640,11 +4664,11 @@
             <span className="m-brand-mark">M</span><strong>Monɔkɔ</strong>
           </button>
 
-          <div className="m-kicker"><span>{isForgot ? "Récupération" : "Votre espace"}</span></div>
+          <div className="m-kicker"><span>{isForgot || isRecover ? "Récupération" : "Votre espace"}</span></div>
           <h1>{title}</h1>
           <p className="m-auth-blurb">{blurb}</p>
 
-          {returnTo && !isForgot && (
+          {returnTo && !isForgot && !isRecover && (
             <p className="m-auth-gate">
               Un compte est requis pour accéder {returnTo === "chat" ? "aux conversations"
                 : returnTo === "live" ? "à la traduction en direct"
@@ -4654,7 +4678,7 @@
             </p>
           )}
 
-          {!isForgot && (
+          {!isForgot && !isRecover && (
             <div className="m-auth-modes" role="tablist">
               <button role="tab" aria-selected={!isSignup} className={!isSignup ? "active" : ""} onClick={() => onMode("login")}>Se connecter</button>
               <button role="tab" aria-selected={isSignup} className={isSignup ? "active" : ""} onClick={() => onMode("signup")}>Créer un compte</button>
@@ -4678,23 +4702,25 @@
               </label>
             )}
 
-            <label className="m-field">
-              <span>Adresse e-mail</span>
-              <input type="email" value={email} autoComplete="email" placeholder="votre@email.com"
-                     onChange={event => onEmail(event.target.value)}/>
-            </label>
+            {!isRecover && (
+              <label className="m-field">
+                <span>Adresse e-mail</span>
+                <input type="email" value={email} autoComplete="email" placeholder="votre@email.com"
+                       onChange={event => onEmail(event.target.value)}/>
+              </label>
+            )}
 
             {!isForgot && (
               <label className="m-field">
-                <span>Mot de passe</span>
+                <span>{isRecover ? "Nouveau mot de passe" : "Mot de passe"}</span>
                 <input type="password" value={password}
-                       autoComplete={isSignup ? "new-password" : "current-password"}
-                       placeholder={isSignup ? "6 caractères minimum" : "Votre mot de passe"}
+                       autoComplete={isSignup || isRecover ? "new-password" : "current-password"}
+                       placeholder={isSignup || isRecover ? "6 caractères minimum" : "Votre mot de passe"}
                        onChange={event => onPassword(event.target.value)}/>
               </label>
             )}
 
-            {isSignup && (
+            {(isSignup || isRecover) && (
               <label className="m-field">
                 <span>Confirmer le mot de passe</span>
                 <input type="password" value={passwordConfirm} autoComplete="new-password"
@@ -4716,12 +4742,12 @@
             {error && <div className={`m-auth-message ${error.startsWith("✓") ? "ok" : ""}`} role="status">{error}</div>}
 
             <button className="m-auth-submit" type="submit" disabled={submitting}>
-              {submitting ? "Un instant…" : isForgot ? "Envoyer le lien" : isSignup ? "Créer mon compte" : "Se connecter"}
+              {submitting ? "Un instant…" : isRecover ? "Enregistrer le mot de passe" : isForgot ? "Envoyer le lien" : isSignup ? "Créer mon compte" : "Se connecter"}
             </button>
           </form>
 
           <div className="m-auth-links">
-            {!isForgot && !isSignup && <button onClick={() => onMode("forgot")}>Mot de passe oublié ?</button>}
+            {!isForgot && !isSignup && !isRecover && <button onClick={() => onMode("forgot")}>Mot de passe oublié ?</button>}
             {isForgot && <button onClick={() => onMode("login")}>Retour à la connexion</button>}
             <button onClick={onLanding}>Découvrir Monɔkɔ</button>
           </div>
@@ -5244,6 +5270,11 @@
       const authCallbackDone = useRef(false);
       useEffect(() => {
         if (!AUTH_CALLBACK || authCallbackDone.current) return;
+        // A recovery link also arrives as a callback with a valid session, but
+        // it means "let me set a password", not "put me in the app". Sending
+        // that visitor home logs them in and never asks for the password they
+        // came to change. handleRecoveryLink below owns this case.
+        if (AUTH_RECOVERY) return;
         if (!currentUser || !languages.length) return;
         authCallbackDone.current = true;
         // Strip the tokens from the address bar: leaving them there means a
@@ -5255,6 +5286,54 @@
           || languages[0];
         if (target) selectLanguage(target);
       }, [currentUser, languages]);
+
+      // ── Password recovery ───────────────────────────────────────────────────
+      // supabase-js consumes the link and raises PASSWORD_RECOVERY; the URL
+      // check covers the case where the session resolves before this listener
+      // is attached. Either way the learner lands on the form, not the app.
+      const recoveryRouted = useRef(false);
+      const routeToRecovery = () => {
+        if (recoveryRouted.current) return;
+        recoveryRouted.current = true;
+        setAuthMode("recover");
+        setAuthPassword(""); setAuthPasswordConfirm(""); setAuthError("");
+        setView("auth");
+        // Drop the tokens from the address bar: a recovery token in history is
+        // worth as much as the password it sets.
+        try { window.history.replaceState({ monokoView: "auth" }, "", window.location.pathname); } catch (error) {}
+      };
+
+      useEffect(() => {
+        if (!AUTH_RECOVERY) return;
+        if (currentUser) routeToRecovery();
+      }, [currentUser]);
+
+      const completePasswordReset = async () => {
+        setAuthError("");
+        if ((authPassword || "").length < 6) { setAuthError("Le mot de passe doit faire 6 caractères minimum."); return; }
+        if (authPassword !== authPasswordConfirm) { setAuthError("Les deux mots de passe ne correspondent pas."); return; }
+        setAuthSubmitting(true);
+        try {
+          // No re-authentication here, unlike changePassword in settings: the
+          // recovery link IS the proof, and the learner does not know the old
+          // password — that is why they are here.
+          const { error } = await supabaseClient.auth.updateUser({ password: authPassword });
+          if (error) throw error;
+          setAuthPassword(""); setAuthPasswordConfirm("");
+          recoveryRouted.current = false;
+          setAuthMode("login");
+          const remembered = readLastLanguage();
+          const target = (remembered && languages.find(item => item.id === remembered.id))
+            || languages.find(item => item.name === "Lingala")
+            || languages[0];
+          if (target) selectLanguage(target); else setView("home");
+        } catch (error) {
+          console.error("completePasswordReset:", error);
+          setAuthError(/should be different/i.test(error?.message || "")
+            ? "Choisissez un mot de passe différent de l'ancien."
+            : "Lien expiré ou déjà utilisé. Demandez-en un nouveau.");
+        } finally { setAuthSubmitting(false); }
+      };
 
       // ── Browser back ────────────────────────────────────────────────────────
       // The app is one `view` value with no router, so the browser's back
@@ -7479,7 +7558,7 @@
                 error={authError} submitting={authSubmitting} returnTo={authReturnTo}
                 onMode={setAuthMode} onEmail={setAuthEmail} onPassword={setAuthPassword} onPasswordConfirm={setAuthPasswordConfirm}
                 onDisplayName={setAuthDisplayName} onPseudonym={setAuthPseudonym} onCountry={setAuthCountry}
-                onSubmit={handleAuthSubmit} onForgot={handleForgotPassword}
+                onSubmit={handleAuthSubmit} onRecover={completePasswordReset} onForgot={handleForgotPassword}
                 onLanding={() => { setAuthError(""); setView("lang_select"); }}
               />
             )}

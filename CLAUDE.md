@@ -85,6 +85,27 @@ history entry does not carry, so those fall through to `home`/`lang_select`
 rather than rendering half-empty. A view change that *came from* the back button
 must not push a new entry, or back can never escape it.
 
+**A recovery link must not be treated as a sign-in.** `resetPasswordForEmail`
+sends a link carrying a real session, so supabase-js signs the visitor in the
+moment the page loads. That made it indistinguishable from any other auth
+callback, and the learner landed on the home screen already logged in, never
+asked for the password they clicked the link to change — the reset silently did
+nothing. `AUTH_RECOVERY` (a `type=recovery` fragment) routes them to `AuthPage`
+in **`recover` mode** instead: no e-mail field, since the session already
+identifies them, and two password fields so a typo cannot lock someone out of
+the account they are recovering.
+
+`completePasswordReset` calls `updateUser` **without re-authenticating**, unlike
+`changePassword` in settings. The recovery link is the proof, and the learner
+does not know the old password — that is why they are here. The tokens are
+stripped from the address bar on arrival: a recovery token in history is worth
+as much as the password it sets.
+
+Covered by `tests/smoke/recovery.spec.js`, which seeds an unexpired session into
+localStorage rather than obtaining one — supabase-js restores it without a
+network call, which is enough to reach the branch, and the test needs no
+credentials or live project.
+
 **A confirmation link signs the learner in after the first paint.** The session
 arrives in the URL, not in storage, so `hasStoredSession()` is false and the
 landing page paints; supabase-js then consumes the URL and signs them in with
