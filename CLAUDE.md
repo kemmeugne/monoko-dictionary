@@ -7,9 +7,9 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 **Live app**: https://monoko.africa (since 2026-09-04)
 **Admin panel**: https://monoko.africa/admin.html (password in Vercel env vars)
 
-`monoko-app.vercel.app` and `monoko-dictionary.vercel.app` stay live as aliases.
-`www.monoko.africa` 308s to the apex. `monoko.ca` is owned and still parked at
-GoDaddy. **Never hardcode any of them** — see the origin rule below.
+`monoko-app.vercel.app`, `monoko-dictionary.vercel.app`, `www.monoko.africa`,
+`monoko.ca` and `www.monoko.ca` all 308 to the apex. **Never hardcode any of
+them** — see the origin rule below.
 
 The frontend is a mobile-first responsive web app that will be wrapped with Capacitor and shipped to the App Store and Play Store. All UI work must follow the mobile-first rules below.
 
@@ -49,6 +49,16 @@ the root, ever; a second is a PermError that breaks Google Workspace too. DMARC
 sits at `p=none` while the new sender warms up.
 
 ## Landing page (2026-09-04)
+
+**The apex is the only indexable identity.** `index.html` self-canonicals to
+`https://monoko.africa/` and includes description, Open Graph, X/Twitter and
+`WebSite` JSON-LD metadata. Both `.vercel.app` production aliases are
+host-conditioned permanent redirects in `vercel.json`; do not replace those
+with an unconditional redirect or the apex will loop. `robots.txt` points to a
+one-URL `sitemap.xml` and disallows only `/api/`. The admin page remains
+crawlable so search engines can read its `noindex` HTML metadata and
+`X-Robots-Tag` response header. The build must keep copying both crawl files,
+and `tests/smoke/landing.spec.js` checks the whole contract plus the social image.
 
 **The map is the language selector.** A second "Un point de départ" directory
 listed the same languages the map already offers, and on a phone it pushed the

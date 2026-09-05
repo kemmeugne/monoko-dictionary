@@ -34,7 +34,7 @@ async function compilePage(htmlFile, bundleFile) {
 const app = await compilePage("index.html", "app.js");
 const admin = await compilePage("admin.html", "admin.js");
 
-for (const file of ["monoko-ui.css", "course-trail-meta.js"]) cpSync(file, `${DIST}/${file}`);
+for (const file of ["monoko-ui.css", "course-trail-meta.js", "robots.txt", "sitemap.xml"]) cpSync(file, `${DIST}/${file}`);
 cpSync("assets", `${DIST}/assets`, { recursive: true });
 
 console.log(`Built ${DIST}/: app ${app.source} -> ${app.output} bytes; admin ${admin.source} -> ${admin.output} bytes; browser Babel removed.`);

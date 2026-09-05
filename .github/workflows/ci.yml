@@ -5,13 +5,16 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -30,25 +33,35 @@ jobs:
       TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
       TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - name: Run authenticated smoke
+      - name: Validate authenticated smoke configuration
+        id: auth-config
+        shell: bash
         run: |
           missing=""
           for name in TEST_SUPABASE_URL TEST_SUPABASE_ANON_KEY TEST_USER_EMAIL TEST_USER_PASSWORD; do
             if [ -z "${!name}" ]; then missing="$missing $name"; fi
           done
           if [ -n "$missing" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
             if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-              echo "Authenticated smoke is required on main; missing:$missing"
+              echo "::error title=Authenticated smoke not configured::Missing GitHub Actions repository secrets:$missing"
               exit 1
             fi
             echo "Authenticated smoke skipped for this pull request; missing:$missing"
           else
-            npm run test:browser -- --project=desktop tests/smoke/authenticated.spec.js
+            echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
+      - if: steps.auth-config.outputs.configured == 'true'
+        uses: actions/checkout@v6
+      - if: steps.auth-config.outputs.configured == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.auth-config.outputs.configured == 'true'
+        run: npm ci
+      - if: steps.auth-config.outputs.configured == 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Run authenticated smoke
+        if: steps.auth-config.outputs.configured == 'true'
+        run: npm run test:browser -- --project=desktop tests/smoke/authenticated.spec.js

@@ -74,3 +74,33 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
 
   await page.screenshot({ path: testInfo.outputPath("landing.png"), fullPage: true });
 });
+
+test("canonical SEO and crawl assets point only to monoko.africa", async ({ page, request }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Head metadata and crawl files are viewport-independent");
+  await page.goto("/");
+
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://monoko.africa/");
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /lingala/i);
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://monoko.africa/");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://monoko.africa/assets/monoko-social-preview.png");
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+
+  const robots = await request.get("/robots.txt");
+  expect(robots.ok()).toBe(true);
+  const robotsText = await robots.text();
+  expect(robotsText).toContain("Disallow: /api/");
+  expect(robotsText).not.toContain("Disallow: /admin.html");
+  expect(robotsText).toContain("Sitemap: https://monoko.africa/sitemap.xml");
+
+  const admin = await request.get("/admin.html");
+  expect(admin.ok()).toBe(true);
+  expect(await admin.text()).toContain('content="noindex, nofollow, noarchive"');
+
+  const sitemap = await request.get("/sitemap.xml");
+  expect(sitemap.ok()).toBe(true);
+  expect(await sitemap.text()).toContain("<loc>https://monoko.africa/</loc>");
+
+  const socialImage = await request.get("/assets/monoko-social-preview.png");
+  expect(socialImage.ok()).toBe(true);
+  expect(socialImage.headers()["content-type"]).toContain("image/png");
+});

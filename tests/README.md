@@ -55,6 +55,21 @@ unless `TEST_SUPABASE_URL`, `TEST_SUPABASE_ANON_KEY`, `TEST_USER_EMAIL` and
 separate job; a pull request may skip when secrets are unavailable, while a push
 to `main` fails if any authenticated-smoke secret is missing.
 
+The four values must be stored as **GitHub Actions repository secrets**, not as
+Vercel environment variables: open the repository's Settings, then **Secrets
+and variables → Actions**, and map the local `.env.test` values as follows:
+
+| GitHub secret | Local `.env.test` value |
+|---|---|
+| `TEST_SUPABASE_URL` | `SUPABASE_URL` |
+| `TEST_SUPABASE_ANON_KEY` | `SUPABASE_ANON_KEY` |
+| `TEST_USER_EMAIL` | `TEST_USER_EMAIL` |
+| `TEST_USER_PASSWORD` | `TEST_USER_PASSWORD` |
+
+The workflow validates these before installing dependencies, so a configuration
+failure names only the missing variables and fails quickly without exposing any
+secret values.
+
 `tests/smoke/recovery.spec.js` covers valid reset links, expired/error callbacks,
 invalid recovery sessions, password confirmation, successful global sign-out,
 and the visible local-cleanup fallback when global sign-out fails.

@@ -13,12 +13,35 @@ that looked right, and settings that silently overrode the app.
 |---|---|---|
 | `monoko.africa` | the app | apex, Production |
 | `www.monoko.africa` | 308 → apex | permanent, so ranking consolidates |
-| `monoko-app.vercel.app` | the app | Vercel alias, stays live |
-| `monoko-dictionary.vercel.app` | the app | older alias, stays live |
+| `monoko-app.vercel.app` | 308 → monoko.africa | Vercel production alias, path preserved |
+| `monoko-dictionary.vercel.app` | 308 → monoko.africa | older alias, path preserved |
 | `monoko.ca` | 308 → monoko.africa | redirect only, no site of its own |
 | `www.monoko.ca` | 308 → monoko.africa | |
 
 TLS is Let's Encrypt, issued by Vercel, renewing itself.
+
+## Canonical URL and crawl files
+
+`https://monoko.africa/` is the only canonical public URL. Three matching
+signals are intentionally stacked:
+
+1. `vercel.json` permanently redirects both `.vercel.app` production aliases
+   to the apex with their path preserved.
+2. `index.html` carries a self-referencing canonical plus description, Open
+   Graph, X/Twitter and `WebSite` JSON-LD metadata.
+3. `sitemap.xml` lists only the apex; `robots.txt` points to it and blocks only
+   `/api/`. The admin page remains crawlable so search engines can read its
+   `noindex` directive.
+
+`admin.html` also has `noindex` in both HTML and `X-Robots-Tag`. The social card
+uses `assets/monoko-social-preview.png`, a 1200×630 first-viewport capture of
+Monoko itself, so it does not depend on the unconfirmed licences of the culture
+capsule images.
+
+The sitemap has one URL because the product is currently a single-page app.
+Individual dictionary entries should be added only after they have stable,
+server-readable URLs; inventing fragment/query URLs here would not make the
+dictionary corpus indexable.
 
 ## The zone at GoDaddy
 
