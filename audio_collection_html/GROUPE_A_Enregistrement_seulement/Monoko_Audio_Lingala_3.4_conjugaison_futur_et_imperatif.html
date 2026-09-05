@@ -107,10 +107,10 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 <header class="app-header">
   <h1>Monoko</h1>
-  <div class="subtitle">Audio Lingala — 3.4 Conjugaison - futur et imperatif — 2 entrées</div>
+  <div class="subtitle">Audio Lingala — 3.4 Conjugaison : futur et impératif — 21 entrées</div>
 </header>
 <div class="progress-info" id="progressInfo">
-  <span id="progressText">Entrée 0 / 2</span>
+  <span id="progressText">Entrée 0 / 21</span>
   <div class="stats">
     <span class="save-status" id="saveStatus"></span>
     <span class="stat-badge" id="statComplete">0 complétés</span>
@@ -122,14 +122,8 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 
 <div id="splashScreen" class="splash-screen">
   <div style="font-size:52px;margin-bottom:16px;">🎙️</div>
-  <h2>Module 3.4 — Conjugaison - futur et imperatif</h2>
-  <p>
-    Enregistrez <strong>2 entrées</strong> en <strong>Lingala</strong>
-    pour le module <em>Conjugaison - futur et imperatif</em> (Niveau 3 - Communication).<br><br>
-    Pour chaque entrée, vérifiez la traduction,
-    puis enregistrez l'audio.<br><br>
-    À la fin, exportez le tout en fichier ZIP à nous envoyer.
-  </p>
+  <h2>Module 3.4 — Conjugaison : futur et impératif</h2>
+  <p>Enregistrez des phrases d'exemple pour 3 verbes réguliers — <strong>parler</strong> (-er), <strong>finir</strong> (-ir), <strong>vendre</strong> (-re) — au <strong>futur simple</strong> (une phrase par personne), puis l'<strong>impératif affirmatif</strong> (tu, nous, vous, regroupés par verbe).<br><br>Traduisez chaque carte en Lingala, puis enregistrez l'audio.<br><br>À la fin, exportez le tout en fichier ZIP à nous envoyer.</p>
   <button class="start-btn" onclick="startWork()">Commencer →</button>
 </div>
 
@@ -162,27 +156,255 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 const ENTRIES = [
   {
     "id": 0,
-    "db_id": 7503,
-    "breadcrumb": "Conjugaison - futur et imperatif",
+    "db_id": null,
+    "breadcrumb": "Futur simple > parler (-er) · je parlerai",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "je suis en train d'aimer",
-    "phrase_lang": "Na zo linga",
+    "phrase_fr": "Demain, je parlerai au médecin.",
+    "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
-    "prefilled": true
+    "prefilled": false
   },
   {
     "id": 1,
-    "db_id": 7509,
-    "breadcrumb": "Conjugaison - futur et imperatif",
+    "db_id": null,
+    "breadcrumb": "Futur simple > parler (-er) · tu parleras",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Va à l'école",
-    "phrase_lang": "Kende kelasi.",
+    "phrase_fr": "Tu parleras devant toute la classe.",
+    "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
-    "prefilled": true
+    "prefilled": false
+  },
+  {
+    "id": 2,
+    "db_id": null,
+    "breadcrumb": "Futur simple > parler (-er) · il/elle parlera",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Elle parlera à la radio la semaine prochaine.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 3,
+    "db_id": null,
+    "breadcrumb": "Futur simple > parler (-er) · nous parlerons",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Nous parlerons de ce problème plus tard.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 4,
+    "db_id": null,
+    "breadcrumb": "Futur simple > parler (-er) · vous parlerez",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Vous parlerez en premier à la réunion.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 5,
+    "db_id": null,
+    "breadcrumb": "Futur simple > parler (-er) · ils/elles parleront",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Ils parleront avec le chef du village.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 6,
+    "db_id": null,
+    "breadcrumb": "Futur simple > finir (-ir) · je finirai",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je finirai ce livre demain.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 7,
+    "db_id": null,
+    "breadcrumb": "Futur simple > finir (-ir) · tu finiras",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Tu finiras par comprendre, ne t'inquiète pas.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 8,
+    "db_id": null,
+    "breadcrumb": "Futur simple > finir (-ir) · il/elle finira",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Elle finira ses études l'an prochain.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 9,
+    "db_id": null,
+    "breadcrumb": "Futur simple > finir (-ir) · nous finirons",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Nous finirons la récolte avant la pluie.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 10,
+    "db_id": null,
+    "breadcrumb": "Futur simple > finir (-ir) · vous finirez",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Vous finirez ce travail sans moi.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 11,
+    "db_id": null,
+    "breadcrumb": "Futur simple > finir (-ir) · ils/elles finiront",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Ils finiront la construction dans deux mois.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 12,
+    "db_id": null,
+    "breadcrumb": "Futur simple > vendre (-re) · je vendrai",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Je vendrai ma récolte à un bon prix.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 13,
+    "db_id": null,
+    "breadcrumb": "Futur simple > vendre (-re) · tu vendras",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Tu vendras ta maison un jour ?",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 14,
+    "db_id": null,
+    "breadcrumb": "Futur simple > vendre (-re) · il/elle vendra",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Il vendra ses vaches au marché.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 15,
+    "db_id": null,
+    "breadcrumb": "Futur simple > vendre (-re) · nous vendrons",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Nous vendrons nos produits en ville.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 16,
+    "db_id": null,
+    "breadcrumb": "Futur simple > vendre (-re) · vous vendrez",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Vous vendrez tout avant midi.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 17,
+    "db_id": null,
+    "breadcrumb": "Futur simple > vendre (-re) · ils/elles vendront",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "Elles vendront leurs paniers à la fête.",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 18,
+    "db_id": null,
+    "breadcrumb": "Impératif affirmatif > parler (-er)",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "parle ! (tu)\nparlons ! (nous)\nparlez ! (vous)",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 19,
+    "db_id": null,
+    "breadcrumb": "Impératif affirmatif > finir (-ir)",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "finis ! (tu)\nfinissons ! (nous)\nfinissez ! (vous)",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
+  },
+  {
+    "id": 20,
+    "db_id": null,
+    "breadcrumb": "Impératif affirmatif > vendre (-re)",
+    "label_fr": null,
+    "label_lang": "",
+    "phrase_fr": "vends ! (tu)\nvendons ! (nous)\nvendez ! (vous)",
+    "phrase_lang": "",
+    "phrase_fr2": null,
+    "phrase_lang2": null,
+    "prefilled": false
   }
 ];
 const LANGUAGE    = "Lingala";
@@ -272,11 +494,11 @@ function renderEntry(){
       ${audioRow('label',e.audio_label)}</div>`;
   }
   if(e.phrase_fr!==null){
-    html+=`<div class="entry-section"><div class="section-title">Phrase principale</div>
+    html+=`<div class="entry-section"><div class="section-title">Phrase d'exemple</div>
       <div class="ref-label">Référence française <em style="font-style:normal;font-size:10px;color:var(--text-secondary)">(modifiable)</em></div>
-      <textarea class="ref-box ref-editable" rows="2" oninput="onField('phrase_fr',this.value)">${escHtml(e.phrase_fr)}</textarea>
+      <textarea class="ref-box ref-editable" rows="3" oninput="onField('phrase_fr',this.value)">${escHtml(e.phrase_fr)}</textarea>
       <div class="field-group"><label>En ${LANGUAGE}</label>
-      <textarea id="fl-phrase" placeholder="Traduction en ${LANGUAGE}…"
+      <textarea id="fl-phrase" rows="3" placeholder="Traduction en ${LANGUAGE}…"
         class="${e.phrase_lang?'prefilled':''}"
         oninput="onField('phrase_lang',this.value)">${escHtml(e.phrase_lang)}</textarea></div>
       ${audioRow('phrase',e.audio_phrase)}</div>`;
@@ -492,8 +714,8 @@ function crc32(data){
 }
 function escHtml(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-const STORE_KEY="monoko_audio_lingala_3_4_conjugaison_futur_et_imperatif";
-const DB_NAME="monoko_audio_db_lingala_conjugaison_futur_et_imperatif";
+const STORE_KEY="monoko_audio_lingala_3_4_conjugaison_futur_et_imperatif_v2";
+const DB_NAME="monoko_audio_db_lingala_conjugaison_futur_et_imperatif_v2";
 const DB_STORE='clips';
 let db=null,saveTimeout=null,lastSaveTime=null,storageAvailable=true;
 function openDB(){return new Promise(resolve=>{try{if(!window.indexedDB){resolve(null);return;}const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=e=>{try{e.target.result.createObjectStore(DB_STORE);}catch(er){}};req.onsuccess=e=>{db=e.target.result;resolve(db);};req.onerror=()=>resolve(null);req.onblocked=()=>resolve(null);}catch(e){resolve(null);}});}

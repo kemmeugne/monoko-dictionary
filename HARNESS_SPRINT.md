@@ -78,6 +78,16 @@ The completed harness now provides:
 Everything here also directly serves Phase 3.5: the `api/` mocking scaffolding
 is what Stripe webhooks and rate-limiting code will be tested with.
 
+**Phase 3.5 extension (approved 2026-08-25):** before monetization ships, extend
+this harness for every entitlement state and the complete conversion journey in
+`FREE_TIER_AND_CONVERSION_PLAN.md`. Unit tests cover idempotent Stripe webhooks,
+quota reset/consumption and centralized access decisions. Database verification
+covers RLS and developer bypass. Playwright covers the uninterrupted Niveau 1
+medal ceremony, the subsequent Niveau 2 paywall, trial activation, expiry with
+preserved progress, and a useful free fallback. Analytics assertions inspect
+event names/properties and explicitly reject raw chat, translation, answer,
+recording and email content.
+
 ---
 
 ## 2. Ground rules

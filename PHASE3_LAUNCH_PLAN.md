@@ -1,6 +1,6 @@
 # Monɔkɔ — Phase 3 → Launch Sequence
 
-Last updated: 2026-08-18
+Last updated: 2026-08-27
 
 Scope: what happens after Phase 1 (content) and Phase 2 (progress tracking ✅) — exam system, monetization, soft launch, and mobile wrap. Supersedes the high-level Phase 3/4/5 sketch in `ROADMAP.md`; read this file for the detailed sequence.
 
@@ -18,8 +18,9 @@ Strategic framing: launch Lingala-only, as a complete product, before adding oth
 (written 40% / listening 30% / speaking 30%, 70% to pass, gating the next level)
 plus an `exam_results` table. That is a large build whose job is gating rather
 than engagement, and it trapped speaking practice inside a once-per-level event.
-Replaced by continuous points on every exercise. **All levels are open** — the
-paywall below is the only gate.
+Replaced by continuous points on every exercise. Lessons advance sequentially
+on one continuous trail; the approved monetization boundary comes after all of
+Niveau 1. See `FREE_TIER_AND_CONVERSION_PLAN.md`.
 
 **Status 2026-08-18: the practice loop is playable end to end.** A session is 20
 questions; Pratiquer (the professor's own rows) certifies a lesson at 80%
@@ -35,8 +36,8 @@ keeps recordings on-device and does not affect the objective 80% gate.
 topic levels.** The streak is one row per learner spanning every language, the
 scheduler covers both stages (Élargir added 2026-08-20), and a perfect session
 pays a flat 50 XP bonus.
-`sql/progression.sql` is applied. Remaining in this phase: **the session cap**,
-which is the paywall.
+`sql/progression.sql` is applied. The remaining Phase 3 work is now the approved
+entitlement, quota and conversion layer rather than a blanket session cap.
 
 **2026-08-18:** every session now opens on a briefing that names the lesson first
 and lists what is actually in the queue ("5 paires à associer"), and the first
@@ -70,6 +71,23 @@ bugs were hiding **181 example sentences** that were in the database all along.
 1,347 items to **5,923** across all 50 lessons, so there is enough material for a
 learner not to see repeats.
 
+**Pre-launch content gate — ON HOLD pending professor delivery (2026-08-27).**
+The collection package in
+`audio_collection_html/professor_corpus_completion_2026-08-27/` is complete and
+has been browser-tested. It requests four native-example supplements and twelve
+grammar rule cards; conjugation remains in its dedicated workflow. Launch does
+not wait on the professor while product work continues, but launch approval does:
+the returned ZIPs must be validated and ingested, `lesson_pool` rebuilt, and the
+native exercise audit rerun before the gate is marked complete.
+
+**Native pool cleanup (applied and verified 2026-08-27).** This is independent of the new
+material still with the professor. `populate_lesson_pool.py` now preserves the
+source lessons while excluding ten prompts that cannot produce one unambiguous
+answer, replacing four repeated headwords with their recorded examples, and
+normalizing five prompts without inventing Lingala. The production migration
+`sql/native_content_cleanup.sql` is applied; `npm run audit:native-content`
+passes across 1,373 native rows. Rebuilding the pool preserves the same policy.
+
 **Still explicitly deferred:** leaderboards, hearts/lives. Hearts frustrate casual
 users without a clear monetization upside at this stage.
 
@@ -77,26 +95,43 @@ users without a clear monetization upside at this stage.
 
 ## Phase 3.5 — Monetization layer
 
-**Goal:** Turn the app into a business without touching what's already free.
+**Goal:** turn the app into a business while letting free learners build a real
+Lingala foundation. The exact approved contract, conversion UX, metrics and
+experiment order live in `FREE_TIER_AND_CONVERSION_PLAN.md`.
 
-**Tiers:**
-- **Dictionary** — free, no ads, permanently. It's the SEO/goodwill engine, not a revenue line.
-- **Free course tier** — Modules 1.1 and 1.2 only (sons et alphabet + salutations et politesse), full audio and exercises included. Short enough to create real paywall pressure without feeling like a bait-and-switch.
-- **Free AI chat quota** — free/logged-in users get **10 AI chat messages per day**. The AI chat is the most differentiated feature (no competitor has a Lingala conversation partner); a small daily taste is the strongest conversion driver and costs almost nothing at gpt-4o-mini prices (~$0.001/message).
-- **Paid tier** — "unlimited" AI chat, full course access (Module 1.3 onward), exams, speaking evaluation.
+**Launch offer:**
+- Public dictionary, permanently free and unlimited.
+- Logged-in free tier: all of **Niveau 1 — Fondations**, unlimited Pratiquer and
+  eligible reviews, one Élargir session/day, record-and-compare speaking in free
+  lessons, 10 AI chat messages/day and 3 short live translations/day.
+- Niveaux 2–6 remain visible but require a 7-day trial or Monoko Plus.
+- Trial: seven days of complete access, offered at a high-intent boundary rather
+  than automatically at signup.
+- Monoko Plus: full continuous trail, unlimited learning loops and AI/live tools
+  subject to fair use.
 
-> Numbering note: free = modules **1.1 + 1.2**, paid starts at **module 1.3**. Keep this consistent with how `Cours/MONOKO_CURRICULUM.md` labels modules when implementing gating logic — do not mix "module 3" and "1.3".
+**Pricing baseline:** **$9.99/month and $59.99/year**, with annual recommended.
+Launch with one transparent price, no weekly plan and no fake urgency. Change
+price, trial duration and the free boundary only in separate sequential windows.
 
-**Pricing:** anchor at **$9.99/month and $59.99/year** (Stripe multi-currency — users will be in CAD, EUR, GBP). Launch with this single fixed price rather than showing different users different prices. Rationale: (1) a soft-launch audience of a few hundred won't reach statistical significance for true A/B testing; (2) diaspora communities talk to each other, so simultaneous different prices generate bad word-of-mouth. Adjust only in **sequential windows** (e.g. 2 weeks at price A, then price B) if conversion is off. Start higher rather than lower — it's easy to *lower* a price later (existing subscribers feel rewarded) and painful to *raise* one. Annual matters more than monthly: lower churn, cash upfront, "save 50%" sells itself.
+**Primary conversion moment:** play the final Niveau 1 reward and medal ceremony
+in full. Show the paywall only when the learner then taps **Entrer dans le Niveau
+2**. Never interrupt a lesson, result or reward.
 
 **Build:**
-- Stripe integration (web-first — zero platform tax vs. App Store/Play Store 30%)
-- Paywall gating logic on course/chat views (extends the existing Supabase Auth gating already in place)
-- Subscription state — new `subscriptions` table or extension of `profiles`
-- **Server-side chat quota enforcement** — daily message count keyed on `user_id` + date (Supabase). Free tier: 10/day. Paid tier: advertised "unlimited" but with a silent fair-use ceiling of **100–150/day** (no real learner hits this; a scraper does). Never enforce quotas client-side — they're trivially bypassed.
-- **Rate limiting on `/api/chat.js`** — max ~10 requests/minute per user, all tiers. Catches runaway frontend bugs and scripted abuse of the endpoint as a free gpt-4o-mini proxy.
-- **OpenAI account hard spending limit** — set a hard monthly cap at ~2–3x expected spend, with an email alert at 50%. Caps worst-case damage from a bug or abuse to a known number instead of a surprise invoice.
-- **ToS fair-use clause** — reserve the right to throttle abusive usage (covered by the Phase 3.5 legal gate below).
+- Stripe Checkout and Customer Portal, web-first.
+- Server-authoritative entitlement states: `public | free | trialing | active |
+  grace | past_due | expired | developer`.
+- Idempotent Stripe webhooks and a protected developer bypass through
+  `app_developers`.
+- Server-side product quotas, separate burst rate limits and a provider spending
+  cap. Extend durable `api_usage_events` where it fits rather than trusting the
+  browser.
+- Funnel instrumentation before checkout exposure, using the event contract in
+  `FREE_TIER_AND_CONVERSION_PLAN.md`; analytics never contains raw conversations,
+  translations, answers or recordings.
+- Unit, database and Playwright coverage for free, trial, active, expired and
+  developer paths on `monoko-test`.
 
 **🔒 Gate — ToS + privacy policy required before this phase goes live:**
 For the soft-launch/test phase, a generator tool (Termly, iubenda, Shopify's free generator, or similar) is sufficient — these produce GDPR/Quebec Law 25-aware ToS and privacy policies for free or a small fee, and are standard practice for solo founders launching pre-revenue. This does not block the engineering work above — that can run in parallel — but a generated policy must be published **before the first Stripe checkout is enabled**.
@@ -116,11 +151,16 @@ For the soft-launch/test phase, a generator tool (Termly, iubenda, Shopify's fre
 - **No ads, no video production** at this stage. Organic, phone-recorded content outperforms polished ads for niche-language audiences, and there isn't yet conversion data to make paid spend rational.
 
 **What gets measured:**
-- Trial → paid conversion rate at each price point
-- Day-7 / day-30 retention
-- Funnel drop-off (signup → first lesson → paywall → checkout)
-- Qualitative: testimonials, complaint patterns, feature requests
-- **Free-tier completion vs. paywall churn** — how many users finish module 1.2 and then convert vs. churn at the paywall. If nearly everyone churns after 1.2, the free tier may be too short to build the habit; if conversion holds, leave it. Also watch how many free users exhaust the 10/day chat quota (high exhaustion = strong signal the chat is the conversion lever).
+- Signup → first lesson completion and Niveau 1 completion
+- Niveau 2 paywall → trial start → trial activation → paid conversion
+- Day-7/day-30 learner retention and paid first-month retention
+- Quota exhaustion by feature and the conversion it produces
+- Annual vs. monthly selection, renewal and cancellation
+- Qualitative: testimonials, complaint patterns and feature requests
+
+The initial directional thresholds, event names and segmentation contract live
+in `FREE_TIER_AND_CONVERSION_PLAN.md`. Run at least four weeks of organic cohorts
+before the first experiment and report sample sizes with every rate.
 
 **Exit criteria:** a real, data-backed CAC-viable price point, and a retention curve that doesn't collapse before day 7. That's what justifies moving to mobile.
 
@@ -158,8 +198,8 @@ Upgrade from the Phase 3.5 generator-tool policy to a proper lawyer review (~$50
 
 | Phase | Focus | Blocking gate |
 |---|---|---|
-| 3 | Exercise engine + streaks + spaced repetition (exams dropped 2026-08-07) | None — Phase 1 content landed 2026-08-04. Engine, stage split and gate live 2026-08-17; four exercise types remain |
-| 3.5 | Stripe paywall, tiering, chat quota + rate limiting + spend cap | **Generator-tool ToS/privacy (Termly/iubenda) before checkout goes live** |
+| 3 | Exercise engine + streaks + spaced repetition (exams dropped 2026-08-07) | Complete: six exercise types, stage split, progression and rewards are live |
+| 3.5 | Entitlements, conversion analytics, Stripe, free quotas and trial | **Published ToS/privacy before checkout goes live** |
 | 4 | Soft launch, web only, organic only | Legal gate cleared |
 | 5 | Capacitor wrap, App Store/Play Store | Phase 4 pricing + retention validated, **plus lawyer-reviewed ToS/privacy before submission** |
 | 6 | Scale, paid acquisition, language #2 | CAC/LTV known from Phase 4/5 |

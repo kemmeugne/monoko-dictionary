@@ -1,6 +1,6 @@
 # Monɔkɔ — Exercise Engine Plan
 
-Written 2026-08-07, last updated 2026-08-18. **This file supersedes the Phase 3
+Written 2026-08-07, last updated 2026-08-25. **This file supersedes the Phase 3
 "exam system" sections of `ROADMAP.md`, `PHASE3_LAUNCH_PLAN.md` and
 `Cours/MONOKO_CURRICULUM.md`.** Where they disagree with this file, this file is
 right.
@@ -66,7 +66,7 @@ two — see §7.
 | Question generation | **Client-side** — zero per-question cost, works offline under Capacitor |
 | Routing QA | **Required before any engine code** (§4, Slice 0) |
 | Untoned dictionary content | **Use it, never mixed** inside one exercise |
-| Level progression | **All levels open.** The paywall (1.1 + 1.2 free) is the only gate |
+| Level progression | Lessons unlock sequentially on one continuous trail. The free entitlement covers all of Niveau 1; trial/paid begins at Niveau 2 |
 | Wrong answer | Show the answer → **re-queue in the same session** → **"Pourquoi ?"** button |
 | Guest play | **First session free**, progress in localStorage, migrates on signup |
 | Distractors | **Shape homogeneity is a hard rule**; same-lesson preference is a soft nudge |
@@ -101,7 +101,7 @@ the lesson itself never taught.
 | Élargir progression | Topic XP → topic level. The level **widens the pool** (short → long, approved → reassigned) and shifts the exercise mix **recognition → production** |
 | Élargir exhaustion | **Recycles with spacing** — recently-seen suppressed, distractors reshuffled. Never "draw unseen", which breaks at session ~10 |
 | Tier order | Serve `approved` before `reassigned`, so early sessions are ~96% precision |
-| Free tier | **Cap sessions per day (~3), never cap mistakes.** Élargir capped; Pratiquer uncapped since it is finite. Limiting *time* keeps errors safe, which is why hearts were rejected |
+| Free tier | In Niveau 1, Pratiquer and eligible reviews are unlimited; Élargir allows one complete session/day; speaking comparison remains unlimited. Never cap mistakes or interrupt an active session |
 | Retention mechanics | Streak · best score + medals (80/90/100) · perfect-session bonus · "18/25 maîtrisés" · the professor's voice on every correct answer |
 | Rejected mechanics | **Speed bonuses** (train guessing; in a tonal language rushing teaches wrong tone) · **leaderboards** (need user density that does not exist) · **hearts/lives** (punitive) |
 | Session builder signature | **`buildSession(items, level, count)` — a pool, never a `lesson_id`.** Every future entry point (topic hub, play button, level-wide play) is then the same function with a different pool |
@@ -556,6 +556,20 @@ passes all of them because `"/"` is not empty, so they were live material and a
 match-pairs tile could read `/`. `usableRow` now requires an actual word on both
 sides. **Worth fixing at the source too** — these came in from `senses` and one
 `lesson_items` row, so they are wrong in the dictionary, not just in the pool.
+
+**Native-pool editorial cleanup (applied 2026-08-27).** A second audit looked
+past empty markers and checked whether every professor-native row can pose one
+clear question. The source lesson remains authoritative and unchanged, but its
+exercise representation is narrower: 10 duplicate, metadata, or bundled
+multi-answer rows are withheld; 4 duplicate pronoun headwords use their distinct
+professor-recorded examples; and 5 prompts receive text-only normalization so
+the French prompt matches the first recorded Lingala form. These decisions are
+encoded in `populate_lesson_pool.py`, applied to an existing pool by
+`sql/native_content_cleanup.sql`, and checked by
+`npm run audit:native-content`. The audit allows intentional reuse across
+different lessons but rejects an exact duplicate inside the same lesson.
+Production passes this audit across 1,373 native exercise rows; its six rows
+without audio are known generated conjugation forms, not lesson-item regressions.
 
 **Tile-bank sizing for listen-and-type.** Build tiles from the *tokens*, not the
 raw string: on the raw string a "2-token" row like
@@ -1177,8 +1191,11 @@ keeps the full phrase. The lesson text is unchanged, so the clip-vs-tiles guard
 still keeps both out of listen-and-type — which is exactly what it is for.
 
 ### Slice 8 — monetization  ⬜
-Daily session cap on Élargir (~3/day free, unlimited paid). Mistakes are never
-capped. Needs auth + the attempts table.
+Implement the entitlement and quota contract from
+`FREE_TIER_AND_CONVERSION_PLAN.md`: all of Niveau 1 free, one Élargir session/day
+inside free content, and Monoko Plus from Niveau 2 onward. Mistakes and active
+sessions are never capped. Needs auth, attempts, server-authoritative
+entitlements and conversion instrumentation.
 
 ### Later (genuinely deferred)
 Practice hub (topic-first entry) · play button (level-wide corpus) · placement

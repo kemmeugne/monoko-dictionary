@@ -187,6 +187,10 @@ api/geo.js                        — GET → { country } from Vercel's own `x-v
 monoko-ui.css                     — production learner shell: public landing, home, continuous course trail, lesson pages, profile, rewards, ranking and responsive navigation
 course-trail-meta.js              — mock-matched lesson preview descriptions and estimated durations, kept separate from the exercise/content records
 COURSE_TRAIL_PARITY.md            — production contract for every course-trail behavior carried over from the isolated mock
+FREE_TIER_AND_CONVERSION_PLAN.md  — APPROVED product contract for free access, trial, Monoko Plus, paywall behavior, analytics events and experiment order
+populate_lesson_pool.py           — rebuilds the routed exercise pool; also owns the native-only curation rules so a rebuild cannot restore ambiguous prompts
+sql/native_content_cleanup.sql    — applies those native curation rules to the current pool without modifying professor lesson rows
+scripts/audit_native_content.mjs  — read-only production check for blanks, within-lesson duplicates, excluded prompts, example substitutions and expected audio gaps
 
 Phase 2 — the session, chat, live and dictionary (2026-08-24). The last of the
 retired cream/purple surface moved onto the design system. It was a palette and
@@ -955,8 +959,10 @@ measured data, and the build slices. Short version:
 
 - The course is content-complete but is still a **table with play buttons**. The
   practice loop is the gap between here and a sellable product.
-- **Exams were dropped 2026-08-07** for continuous Duolingo-style points. All
-  levels open; the paywall (1.1 + 1.2 free) is the only gate.
+- **Exams were dropped 2026-08-07** for continuous Duolingo-style points.
+  Lessons advance sequentially on one trail. The approved free tier contains all
+  of Niveau 1; trial/subscription access begins at Niveau 2. The canonical
+  product contract is `FREE_TIER_AND_CONVERSION_PLAN.md`.
 - **Corpus→lesson routing (2026-08-07)** took the course from 1,347 items to
   **5,923** across all 50 lessons, using the existing embeddings at cosine ≥ 0.55.
   Artifact: `artifacts/professor_ingest/corpus_routing.json`.
@@ -1004,8 +1010,10 @@ Non-obvious rules that fall out of it:
   which is what makes endless Élargir acceptable.
 - **`buildSession` takes a pool, never a `lesson_id`.** The topic hub, play
   button and placement session are all just different pools.
-- **Free tier caps sessions per day (~3), never mistakes.** Limiting time keeps
-  errors safe; hearts were rejected for the opposite reason.
+- **Free practice is useful, not punitive.** Pratiquer and eligible reviews are
+  unlimited in Niveau 1; Élargir allows one complete session/day; speaking
+  comparison is unlimited in free lessons. Never interrupt an active session,
+  result or reward with a paywall.
 - **Every format is universal except match-pairs**, which needs 5 items sharing
   orthography + shape band and excludes 12/50 lessons.
 - **All six exercise types ship together in Slice 6.** Listen-and-type uses

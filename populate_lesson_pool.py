@@ -8,7 +8,7 @@ professor's own content plus everything the two LLM passes salvaged.
 Three tiers, each with a measured precision, kept distinct per row so the engine
 can prefer the trustworthy material where a lesson has enough of it:
 
-    native      1,347   the professor wrote it into this lesson   100%
+    native      1,337   unambiguous professor lesson material     100%
     approved    3,063   cosine proposed, `llm_route_judge` confirmed  ~96%
     reassigned  1,786   cosine was wrong, `reassign_discarded` re-placed  ~90%
 
@@ -60,6 +60,36 @@ CHUNK = 500
 #               a session, so 80% of that lesson meant 3/3.
 LESSON_MERGES = {375: 350}
 
+# The lesson page is a teaching surface; the pool is an exercise surface. A few
+# professor rows are useful in the lesson but cannot form one unambiguous
+# French-Lingala question. Keep the source rows intact and curate only their pool
+# representation. See sql/native_content_cleanup.sql.
+NATIVE_POOL_EXCLUSIONS = {
+    7093,  # exact duplicate of 7084: A bientôt -> Ba kala te
+    7747,  # duplicate headword; its example duplicates 7746's example
+    7770,  # exact duplicate of 7764, including its example
+    8384,  # six argot expressions in one row; waiting on professor re-record
+    8642, 8643,  # one French imperative with two Lingala variants in one clip
+    8688, 8689, 8690,  # metadata rows ('Intelligence'), not translation pairs
+    8692,  # four French proverbs and two Lingala variants in one malformed row
+}
+
+# These rows repeat a headword already present in the same lesson but carry a
+# different professor-recorded example. Use that example in Pratiquer so the
+# source contributes new material instead of asking the same word twice.
+NATIVE_POOL_USE_EXAMPLE = {7746, 7751, 7754, 7755}
+
+# Mechanical prompt cleanup only: no Lingala is invented. The imperative rows
+# retain the first audio segment, so the French prompt must retain the matching
+# first person. Parentheses around Oyo marked optional notation, not speech.
+NATIVE_POOL_TEXT_OVERRIDES = {
+    7775: {"lingala": "Oyo"},
+    8641: {"french": "Parle ! (tu)"},
+    8662: {"french": "Ne parle pas ! (tu)"},
+    8663: {"french": "Ne finis pas ! (tu)"},
+    8664: {"french": "Ne vends pas ! (tu)"},
+}
+
 
 def merged(lesson_id):
     """The lesson a row belongs to today, following any merge."""
@@ -102,13 +132,36 @@ def main() -> None:
     level_of = {l["id"]: courses[l["course_id"]]["course_order"]
                 for l in supa("lessons?select=id,course_id&limit=200")
                 if l["course_id"] in courses}
+    example_ids = ",".join(str(i) for i in sorted(NATIVE_POOL_USE_EXAMPLE))
+    example_rows = {
+        r["id"]: r for r in supa(
+            "lesson_items?select=id,example_french,example_dialect,example_audio_url"
+            f"&id=in.({example_ids})"
+        )
+    }
+    missing_examples = NATIVE_POOL_USE_EXAMPLE - example_rows.keys()
+    if missing_examples:
+        sys.exit(f"Native cleanup source rows missing: {sorted(missing_examples)}")
 
     def row_key(r):
         return f'{r["source_table"]}:{r["source_id"]}'
 
-    rows, skipped_no_level = [], 0
+    rows, skipped_no_level, skipped_native_cleanup = [], 0, 0
     for r in routing:
         if r["is_native"]:
+            if r["source_table"] == "lesson_items" and r["source_id"] in NATIVE_POOL_EXCLUSIONS:
+                skipped_native_cleanup += 1
+                continue
+            r = dict(r)
+            if r["source_table"] == "lesson_items" and r["source_id"] in NATIVE_POOL_USE_EXAMPLE:
+                example = example_rows[r["source_id"]]
+                if not (example.get("example_french") or "").strip() or not (example.get("example_dialect") or "").strip():
+                    sys.exit(f'Native cleanup example is blank: lesson_items:{r["source_id"]}')
+                r["french"] = example["example_french"]
+                r["lingala"] = example["example_dialect"]
+                r["audio_url"] = example.get("example_audio_url")
+            for field, value in NATIVE_POOL_TEXT_OVERRIDES.get(r["source_id"], {}).items():
+                r[field] = value
             lesson_id, tier = merged(r["lesson_id"]), "native"
         else:
             k = row_key(r)
@@ -159,6 +212,8 @@ def main() -> None:
     print(f"   lessons covered  {len(per_lesson)}/{len(level_of)}")
     if skipped_no_level:
         print(f"   !! {skipped_no_level} rows skipped: lesson not in this language")
+    print(f"   native exercise-only exclusions  {skipped_native_cleanup:>6}")
+    print(f"   native duplicate headwords replaced by examples  {len(NATIVE_POOL_USE_EXAMPLE):>6}")
 
     if args.dry_run:
         print("\ndry run — nothing written")

@@ -1,6 +1,6 @@
 # Monɔkɔ — Build step, then splitting `index.html`
 
-Written 2026-08-18, after Slice 7. Updated 2026-08-24.
+Written 2026-08-18, after Slice 7. Updated 2026-08-25.
 
 **Decision: add a build step before Capacitor (Phase 4). Split the file after
 Playwright (Harness Session 3). They are two separate changes and must not be
@@ -160,7 +160,7 @@ Harness Session 3 — Playwright          ✅ unblocks the split
   ↓
 Stage A — build step                    ✅ hard gate before Capacitor satisfied
   ↓
-Slice 8 (session cap / paywall)         ← finishes Phase 3
+Slice 8 (entitlements / quotas / paywall) ← finishes Phase 3
   ↓
 Stage B — split index.html              ← now technically safe; schedule separately
   ↓

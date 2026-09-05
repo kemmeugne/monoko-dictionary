@@ -107,10 +107,10 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 <header class="app-header">
   <h1>Monoko</h1>
-  <div class="subtitle">Audio Lingala — 3.4 Conjugaison futur et impératif — Supplément — 26 entrées</div>
+  <div class="subtitle">Audio Lingala — 3.4 Conjugaison : futur proche et impératif négatif (supplément) — 21 entrées</div>
 </header>
 <div class="progress-info" id="progressInfo">
-  <span id="progressText">Entrée 0 / 26</span>
+  <span id="progressText">Entrée 0 / 21</span>
   <div class="stats">
     <span class="save-status" id="saveStatus"></span>
     <span class="stat-badge" id="statComplete">0 complétés</span>
@@ -122,16 +122,8 @@ body{font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--
 
 <div id="splashScreen" class="splash-screen">
   <div style="font-size:52px;margin-bottom:16px;">🎙️</div>
-  <h2>Module 3.4-supp — Conjugaison futur et impératif (Supplément)</h2>
-  <p>
-    Enregistrez <strong>26 entrées</strong> en <strong>Lingala</strong>
-    pour le module <em>Conjugaison futur et impératif (Supplément)</em>.<br><br>
-    Ce module complète les verbes au futur, l'impératif négatif,
-    le futur proche, les demandes et le conditionnel.<br><br>
-    Pour chaque entrée, écrivez la traduction en Lingala,
-    puis enregistrez l'audio.<br><br>
-    À la fin, exportez le tout en fichier ZIP à nous envoyer.
-  </p>
+  <h2>Module 3.4 (supplément) — Futur proche et impératif négatif</h2>
+  <p>Enregistrez des phrases d'exemple pour 3 verbes réguliers — <strong>parler</strong> (-er), <strong>finir</strong> (-ir), <strong>vendre</strong> (-re) — au <strong>futur proche</strong> (aller + infinitif, une phrase par personne), puis l'<strong>impératif négatif</strong> (tu, nous, vous, regroupés par verbe).<br><br>Traduisez chaque carte en Lingala, puis enregistrez l'audio.<br><br>À la fin, exportez le tout en fichier ZIP à nous envoyer.</p>
   <button class="start-btn" onclick="startWork()">Commencer →</button>
 </div>
 
@@ -166,10 +158,10 @@ const ENTRIES = [
   {
     "id": 0,
     "db_id": null,
-    "breadcrumb": "Futur — verbe aller",
+    "breadcrumb": "Futur proche > parler (-er) · je vais parler",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Je vais aller",
+    "phrase_fr": "Je vais parler à mon patron cet après-midi.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -178,10 +170,10 @@ const ENTRIES = [
   {
     "id": 1,
     "db_id": null,
-    "breadcrumb": "Futur — verbe aller",
+    "breadcrumb": "Futur proche > parler (-er) · tu vas parler",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Tu iras",
+    "phrase_fr": "Tu vas parler avec elle bientôt ?",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -190,10 +182,10 @@ const ENTRIES = [
   {
     "id": 2,
     "db_id": null,
-    "breadcrumb": "Futur — verbe aller",
+    "breadcrumb": "Futur proche > parler (-er) · il/elle va parler",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Il / Elle ira",
+    "phrase_fr": "Il va parler pendant la cérémonie.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -202,10 +194,10 @@ const ENTRIES = [
   {
     "id": 3,
     "db_id": null,
-    "breadcrumb": "Futur — verbe venir",
+    "breadcrumb": "Futur proche > parler (-er) · nous allons parler",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Je viendrai",
+    "phrase_fr": "Nous allons parler de ton avenir.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -214,10 +206,10 @@ const ENTRIES = [
   {
     "id": 4,
     "db_id": null,
-    "breadcrumb": "Futur — verbe venir",
+    "breadcrumb": "Futur proche > parler (-er) · vous allez parler",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Il / Elle viendra bientôt.",
+    "phrase_fr": "Vous allez parler devant les invités.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -226,10 +218,10 @@ const ENTRIES = [
   {
     "id": 5,
     "db_id": null,
-    "breadcrumb": "Futur — verbe manger",
+    "breadcrumb": "Futur proche > parler (-er) · ils/elles vont parler",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Nous mangerons ensemble ce soir.",
+    "phrase_fr": "Elles vont parler à leurs enfants ce soir.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -238,10 +230,10 @@ const ENTRIES = [
   {
     "id": 6,
     "db_id": null,
-    "breadcrumb": "Futur — verbe manger",
+    "breadcrumb": "Futur proche > finir (-ir) · je vais finir",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Ils / Elles mangeront avant de partir.",
+    "phrase_fr": "Je vais finir mon assiette tout de suite.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -250,10 +242,10 @@ const ENTRIES = [
   {
     "id": 7,
     "db_id": null,
-    "breadcrumb": "Futur — verbe travailler",
+    "breadcrumb": "Futur proche > finir (-ir) · tu vas finir",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Je travaillerai demain.",
+    "phrase_fr": "Tu vas finir par tomber malade.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -262,10 +254,10 @@ const ENTRIES = [
   {
     "id": 8,
     "db_id": null,
-    "breadcrumb": "Futur — verbe travailler",
+    "breadcrumb": "Futur proche > finir (-ir) · il/elle va finir",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Nous travaillerons dur cette semaine.",
+    "phrase_fr": "Il va finir son discours dans un instant.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -274,10 +266,10 @@ const ENTRIES = [
   {
     "id": 9,
     "db_id": null,
-    "breadcrumb": "Futur — verbe voir",
+    "breadcrumb": "Futur proche > finir (-ir) · nous allons finir",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Je te verrai demain.",
+    "phrase_fr": "Nous allons finir le match ce soir.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -286,10 +278,10 @@ const ENTRIES = [
   {
     "id": 10,
     "db_id": null,
-    "breadcrumb": "Futur — verbe voir",
+    "breadcrumb": "Futur proche > finir (-ir) · vous allez finir",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Nous nous reverrons bientôt.",
+    "phrase_fr": "Vous allez finir en même temps.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -298,10 +290,10 @@ const ENTRIES = [
   {
     "id": 11,
     "db_id": null,
-    "breadcrumb": "Futur proche",
+    "breadcrumb": "Futur proche > finir (-ir) · ils/elles vont finir",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Je vais partir maintenant.",
+    "phrase_fr": "Elles vont finir leur voyage demain.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -310,10 +302,10 @@ const ENTRIES = [
   {
     "id": 12,
     "db_id": null,
-    "breadcrumb": "Futur proche",
+    "breadcrumb": "Futur proche > vendre (-re) · je vais vendre",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Il va arriver d'une minute à l'autre.",
+    "phrase_fr": "Je vais vendre mon téléphone cette semaine.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -322,10 +314,10 @@ const ENTRIES = [
   {
     "id": 13,
     "db_id": null,
-    "breadcrumb": "Futur proche",
+    "breadcrumb": "Futur proche > vendre (-re) · tu vas vendre",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Nous allons commencer bientôt.",
+    "phrase_fr": "Tu vas vendre ton vélo bientôt ?",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -334,10 +326,10 @@ const ENTRIES = [
   {
     "id": 14,
     "db_id": null,
-    "breadcrumb": "Impératif négatif",
+    "breadcrumb": "Futur proche > vendre (-re) · il/elle va vendre",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Ne fais pas ça !",
+    "phrase_fr": "Elle va vendre ses gâteaux demain matin.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -346,10 +338,10 @@ const ENTRIES = [
   {
     "id": 15,
     "db_id": null,
-    "breadcrumb": "Impératif négatif",
+    "breadcrumb": "Futur proche > vendre (-re) · nous allons vendre",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Ne pars pas encore !",
+    "phrase_fr": "Nous allons vendre la voiture le mois prochain.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -358,10 +350,10 @@ const ENTRIES = [
   {
     "id": 16,
     "db_id": null,
-    "breadcrumb": "Impératif négatif",
+    "breadcrumb": "Futur proche > vendre (-re) · vous allez vendre",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Ne parle pas comme ça !",
+    "phrase_fr": "Vous allez vendre à perte comme ça.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -370,10 +362,10 @@ const ENTRIES = [
   {
     "id": 17,
     "db_id": null,
-    "breadcrumb": "Impératif négatif",
+    "breadcrumb": "Futur proche > vendre (-re) · ils/elles vont vendre",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Ne pleure pas.",
+    "phrase_fr": "Ils vont vendre leur maison après les fêtes.",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -382,10 +374,10 @@ const ENTRIES = [
   {
     "id": 18,
     "db_id": null,
-    "breadcrumb": "Demandes et suggestions",
+    "breadcrumb": "Impératif négatif > parler (-er)",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Peux-tu m'aider, s'il te plaît ?",
+    "phrase_fr": "ne parle pas ! (tu)\nne parlons pas ! (nous)\nne parlez pas ! (vous)",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -394,10 +386,10 @@ const ENTRIES = [
   {
     "id": 19,
     "db_id": null,
-    "breadcrumb": "Demandes et suggestions",
+    "breadcrumb": "Impératif négatif > finir (-ir)",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Pouvez-vous répéter plus lentement ?",
+    "phrase_fr": "ne finis pas ! (tu)\nne finissons pas ! (nous)\nne finissez pas ! (vous)",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -406,70 +398,10 @@ const ENTRIES = [
   {
     "id": 20,
     "db_id": null,
-    "breadcrumb": "Demandes et suggestions",
+    "breadcrumb": "Impératif négatif > vendre (-re)",
     "label_fr": null,
     "label_lang": "",
-    "phrase_fr": "Allons-y ensemble !",
-    "phrase_lang": "",
-    "phrase_fr2": null,
-    "phrase_lang2": null,
-    "prefilled": false
-  },
-  {
-    "id": 21,
-    "db_id": null,
-    "breadcrumb": "Demandes et suggestions",
-    "label_fr": null,
-    "label_lang": "",
-    "phrase_fr": "Tu devrais aller voir un médecin.",
-    "phrase_lang": "",
-    "phrase_fr2": null,
-    "phrase_lang2": null,
-    "prefilled": false
-  },
-  {
-    "id": 22,
-    "db_id": null,
-    "breadcrumb": "Demandes et suggestions",
-    "label_fr": null,
-    "label_lang": "",
-    "phrase_fr": "On devrait partir tôt demain matin.",
-    "phrase_lang": "",
-    "phrase_fr2": null,
-    "phrase_lang2": null,
-    "prefilled": false
-  },
-  {
-    "id": 23,
-    "db_id": null,
-    "breadcrumb": "Conditionnel",
-    "label_fr": null,
-    "label_lang": "",
-    "phrase_fr": "Si tu viens, nous mangerons ensemble.",
-    "phrase_lang": "",
-    "phrase_fr2": null,
-    "phrase_lang2": null,
-    "prefilled": false
-  },
-  {
-    "id": 24,
-    "db_id": null,
-    "breadcrumb": "Conditionnel",
-    "label_fr": null,
-    "label_lang": "",
-    "phrase_fr": "Si tu travailles bien, tu réussiras.",
-    "phrase_lang": "",
-    "phrase_fr2": null,
-    "phrase_lang2": null,
-    "prefilled": false
-  },
-  {
-    "id": 25,
-    "db_id": null,
-    "breadcrumb": "Conditionnel",
-    "label_fr": null,
-    "label_lang": "",
-    "phrase_fr": "Si Dieu le veut, nous nous reverrons.",
+    "phrase_fr": "ne vends pas ! (tu)\nne vendons pas ! (nous)\nne vendez pas ! (vous)",
     "phrase_lang": "",
     "phrase_fr2": null,
     "phrase_lang2": null,
@@ -554,11 +486,11 @@ function renderEntry(){
       ${audioRow('label',e.audio_label)}</div>`;
   }
   if(e.phrase_fr!==null){
-    html+=`<div class="entry-section"><div class="section-title">Phrase principale</div>
+    html+=`<div class="entry-section"><div class="section-title">Phrase d'exemple</div>
       <div class="ref-label">Référence française <em style="font-style:normal;font-size:10px;color:var(--text-secondary)">(modifiable)</em></div>
-      <textarea class="ref-box ref-editable" rows="2" oninput="onField('phrase_fr',this.value)">${escHtml(e.phrase_fr)}</textarea>
+      <textarea class="ref-box ref-editable" rows="3" oninput="onField('phrase_fr',this.value)">${escHtml(e.phrase_fr)}</textarea>
       <div class="field-group"><label>En ${LANGUAGE}</label>
-      <textarea id="fl-phrase" placeholder="Traduction en ${LANGUAGE}…"
+      <textarea id="fl-phrase" rows="3" placeholder="Traduction en ${LANGUAGE}…"
         class="${e.phrase_lang?'prefilled':''}"
         oninput="onField('phrase_lang',this.value)">${escHtml(e.phrase_lang)}</textarea></div>
       ${audioRow('phrase',e.audio_phrase)}</div>`;
@@ -774,8 +706,8 @@ function crc32(data){
 }
 function escHtml(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-const STORE_KEY="monoko_audio_lingala_3_4_conjugaison_futur_supplement";
-const DB_NAME="monoko_audio_db_lingala_conjugaison_futur_supplement";
+const STORE_KEY="monoko_audio_lingala_3_4_conjugaison_futur_supplement_v2";
+const DB_NAME="monoko_audio_db_lingala_conjugaison_futur_supplement_v2";
 const DB_STORE='clips';
 let db=null,saveTimeout=null,lastSaveTime=null,storageAvailable=true;
 function openDB(){return new Promise(resolve=>{try{if(!window.indexedDB){resolve(null);return;}const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=e=>{try{e.target.result.createObjectStore(DB_STORE);}catch(er){}};req.onsuccess=e=>{db=e.target.result;resolve(db);};req.onerror=()=>resolve(null);req.onblocked=()=>resolve(null);}catch(e){resolve(null);}});}

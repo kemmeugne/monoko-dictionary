@@ -1216,5 +1216,47 @@
     "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/3.6/ce_ce_est_c_est_e4_phrase_v2.mp3",
     "dialect": "Eye + eza = eza",
     "french": "C'"
+  },
+  {
+    "object_key": "Lingala/lesson_items/6.1/une_fete_celebrer_e12_phrase_v2.mp3",
+    "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/6.1/une_fete_celebrer_e12_phrase_v2.mp3",
+    "dialect": "Feti",
+    "french": "Une fête"
+  },
+  {
+    "object_key": "Lingala/lesson_items/6.1/une_fete_celebrer_e12_phrase_v3.mp3",
+    "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/6.1/une_fete_celebrer_e12_phrase_v3.mp3",
+    "dialect": "Kosepela",
+    "french": "Célébrer"
+  },
+  {
+    "object_key": "Lingala/lesson_items/6.1/un_enregistrement_un_studio_e22_phrase_v2.mp3",
+    "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/6.1/un_enregistrement_un_studio_e22_phrase_v2.mp3",
+    "dialect": "Bokomi",
+    "french": "Un enregistrement"
+  },
+  {
+    "object_key": "Lingala/lesson_items/6.1/un_enregistrement_un_studio_e22_phrase_v3.mp3",
+    "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/6.1/un_enregistrement_un_studio_e22_phrase_v3.mp3",
+    "dialect": "Sidiyó",
+    "french": "Un studio"
+  },
+  {
+    "object_key": "Lingala/lesson_items/6.3/la_reconciliation_se_reconcilier_e26_phrase_v2.mp3",
+    "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/6.3/la_reconciliation_se_reconcilier_e26_phrase_v2.mp3",
+    "dialect": "Bobémbani",
+    "french": "La réconciliation"
+  },
+  {
+    "object_key": "Lingala/lesson_items/6.3/la_reconciliation_se_reconcilier_e26_phrase_v3.mp3",
+    "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/6.3/la_reconciliation_se_reconcilier_e26_phrase_v3.mp3",
+    "dialect": "Kobémbisa",
+    "french": "Se réconcilier"
+  },
+  {
+    "object_key": "Lingala/lesson_items/6.3/la_reconciliation_se_reconcilier_e26_phrase_v4.mp3",
+    "url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Lingala/lesson_items/6.3/la_reconciliation_se_reconcilier_e26_phrase_v4.mp3",
+    "dialect": "Kobémbinya",
+    "french": "Se réconcilier"
   }
 ]

@@ -13,7 +13,8 @@
     "db:sync-test-schema": "node scripts/sync_test_schema.js",
     "db:seed-test": "node scripts/seed_test_data.js",
     "verify:progression": "node scripts/verify_progression.mjs",
-    "verify:security:test": "node scripts/verify_security_hardening.mjs"
+    "verify:security:test": "node scripts/verify_security_hardening.mjs",
+    "audit:native-content": "node scripts/audit_native_content.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

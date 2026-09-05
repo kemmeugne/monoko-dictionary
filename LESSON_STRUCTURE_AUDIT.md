@@ -93,6 +93,27 @@ Delete the single-verb *aimer* rows once the professor's *aimer* audio (if any) 
 re-mapped. The audio recording apps are already rebuilt to this exact structure, so the
 DB and the recording workflow will finally match.
 
+> **Update 2026-08-18 — the *aimer* paradigm was not junk, it was mangled.**
+> The single-verb rows this section proposed deleting were a **flattened** view of
+> a complete grid: the workbook holds *ko linga* as a matrix (rows 259–264 = the
+> six persons, columns B–F = five tenses) and the original migration read it
+> row-wise, which is why it arrived as a jumble with the tenses out of order and
+> the passé progressif in the wrong place. Read as the grid it is, it is
+> complete — 30 forms, no gaps — and it makes the distinction these lessons blur
+> (*Na lingi* présent vs *Na zo linga* présent progressif). **24 of the 30 forms
+> already have his recording**, addressed by workbook cell (`2.C259.mp3`).
+>
+> It now lives in `conjugation_forms` as a grid and heads L358/L359 as tense
+> tabs, showing only the tenses each lesson teaches. The French spelling errors
+> listed in §2 (`Tu aimess`, `Ils aimes`, `Nous avons aimés`) are **fixed by
+> generation** — one regular verb, so the glosses are derived from (tense,
+> person) rather than copied; the Lingala stays verbatim.
+>
+> The three-verb parler/finir/vendre model above is still the target for the
+> lesson *body*; the paradigm grid is a second, complementary surface, and the
+> plan is now **a table per verb per tense** as the professor records them.
+> See `EXERCISE_ENGINE_PLAN.md` § "Conjugation paradigms".
+
 ### 3b. `Chiffres, jours et temps` — L350 (the ask)
 
 Split the 92-item bucket into **5 focused lessons** (or one lesson with 5 clearly

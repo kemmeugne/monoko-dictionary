@@ -1,5 +1,10 @@
 # Monɔkɔ — Soft-Launch Implementation Strategy (Master Orchestrator)
 
+**Status note 2026-08-25:** the engine and learner UI described here have since
+shipped. Section 7's access model was revised to the approved full-Niveau-1 free
+offer. For current monetization implementation, `FREE_TIER_AND_CONVERSION_PLAN.md`
+and `PHASE3_LAUNCH_PLAN.md` take precedence over older sequencing language here.
+
 Execution brief for Claude Code. This is the **master plan** for getting Monoko
 to a soft-launch-ready web app.
 
@@ -10,8 +15,8 @@ the UI, access gating, and Playwright tests all come *after* the engine reliably
 produces good content. This ordering is deliberate; do not start UI work early.
 
 Read this whole file first. The linchpin is Section 5 (the engine's output
-contract) — freeze it before generating. Two decisions in Section 10 must be
-confirmed with the owner before the code they affect is written.
+contract). The remaining decision in Section 10 concerns source-file splitting,
+not the free-tier offer.
 
 Sub-specs (source of truth for their tracks):
 - `CORPUS_PIPELINE.md` — the generation engine (lessons + exams).
@@ -26,13 +31,13 @@ Sub-specs (source of truth for their tracks):
 users to measure conversion, retention, and funnel behavior.
 
 **In scope (across both phases):** the lesson/exercise/exam generation engine and
-its data-level testing (Phase 1); then course UI restructure, three-tier access,
+its data-level testing (Phase 1); then course UI restructure, entitlement access,
 the paywall gate, and the harness (Phase 2).
 
-**Out of scope for this push (do not build):**
+**Out of scope for the original engine/UI push (historical):**
 - Capacitor / native app / push notifications / native mic — later mobile phase.
-- **Live Stripe checkout** — deferred (see §7). Build the entitlement gate, not
-  payment code.
+- **Live Stripe checkout** — it was deferred from that push; it is now part of
+  the current Phase 3.5 plan.
 - Rebrand / new visual identity — Phase 2 is a **restructure**, keep the look.
 
 ---
@@ -97,7 +102,7 @@ as stable.
   "lesson_id": "1.2",
   "title": "Salutations et politesse",
   "level": "A1",
-  "access_tier": "authenticated_free",   // public | authenticated_free | subscribed
+  "access_tier": "free",                 // public | free | plus
   "teach_beat": [                          // 0–3 short cards; may be empty
     { "pattern": "Na = « je » au début de beaucoup de phrases",
       "example_lingala": "Na lembi", "example_french": "Je suis fatigué",
@@ -186,29 +191,31 @@ exams that pass the full validation + quality suite, with no UI in the loop.
 
 ---
 
-## 7. Access model — three tiers (defined now, enforced in Phase 2)
+## 7. Access model — entitlement states (revised 2026-08-25)
 
-Access is **three states, not a boolean**: `public | authenticated_free |
-subscribed`. Bake the tier into the content (`access_tier` in §5.1) now; enforce
-it in the UI in Phase 2.
+Access is **a state, not a boolean**: `public | free | trialing | active | grace |
+past_due | expired | developer`. The approved product contract and quota matrix
+live in `FREE_TIER_AND_CONVERSION_PLAN.md`; enforce them server-side.
 
 | Tier | Who | Gets | Gate |
 |---|---|---|---|
 | **public** | anyone, no account | Full dictionary (A-Z, search, audio) + sign-up prompts | none |
-| **authenticated_free** | logged-in, no payment | Modules **1.1 + 1.2** + **10 AI chat msgs/day** | login |
-| **subscribed** | logged-in + entitlement | Module **1.3+**, all exams, unlimited AI (fair-use cap) | login + entitlement |
+| **free** | logged-in, no payment | All of **Niveau 1**, free practice/review allowances, 10 chat messages/day and 3 live translations/day | login |
+| **trialing / active** | logged-in + entitlement | Niveaux 1–6 and unlimited learning/AI tools subject to fair use | entitlement |
+| **grace / past_due / expired** | billing transition or ended access | Preserved progress; free capabilities remain; premium re-entry follows billing state | server state |
+| **developer** | row in `app_developers` | Protected progression simulator and product entitlement bypass | server authorization |
 
 - **Dictionary stays public** — SEO/funnel engine. Embed sign-up prompts inside
   it ("save this word", "try your first free lesson"); never wall it. Public +
   prompts yields MORE sign-ups than a wall (a wall also kills the traffic it
   would convert).
-- **Login wall ≠ paywall.** Login fires at "I want to learn" (entry to 1.1).
-  Payment fires at "I want more than the free taste" (entry to 1.3).
-- **Stripe deferred.** The `subscribed` gate checks an entitlement flag and shows
-  an interim upgrade state (§10 decides its behavior). No live checkout, no
-  card/PII handling anywhere in this push — so it ships without the ToS/privacy
-  legal gate (that blocks the first real charge, not this scaffolding). Build so a
-  later Stripe integration just flips the flag.
+- **Login wall ≠ paywall.** Login fires at "I want to learn". The primary
+  payment moment comes only after the complete Niveau 1 reward, when the learner
+  intentionally enters Niveau 2.
+- **Stripe was deferred from the original UI push.** Phase 3.5 now adds live
+  checkout, but the server-authoritative entitlement boundary remains the same
+  architectural rule. The ToS/privacy gate blocks the first real charge, not
+  entitlement scaffolding or test-mode work.
 
 ---
 
@@ -232,17 +239,18 @@ lessons/exams to design against.
 - all new UI mobile-first per `CLAUDE.md` (375px-first, ≥44px targets, `100dvh`,
   16px inputs, safe-area insets, no hover-only, bottom nav)
 
-**8.2 Three-tier enforcement + paywall wiring** — entitlement checked
-server-side; free modules require login; 1.3+ shows the interim upgrade state.
+**8.2 Entitlement enforcement + paywall wiring** — entitlement checked
+server-side; free course access requires login; Niveau 2+ shows the trial or
+upgrade state after the Niveau 1 reward has completed.
 
 **8.3 Harness (Track C, `HARNESS_SPRINT.md`)** — now, against the stabilized UI:
 test Supabase, `api/` unit tests, Playwright smoke tests over the new flows at 3
 viewports, CI gates. Writing these earlier would test UI we then replaced.
 
 **8.4 Soft-launch readiness pass** — seed real content; verify the full funnel
-(dictionary → sign-up prompt → free lesson → paywall → interim upgrade); confirm
-the 10/day free chat quota + fair-use cap; confirm analytics capture the funnel
-metrics the launch plan needs.
+(dictionary → signup → first lesson → Niveau 1 medal → Niveau 2 paywall → trial);
+confirm all free quotas and fair-use caps; confirm the approved analytics events
+capture the funnel without raw learner content.
 
 ---
 
@@ -264,23 +272,22 @@ metrics the launch plan needs.
 
 **Phase 2 — UI, gating, harness (only after the Phase 1 exit criterion):**
 4. Design + build the course UI (§8.1) around real generated output.
-5. Three-tier access architecture + paywall wiring (§8.2), Stripe-less.
+5. Entitlement architecture + paywall wiring (§8.2), Stripe-less.
 6. Harness / Playwright (§8.3) against the stabilized UI.
 7. Soft-launch readiness pass (§8.4).
 
-Parallel/later (non-blocking): full corpus scale-up, live Stripe (needs legal
-gate), Capacitor/mobile.
+At the time this strategy was written, full corpus scale-up, live Stripe and
+Capacitor/mobile were later work. Stripe is now the current Phase 3.5 item and
+still needs the legal gate before the first real charge.
 
 ---
 
 ## 10. Confirm before building (do not guess)
 
-1. **Interim upgrade state (Stripe deferred).** At the 1.3+ paywall, show (a) a
-   "coming soon / join waitlist" capture, or (b) a manual-unlock mechanism (owner
-   grants entitlement to specific testers)? Determines §8.2. Recommend based on
-   whether the soft launch must *measure paywall demand* (→ waitlist) or *let real
-   testers use paid content* (→ manual unlock). Possibly both. (Phase 2 decision —
-   surface it before Step 5.)
+1. **Upgrade state (decision recorded 2026-08-25).** Offer a transparent 7-day
+   Monoko Plus trial at entry to Niveau 2, preserve a useful "Continuer
+   gratuitement" path, and retain the protected developer simulator for internal
+   inspection. See `FREE_TIER_AND_CONVERSION_PLAN.md`.
 2. **Split `index.html` or keep monolithic?** Stage A now compiles the monolithic
    source with esbuild. Any split should use real ES modules and follow
    `BUILD_AND_SPLIT_PLAN.md` Stage B, verified by the Playwright harness; do not

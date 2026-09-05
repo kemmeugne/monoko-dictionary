@@ -396,8 +396,9 @@ Modern digital life, which older curricula omit entirely and learners need daily
 ## EXAM SYSTEM SPECIFICATIONS — SUPERSEDED 2026-08-07
 
 > **This whole section is historical.** Exams were dropped in favour of
-> continuous points on every exercise; all levels are open and the paywall is the
-> only gate. Of what follows, only the pronunciation feature survives — as a
+> continuous points on every exercise. Lessons now advance sequentially on one
+> trail; the free entitlement covers Niveau 1 and Monoko Plus covers Niveaux
+> 2–6. Of what follows, only the pronunciation feature survives — as a
 > normal exercise type, built last, gated on measuring real Lingala STT accuracy
 > (`api/elevenlabs-stt.js` documents 20–50% WER). See `EXERCISE_ENGINE_PLAN.md`.
 

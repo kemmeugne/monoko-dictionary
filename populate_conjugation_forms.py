@@ -38,7 +38,18 @@ TENSES = [(1, "present",      "Présent / passé composé", None, 1),
           (2, "imparfait",    "Imparfait",               "C",  2),
           (3, "futur",        "Futur",                   "D",  3),
           (4, "present_prog", "Présent progressif",      "E",  4),
-          (5, "passe_prog",   "Passé progressif",        "F",  5)]
+          (5, "passe_prog",   "Passé progressif",        "F",  5),
+          # FUTUR PROCHE READS COLUMN D, THE SAME CELL AS THE FUTUR.
+          # The professor confirmed (2026-08-22) that ko linga makes no
+          # distinction: "Na ko linga" serves both "j'aimerai" and "je vais
+          # aimer". So this is not a copy of the futur -- it is the same
+          # recorded form and the same clip, filed under a second tense with
+          # its own French, which is what lets L393 show a paradigm at all.
+          #
+          # Only the FRENCH differs, and French is generated here rather than
+          # taken from the workbook, so nothing the professor wrote is being
+          # reinterpreted.
+          (3, "futur_proche", "Futur proche",            "D",  6)]
 
 FRENCH = {
  "present":      {"je":"J'aime / j'ai aimé","tu":"Tu aimes / tu as aimé","il":"Il/elle aime / il a aimé",
@@ -54,18 +65,24 @@ FRENCH = {
  "passe_prog":   {"je":"J'étais en train d'aimer","tu":"Tu étais en train d'aimer","il":"Il/elle était en train d'aimer",
                   "nous":"Nous étions en train d'aimer","vous":"Vous étiez en train d'aimer",
                   "ils":"Ils/elles étaient en train d'aimer"},
+ "futur_proche": {"je":"Je vais aimer","tu":"Tu vas aimer","il":"Il/elle va aimer",
+                  "nous":"Nous allons aimer","vous":"Vous allez aimer","ils":"Ils/elles vont aimer"},
 }
 
 # Which lesson shows which tenses. A lesson displays what it teaches: the
 # présent/passé lesson has no business showing the futur.
 #
-# L393 is futur PROCHE ("je vais parler") and gets nothing, because this
-# paradigm has no futur proche column -- the first professor never wrote one.
-# Showing it the futur simple would teach the wrong tense on that page, so it
-# shows no table until someone writes the missing six forms.
+# L393 (futur proche) showed nothing until 2026-08-22, because the paradigm had
+# no futur proche column and putting the futur simple on that page would have
+# taught the wrong tense. That is now resolved rather than worked around: the
+# professor confirmed ko linga uses ONE form for both, so `futur_proche` is a
+# real tense in the grid with its own French, and L393 shows that alone. It is
+# never given "futur", which is a different lesson's tense even though the
+# Lingala coincides.
 CONJUGATION_LESSONS = {
     358: ["present", "imparfait", "present_prog", "passe_prog"],   # présent et passé
     359: ["futur"],                                                # futur simple
+    393: ["futur_proche"],                                         # futur proche
 }
 
 

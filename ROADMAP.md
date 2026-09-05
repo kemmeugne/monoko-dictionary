@@ -26,11 +26,36 @@ mobile), one palette in `monoko-ui.css`, 8–10px radii, no gradients. As of
 2026-08-24 no screen carries a retired colour literal, the two per-language
 brand colours for the map markers aside.
 
-**What is still open.** The daily session cap — the paywall — is the last item
-in Phase 3. The production build prerequisite for Phase 4 is now implemented:
+**What is still open.** The free-tier, trial and subscription layer is the next
+product phase. The approved contract gives all of Niveau 1 away, then offers a
+7-day Monoko Plus trial at entry to Niveau 2; see
+`FREE_TIER_AND_CONVERSION_PLAN.md`. The production build prerequisite for Phase
+4 is now implemented:
 esbuild compiles the single-file JSX into `dist/app.js`, so deployed clients no
 longer download or run Babel. Splitting the source into modules remains a
 separate maintainability task (`BUILD_AND_SPLIT_PLAN.md`).
+
+**Pre-launch corpus work on hold — waiting on the professor (2026-08-27).** The
+professor package is ready in
+`audio_collection_html/professor_corpus_completion_2026-08-27/`: four standalone
+translation/recording forms add examples to *Compréhension et communication*,
+*Sentiments et émotions*, *Comparatifs et superlatifs* and *Météo*, and one
+consolidated form collects twelve short grammar rule cards. Every form supports
+additional examples and audio through **+ Ajouter un exemple**, autosaves, and
+round-trips through ZIP. Do not invent or publish the missing Lingala. When the
+professor returns the exported ZIPs: validate them, ingest the new rows/audio,
+apply the rule cards, rebuild `lesson_pool`, rerun the exercise audit, and only
+then clear this launch-content gate.
+
+**Native exercise-content cleanup applied (2026-08-27).** The lesson pages
+remain the professor's editorial record; `lesson_pool` now has an explicit
+curation contract for practice. Ten duplicate, metadata, or bundled multi-answer
+rows are withheld, four repeated pronoun headwords use their distinct recorded
+examples, and five prompts receive mechanical text-only normalization. The rule
+lives in `populate_lesson_pool.py`, the current-pool migration is
+`sql/native_content_cleanup.sql`, and `npm run audit:native-content` verifies it.
+Production now has 1,373 native exercise rows and the post-migration audit passes
+with no unexpected missing audio.
 
 ### Recent history
 
@@ -193,15 +218,16 @@ weights to the HF Space).
 
 ---
 
-## Phase 3 — Exercise engine  ← CURRENT
+## Phase 3 — Exercise engine ✅ Shipped 2026-08-22
 
 **Full plan: `EXERCISE_ENGINE_PLAN.md`. Read that file, not this summary.**
 
 **Exams were dropped on 2026-08-07.** The old three-component exam (written 40 /
 listening 30 / speaking 30, 70% to pass, gating each level) is replaced by
 continuous points on every exercise, Duolingo-style. Speaking becomes an ordinary
-exercise type rather than an exam component. All levels are open; the paywall
-(modules 1.1 + 1.2 free) is the only gate.
+exercise type rather than an exam component. Lessons unlock sequentially on the
+continuous trail; free access covers all of Niveau 1 and Monoko Plus covers
+Niveaux 2–6.
 
 **Goal:** turn the finished content from a bilingual table into a practice loop.
 
@@ -245,16 +271,18 @@ sentences, `approved` → `reassigned`) and shifts the exercise mix from
 recognition to production. It recycles with spacing rather than exhausting —
 median depth is only 10 distinct sessions.
 
-**Free tier caps sessions per day (~3), never mistakes.** Élargir is capped;
-Pratiquer is not, being finite. Retention comes from streak, best score +
-medals, perfect-session bonus and the mastery counter. Speed bonuses,
-leaderboards and hearts were all rejected — see the plan for why.
+**Approved free practice model (2026-08-25).** Pratiquer and reviews are
+unlimited for Niveau 1 material; Élargir gets one complete session/day. Speaking
+comparison remains unlimited in free lessons. Retention comes from streak, best
+score + medals, perfect-session bonus and the mastery counter. Hearts and speed
+bonuses remain rejected; the weekly ranking has since shipped as an opt-in
+community feature.
 
 **Build order:** routing QA ✅ → `lesson_pool` ✅ → session shell + match-pairs ✅
 → choose-the-audio ✅ → attempts + pool-shaped `buildSession` ✅ → stage split +
 80% gate ✅ → tokenizer ✅ → tap-words ✅ → fill-the-blank ✅ →
 listen-and-type ✅ → record-and-compare speaking ✅ → XP/streaks/SM-2 ✅ →
-**session cap ← NEXT**.
+**entitlements, conversion analytics and Stripe ← NEXT**.
 
 **Shipped 2026-08-17 — the practice loop is playable end to end.** A learner
 opens a lesson, runs a 20-question **Pratiquer** session on the professor's own
@@ -373,6 +401,27 @@ real-Chrome check against monoko-test at desktop, 390px and 320px.
 
 ---
 
+## Phase 3.5 — Free tier, conversion and subscriptions ← CURRENT
+
+**Goal:** convert learners only after Monoko has delivered a meaningful free
+foundation and established a learning habit.
+
+**Approved 2026-08-25:** the dictionary stays public and unlimited; logged-in
+learners receive all of Niveau 1, its rewards and first medal. Free accounts get
+unlimited Pratiquer and eligible review, one Élargir session/day, 10 AI chat
+messages/day and 3 short live translations/day. A transparent 7-day Monoko Plus
+trial is offered after the Niveau 1 medal when the learner enters Niveau 2.
+
+**Build next:** centralized server-side entitlements, Stripe Checkout/Portal and
+idempotent webhooks, daily product quotas, conversion events, the Niveau 2
+paywall, expiry/resume behavior, legal pages, and test coverage on `monoko-test`.
+Initial pricing is $9.99/month or $59.99/year. The complete access matrix,
+analytics contract, targets and experiment sequence live in
+`FREE_TIER_AND_CONVERSION_PLAN.md`; the release sequence lives in
+`PHASE3_LAUNCH_PLAN.md`.
+
+---
+
 ## Phase 4 — Mobile app
 
 **Goal:** Ship on App Store + Google Play.
@@ -427,7 +476,9 @@ change with a different risk profile.
 
 ## Future / not yet planned
 
-- **Paid subscription** — Stripe integration, subscription check on courses/chat access (auth gate already in place)
+- **Mobile billing strategy** — web Stripe entitlement vs. native store purchase,
+  decided from Phase 4 evidence. The web subscription itself is now planned in
+  Phase 3.5, not deferred.
 - **Professor role** — replace shared admin password with Supabase Auth role (`user_metadata.role = "professor"`)
 - **Progress sharing** — share completion badges, vocabulary learned count
 - **Community corrections** — community-submitted corrections (currently professor-only)

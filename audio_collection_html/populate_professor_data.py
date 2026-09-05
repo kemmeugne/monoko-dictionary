@@ -14,6 +14,7 @@ Usage:
 import json
 import re
 import base64
+import hashlib
 import zipfile
 from pathlib import Path
 
@@ -262,6 +263,9 @@ def inject(html: str, data_json: dict, audio_files: dict[str, bytes]) -> str:
     """
 
     # — Text overrides —
+    # extra_examples are sentences the professor *added* in the app; they do not
+    # exist in the shell HTML at all, so they must be carried over explicitly or
+    # both their text and their (already seeded) audio are silently dropped.
     overrides = {}
     for entry in data_json.get("entries", []):
         idx = entry.get("id")
@@ -269,8 +273,12 @@ def inject(html: str, data_json: dict, audio_files: dict[str, bytes]) -> str:
             continue
         pl  = entry.get("phrase_lang") or ""
         pl2 = entry.get("phrase_lang2") or ""
-        if pl or pl2:
-            overrides[idx] = {"phrase_lang": pl, "phrase_lang2": pl2}
+        extras = [
+            {"phrase_fr": x.get("phrase_fr") or "", "phrase_lang": x.get("phrase_lang") or ""}
+            for x in (entry.get("extra_examples") or [])
+        ]
+        if pl or pl2 or extras:
+            overrides[idx] = {"phrase_lang": pl, "phrase_lang2": pl2, "extra_examples": extras}
 
     text_block = f"""
 // === PROF TEXT (populate_professor_data.py) ===
@@ -281,6 +289,7 @@ def inject(html: str, data_json: dict, audio_files: dict[str, bytes]) -> str:
     if(n<ENTRIES.length){{
       if(v.phrase_lang)  ENTRIES[n].phrase_lang =v.phrase_lang;
       if(v.phrase_lang2) ENTRIES[n].phrase_lang2=v.phrase_lang2;
+      if(v.extra_examples&&v.extra_examples.length) ENTRIES[n].extra_examples=v.extra_examples;
     }}
   }}
 }})();
@@ -294,21 +303,48 @@ def inject(html: str, data_json: dict, audio_files: dict[str, bytes]) -> str:
     else:
         print("    ⚠  ENTRIES array not found — text not injected")
 
+    # — Let `state` pick up the extra_examples we just put on ENTRIES —
+    # The shell hardcodes `extra_examples:[]` in its state initialiser, which runs
+    # after the OV block above, so it would otherwise wipe them straight back out.
+    state_init = "  audio_label:null, audio_phrase:null, audio_phrase2:null,\n  extra_examples:[],"
+    if state_init in html:
+        html = html.replace(
+            state_init,
+            "  audio_label:null, audio_phrase:null, audio_phrase2:null,\n"
+            "  extra_examples:(e.extra_examples||[]).map("
+            "x=>({phrase_fr:x.phrase_fr||'',phrase_lang:x.phrase_lang||'',audio:null})),",
+            1,
+        )
+    else:
+        print("    ⚠  state initialiser not found — extra examples not wired")
+
     # — Audio seed —
     audio_b64 = {k: base64.b64encode(v).decode() for k, v in audio_files.items()}
     audio_json = json.dumps(audio_b64)
 
+    stamp = json.dumps(
+        f"{data_json.get('exported_at', '')}|{len(audio_files)}|"
+        f"{hashlib.sha256(audio_json.encode()).hexdigest()[:16]}"
+    )
+
     seed_block = f"""
 // === PROF AUDIO (populate_professor_data.py) ===
 const PROF_AUDIO={audio_json};
+// Identifies THIS export. STORE_KEY/DB_NAME are shared with the original recording
+// app and with every earlier rebuild, so without this a browser that already opened
+// a previous build would keep its cached audio and silently play the old take.
+const PROF_STAMP={stamp};
 
 async function seedProfAudio(){{
   if(!Object.keys(PROF_AUDIO).length)return;
   await openDB();
-  // Check if audio is already in IndexedDB — if yes, text edits are also user's, skip entirely
-  const firstKey=Object.keys(PROF_AUDIO)[0];
-  const alreadySeeded=await dbGet(firstKey);
-  if(alreadySeeded) return;
+  let prevStamp=null;
+  try{{prevStamp=localStorage.getItem(STORE_KEY+'_seed');}}catch(_){{}}
+  // Same export already seeded → leave the reviewer's own edits alone.
+  if(prevStamp===PROF_STAMP) return;
+  // Different (or unstamped, pre-fix) export cached → drop it before reseeding.
+  await dbClear();
+  try{{localStorage.setItem(STORE_KEY+'_seed',PROF_STAMP);}}catch(_){{}}
   // Seed audio
   for(const[key,b64]of Object.entries(PROF_AUDIO)){{
     if(!b64)continue;
@@ -318,9 +354,10 @@ async function seedProfAudio(){{
       await dbPut(key,new Blob([arr],{{type:'audio/webm'}}));
     }}catch(e){{console.warn('audio seed',key,e);}}
   }}
-  // Seed text (only on first open — audio missing means this is a fresh start)
+  // Seed text (runs whenever the export stamp changed — i.e. fresh professor data)
   const ts=state.map(e=>({{label_fr:e.label_fr,phrase_fr:e.phrase_fr,phrase_fr2:e.phrase_fr2,
-    phrase_lang:e.phrase_lang,phrase_lang2:e.phrase_lang2,extra_examples:[]}}));
+    phrase_lang:e.phrase_lang,phrase_lang2:e.phrase_lang2,
+    extra_examples:(e.extra_examples||[]).map(x=>({{phrase_fr:x.phrase_fr,phrase_lang:x.phrase_lang}}))}}));
   const pay=JSON.stringify({{data:ts,currentIdx:0}});
   try{{localStorage.setItem(STORE_KEY,pay);}}catch(_){{}}
   if(db){{try{{const tx=db.transaction(DB_STORE,'readwrite');

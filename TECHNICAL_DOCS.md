@@ -627,6 +627,31 @@ country enforcement, durable `api_usage_events` quotas, and session receipts.
 The production check confirmed anonymous corrections return no rows, direct XP
 insertion is denied, and the session RPC is unavailable to `anon`.
 
+### Planned monetization architecture (approved 2026-08-25; not yet live)
+
+`FREE_TIER_AND_CONVERSION_PLAN.md` is the product source of truth. Implement a
+single server-authoritative entitlement resolver with these states:
+`public | free | trialing | active | grace | past_due | expired | developer`.
+Course access, daily feature quotas and paid API access must call that shared
+decision rather than reproducing conditions in individual views.
+
+The migration should add normalized subscription/customer state, idempotent
+Stripe webhook receipts and append-only conversion events. Exact table names are
+frozen when the migration is designed, but billing history must not be stored as
+mutable columns on `profiles`. The current `api_usage_events` table remains the
+durable basis for daily quotas where its contract fits; product quotas and burst
+rate limits remain separate controls.
+
+Analytics stores event IDs, counts, categories, durations and outcomes. It must
+not store raw AI conversations, translations, exercise answers, recordings or
+email addresses. The baseline event list and funnel definitions are in
+`FREE_TIER_AND_CONVERSION_PLAN.md`; instrument them before enabling checkout so
+the pre-paywall funnel has a baseline.
+
+Stripe webhooks are authoritative and idempotent. The browser may cache access
+for rendering only. `app_developers` supplies the protected developer state, and
+the production bypass must remain server-verified.
+
 The full list of migration files, with what each one is for, lives in `CLAUDE.md` under "Key files in this repo".
 
 **Legacy one-off migrations** (run directly in Supabase SQL editor, not tracked as files):
