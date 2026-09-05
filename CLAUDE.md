@@ -101,6 +101,24 @@ does not know the old password — that is why they are here. The tokens are
 stripped from the address bar on arrival: a recovery token in history is worth
 as much as the password it sets.
 
+**It then signs them out and returns them to the login form**, with their
+address filled in and a confirmation message, rather than walking them into the
+app. The session came from a link in an inbox, not from anyone proving they know
+the password — and the password just changed. Making the new one earn the first
+sign-in also answers "did that work?", which being carried into the app does not.
+`recoveryRouted` stays true afterwards: it means "this page load has handled its
+recovery link", and clearing it sends the learner back to the reset form the
+moment they sign in.
+
+**Mid-recovery, nothing may move the learner off the form.** Three things used to:
+the initial view is `home` whenever a language is remembered, the boot-language
+hint calls `selectLanguage` on mount, and the profile resume calls it again when
+the network lands about a second later — the form appeared and was redirected
+over. The latch (`recoveryPendingRef`) sits **inside `selectLanguage`**, not on
+its callers: every automatic navigation funnels through it, so guarding the
+destination cannot be defeated by a caller nobody remembered. The language data
+still loads; only the view is held.
+
 Covered by `tests/smoke/recovery.spec.js`, which seeds an unexpired session into
 localStorage rather than obtaining one — supabase-js restores it without a
 network call, which is enough to reach the branch, and the test needs no

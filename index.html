@@ -5348,18 +5348,27 @@
           // password — that is why they are here.
           const { error } = await supabaseClient.auth.updateUser({ password: authPassword });
           if (error) throw error;
+          const address = currentUser?.email || "";
           setAuthPassword(""); setAuthPasswordConfirm("");
-          recoveryRouted.current = false;
-          // Released before navigating, so the resume paths guarded above are
-          // free to run again — this is the one navigation recovery wants.
+
+          // Sign out rather than walk them into the app. The session came from
+          // a link in an inbox, not from anyone proving they know the password,
+          // and the password just changed — so end it and make the new one earn
+          // the first sign-in. It also answers "did that work?" properly: the
+          // learner sees the new password succeed instead of being carried past
+          // the question.
+          //
+          // `recoveryRouted` deliberately stays true. It means "this page load
+          // has already handled its recovery link"; clearing it would send the
+          // learner straight back to the reset form the moment they sign in.
+          try { await supabaseClient.auth.signOut(); } catch (signOutError) { /* the password is already changed */ }
+
           recoveryPendingRef.current = false;
           setRecoveryPending(false);
           setAuthMode("login");
-          const remembered = readLastLanguage();
-          const target = (remembered && languages.find(item => item.id === remembered.id))
-            || languages.find(item => item.name === "Lingala")
-            || languages[0];
-          if (target) selectLanguage(target); else setView("home");
+          setAuthEmail(address);
+          setAuthError("✓ Mot de passe mis à jour. Connectez-vous avec vos nouveaux identifiants.");
+          setView("auth");
         } catch (error) {
           console.error("completePasswordReset:", error);
           setAuthError(/should be different/i.test(error?.message || "")
