@@ -24,6 +24,15 @@ test.beforeEach(async ({ page }) => {
     status: 200, contentType: "application/json", body: JSON.stringify(user),
   }));
   await page.route("**/auth/v1/logout*", route => route.fulfill({ status: 204, body: "" }));
+  // Playwright matches routes in REVERSE registration order, so the catch-all
+  // goes first and the specific ones override it. Registered the other way round
+  // this returns [] for languages, the profile resume finds nothing to resume
+  // into and returns early — and the navigation these tests exist to survive is
+  // never armed. They pass, having tested nothing.
+  await page.route("**/rest/v1/**", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    headers: { "content-range": "0-0/2337" }, body: "[]",
+  }));
   await page.route("**/rest/v1/languages*", route => route.fulfill({
     status: 200, contentType: "application/json",
     body: JSON.stringify([
@@ -36,10 +45,6 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/rest/v1/profiles*", route => route.fulfill({
     status: 200, contentType: "application/json",
     body: JSON.stringify({ user_id: user.id, preferred_language_id: 1 }),
-  }));
-  await page.route("**/rest/v1/**", route => route.fulfill({
-    status: 200, contentType: "application/json",
-    headers: { "content-range": "0-0/2337" }, body: "[]",
   }));
 });
 
