@@ -4927,7 +4927,10 @@
       const langName = selectedLang?.name || "";
 
       // Dictionary state
-      const [view, setView] = useState(BOOT_LANGUAGE ? "home" : "lang_select");
+      // A recovery link opens on the reset form, not on the app. With a stored
+      // session the initial view was "home", so the form could only ever appear
+      // after a redirect — visible for a moment, then gone.
+      const [view, setView] = useState(AUTH_RECOVERY ? "auth" : BOOT_LANGUAGE ? "home" : "lang_select");
       const [homeSection, setHomeSection] = useState("home");
       const [query, setQuery] = useState("");
       const [searchMode, setSearchMode] = useState("french");
@@ -4996,7 +4999,14 @@
       // Whether "where does this visitor belong" has an answer yet. Until it
       // does, a visitor we expect to be signed in waits on a splash rather than
       // on the landing page they are about to be moved off.
-      const [resumeChecked, setResumeChecked] = useState(!BOOT_SESSION);
+      const [resumeChecked, setResumeChecked] = useState(!BOOT_SESSION || AUTH_RECOVERY);
+      // Held until the password is actually set. Every automatic navigation in
+      // the app ends at selectLanguage, which lands on home; during a recovery
+      // that silently throws the learner past the one form they came for.
+      const [recoveryPending, setRecoveryPending] = useState(AUTH_RECOVERY);
+      // Read from async callbacks that captured an older render's value.
+      const recoveryPendingRef = useRef(AUTH_RECOVERY);
+      useEffect(() => { recoveryPendingRef.current = recoveryPending; }, [recoveryPending]);
       const [bootTimedOut, setBootTimedOut] = useState(false);
       const [profileSaving, setProfileSaving] = useState(false);
       const [leaderboardScope, setLeaderboardScope] = useState("country");
@@ -5019,7 +5029,7 @@
       // Auth
       const [currentUser, setCurrentUser] = useState(null);
       const [authLoading, setAuthLoading] = useState(true);
-      const [authMode, setAuthMode] = useState("login"); // "login" | "signup"
+      const [authMode, setAuthMode] = useState(AUTH_RECOVERY ? "recover" : "login"); // "login" | "signup" | "forgot" | "recover"
       const [authEmail, setAuthEmail] = useState("");
       const [authPassword, setAuthPassword] = useState("");
       const [authDisplayName, setAuthDisplayName] = useState("");
@@ -5064,7 +5074,7 @@
       // the chooser would have run — home fills in with its stats and word of
       // the day instead of painting empty.
       useEffect(() => {
-        if (!BOOT_LANGUAGE) return;
+        if (!BOOT_LANGUAGE || AUTH_RECOVERY) return;
         resumedLanguageRef.current = true;
         selectLanguage(BOOT_LANGUAGE);
       }, []);
@@ -5188,6 +5198,11 @@
       // leaving a language is a deliberate act.
       useEffect(() => {
         if (authLoading || loadingLangs) return;
+        // Mid-recovery there is nothing to resume into yet. This effect reads
+        // preferred_language_id over the network and only then calls
+        // selectLanguage, so it lands about a second after the form renders —
+        // long enough to see the form and not to use it.
+        if (recoveryPending) { setResumeChecked(true); return; }
         // Signed out, or nothing to resume into: the question is answered, and
         // the answer is the landing page.
         if (!currentUser || !languages.length) { setResumeChecked(true); return; }
@@ -5208,7 +5223,7 @@
           finally { if (!cancelled) setResumeChecked(true); }
         })();
         return () => { cancelled = true; };
-      }, [authLoading, loadingLangs, currentUser?.id, languages.length, selectedLang?.id]);
+      }, [authLoading, loadingLangs, currentUser?.id, languages.length, selectedLang?.id, recoveryPending]);
 
       // Views that belong to a signed-in learner. Home shows their streak, XP
       // and next lesson; signed out there is nothing there to show. The app
@@ -5220,11 +5235,25 @@
         setSelectedLang(lang);
         setHomeSection("home");
         rememberLanguage(lang);
+        // Mid-recovery, nothing may move the learner off the reset form. Every
+        // automatic navigation on boot funnels through here — the boot-language
+        // hint, the profile resume, the single-language shortcut — so the latch
+        // belongs at the destination rather than on each caller, which would
+        // mean finding all of them and staying right about that forever.
+        // The language still loads; only the view is held.
+        if (recoveryPendingRef.current) {
+          loadLanguageData(lang);
+          return;
+        }
         // Checked only once the session has resolved: `authLoading` is still
         // true on a cold load, and treating "not known yet" as "signed out"
         // would bounce a returning learner to the login page.
         if (!authLoading && !currentUser) requireAuth("home");
         else setView("home");
+        loadLanguageData(lang);
+      };
+
+      const loadLanguageData = async (lang) => {
         // Load stats for this language
         try {
           const wc = await supaCount("words", `language_id=eq.${lang.id}`);
@@ -5321,6 +5350,10 @@
           if (error) throw error;
           setAuthPassword(""); setAuthPasswordConfirm("");
           recoveryRouted.current = false;
+          // Released before navigating, so the resume paths guarded above are
+          // free to run again — this is the one navigation recovery wants.
+          recoveryPendingRef.current = false;
+          setRecoveryPending(false);
           setAuthMode("login");
           const remembered = readLastLanguage();
           const target = (remembered && languages.find(item => item.id === remembered.id))

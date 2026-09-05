@@ -20,22 +20,36 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/rest/v1/languages?*", route => route.fulfill({
     status: 200, contentType: "application/json", body: JSON.stringify(languages),
   }));
+  // The async resume reads this and then calls selectLanguage. Returning a real
+  // preferred language is what arms the navigation these tests must survive.
+  await page.route("**/rest/v1/profiles*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({ user_id: "00000000-0000-0000-0000-000000000001", preferred_language_id: 1 }),
+  }));
   await page.route("**/rest/v1/**", route => route.fulfill({
     status: 200, contentType: "application/json",
     headers: { "content-range": "0-0/2337" }, body: "[]",
   }));
 });
 
-async function seedSession(page) {
-  await page.addInitScript(({ ref }) => {
+// A returning learner — a session AND a remembered language — is the state that
+// actually breaks. Both boot hints fire a resume that ends at selectLanguage,
+// which lands on home. Seeding only the session (as the first version of this
+// file did) leaves those paths dormant and the bug invisible.
+async function seedSession(page, { rememberLanguage = true } = {}) {
+  await page.addInitScript(({ ref, rememberLanguage }) => {
     try {
       localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({
         access_token: "seeded", token_type: "bearer", expires_in: 3600,
         expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: "seeded",
         user: { id: "00000000-0000-0000-0000-000000000001", email: "test@example.com" },
       }));
+      if (rememberLanguage) {
+        localStorage.setItem("monoko_last_language",
+          JSON.stringify({ id: 1, name: "Lingala", wordCount: 2337 }));
+      }
     } catch (error) { /* storage blocked — the assertion will say so */ }
-  }, { ref: PROJECT_REF });
+  }, { ref: PROJECT_REF, rememberLanguage });
 }
 
 test("a recovery link asks for a new password instead of logging you in", async ({ page }) => {
@@ -57,6 +71,14 @@ test("a recovery link asks for a new password instead of logging you in", async 
 
   // A recovery token in the address bar is worth as much as the password it sets.
   expect(await page.evaluate(() => window.location.hash)).toBe("");
+
+  // It must still be here. The first fix rendered the form and then let the
+  // resume paths redirect over it about a second later: visible long enough to
+  // read, not long enough to type a password into.
+  await page.waitForTimeout(4000);
+  await expect(page.getByRole("heading", { name: "Choisissez un nouveau mot de passe" })).toBeVisible();
+  await expect(page.locator(".m-home")).toHaveCount(0);
+  await expect(page.locator(".m-auth-form input[type=password]")).toHaveCount(2);
 });
 
 test("a mismatched confirmation is refused before any call is made", async ({ page }) => {
