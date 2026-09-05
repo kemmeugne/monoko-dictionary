@@ -53,14 +53,21 @@ sits at `p=none` while the new sender warms up.
 **The map is the language selector.** A second "Un point de départ" directory
 listed the same languages the map already offers, and on a phone it pushed the
 only thing that says *Africa* off screen. It is gone; the map markers and tabs
-select, and the caption under the tabs names the selection.
+select, and the caption under the tabs carries that language's name, family,
+speaker count, description and regions.
 
-**The hero map fits the continent, it does not sit at a fixed zoom.** Zoom 5 on a
-390px phone frames Chad and the Congo basin, which says nothing. It now
-`fitBounds` on Africa and re-fits on resize, with **`zoomSnap: 0`** — the exact
-fit is fractional (~2.9 at 390px) and rounding down to 3 pulls in Greenland. For
-the same reason `flyTo` is disabled on the immersive hero: one tab tap would zoom
-back to 5 and undo it.
+**The dictionary is a permanent section of the landing page**, not something a
+visitor summons. It used to mount only on click, which hid the one screen usable
+without an account — and it is the SEO and goodwill engine per
+`PHASE3_LAUNCH_PLAN.md`. The buttons now scroll to it and set which language it
+opens on; its close button renders only when an `onClose` is passed.
+
+**The hero map opens on the selected language's region and flies between them.**
+Lingala opens over the Congo, tapping Yoruba travels to Nigeria, both at zoom 5.
+A continent-wide `fitBounds` was tried and reverted: it does show all of Africa,
+but a 1:2 portrait phone cannot hold a roughly square continent without filling
+the spare height with Europe, and the result read as a world map rather than a
+place. Travelling between regions is the point of having a map here.
 
 **Basemap is Esri Light Gray Canvas, and the reason matters.** CARTO's
 `light_all` began requiring an API key — but it does not fail. It answers **200

@@ -214,16 +214,8 @@
           const map = L.map(mapRef.current, {
             center: immersive ? [1, 17] : [3, 15],
             zoom: immersive ? 5 : 4,
-            // The hero fits the continent with fitBounds below, and on a 390px
-            // phone that lands under the old floor of 3 — which is why a fixed
-            // zoom showed Chad and the Congo basin instead of Africa.
-            minZoom: immersive ? 2 : 3,
+            minZoom: 3,
             maxZoom: 8,
-            // Leaflet snaps fitBounds to whole zoom levels by default, and the
-            // hero needs the fractional one: for Africa on a 390px phone the
-            // exact fit is ~2.9, and rounding it down to 2 pulls Greenland and
-            // half of Europe into frame.
-            zoomSnap: immersive ? 0 : 1,
             zoomControl: !immersive,
             // Esri's terms require the credit, so this stays on even for the
             // decorative hero. CSS keeps it to a whisper.
@@ -251,21 +243,6 @@
 
           // Drop the "Leaflet" flag; keep only the credit Esri actually requires.
           map.attributionControl.setPrefix('');
-
-          // The hero map has to READ as Africa, and a fixed centre/zoom cannot
-          // do that across viewports: zoom 5 fills a 390px phone with Chad and
-          // the Congo basin, which says nothing. Fit the continent instead and
-          // re-fit on resize, so the shape is right at every width.
-          if (immersive) {
-            const AFRICA = L.latLngBounds([[-36, -19], [38, 53]]);
-            const fitAfrica = () => {
-              map.invalidateSize({ animate: false });
-              map.fitBounds(AFRICA, { padding: [6, 6], animate: false });
-            };
-            fitAfrica();
-            window.addEventListener('resize', fitAfrica);
-            map.__monokoFit = fitAfrica;
-          }
 
           mapInstanceRef.current = map;
 
@@ -335,9 +312,6 @@
 
         return () => {
           if (mapInstanceRef.current) {
-            if (mapInstanceRef.current.__monokoFit) {
-              window.removeEventListener('resize', mapInstanceRef.current.__monokoFit);
-            }
             mapInstanceRef.current.remove();
             mapInstanceRef.current = null;
           }
@@ -348,11 +322,10 @@
       useEffect(() => {
         if (!mapInstanceRef.current || !selectedMapLang) return;
         const geo = LANG_GEO[selectedMapLang];
-        // Not on the hero: flying to zoom 5 would undo the continent fit on the
-        // first tab tap and put the phone back to looking at one country. The
-        // marker highlight below and the caption under the tabs carry the
-        // selection there instead.
-        if (geo && !immersive) {
+        // The hero flies too. Opening on the selected language's region — Congo
+        // for Lingala — and travelling to the next one when a tab is tapped is
+        // the point of having a map here, not a side effect to suppress.
+        if (geo) {
           mapInstanceRef.current.flyTo(geo.center, 5, { duration: 1 });
         }
 
@@ -3980,7 +3953,7 @@
             <div className="m-kicker"><span>Libre d'accès</span></div>
             <h2>Dictionnaire</h2>
           </div>
-          <button className="m-landing-dict-close" onClick={onClose} aria-label="Fermer le dictionnaire"><UiIcon name="close"/></button>
+          {onClose && <button className="m-landing-dict-close" onClick={onClose} aria-label="Fermer le dictionnaire"><UiIcon name="close"/></button>}
         </header>
 
         {languages.length > 1 && <div className="m-landing-dict-langs">
@@ -4042,6 +4015,11 @@
     }
 
     function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, currentUser }) {
+      // The dictionary is always on the page. It was mounted only on click,
+      // so the one screen a visitor can use without an account was invisible
+      // until they went looking for it — and it is the SEO and goodwill engine
+      // per PHASE3_LAUNCH_PLAN.md. The buttons now scroll to it and set which
+      // language it opens on.
       const [dictionaryFor, setDictionaryFor] = useState(null);
       const openDictionary = language => {
         setDictionaryFor(language || languages[0] || null);
@@ -4088,6 +4066,8 @@
                 <strong>{selectedName}</strong>
                 <span>{geo.family} · {geo.speakers} de locuteurs</span>
               </span>
+              {geo.description && <p className="m-landing-map-blurb">{geo.description}</p>}
+              {geo.regions?.length > 0 && <p className="m-landing-map-regions">{geo.regions.join(" · ")}</p>}
               {selectedLanguage && <button onClick={() => openLanguage(selectedLanguage)}>Apprendre {selectedName}<UiIcon name="arrow"/></button>}
             </div>
           </div>
@@ -4099,11 +4079,14 @@
             thing that says "Africa" off a phone screen. The map is the selector;
             the dictionary is reachable from the hero and switches language from
             inside. */}
+        {languages.length > 0 && <LandingDictionary
+          languages={languages}
+          initialLanguage={dictionaryFor || lingala || languages[0]}
+        />}
+
         <footer className="m-landing-foot">
           <span>Le dictionnaire est libre d'accès. Les cours demandent un compte.</span>
         </footer>
-
-        {dictionaryFor && <LandingDictionary languages={languages} initialLanguage={dictionaryFor} onClose={() => setDictionaryFor(null)}/>}
       </div>;
     }
 

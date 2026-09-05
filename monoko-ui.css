@@ -536,12 +536,14 @@ button.m-chip { cursor: pointer; }
 /* Selected language as one line under the tabs. The card this replaces was
    ~110px tall on a phone — the height the map needed to read as a continent. */
 .m-landing-map-picker { display: grid; gap: 10px; }
-.m-landing-map-caption { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 13px; border-radius: 8px; background: rgba(255,255,255,.92); box-shadow: inset 0 0 0 1px var(--m-line); }
+.m-landing-map-caption { display: grid; gap: 7px; padding: 12px 14px; border-radius: 8px; background: rgba(255,255,255,.94); box-shadow: inset 0 0 0 1px var(--m-line); }
 .m-landing-map-facts { min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 9px; }
 .m-landing-map-facts strong { font: 800 17px "Playfair Display", serif; }
 .m-landing-map-facts > span { color: var(--m-muted); font: 500 11px "DM Sans", sans-serif; }
-.m-landing-map-caption > button { min-height: 40px; margin-left: auto; padding: 0 14px; border: 0; border-radius: 7px; display: inline-flex; align-items: center; gap: 7px; background: var(--m-forest); color: #fff; font: 700 12px "DM Sans", sans-serif; cursor: pointer; }
+.m-landing-map-caption > button { min-height: 42px; justify-self: start; margin-top: 2px; padding: 0 15px; border: 0; border-radius: 7px; display: inline-flex; align-items: center; gap: 7px; background: var(--m-forest); color: #fff; font: 700 12px "DM Sans", sans-serif; cursor: pointer; }
 .m-landing-map-caption > button .m-ui-icon { width: 15px; height: 15px; }
+.m-landing-map-blurb { margin: 0; color: var(--m-ink); font-size: 12px; line-height: 1.5; }
+.m-landing-map-regions { margin: 0; color: var(--m-muted); font: 500 10px "DM Mono", monospace; }
 .m-landing-foot { padding: 18px 16px calc(22px + env(safe-area-inset-bottom)); color: var(--m-muted); font-size: 12px; font-style: italic; text-align: center; }
 /* Esri requires the credit; it must not compete with the hero. */
 .m-language-map .leaflet-control-attribution { background: rgba(255,255,255,.55); color: var(--m-muted); font: 500 9px "DM Sans", sans-serif; padding: 1px 5px; }
