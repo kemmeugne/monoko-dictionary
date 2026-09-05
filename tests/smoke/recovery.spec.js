@@ -105,6 +105,30 @@ test("setting the password signs you out and asks you to log in with it", async 
   await expect(page.getByRole("heading", { name: "Choisissez un nouveau mot de passe" })).toHaveCount(0);
 });
 
+test("a failed global sign-out is visible and the recovery session is cleared locally", async ({ page }) => {
+  await page.unroute("**/auth/v1/logout*");
+  await page.route("**/auth/v1/logout*", route => {
+    const scope = new URL(route.request().url()).searchParams.get("scope");
+    return route.fulfill(scope === "global"
+      ? { status: 503, contentType: "application/json", body: JSON.stringify({ message: "unavailable" }) }
+      : { status: 204, body: "" });
+  });
+
+  await page.goto("/" + FRAGMENT);
+  await expect(page.getByRole("heading", { name: "Choisissez un nouveau mot de passe" })).toBeVisible();
+  const inputs = page.locator(".m-auth-form input[type=password]");
+  await inputs.nth(0).fill("brandnew123");
+  await inputs.nth(1).fill("brandnew123");
+  await page.locator(".m-auth-submit").click();
+
+  await expect(page.locator(".m-auth-message:not(.ok)"))
+    .toContainText("impossible de fermer toutes les sessions");
+  await expect(page.locator(".m-auth-submit")).toHaveText(/Se connecter/);
+  await page.reload();
+  await expect(page.locator(".m-home")).toHaveCount(0);
+  await expect(page.locator(".m-landing")).toBeVisible();
+});
+
 test("a mismatched confirmation is refused before any call is made", async ({ page }) => {
   await page.goto("/" + FRAGMENT);
   await expect(page.locator(".m-auth")).toBeVisible();
@@ -126,6 +150,19 @@ test("a link with no valid session does not drop the visitor into the app", asyn
     status: 401, contentType: "application/json", body: JSON.stringify({ message: "invalid token" }),
   }));
   await page.goto("/" + FRAGMENT);
-  await page.waitForTimeout(3000);
+  await expect(page.getByRole("heading", { name: "Ce lien n'est plus valide" })).toBeVisible();
   await expect(page.locator(".m-home")).toHaveCount(0);
+});
+
+test("an expired callback explains the problem and removes the error URL", async ({ page }) => {
+  await page.goto("/#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+
+  await expect(page.getByRole("heading", { name: "Ce lien n'est plus valide" })).toBeVisible();
+  await expect(page.locator(".m-landing, .m-home")).toHaveCount(0);
+  expect(await page.evaluate(() => window.location.hash)).toBe("");
+  expect(await page.evaluate(() => window.location.search)).toBe("");
+
+  await page.getByRole("button", { name: "Demander un nouveau lien" }).click();
+  await expect(page.getByRole("heading", { name: "Mot de passe oublié" })).toBeVisible();
+  await expect(page.locator('.m-auth-form input[type="email"]')).toBeVisible();
 });

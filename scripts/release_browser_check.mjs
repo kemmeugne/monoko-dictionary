@@ -136,8 +136,8 @@ await send("Page.addScriptToEvaluateOnNewDocument", {
 await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
 await send("Page.navigate", { url: APP_URL });
 
-await waitFor(`[...document.querySelectorAll("button")].some(button => button.textContent.includes("Français") && button.textContent.includes("Lingala"))`, "Lingala language button");
-await clickByText("button", "Français");
+await waitFor(`document.querySelector(".m-landing-actions .primary")`, "Lingala course button");
+await evaluate(`document.querySelector(".m-landing-actions .primary").click()`);
 // Signed out, a language now opens the login page rather than an empty home:
 // home shows a streak, XP and a next lesson, none of which exist without a
 // learner. Sign in first, then assert home.

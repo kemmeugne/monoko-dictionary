@@ -119,12 +119,21 @@ its callers: every automatic navigation funnels through it, so guarding the
 destination cannot be defeated by a caller nobody remembered. The language data
 still loads; only the view is held.
 
-**A completed reset revokes every session, not just this one.** The `signOut()`
-after `updateUser` issues `POST /auth/v1/logout?scope=global` — supabase-js
-defaults to global — so a learner who resets because they think someone knows
-their password actually evicts them. That is the whole point of a reset, and it
-is worth knowing the default rather than assuming it: `scope: 'local'` would
-leave the other session alive and the reset would be theatre.
+**A completed reset explicitly requests global sign-out and verifies it.** The
+`signOut({ scope: "global" })` after `updateUser` revokes the account's refresh
+tokens. Already-issued access-token JWTs remain valid until their normal expiry,
+so do not describe this as instantaneous revocation of every access token. If
+global sign-out fails, the app attempts local sign-out, clears its stored auth
+token as a last resort, and shows a warning instead of claiming that every
+session was closed.
+
+**An expired or already-used auth link gets its own screen.** Supabase redirects
+these visits with `error`, `error_code` and `error_description` instead of a
+session. `AUTH_CALLBACK_ERROR` routes that shape to `link_error`, removes the
+error fragment/query from browser history, and offers a new reset link. A
+`type=recovery` URL whose token exchange produces no session lands on the same
+screen; it must never claim "Votre lien est valide" or fall through to the
+marketing landing page.
 
 The failure this replaced was not an access-control hole — the link goes to the
 owner's inbox, and whoever reads that inbox can take the account anyway. It was
@@ -676,7 +685,7 @@ both hard-refuse to run unless pointed at that exact test project ref.
 
 - Credentials live in `.env.test` (gitignored) — copy `.env.test.example`
   and fill in real values, or ask for them.
-- `npm test` — Vitest, **310 tests, no network calls, fully mocked**. Covers
+- `npm test` — Vitest, **317 tests, no network calls, fully mocked**. Covers
   every `api/*.js` handler plus the exercise engine: the tokenizer, the
   exercise builders, the audio hand-off and the progression maths (SM-2,
   streaks, medals, levels). Engine tests slice the code out of
@@ -698,7 +707,11 @@ both hard-refuse to run unless pointed at that exact test project ref.
   section, grep `tests/smoke/` for its class names first.
 - `npm run test:browser` — Chromium smoke tests against the compiled `dist/`
   artifact at desktop, 390px and 320px. Authenticated coverage uses monoko-test
-  credentials only.
+  credentials only. The separate `authenticated-smoke` CI job runs the complete
+  desktop authenticated spec against the locally built commit on pull requests
+  and pushes to `main`. Missing secrets may skip a pull-request run, but fail a
+  `main` push: production changes cannot report a green gate with no authenticated
+  coverage.
 - `npm run verify:security:test` — trusted session receipt, direct-XP denial,
   private corrections, fixed country and durable quota against monoko-test.
 - `npm run verify:progression` — the Slice 7 write path end to end against

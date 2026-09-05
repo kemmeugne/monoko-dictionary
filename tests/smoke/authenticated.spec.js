@@ -1,9 +1,16 @@
 import { test, expect } from "@playwright/test";
 
+const testSupabaseUrl = process.env.TEST_SUPABASE_URL || process.env.SUPABASE_URL;
+const testSupabaseAnonKey = process.env.TEST_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 const credentialsPresent = Boolean(
-  process.env.TEST_SUPABASE_URL && process.env.TEST_SUPABASE_ANON_KEY &&
+  testSupabaseUrl && testSupabaseAnonKey &&
   process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD
 );
+
+async function openLingalaCourse(page) {
+  const landingActions = page.locator(".m-landing-actions");
+  await landingActions.getByRole("button", { name: /Apprendre le lingala/i }).click();
+}
 
 async function resetDeveloperBoundary(page) {
   const rewardLater = page.locator(".m-trail-reward-modal button", { hasText: "Plus tard" });
@@ -27,12 +34,12 @@ test.describe("authenticated learner", () => {
     await page.addInitScript(({ url, key }) => {
       window.__MONOKO_SUPABASE_URL__ = url;
       window.__MONOKO_SUPABASE_KEY__ = key;
-    }, { url: process.env.TEST_SUPABASE_URL, key: process.env.TEST_SUPABASE_ANON_KEY });
+    }, { url: testSupabaseUrl, key: testSupabaseAnonKey });
   });
 
   test("learner can enter home, trail and a lesson", async ({ page }) => {
     await page.goto("/");
-    await page.locator(".m-language-entry", { hasText: "Lingala" }).click();
+    await openLingalaCourse(page);
     await expect(page.locator(".m-auth-card")).toBeVisible();
     await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
     await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
@@ -74,7 +81,7 @@ test.describe("authenticated learner", () => {
     });
 
     await page.goto("/");
-    await page.locator(".m-language-entry", { hasText: "Lingala" }).click();
+    await openLingalaCourse(page);
     await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
     await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
     await page.locator(".m-auth-submit").click();
@@ -93,7 +100,7 @@ test.describe("authenticated learner", () => {
     test.skip(testInfo.project.name !== "desktop", "One shared test account mutates progression only once");
 
     await page.goto("/");
-    await page.locator(".m-language-entry", { hasText: "Lingala" }).click();
+    await openLingalaCourse(page);
     await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
     await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
     await page.locator(".m-auth-submit").click();

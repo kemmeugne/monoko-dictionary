@@ -1,8 +1,8 @@
 # Tests
 
 Status: all five sessions in `HARNESS_SPRINT.md` are implemented. The local
-compiled and authenticated smoke runs are green; the first Vercel-preview CI
-run still needs to be observed.
+compiled and authenticated smoke runs are green. CI tests the compiled commit
+locally, so it does not race a Vercel preview deployment.
 
 ## Running the unit tests
 
@@ -46,10 +46,18 @@ unsliced UI is covered by `npm run verify` before deployment.
 
 `tests/smoke/landing.spec.js` verifies the public landing, map, CTA and horizontal
 containment. `tests/smoke/authenticated.spec.js` signs into monoko-test and opens
-home, the course trail and a lesson preview. Playwright runs both against the
-compiled `dist/` artifact at 1440px, 390px and 320px. The authenticated test is
-skipped unless `TEST_SUPABASE_URL`, `TEST_SUPABASE_ANON_KEY`,
-`TEST_USER_EMAIL` and `TEST_USER_PASSWORD` are present.
+home, the course trail and a lesson preview, verifies reload routing, and tests
+developer progression simulation. Playwright runs against the compiled `dist/`
+artifact at 1440px, 390px and 320px. The authenticated spec is skipped locally
+unless `TEST_SUPABASE_URL`, `TEST_SUPABASE_ANON_KEY`, `TEST_USER_EMAIL` and
+`TEST_USER_PASSWORD` are present. Locally, the URL/key also fall back to the
+`SUPABASE_URL` and `SUPABASE_ANON_KEY` names already used by `.env.test`. CI runs its complete desktop project in a
+separate job; a pull request may skip when secrets are unavailable, while a push
+to `main` fails if any authenticated-smoke secret is missing.
+
+`tests/smoke/recovery.spec.js` covers valid reset links, expired/error callbacks,
+invalid recovery sessions, password confirmation, successful global sign-out,
+and the visible local-cleanup fallback when global sign-out fails.
 
 `scripts/verify_security_hardening.mjs` is the real-database security check. It
 hard-refuses any project except monoko-test and verifies the trusted session RPC,

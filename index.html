@@ -95,6 +95,20 @@
       return false;
     }
 
+    function clearStoredSession() {
+      // Last-resort local cleanup when Supabase cannot reach its logout
+      // endpoint. Keep this scoped to this project's auth-token keys; learner
+      // preferences and unrelated application storage must survive.
+      try {
+        const keys = [];
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index) || "";
+          if (/^sb-.+-auth-token$/.test(key)) keys.push(key);
+        }
+        keys.forEach(key => localStorage.removeItem(key));
+      } catch (error) { /* storage blocked - React state still closes the app */ }
+    }
+
     function readLastLanguage() {
       try {
         const stored = JSON.parse(localStorage.getItem(LAST_LANGUAGE_KEY) || "null");
@@ -121,9 +135,23 @@
     const AUTH_CALLBACK = (() => {
       try {
         const query = new URLSearchParams(window.location.search);
-        return /(?:^|[#&])(access_token|refresh_token|error_description)=/.test(window.location.hash || "")
-          || query.has("code") || query.has("error_description");
+        return /(?:^|[#&])(access_token|refresh_token|error|error_description)=/.test(window.location.hash || "")
+          || query.has("code") || query.has("error") || query.has("error_description");
       } catch (error) { return false; }
+    })();
+
+    const AUTH_CALLBACK_ERROR = (() => {
+      try {
+        const query = new URLSearchParams(window.location.search);
+        const fragment = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
+        const description = fragment.get("error_description") || query.get("error_description");
+        const name = fragment.get("error") || query.get("error");
+        if (!description && !name) return null;
+        return {
+          code: fragment.get("error_code") || query.get("error_code") || name || "auth_callback_error",
+          description: description || "Le lien d'authentification n'est plus valide.",
+        };
+      } catch (error) { return null; }
     })();
 
     // A recovery link is a callback too, but it must NOT be treated like one:
@@ -4642,15 +4670,19 @@
       // nothing to sign in with and no e-mail to re-enter — only a password to
       // choose.
       const isRecover = mode === "recover";
+      const isLinkError = mode === "link_error";
       const submit = event => {
         event.preventDefault();
         if (isRecover) onRecover();
         else if (isForgot) onForgot();
         else onSubmit();
       };
-      const title = isRecover ? "Choisissez un nouveau mot de passe"
+      const title = isLinkError ? "Ce lien n'est plus valide"
+        : isRecover ? "Choisissez un nouveau mot de passe"
         : isForgot ? "Mot de passe oublié" : isSignup ? "Créer un compte" : "Content de vous revoir";
-      const blurb = isRecover
+      const blurb = isLinkError
+        ? "Le lien a expiré ou a déjà été utilisé. Demandez-en un nouveau pour reprendre en toute sécurité."
+        : isRecover
         ? "Votre lien est valide. Choisissez le mot de passe qui protégera votre compte."
         : isForgot
         ? "Indiquez votre adresse e-mail. Nous vous enverrons un lien pour choisir un nouveau mot de passe."
@@ -4664,11 +4696,11 @@
             <span className="m-brand-mark">M</span><strong>Monɔkɔ</strong>
           </button>
 
-          <div className="m-kicker"><span>{isForgot || isRecover ? "Récupération" : "Votre espace"}</span></div>
+          <div className="m-kicker"><span>{isForgot || isRecover || isLinkError ? "Récupération" : "Votre espace"}</span></div>
           <h1>{title}</h1>
           <p className="m-auth-blurb">{blurb}</p>
 
-          {returnTo && !isForgot && !isRecover && (
+          {returnTo && !isForgot && !isRecover && !isLinkError && (
             <p className="m-auth-gate">
               Un compte est requis pour accéder {returnTo === "chat" ? "aux conversations"
                 : returnTo === "live" ? "à la traduction en direct"
@@ -4678,14 +4710,14 @@
             </p>
           )}
 
-          {!isForgot && !isRecover && (
+          {!isForgot && !isRecover && !isLinkError && (
             <div className="m-auth-modes" role="tablist">
               <button role="tab" aria-selected={!isSignup} className={!isSignup ? "active" : ""} onClick={() => onMode("login")}>Se connecter</button>
               <button role="tab" aria-selected={isSignup} className={isSignup ? "active" : ""} onClick={() => onMode("signup")}>Créer un compte</button>
             </div>
           )}
 
-          <form className="m-auth-form" onSubmit={submit}>
+          {!isLinkError && <form className="m-auth-form" onSubmit={submit}>
             {isSignup && (
               <label className="m-field">
                 <span>Prénom</span>
@@ -4744,11 +4776,16 @@
             <button className="m-auth-submit" type="submit" disabled={submitting}>
               {submitting ? "Un instant…" : isRecover ? "Enregistrer le mot de passe" : isForgot ? "Envoyer le lien" : isSignup ? "Créer mon compte" : "Se connecter"}
             </button>
-          </form>
+          </form>}
+
+          {isLinkError && <div className="m-auth-form">
+            <button className="m-auth-submit" type="button" onClick={() => onMode("forgot")}>Demander un nouveau lien</button>
+          </div>}
 
           <div className="m-auth-links">
-            {!isForgot && !isSignup && !isRecover && <button onClick={() => onMode("forgot")}>Mot de passe oublié ?</button>}
+            {!isForgot && !isSignup && !isRecover && !isLinkError && <button onClick={() => onMode("forgot")}>Mot de passe oublié ?</button>}
             {isForgot && <button onClick={() => onMode("login")}>Retour à la connexion</button>}
+            {isLinkError && <button onClick={() => onMode("login")}>Retour à la connexion</button>}
             <button onClick={onLanding}>Découvrir Monɔkɔ</button>
           </div>
         </div>
@@ -4930,7 +4967,7 @@
       // A recovery link opens on the reset form, not on the app. With a stored
       // session the initial view was "home", so the form could only ever appear
       // after a redirect — visible for a moment, then gone.
-      const [view, setView] = useState(AUTH_RECOVERY ? "auth" : BOOT_LANGUAGE ? "home" : "lang_select");
+      const [view, setView] = useState(AUTH_RECOVERY || AUTH_CALLBACK_ERROR ? "auth" : BOOT_LANGUAGE ? "home" : "lang_select");
       const [homeSection, setHomeSection] = useState("home");
       const [query, setQuery] = useState("");
       const [searchMode, setSearchMode] = useState("french");
@@ -4999,13 +5036,13 @@
       // Whether "where does this visitor belong" has an answer yet. Until it
       // does, a visitor we expect to be signed in waits on a splash rather than
       // on the landing page they are about to be moved off.
-      const [resumeChecked, setResumeChecked] = useState(!BOOT_SESSION || AUTH_RECOVERY);
+      const [resumeChecked, setResumeChecked] = useState(!BOOT_SESSION || AUTH_RECOVERY || !!AUTH_CALLBACK_ERROR);
       // Held until the password is actually set. Every automatic navigation in
       // the app ends at selectLanguage, which lands on home; during a recovery
       // that silently throws the learner past the one form they came for.
-      const [recoveryPending, setRecoveryPending] = useState(AUTH_RECOVERY);
+      const [recoveryPending, setRecoveryPending] = useState(AUTH_RECOVERY || !!AUTH_CALLBACK_ERROR);
       // Read from async callbacks that captured an older render's value.
-      const recoveryPendingRef = useRef(AUTH_RECOVERY);
+      const recoveryPendingRef = useRef(AUTH_RECOVERY || !!AUTH_CALLBACK_ERROR);
       useEffect(() => { recoveryPendingRef.current = recoveryPending; }, [recoveryPending]);
       const [bootTimedOut, setBootTimedOut] = useState(false);
       const [profileSaving, setProfileSaving] = useState(false);
@@ -5029,7 +5066,7 @@
       // Auth
       const [currentUser, setCurrentUser] = useState(null);
       const [authLoading, setAuthLoading] = useState(true);
-      const [authMode, setAuthMode] = useState(AUTH_RECOVERY ? "recover" : "login"); // "login" | "signup" | "forgot" | "recover"
+      const [authMode, setAuthMode] = useState(AUTH_CALLBACK_ERROR ? "link_error" : AUTH_RECOVERY ? "recover" : "login"); // "login" | "signup" | "forgot" | "recover" | "link_error"
       const [authEmail, setAuthEmail] = useState("");
       const [authPassword, setAuthPassword] = useState("");
       const [authDisplayName, setAuthDisplayName] = useState("");
@@ -5074,7 +5111,7 @@
       // the chooser would have run — home fills in with its stats and word of
       // the day instead of painting empty.
       useEffect(() => {
-        if (!BOOT_LANGUAGE || AUTH_RECOVERY) return;
+        if (!BOOT_LANGUAGE || AUTH_RECOVERY || AUTH_CALLBACK_ERROR) return;
         resumedLanguageRef.current = true;
         selectLanguage(BOOT_LANGUAGE);
       }, []);
@@ -5303,7 +5340,7 @@
         // it means "let me set a password", not "put me in the app". Sending
         // that visitor home logs them in and never asks for the password they
         // came to change. handleRecoveryLink below owns this case.
-        if (AUTH_RECOVERY) return;
+        if (AUTH_RECOVERY || AUTH_CALLBACK_ERROR) return;
         if (!currentUser || !languages.length) return;
         authCallbackDone.current = true;
         // Strip the tokens from the address bar: leaving them there means a
@@ -5321,6 +5358,9 @@
       // check covers the case where the session resolves before this listener
       // is attached. Either way the learner lands on the form, not the app.
       const recoveryRouted = useRef(false);
+      const cleanAuthCallbackUrl = viewName => {
+        try { window.history.replaceState({ monokoView: viewName }, "", window.location.pathname); } catch (error) {}
+      };
       const routeToRecovery = () => {
         if (recoveryRouted.current) return;
         recoveryRouted.current = true;
@@ -5329,13 +5369,28 @@
         setView("auth");
         // Drop the tokens from the address bar: a recovery token in history is
         // worth as much as the password it sets.
-        try { window.history.replaceState({ monokoView: "auth" }, "", window.location.pathname); } catch (error) {}
+        cleanAuthCallbackUrl("auth");
+      };
+      const routeToAuthLinkError = () => {
+        if (recoveryRouted.current) return;
+        recoveryRouted.current = true;
+        recoveryPendingRef.current = true;
+        setRecoveryPending(true);
+        setAuthMode("link_error");
+        setAuthPassword(""); setAuthPasswordConfirm(""); setAuthError("");
+        setView("auth");
+        cleanAuthCallbackUrl("auth");
       };
 
       useEffect(() => {
+        if (AUTH_CALLBACK_ERROR) {
+          routeToAuthLinkError();
+          return;
+        }
         if (!AUTH_RECOVERY) return;
         if (currentUser) routeToRecovery();
-      }, [currentUser]);
+        else if (!authLoading) routeToAuthLinkError();
+      }, [currentUser, authLoading]);
 
       const completePasswordReset = async () => {
         setAuthError("");
@@ -5361,13 +5416,33 @@
           // `recoveryRouted` deliberately stays true. It means "this page load
           // has already handled its recovery link"; clearing it would send the
           // learner straight back to the reset form the moment they sign in.
-          try { await supabaseClient.auth.signOut(); } catch (signOutError) { /* the password is already changed */ }
+          let globalSignOutError = null;
+          try {
+            const { error } = await supabaseClient.auth.signOut({ scope: "global" });
+            if (error) throw error;
+          } catch (error) {
+            globalSignOutError = error;
+            console.error("global signOut after password reset:", error);
+            // The password has already changed. At minimum, prevent this
+            // browser from resuming the recovery session while clearly telling
+            // the learner that revoking the other sessions did not complete.
+            try {
+              const { error: localError } = await supabaseClient.auth.signOut({ scope: "local" });
+              if (localError) throw localError;
+            } catch (localError) {
+              console.error("local signOut fallback after password reset:", localError);
+              clearStoredSession();
+              setCurrentUser(null);
+            }
+          }
 
           recoveryPendingRef.current = false;
           setRecoveryPending(false);
           setAuthMode("login");
           setAuthEmail(address);
-          setAuthError("✓ Mot de passe mis à jour. Connectez-vous avec vos nouveaux identifiants.");
+          setAuthError(globalSignOutError
+            ? "Mot de passe modifié, mais impossible de fermer toutes les sessions. Demandez un nouveau lien de réinitialisation pour réessayer."
+            : "✓ Mot de passe mis à jour. Connectez-vous avec vos nouveaux identifiants.");
           setView("auth");
         } catch (error) {
           console.error("completePasswordReset:", error);
@@ -6025,6 +6100,27 @@
         setAuthMode("login");
         setAuthEmail(""); setAuthPassword(""); setAuthPasswordConfirm(""); setAuthDisplayName(""); setAuthPseudonym(""); setAuthError(""); countryDetectedRef.current = false;
         setView("auth");
+      };
+
+      const changeAuthMode = mode => {
+        // Once the invalid-link screen has done its job, ordinary login and
+        // forgot-password navigation must no longer be held by the callback
+        // guard that protected that screen during boot.
+        if (authMode === "link_error") {
+          recoveryPendingRef.current = false;
+          setRecoveryPending(false);
+        }
+        setAuthError("");
+        setAuthMode(mode);
+      };
+
+      const leaveAuthForLanding = () => {
+        if (authMode === "link_error") {
+          recoveryPendingRef.current = false;
+          setRecoveryPending(false);
+        }
+        setAuthError("");
+        setView("lang_select");
       };
 
       const openChat = () => {
@@ -7598,10 +7694,10 @@
                 mode={authMode} email={authEmail} password={authPassword} passwordConfirm={authPasswordConfirm}
                 displayName={authDisplayName} pseudonym={authPseudonym} country={authCountry}
                 error={authError} submitting={authSubmitting} returnTo={authReturnTo}
-                onMode={setAuthMode} onEmail={setAuthEmail} onPassword={setAuthPassword} onPasswordConfirm={setAuthPasswordConfirm}
+                onMode={changeAuthMode} onEmail={setAuthEmail} onPassword={setAuthPassword} onPasswordConfirm={setAuthPasswordConfirm}
                 onDisplayName={setAuthDisplayName} onPseudonym={setAuthPseudonym} onCountry={setAuthCountry}
                 onSubmit={handleAuthSubmit} onRecover={completePasswordReset} onForgot={handleForgotPassword}
-                onLanding={() => { setAuthError(""); setView("lang_select"); }}
+                onLanding={leaveAuthForLanding}
               />
             )}
 
