@@ -30,6 +30,25 @@ Only two. Anything else is dead configuration:
 The app does not use magic links, invitations, e-mail change (the address is
 read-only in settings) or reauthentication.
 
+## Pasting one in
+
+The `.html` files are **pure template** — no instructions, no comments. Select
+all, paste into the Supabase body field, and **click Save changes**; the editor
+does not autosave, and an unsaved edit leaves the stock English template live
+while the field on screen shows yours.
+
+**Change the Subject too.** It is a separate field from the body and keeps its
+English default otherwise:
+
+| Template | Subject |
+| --- | --- |
+| Reset Password | `Réinitialisez votre mot de passe` |
+| Confirm signup | `Confirmez votre compte Monɔkɔ` |
+
+After saving, the editor's **preview** tab should show the branded design. If
+preview looks right but the delivered mail does not, the message was sent before
+the save — request another.
+
 ## Writing rules
 
 These are e-mails, not pages. The app's own CSS would collapse in most clients.
