@@ -445,6 +445,10 @@ sql/user_delete_cascade.sql       — makes profiles/user_progress FKs cascade s
                                     predate the convention every later table follows (applied 2026-09-05)
 DOMAIN_AND_EMAIL.md               — monoko.africa DNS zone, Supabase auth URLs, Resend SMTP, and the failure mode
                                     each one produces when wrong
+email_templates/                  — source of the Supabase auth e-mail templates, which otherwise live only in the
+                                    dashboard with no history. Confirm signup was branded and Reset Password was
+                                    not, and custom SMTP does not touch templates — the default English body went
+                                    out from the branded sender for weeks. Only two templates are ever sent
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
 liste_200_phrases.docx            — 200 phrase types across 19 themes used by monoko_auto_test.py
