@@ -472,6 +472,47 @@ change with a different risk profile.
 - All DB tables are `language_id`-keyed
 - RAG pipeline filters by `language_id`
 
+### Wolof — dictionary corpus complete and verified (2026-09-03)
+
+The Wolof dictionary corpus is **finished on the professor's side** and waiting on
+ingest. It is not in Supabase and Wolof is not a language in the app yet; nothing
+here blocks Phase 5 starting with Yoruba.
+
+**2 312 words · 2 338 senses · 7 010 recordings across 26 letters.** Two artefacts,
+both under `raw_data/Wolof/wolof_kassaydou/` (outside this repo):
+
+| Path | What it is |
+| --- | --- |
+| `merged_zip_files_final/` | 26 ZIPs, the exchange format — `data.json` + `audio/` |
+| `wolof_FINAL_2026-09-03/` | 26 playable HTML pages built from those ZIPs |
+
+**Merge at the ZIP layer, not in the HTML.** The August approved set was overlaid
+with the professor's second round: **195 clips replaced, 4 added, 5 text fixes,
+210 `needs_rerecord` cleared.** Pages were then rebuilt with the project's own
+`wolof_kassaydou/build_review_from_zip.py`. Hand-splicing `WORDS`/`PRELOADED`
+into existing HTML reaches the same numbers and is far more fragile.
+
+**All 117 outstanding recordings were verified, not assumed** — byte-compared
+against the originals, none identical. The per-letter flag counts sum to exactly
+the 336 in `A_REFAIRE_encore.md` (219 fixed in August + these 117), which is why
+every flag could be cleared rather than carried forward.
+
+**One trap to know before touching these files again.** `STORE_KEY` and `DB_NAME`
+are built from `LETTER + LANGUAGE` only, so every Wolof "A" page ever generated
+addresses the same `monoko_state_Wolof_A`, and `file://` shares that origin in
+Chrome. A page applies its own empty `SAVED_FLAGS`, then restores the previous
+session's flags over the top — a file containing zero flags displayed 92, which
+reads exactly like a failed merge. Namespace per build (`monoko_final20260903_`),
+in the visible source **and** inside the base64 shell, or the first save restores
+the shared keys. Verifying in a fresh browser profile is what hides this; open an
+old page for the same letter first.
+
+Five text corrections rode in with the audio. Four are typos; the fifth is not —
+L / *La* sense 1 had the example «Suuf si dafa mbege / La terre est ronde», about
+the earth being round and unrelated to the word. It is now «Xale bu jigeen bi
+mungi nii / La fille est là», and the new recording matches the new text. Merging
+audio without text would have left sound and text disagreeing.
+
 ---
 
 ## Future / not yet planned
