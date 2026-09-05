@@ -197,6 +197,7 @@ COURSE_TRAIL_PARITY.md            — production contract for every course-trail
 FREE_TIER_AND_CONVERSION_PLAN.md  — APPROVED product contract for free access, trial, Monoko Plus, paywall behavior, analytics events and experiment order
 populate_lesson_pool.py           — rebuilds the routed exercise pool; also owns the native-only curation rules so a rebuild cannot restore ambiguous prompts
 sql/native_content_cleanup.sql    — applies those native curation rules to the current pool without modifying professor lesson rows
+                                    (in effect in production: `npm run audit:native-content` clean, 2026-09-05)
 scripts/audit_native_content.mjs  — read-only production check for blanks, within-lesson duplicates, excluded prompts, example substitutions and expected audio gaps
 
 Phase 2 — the session, chat, live and dictionary (2026-08-24). The last of the
