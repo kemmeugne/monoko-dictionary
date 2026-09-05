@@ -45,7 +45,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         USER (Browser)                               │
-│              https://monoko-dictionary.vercel.app                    │
+│                   https://monoko.africa                              │
 └───────────────────────────┬─────────────────────────────────────────┘
                             │
               ┌─────────────▼──────────────────────────┐
@@ -1124,7 +1124,7 @@ Embeds the user query with OpenAI `text-embedding-3-small` (384 dim) and calls t
 
 ### `api/chat.js` — Vercel Serverless Function
 
-**URL**: `https://monoko-dictionary.vercel.app/api/chat`
+**URL**: `https://monoko.africa/api/chat`
 
 Proxies chat completions to OpenAI so the API key never touches the browser.
 
@@ -1164,7 +1164,7 @@ has no direct browser read or insert policy.
 
 ### `api/admin-action.js` — Vercel Serverless Function
 
-**URL**: `https://monoko-dictionary.vercel.app/api/admin-action`
+**URL**: `https://monoko.africa/api/admin-action`
 
 All write operations to Supabase go through here. Service role key lives in Vercel environment variables only.
 
@@ -1576,7 +1576,8 @@ Runbook for the full Lingala audio ingestion flow:
 ### Frontend — Vercel
 
 **Repo**: `https://github.com/kemmeugne/monoko-dictionary`
-**Live URL**: `https://monoko-dictionary.vercel.app`
+**Live URL**: `https://monoko.africa` (apex; `www` 308s to it; the
+`monoko-app.vercel.app` / `monoko-dictionary.vercel.app` aliases stay live)
 
 **Build and files served**:
 - `npm run build` — compiles source JSX and creates `dist/`

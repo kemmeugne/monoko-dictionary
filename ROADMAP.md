@@ -1,14 +1,15 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-08-24
+Last updated: 2026-08-31
 
 ---
 
 ## Current state
 
-Last full review: 2026-08-24.
+Last full review: 2026-08-27.
 
-**The product.** Live at https://monoko-dictionary.vercel.app. A public Lingala
+**The product.** Live at https://monoko.africa (moved from
+monoko-dictionary.vercel.app on 2026-09-04). A public Lingala
 dictionary with professor-verified audio, a 49-lesson CEFR curriculum (A1 → B2+)
 that is content-complete for Lingala, a six-type practice loop with XP, medals,
 streaks and SM-2 review, an opt-in weekly ranking, and a RAG-backed AI chat.

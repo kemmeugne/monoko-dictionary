@@ -76,6 +76,7 @@ const FILES = [
   "account_settings.sql",                 // optional profile fields + one-time unique pseudonym
   "pseudonym_availability.sql",           // anon-callable availability check (RLS hides profiles at signup)
   "security_hardening.sql",               // private corrections, quotas, immutable country, trusted XP
+  "user_delete_cascade.sql",              // profiles/user_progress FKs cascade, so a user can be deleted
 ];
 
 console.log(`Applying ${FILES.length} SQL files to test project (${ref})...\n`);

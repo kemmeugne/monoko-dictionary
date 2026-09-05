@@ -4,10 +4,87 @@
 
 Monɔkɔ is a multilingual dictionary and AI conversation app for African languages (Lingala, Yoruba). It combines a professor-verified dictionary, structured grammar courses, and an AI chat assistant backed by a pgvector RAG system on Supabase.
 
-**Live app**: https://monoko-dictionary.vercel.app
-**Admin panel**: https://monoko-dictionary.vercel.app/admin.html (password in Vercel env vars)
+**Live app**: https://monoko.africa (since 2026-09-04)
+**Admin panel**: https://monoko.africa/admin.html (password in Vercel env vars)
+
+`monoko-app.vercel.app` and `monoko-dictionary.vercel.app` stay live as aliases.
+`www.monoko.africa` 308s to the apex. `monoko.ca` is owned and still parked at
+GoDaddy. **Never hardcode any of them** — see the origin rule below.
 
 The frontend is a mobile-first responsive web app that will be wrapped with Capacitor and shipped to the App Store and Play Store. All UI work must follow the mobile-first rules below.
+
+---
+
+## Origins, domains and mail (2026-09-04)
+
+**Never hardcode the app's own origin.** `emailRedirectTo` used to be the literal
+`https://monoko-dictionary.vercel.app`, so the day the domain changed, every
+signup confirmation sent the new learner to the old host. Both auth redirects now
+use `` `${window.location.origin}/` ``, which is correct on the apex, on previews
+and on localhost with no per-environment configuration.
+
+That rule has one known exception ahead of it: **under Capacitor
+`window.location.origin` is `capacitor://localhost` (iOS) or `http://localhost`
+(Android)**, which is a dead confirmation link. The mobile wrap needs an explicit
+https URL or a deep link — this is right for web and wrong for native.
+
+**CORS lives in `api/_rate-limit.js`, as an explicit allowlist.** It used to admit
+`origin.endsWith(".vercel.app")`, which let *any* site hosted on Vercel call the
+API from a browser. Preview matching is now `^https://monoko-[a-z0-9-]+\.vercel\.app$`.
+Note the app itself never depended on this: every call is a relative `/api/...`
+path, so it is same-origin and CORS never applied. The allowlist governs
+everything *else*.
+
+**Supabase Site URL needs the scheme.** Set to a bare `monoko.africa` it produced
+`redirect_to=monoko.africa` and every confirmation link died on
+`{"error":"requested path is invalid"}` — the app's own `emailRedirectTo` was
+discarded and Site URL used as the fallback. It must read `https://monoko.africa`,
+with `https://monoko.africa/**` in the Redirect URLs allowlist or the fallback
+happens regardless of what the client asks for.
+
+**Mail sends from `mail.monoko.africa` via Resend**, not the shared Supabase
+sender. The DNS lives on that subdomain — `resend._domainkey.mail` (DKIM),
+`send.mail` (MX + SPF) — so **the root SPF is never edited**. One SPF record on
+the root, ever; a second is a PermError that breaks Google Workspace too. DMARC
+sits at `p=none` while the new sender warms up.
+
+## Landing page (2026-09-04)
+
+**The map is the language selector.** A second "Un point de départ" directory
+listed the same languages the map already offers, and on a phone it pushed the
+only thing that says *Africa* off screen. It is gone; the map markers and tabs
+select, and the caption under the tabs names the selection.
+
+**The hero map fits the continent, it does not sit at a fixed zoom.** Zoom 5 on a
+390px phone frames Chad and the Congo basin, which says nothing. It now
+`fitBounds` on Africa and re-fits on resize, with **`zoomSnap: 0`** — the exact
+fit is fractional (~2.9 at 390px) and rounding down to 3 pulls in Greenland. For
+the same reason `flyTo` is disabled on the immersive hero: one tab tap would zoom
+back to 5 and undo it.
+
+**Basemap is Esri Light Gray Canvas, and the reason matters.** CARTO's
+`light_all` began requiring an API key — but it does not fail. It answers **200
+with the tile replaced by an "API KEY REQUIRED" watermark**, so nothing appears
+in the console or the network tab and the landing page simply renders the demand
+for a key across the hero. Esri needs no key; its axis order is `{z}/{y}/{x}`,
+not CARTO's `{z}/{x}/{y}`, and its attribution is required, so
+`attributionControl` stays on and CSS keeps it quiet.
+
+**The browser back button is wired to `view`.** The app is one view value with no
+router, so back left the site entirely. `view` now mirrors into
+`history.pushState`, and a `popstate` restores it. Only `RESTORABLE_VIEWS` come
+back directly — a lesson, a word detail or a running session also needs state the
+history entry does not carry, so those fall through to `home`/`lang_select`
+rather than rendering half-empty. A view change that *came from* the back button
+must not push a new entry, or back can never escape it.
+
+**A confirmation link signs the learner in after the first paint.** The session
+arrives in the URL, not in storage, so `hasStoredSession()` is false and the
+landing page paints; supabase-js then consumes the URL and signs them in with
+nothing watching, leaving them on the marketing page already logged in.
+`AUTH_CALLBACK` records that the visit came from such a link, and the app moves
+them into their language once the session lands — stripping the tokens from the
+address bar on the way.
 
 ---
 ## How to write to Anthony
@@ -346,6 +423,10 @@ populate_lesson_pool.py           — assembles lesson_pool from the three tiers
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 BUILD_AND_SPLIT_PLAN.md           — why index.html gets a bundler BEFORE Capacitor, and why splitting the file is a SEPARATE, later change gated on Playwright. Measured load-time numbers and the target module boundaries
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
+sql/user_delete_cascade.sql       — makes profiles/user_progress FKs cascade so an auth user can be deleted; they
+                                    predate the convention every later table follows (2026-09-04)
+DOMAIN_AND_EMAIL.md               — monoko.africa DNS zone, Supabase auth URLs, Resend SMTP, and the failure mode
+                                    each one produces when wrong
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
 benchmark_monoko_models.py        — model benchmark: chrF scoring across OpenAI models (gpt-4o-mini chosen)
 liste_200_phrases.docx            — 200 phrase types across 19 themes used by monoko_auto_test.py

@@ -114,6 +114,26 @@
     const BOOT_SESSION = hasStoredSession();
     const BOOT_LANGUAGE = BOOT_SESSION ? readLastLanguage() : null;
 
+    // True when this page load came from an e-mail confirmation or recovery
+    // link, which carries the session in the URL instead of in storage.
+    // supabase-js consumes it on its own; this is only how the app knows to
+    // move off the landing page once it has.
+    const AUTH_CALLBACK = (() => {
+      try {
+        const query = new URLSearchParams(window.location.search);
+        return /(?:^|[#&])(access_token|refresh_token|error_description)=/.test(window.location.hash || "")
+          || query.has("code") || query.has("error_description");
+      } catch (error) { return false; }
+    })();
+
+    // Views a history entry can restore on its own. Everything else — a lesson,
+    // a word detail, a running session — also needs state the entry does not
+    // carry, so back falls through to a safe root instead of a broken screen.
+    const RESTORABLE_VIEWS = new Set([
+      "lang_select", "auth", "home", "courses", "profile",
+      "settings", "search", "browse", "chat", "live",
+    ]);
+
     function generateSessionId() {
       return `session_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     }
@@ -194,10 +214,20 @@
           const map = L.map(mapRef.current, {
             center: immersive ? [1, 17] : [3, 15],
             zoom: immersive ? 5 : 4,
-            minZoom: 3,
+            // The hero fits the continent with fitBounds below, and on a 390px
+            // phone that lands under the old floor of 3 — which is why a fixed
+            // zoom showed Chad and the Congo basin instead of Africa.
+            minZoom: immersive ? 2 : 3,
             maxZoom: 8,
+            // Leaflet snaps fitBounds to whole zoom levels by default, and the
+            // hero needs the fractional one: for Africa on a 390px phone the
+            // exact fit is ~2.9, and rounding it down to 2 pulls Greenland and
+            // half of Europe into frame.
+            zoomSnap: immersive ? 0 : 1,
             zoomControl: !immersive,
-            attributionControl: false,
+            // Esri's terms require the credit, so this stays on even for the
+            // decorative hero. CSS keeps it to a whisper.
+            attributionControl: true,
             dragging: !immersive,
             scrollWheelZoom: !immersive,
             touchZoom: !immersive,
@@ -206,10 +236,36 @@
             keyboard: !immersive,
           });
 
-          // Use a clean, muted tile style
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
+          // Esri's Light Gray Canvas, which needs no API key.
+          //
+          // CARTO's light_all used to be keyless and now is not — but it does
+          // not fail, it answers 200 with the tile image replaced by an
+          // "API KEY REQUIRED" watermark. Nothing in the console, nothing in
+          // the network tab looks wrong; the landing page simply renders the
+          // demand for a key across the whole hero. Note the axis order here is
+          // {z}/{y}/{x}, not CARTO's {z}/{x}/{y}.
+          L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 16,
           }).addTo(map);
+
+          // Drop the "Leaflet" flag; keep only the credit Esri actually requires.
+          map.attributionControl.setPrefix('');
+
+          // The hero map has to READ as Africa, and a fixed centre/zoom cannot
+          // do that across viewports: zoom 5 fills a 390px phone with Chad and
+          // the Congo basin, which says nothing. Fit the continent instead and
+          // re-fit on resize, so the shape is right at every width.
+          if (immersive) {
+            const AFRICA = L.latLngBounds([[-36, -19], [38, 53]]);
+            const fitAfrica = () => {
+              map.invalidateSize({ animate: false });
+              map.fitBounds(AFRICA, { padding: [6, 6], animate: false });
+            };
+            fitAfrica();
+            window.addEventListener('resize', fitAfrica);
+            map.__monokoFit = fitAfrica;
+          }
 
           mapInstanceRef.current = map;
 
@@ -279,6 +335,9 @@
 
         return () => {
           if (mapInstanceRef.current) {
+            if (mapInstanceRef.current.__monokoFit) {
+              window.removeEventListener('resize', mapInstanceRef.current.__monokoFit);
+            }
             mapInstanceRef.current.remove();
             mapInstanceRef.current = null;
           }
@@ -289,7 +348,11 @@
       useEffect(() => {
         if (!mapInstanceRef.current || !selectedMapLang) return;
         const geo = LANG_GEO[selectedMapLang];
-        if (geo) {
+        // Not on the hero: flying to zoom 5 would undo the continent fit on the
+        // first tab tap and put the phone back to looking at one country. The
+        // marker highlight below and the caption under the tabs carry the
+        // selection there instead.
+        if (geo && !immersive) {
           mapInstanceRef.current.flyTo(geo.center, 5, { duration: 1 });
         }
 
@@ -3979,9 +4042,6 @@
     }
 
     function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, currentUser }) {
-      // Closed on arrival: on a phone the description pushed the map off the
-      // screen, and the map is what tells a visitor this is about Africa.
-      const [noteOpen, setNoteOpen] = useState(false);
       const [dictionaryFor, setDictionaryFor] = useState(null);
       const openDictionary = language => {
         setDictionaryFor(language || languages[0] || null);
@@ -3992,7 +4052,6 @@
       const selectedLanguage = languages.find(language => language.name === selectedName);
       const lingala = languages.find(language => language.name === "Lingala");
       const openLanguage = language => language && onSelectLanguage(language);
-      const scrollToLanguages = () => document.querySelector("#available-languages")?.scrollIntoView({ behavior:"smooth" });
 
       return <div className="m-landing">
         <section className="m-landing-hero" aria-labelledby="landing-title">
@@ -4001,7 +4060,6 @@
           <header className="m-landing-header">
             <span className="m-landing-brand"><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></span>
             <nav aria-label="Navigation publique">
-              <button onClick={scrollToLanguages}>Langues</button>
               <button onClick={() => openDictionary(lingala)}>Dictionnaire</button>
               <button className="primary" disabled={!lingala} onClick={() => openLanguage(lingala)}>{currentUser ? "Mon espace" : "Commencer"}</button>
             </nav>
@@ -4017,56 +4075,33 @@
             </div>
           </div>
 
-          <aside className={`m-landing-language-note ${noteOpen ? "open" : ""}`} aria-live="polite">
-            <button className="m-landing-note-toggle" onClick={() => setNoteOpen(value => !value)}
-                    aria-expanded={noteOpen} aria-controls="landing-language-blurb">
-              <span className="flag">{LANG_THEMES[selectedName]?.emoji || "🌍"}</span>
-              <span><small>{geo.family}</small><strong>{selectedName}</strong><b>{geo.speakers} de locuteurs</b></span>
-              <UiIcon name="chevron"/>
-            </button>
-            {noteOpen && geo.description && (
-              <div id="landing-language-blurb" className="m-landing-language-blurb">
-                <p>{geo.description}</p>
-                {selectedLanguage && <button onClick={() => openLanguage(selectedLanguage)}>Apprendre {selectedName}<UiIcon name="arrow"/></button>}
-              </div>
-            )}
-          </aside>
-
-          <div className="m-landing-map-tabs" aria-label="Langues sur la carte">
-            {Object.entries(LANG_GEO).map(([name, item]) => <button key={name} className={selectedName === name ? "active" : ""} onClick={() => onSelectMapLang(name)}><i style={{background:item.color}}/><span>{name}</span></button>)}
+          {/* The selected language reads as one line under the tabs rather than
+              a card beside the map. The card cost ~110px of height on a phone,
+              which is exactly the height the map needed to look like Africa
+              rather than a strip of coastline. */}
+          <div className="m-landing-map-picker">
+            <div className="m-landing-map-tabs" aria-label="Langues sur la carte">
+              {Object.entries(LANG_GEO).map(([name, item]) => <button key={name} className={selectedName === name ? "active" : ""} onClick={() => onSelectMapLang(name)}><i style={{background:item.color}}/><span>{name}</span></button>)}
+            </div>
+            <div className="m-landing-map-caption" aria-live="polite">
+              <span className="m-landing-map-facts">
+                <strong>{selectedName}</strong>
+                <span>{geo.family} · {geo.speakers} de locuteurs</span>
+              </span>
+              {selectedLanguage && <button onClick={() => openLanguage(selectedLanguage)}>Apprendre {selectedName}<UiIcon name="arrow"/></button>}
+            </div>
           </div>
         </section>
 
-        <section className="m-language-directory" id="available-languages">
-          <header>
-            <div className="m-kicker"><span>Choisissez votre langue</span></div>
-            <h2>Un point de départ, plusieurs voix</h2>
-            <p>Entrez dans l'espace d'apprentissage qui vous correspond.</p>
-          </header>
-          {loading ? <Spinner/> : <div className="m-language-grid">
-            {languages.map(language => {
-              const languageGeo = LANG_GEO[language.name];
-              const lingalaCourse = language.name === "Lingala";
-              return <button key={language.id} className="m-language-entry" onClick={() => openLanguage(language)}>
-                <span className="m-language-flag">{LANG_THEMES[language.name]?.emoji || "🌍"}</span>
-                <span className="m-language-entry-copy">
-                  <small>{lingalaCourse ? "Cours et dictionnaire" : "Dictionnaire disponible"}</small>
-                  <strong>Français · {language.name}</strong>
-                  <span>{language.wordCount?.toLocaleString() || 0} mots{languageGeo ? ` · ${languageGeo.speakers} de locuteurs` : ""}</span>
-                </span>
-                <span className="m-language-entry-arrow"><UiIcon name="arrow"/></span>
-              </button>;
-            })}
-          </div>}
-          <div className="m-language-dictionaries">
-            {languages.map(language => (
-              <button key={`dict-${language.id}`} onClick={() => openDictionary(language)}>
-                <UiIcon name="book"/>Dictionnaire {language.name}
-              </button>
-            ))}
-          </div>
-          <footer>Le dictionnaire est libre d'accès. Les cours demandent un compte.</footer>
-        </section>
+        {/* The "Un point de départ" directory used to sit here: a second list of
+            the same languages the map already offers, reachable by tapping a
+            marker or a tab. Two selectors for one choice, and it pushed the only
+            thing that says "Africa" off a phone screen. The map is the selector;
+            the dictionary is reachable from the hero and switches language from
+            inside. */}
+        <footer className="m-landing-foot">
+          <span>Le dictionnaire est libre d'accès. Les cours demandent un compte.</span>
+        </footer>
 
         {dictionaryFor && <LandingDictionary languages={languages} initialLanguage={dictionaryFor} onClose={() => setDictionaryFor(null)}/>}
       </div>;
@@ -5216,6 +5251,64 @@
         clearLanguageState();
         selectLanguage(lang);
       };
+
+      // ── Arriving from an e-mail confirmation link ────────────────────────────
+      // The link carries the session in the URL, not in storage, so
+      // hasStoredSession() is false and the first paint is the landing page.
+      // supabase-js then consumes the URL and signs the learner in — but nothing
+      // was watching, so they sat on the marketing page, already logged in,
+      // with no sign anything had happened. Land them in the app instead.
+      const authCallbackDone = useRef(false);
+      useEffect(() => {
+        if (!AUTH_CALLBACK || authCallbackDone.current) return;
+        if (!currentUser || !languages.length) return;
+        authCallbackDone.current = true;
+        // Strip the tokens from the address bar: leaving them there means a
+        // refresh replays this, and it puts an access token in the history.
+        try { window.history.replaceState({ monokoView: "home" }, "", window.location.pathname); } catch (error) {}
+        const remembered = readLastLanguage();
+        const target = (remembered && languages.find(item => item.id === remembered.id))
+          || languages.find(item => item.name === "Lingala")
+          || languages[0];
+        if (target) selectLanguage(target);
+      }, [currentUser, languages]);
+
+      // ── Browser back ────────────────────────────────────────────────────────
+      // The app is one `view` value with no router, so the browser's back
+      // arrow left the site entirely: from the landing page it went to whatever
+      // preceded Monɔkɔ. Mirroring `view` into history keeps back inside the app.
+      //
+      // Only self-sufficient views are restored. A lesson, a word detail or a
+      // running session also needs state that a history entry does not carry,
+      // so those fall back to a safe root rather than rendering half-empty.
+      const currentUserRef = useRef(currentUser);
+      useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
+
+      const viewFromHistory = useRef(false);
+      const lastPushedView = useRef(view);
+
+      useEffect(() => {
+        try { window.history.replaceState({ monokoView: view }, ""); } catch (error) {}
+        const onPop = event => {
+          const requested = event.state?.monokoView;
+          const target = RESTORABLE_VIEWS.has(requested)
+            ? requested
+            : (currentUserRef.current ? "home" : "lang_select");
+          viewFromHistory.current = true;
+          setView(target);
+        };
+        window.addEventListener("popstate", onPop);
+        return () => window.removeEventListener("popstate", onPop);
+      }, []);
+
+      useEffect(() => {
+        if (view === lastPushedView.current) return;
+        lastPushedView.current = view;
+        // A change that CAME from the back button must not push a new entry,
+        // or back can never escape the view it just returned to.
+        if (viewFromHistory.current) { viewFromHistory.current = false; return; }
+        try { window.history.pushState({ monokoView: view }, ""); } catch (error) {}
+      }, [view]);
 
 
       // ── Progress helpers ──────────────────────────────────────────────────────

@@ -505,14 +505,14 @@ button.m-chip { cursor: pointer; }
    ============================================================ */
 .m-landing { background: var(--m-canvas); }
 
-.m-landing-hero { position: relative; isolation: isolate; min-height: 88dvh; padding: env(safe-area-inset-top) 16px 26px; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: auto 1fr auto auto; gap: 18px; overflow: hidden; }
+.m-landing-hero { position: relative; isolation: isolate; min-height: 92dvh; padding: env(safe-area-inset-top) 16px 22px; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: auto 1fr auto; gap: 14px; overflow: hidden; }
 .m-language-map { width: 100%; height: 320px; border: 1px solid var(--m-line); border-radius: 8px; overflow: hidden; }
 /* The hero map is a backdrop, not a card: it fills the section and the
    wash sits over it so type stays legible on any tile. The wash must not
    swallow taps, or the map stops being interactive. */
 .m-language-map.immersive { position: absolute; inset: 0; z-index: 0; height: 100%; border: 0; border-radius: 0; pointer-events: none; }
-.m-landing-map-wash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(244,247,242,.82) 0%, rgba(244,247,242,.24) 26%, rgba(244,247,242,.30) 50%, rgba(244,247,242,.88) 84%, rgba(244,247,242,.98) 100%); }
-.m-landing-header, .m-landing-copy, .m-landing-language-note, .m-landing-map-tabs { position: relative; z-index: 2; }
+.m-landing-map-wash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(244,247,242,.92) 0%, rgba(244,247,242,.74) 12%, rgba(244,247,242,.34) 26%, rgba(244,247,242,.12) 44%, rgba(244,247,242,.14) 66%, rgba(244,247,242,.62) 88%, rgba(244,247,242,.92) 100%); }
+.m-landing-header, .m-landing-copy, .m-landing-map-picker { position: relative; z-index: 2; }
 
 .m-landing-header { min-width: 0; min-height: 62px; padding: 8px 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
 .m-landing-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--m-ink); font: 800 19px "Playfair Display", serif; }
@@ -531,21 +531,21 @@ button.m-chip { cursor: pointer; }
 .m-landing-actions .secondary { background: rgba(255,255,255,.92); color: var(--m-forest); box-shadow: inset 0 0 0 1px var(--m-line); }
 .m-landing-actions button:disabled { opacity: .5; cursor: not-allowed; }
 
-.m-landing-language-note { border-radius: 8px; overflow: hidden; background: rgba(255,255,255,.95); box-shadow: var(--m-shadow); }
-.m-landing-note-toggle { width: 100%; min-height: 68px; padding: 12px 14px; border: 0; display: grid; grid-template-columns: 46px minmax(0,1fr) 20px; align-items: center; gap: 12px; background: transparent; color: var(--m-ink); text-align: left; cursor: pointer; }
-.m-landing-note-toggle > .m-ui-icon { transition: transform .18s ease; }
-.m-landing-language-note.open .m-landing-note-toggle > .m-ui-icon { transform: rotate(90deg); }
-.m-landing-language-blurb { padding: 0 14px 14px; border-top: 1px solid var(--m-line); display: grid; gap: 11px; }
-.m-landing-language-blurb p { margin: 11px 0 0; color: var(--m-muted); font-size: 12px; line-height: 1.5; }
-.m-landing-language-blurb button { min-height: 46px; padding: 0 15px; border: 0; border-radius: 7px; justify-self: start; display: inline-flex; align-items: center; gap: 8px; background: var(--m-forest); color: #fff; font: 700 12px "DM Sans", sans-serif; cursor: pointer; }
-.m-landing-language-blurb .m-ui-icon { width: 16px; height: 16px; }
-.m-landing-note-toggle .flag { width: 46px; height: 46px; border-radius: 8px; display: grid; place-items: center; background: var(--m-green-soft); font-size: 23px; }
-.m-landing-note-toggle > span:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
-.m-landing-note-toggle small { color: var(--m-muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
-.m-landing-note-toggle strong { font: 800 16px "Playfair Display", serif; }
-.m-landing-note-toggle b { color: var(--m-forest-2); font: 700 10px "DM Mono", monospace; }
 
 
+/* Selected language as one line under the tabs. The card this replaces was
+   ~110px tall on a phone — the height the map needed to read as a continent. */
+.m-landing-map-picker { display: grid; gap: 10px; }
+.m-landing-map-caption { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 13px; border-radius: 8px; background: rgba(255,255,255,.92); box-shadow: inset 0 0 0 1px var(--m-line); }
+.m-landing-map-facts { min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 9px; }
+.m-landing-map-facts strong { font: 800 17px "Playfair Display", serif; }
+.m-landing-map-facts > span { color: var(--m-muted); font: 500 11px "DM Sans", sans-serif; }
+.m-landing-map-caption > button { min-height: 40px; margin-left: auto; padding: 0 14px; border: 0; border-radius: 7px; display: inline-flex; align-items: center; gap: 7px; background: var(--m-forest); color: #fff; font: 700 12px "DM Sans", sans-serif; cursor: pointer; }
+.m-landing-map-caption > button .m-ui-icon { width: 15px; height: 15px; }
+.m-landing-foot { padding: 18px 16px calc(22px + env(safe-area-inset-bottom)); color: var(--m-muted); font-size: 12px; font-style: italic; text-align: center; }
+/* Esri requires the credit; it must not compete with the hero. */
+.m-language-map .leaflet-control-attribution { background: rgba(255,255,255,.55); color: var(--m-muted); font: 500 9px "DM Sans", sans-serif; padding: 1px 5px; }
+.m-language-map .leaflet-control-attribution a { color: var(--m-muted); }
 .m-landing-map-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
 .m-landing-map-tabs button { min-height: 44px; padding: 0 14px; border: 0; border-radius: 22px; display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,.92); color: var(--m-muted); font: 700 12px "DM Sans", sans-serif; cursor: pointer; box-shadow: inset 0 0 0 1px var(--m-line); }
 .m-landing-map-tabs button i { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
@@ -576,19 +576,6 @@ button.m-chip { cursor: pointer; }
 .m-landing-sense-example i { color: var(--m-ink); font-size: 13px; line-height: 1.45; }
 .m-landing-sense-example span { color: var(--m-muted); font-size: 12px; line-height: 1.4; }
 
-.m-language-directory { width: min(100%, 1160px); margin: 0 auto; padding: 44px 16px calc(60px + env(safe-area-inset-bottom)); }
-.m-language-directory > header { margin-bottom: 20px; }
-.m-language-directory > header h2 { margin: 4px 0 0; font: 800 31px/1.08 "Playfair Display", serif; }
-.m-language-directory > header p { margin: 7px 0 0; color: var(--m-muted); font-size: 13px; }
-.m-language-grid { display: grid; gap: 10px; }
-.m-language-entry { width: 100%; min-height: 86px; padding: 14px; border: 1px solid var(--m-line); border-radius: 8px; display: grid; grid-template-columns: 52px minmax(0,1fr) 28px; align-items: center; gap: 13px; background: var(--m-surface); color: var(--m-ink); text-align: left; cursor: pointer; box-shadow: 0 3px 14px rgba(31,47,37,.05); }
-.m-language-flag { width: 52px; height: 52px; border-radius: 8px; display: grid; place-items: center; background: var(--m-green-soft); font-size: 25px; }
-.m-language-entry-copy { min-width: 0; display: grid; gap: 3px; }
-.m-language-entry-copy small { color: var(--m-green); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
-.m-language-entry-copy strong { overflow: hidden; font: 800 16px "Playfair Display", serif; text-overflow: ellipsis; white-space: nowrap; }
-.m-language-entry-copy > span { color: var(--m-muted); font-size: 11px; }
-.m-language-entry-arrow { width: 28px; height: 28px; display: grid; place-items: center; color: var(--m-forest-2); }
-.m-language-directory > footer { margin-top: 18px; color: var(--m-muted); font-size: 12px; font-style: italic; text-align: center; }
 
 /* ============================================================
    Lesson page  (view: lesson)
@@ -627,12 +614,23 @@ button.m-chip { cursor: pointer; }
 
 .m-lesson-practice { min-width: 0; padding: 18px; border: 1px solid var(--m-line); border-radius: 8px; background: var(--m-surface); box-shadow: 0 3px 14px rgba(31,47,37,.05); }
 
-.m-language-sheet .m-modal-body { display: grid; gap: 14px; }
-.m-language-sheet .m-language-grid { grid-template-columns: 1fr; }
-.m-language-sheet .m-modal-body h2 { margin: 0; }
+/* Shared by the language switcher sheet (.m-language-sheet). These were
+   written for the landing directory that has been removed; the sheet is
+   now their only consumer. */
+.m-language-grid { display: grid; gap: 10px; }
+.m-language-entry { width: 100%; min-height: 86px; padding: 14px; border: 1px solid var(--m-line); border-radius: 8px; display: grid; grid-template-columns: 52px minmax(0,1fr) 28px; align-items: center; gap: 13px; background: var(--m-surface); color: var(--m-ink); text-align: left; cursor: pointer; box-shadow: 0 3px 14px rgba(31,47,37,.05); }
+.m-language-flag { width: 52px; height: 52px; border-radius: 8px; display: grid; place-items: center; background: var(--m-green-soft); font-size: 25px; }
+.m-language-entry-copy { min-width: 0; display: grid; gap: 3px; }
+.m-language-entry-copy small { color: var(--m-green); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.m-language-entry-copy strong { overflow: hidden; font: 800 16px "Playfair Display", serif; text-overflow: ellipsis; white-space: nowrap; }
+.m-language-entry-copy > span { color: var(--m-muted); font-size: 11px; }
+.m-language-entry-arrow { width: 28px; height: 28px; display: grid; place-items: center; color: var(--m-forest-2); }
 .m-language-entry.current { border-color: var(--m-green); background: var(--m-green-soft); }
 .m-language-entry.current .m-language-flag { background: #fff; }
 .m-language-entry.current .m-language-entry-arrow { color: var(--m-forest); }
+.m-language-sheet .m-modal-body { display: grid; gap: 14px; }
+.m-language-sheet .m-language-grid { grid-template-columns: 1fr; }
+.m-language-sheet .m-modal-body h2 { margin: 0; }
 
 /* Sons et alphabet (lesson 1.1). Four accents carry the phonetic grouping —
    that coding is the lesson's teaching device, so it stays; the hues are the
@@ -701,9 +699,7 @@ button.m-chip { cursor: pointer; }
 
 @media (min-width: 760px) {
   .m-landing-hero { padding: env(safe-area-inset-top) 32px 32px; gap: 22px; }
-  .m-landing-language-note { width: min(100%, 390px); }
-  .m-language-directory { padding: 56px 32px calc(72px + env(safe-area-inset-bottom)); }
-  .m-language-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .m-landing-map-caption { width: min(100%, 520px); }
 
   .m-lesson-heading h1 { font-size: 36px; }
   .m-alpha-grid { grid-template-columns: repeat(5, minmax(0,1fr)); }
@@ -739,7 +735,7 @@ button.m-chip { cursor: pointer; }
   .m-landing-header nav button:not(.primary) { display: none; }
   .m-landing-copy { width: 100%; max-width: 100%; padding-right: 0; padding-left: 0; background: rgba(244,247,242,.82); }
   .m-landing-copy h1 { font-size: 48px; }
-  .m-landing-copy > p, .m-language-directory > header h2, .m-language-directory > header p { max-width: 100%; overflow-wrap: anywhere; }
+  .m-landing-copy > p { max-width: 100%; overflow-wrap: anywhere; }
   .m-language-entry-copy strong { white-space: normal; overflow-wrap: anywhere; }
 }
 
@@ -836,9 +832,6 @@ button.m-chip { cursor: pointer; }
 .m-top-signin { min-height: 40px; padding: 0 15px; border: 0; border-radius: 20px; background: var(--m-forest); color: #fff; font: 700 12px "DM Sans", sans-serif; cursor: pointer; }
 .m-dict-back { min-height: 44px; margin-bottom: 10px; padding: 0 4px; border: 0; justify-self: start; display: inline-flex; align-items: center; gap: 7px; background: transparent; color: var(--m-forest-2); font: 700 12px "DM Sans", sans-serif; cursor: pointer; }
 .m-dict-back .m-ui-icon { width: 17px; height: 17px; }
-.m-language-dictionaries { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-.m-language-dictionaries button { min-height: 46px; padding: 0 15px; border: 0; border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; background: var(--m-surface); color: var(--m-forest); font: 700 12px "DM Sans", sans-serif; cursor: pointer; box-shadow: inset 0 0 0 1px var(--m-line); }
-.m-language-dictionaries .m-ui-icon { width: 16px; height: 16px; }
 
 /* ============================================================
    Login / signup / password reset  (view: auth)
