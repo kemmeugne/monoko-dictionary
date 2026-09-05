@@ -435,7 +435,7 @@ EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisi
 BUILD_AND_SPLIT_PLAN.md           — why index.html gets a bundler BEFORE Capacitor, and why splitting the file is a SEPARATE, later change gated on Playwright. Measured load-time numbers and the target module boundaries
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
 sql/user_delete_cascade.sql       — makes profiles/user_progress FKs cascade so an auth user can be deleted; they
-                                    predate the convention every later table follows (2026-09-04)
+                                    predate the convention every later table follows (applied 2026-09-05)
 DOMAIN_AND_EMAIL.md               — monoko.africa DNS zone, Supabase auth URLs, Resend SMTP, and the failure mode
                                     each one produces when wrong
 monoko_auto_test.py               — automated quality tester: generates sentences, evaluates Lingala, inserts corrections
