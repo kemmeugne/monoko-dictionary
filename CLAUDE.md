@@ -434,6 +434,12 @@ populate_lesson_pool.py           — assembles lesson_pool from the three tiers
 EXERCISE_ENGINE_PLAN.md           — CURRENT WORK. Exercise engine plan: decisions, measured data, build slices. Supersedes the Phase 3 "exam system" sections of ROADMAP/PHASE3_LAUNCH_PLAN/MONOKO_CURRICULUM
 BUILD_AND_SPLIT_PLAN.md           — why index.html gets a bundler BEFORE Capacitor, and why splitting the file is a SEPARATE, later change gated on Playwright. Measured load-time numbers and the target module boundaries
 sql/progress_tracking.sql         — SQL migration: profiles + user_progress tables with RLS (added 2026-04-14)
+sql/enable_rls.sql                — RLS on every public table; dictionary stays public-read, everything else own-row
+                                    (verified applied against production 2026-09-05)
+sql/pgvector_lesson_items.sql     — lesson_items.embedding + match_lesson_items RPC (verified applied 2026-09-05)
+sql/session_counters.sql          — lesson_stage_state.pratiquer_runs/elargir_runs; a counter, not a count over
+                                    exercise_attempts, which are per QUESTION and carry no session id
+                                    (verified applied 2026-09-05)
 sql/user_delete_cascade.sql       — makes profiles/user_progress FKs cascade so an auth user can be deleted; they
                                     predate the convention every later table follows (applied 2026-09-05)
 DOMAIN_AND_EMAIL.md               — monoko.africa DNS zone, Supabase auth URLs, Resend SMTP, and the failure mode
