@@ -49,6 +49,21 @@ After saving, the editor's **preview** tab should show the branded design. If
 preview looks right but the delivered mail does not, the message was sent before
 the save — request another.
 
+## Wording that must match across templates
+
+Both e-mails carry the same brand block, so a change to any of these belongs in
+every template at once — including the one still living only in the dashboard.
+
+| Element | Value |
+| --- | --- |
+| Wordmark | `Mon&#596;k&#596;` |
+| Subtitle | `Apprendre les langues africaines` |
+
+The subtitle used to read *Dictionnaire multilingue africain*, which names one
+of four parts: Monɔkɔ is structured courses, a professor-verified dictionary,
+native-speaker audio and an AI chat. Leading with the verb keeps it a purpose
+rather than a category, and it stays true as languages are added.
+
 ## Writing rules
 
 These are e-mails, not pages. The app's own CSS would collapse in most clients.
