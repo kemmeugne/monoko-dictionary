@@ -618,8 +618,19 @@ both hard-refuse to run unless pointed at that exact test project ref.
   `index.html` and evaluate it, so they run against the source the browser runs.
   See `tests/README.md`.
 - `npm run verify` — secret/RLS/API guardrails, all Vitest tests, then the
-  production esbuild. **Run it before every deploy.** The build parses the whole
-  JSX block and fails before a stray bracket can ship a blank page.
+  production esbuild. The build parses the whole JSX block and fails before a
+  stray bracket can ship a blank page.
+- **`npm run verify` is NOT the full gate.** `.github/workflows/ci.yml` runs it
+  *and then* `npm run test:browser`, and nothing in verify opens a browser. The
+  order to run before pushing to `main` is:
+  ```
+  npm run verify && npm run test:browser
+  ```
+  Skipping the second is how the landing rework of 2026-09-05 went red on CI:
+  `landing.spec.js` asserted on a section that had been deleted, and verify was
+  green throughout. **After any change to `index.html` or `monoko-ui.css`, run
+  the browser gate** — it takes about five seconds — and when deleting a UI
+  section, grep `tests/smoke/` for its class names first.
 - `npm run test:browser` — Chromium smoke tests against the compiled `dist/`
   artifact at desktop, 390px and 320px. Authenticated coverage uses monoko-test
   credentials only.

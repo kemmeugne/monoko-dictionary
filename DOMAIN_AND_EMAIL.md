@@ -15,7 +15,8 @@ that looked right, and settings that silently overrode the app.
 | `www.monoko.africa` | 308 → apex | permanent, so ranking consolidates |
 | `monoko-app.vercel.app` | the app | Vercel alias, stays live |
 | `monoko-dictionary.vercel.app` | the app | older alias, stays live |
-| `monoko.ca` | nothing yet | owned, still parked at GoDaddy |
+| `monoko.ca` | 308 → monoko.africa | redirect only, no site of its own |
+| `www.monoko.ca` | 308 → monoko.africa | |
 
 TLS is Let's Encrypt, issued by Vercel, renewing itself.
 
@@ -127,16 +128,24 @@ looks fine in a dashboard and fails silently.
 `sql/user_delete_cascade.sql`. `profiles` and `user_progress` predate the
 `on delete cascade` convention every later table follows.
 
-## Adding monoko.ca
+## monoko.ca — done 2026-09-05
 
-Same shape, as a redirect rather than a second site — the dictionary's SEO should
-compound on one domain:
+A redirect rather than a second site, so the dictionary's SEO compounds on one
+domain. Both hostnames answer **308 → https://monoko.africa/ in a single hop**,
+on their own Let's Encrypt certificates. It has no MX and never had any, so
+nothing needed protecting.
+
+The steps, kept as the template for the next domain:
 
 1. Vercel → project → **Domains** (a top-level tab, not under Settings) → add
    `monoko.ca` and `www.monoko.ca`, both **Redirect to Another Domain →
    monoko.africa**, permanent (308) rather than 307.
 2. GoDaddy: replace the parked A record on `@` with Vercel's, same as the apex.
-3. Leave `monoko.ca` mail records alone if any exist.
+3. Leave the mail records alone if any exist. GoDaddy's default
+   `_dmarc` at `p=quarantine` is worth keeping on a domain that sends no mail —
+   it is free anti-spoofing, and there is no sender reputation to warm up.
 
 Do not batch it with a domain that serves the app — Vercel's Add Domains dialog
-applies one destination to everything in the batch.
+applies one destination to everything in the batch. And point each hostname
+**straight at the target**: `www.monoko.ca → monoko.ca → monoko.africa` would be
+two hops, slower and discounted by search engines.
