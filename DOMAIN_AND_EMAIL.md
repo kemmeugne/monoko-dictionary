@@ -71,6 +71,23 @@ Redirect URLs:  https://monoko.africa/**
                 http://localhost:3000/**
 ```
 
+**Password recovery is a security control, not just a form.** The link Supabase
+mails authenticates on click — that is what lets the app call `updateUser`
+without the old password — so it is a credential with the lifetime of an
+unopened e-mail. Two settings follow from that:
+
+- **Shorten the link lifetime.** Authentication → the e-mail OTP/link expiry.
+  The default is an hour; fifteen minutes is ample for someone who just asked
+  for one, and it shrinks the window in which a forwarded or previewed e-mail is
+  a live key.
+- **A completed reset signs out globally** (`logout?scope=global`, supabase-js's
+  default), so resetting actually evicts anyone holding another session. See
+  `CLAUDE.md` for the client side.
+
+`resetPasswordForEmail` can be triggered for any address by anyone — that is
+normal, and the auth rate limits are what stop it becoming a way to flood
+somebody's inbox.
+
 **The scheme is not optional.** Set to a bare `monoko.africa`, Site URL produced
 `redirect_to=monoko.africa` and every confirmation link died on
 `{"error":"requested path is invalid"}`. The app's own `emailRedirectTo` was

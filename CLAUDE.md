@@ -119,10 +119,36 @@ its callers: every automatic navigation funnels through it, so guarding the
 destination cannot be defeated by a caller nobody remembered. The language data
 still loads; only the view is held.
 
-Covered by `tests/smoke/recovery.spec.js`, which seeds an unexpired session into
-localStorage rather than obtaining one — supabase-js restores it without a
-network call, which is enough to reach the branch, and the test needs no
-credentials or live project.
+**A completed reset revokes every session, not just this one.** The `signOut()`
+after `updateUser` issues `POST /auth/v1/logout?scope=global` — supabase-js
+defaults to global — so a learner who resets because they think someone knows
+their password actually evicts them. That is the whole point of a reset, and it
+is worth knowing the default rather than assuming it: `scope: 'local'` would
+leave the other session alive and the reset would be theatre.
+
+The failure this replaced was not an access-control hole — the link goes to the
+owner's inbox, and whoever reads that inbox can take the account anyway. It was
+worse in a subtler way: the reset *silently did not happen*, so someone resetting
+a password they believed was compromised kept the compromised one and was told
+nothing.
+
+Covered by `tests/smoke/recovery.spec.js`. **Two traps in that file are worth
+reading before touching it**, because both produce tests that pass while testing
+nothing:
+
+- **Do not seed a session into localStorage.** supabase-js restores a stored
+  session and then never looks at the URL fragment, which is the entire path a
+  recovery link takes. The first version of this spec did that and passed
+  against the broken build.
+- **Playwright matches routes in REVERSE registration order.** Register the
+  `**/rest/v1/**` catch-all *first* and the specific `languages` / `profiles`
+  mocks after it. The other way round, languages come back empty, the profile
+  resume finds nothing to resume into and returns early — and the navigation the
+  test exists to survive is never armed.
+
+**Prove a regression test fails against the bug.** Both traps above were caught
+only by checking out the broken commit, rebuilding and running the test against
+it. A test that has never been seen to fail is a guess.
 
 **A confirmation link signs the learner in after the first paint.** The session
 arrives in the URL, not in storage, so `hasStoredSession()` is false and the
