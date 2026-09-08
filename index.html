@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Monɔkɔ | Apprendre le lingala et dictionnaire africain</title>
-  <meta name="description" content="Apprenez le lingala avec 49 leçons progressives, des exercices audio et des capsules culturelles. Consultez gratuitement le dictionnaire français-lingala." />
+  <meta name="description" content="Apprenez le lingala avec plus de 50 leçons progressives, des exercices audio et des capsules culturelles. Consultez gratuitement le dictionnaire français-lingala." />
   <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#123f35" />
   <link rel="canonical" href="https://monoko.africa/" />
@@ -13,7 +13,7 @@
   <meta property="og:locale" content="fr_FR" />
   <meta property="og:site_name" content="Monɔkɔ" />
   <meta property="og:title" content="Monɔkɔ | Apprendre le lingala et dictionnaire africain" />
-  <meta property="og:description" content="Apprenez le lingala avec 49 leçons progressives, des exercices audio et un dictionnaire français-lingala gratuit." />
+  <meta property="og:description" content="Apprenez le lingala avec plus de 50 leçons progressives, des exercices audio et un dictionnaire français-lingala gratuit." />
   <meta property="og:url" content="https://monoko.africa/" />
   <meta property="og:image" content="https://monoko.africa/assets/monoko-social-preview.png" />
   <meta property="og:image:type" content="image/png" />
@@ -23,7 +23,7 @@
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Monɔkɔ | Apprendre le lingala" />
-  <meta name="twitter:description" content="49 leçons progressives, des exercices audio et un dictionnaire français-lingala gratuit." />
+  <meta name="twitter:description" content="Plus de 50 leçons progressives, des exercices audio et un dictionnaire français-lingala gratuit." />
   <meta name="twitter:image" content="https://monoko.africa/assets/monoko-social-preview.png" />
   <meta name="twitter:image:alt" content="Le parcours d'apprentissage et le dictionnaire lingala de Monɔkɔ" />
 
@@ -39,6 +39,8 @@
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://services.arcgisonline.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -250,10 +252,44 @@
     const HeadphonesIcon = () => (<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>);
 
     // Leaflet Map Component
-    const LeafletMap = ({ selectedMapLang, onSelectLang, immersive = false }) => {
+    const LeafletMap = ({ selectedMapLang, onSelectLang, immersive = false, mapExploring = false, onMapExploringChange }) => {
       const mapRef = useRef(null);
       const mapInstanceRef = useRef(null);
       const markersRef = useRef([]);
+      const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 760px)").matches);
+
+      const applyInteractionMode = (map, enabled) => {
+        ["dragging", "touchZoom", "doubleClickZoom", "boxZoom", "keyboard"].forEach(name => {
+          if (map[name]) map[name][enabled ? "enable" : "disable"]();
+        });
+        if (map.scrollWheelZoom) map.scrollWheelZoom[enabled ? "enable" : "disable"]();
+        if (mapRef.current) mapRef.current.dataset.mapInteractive = String(enabled);
+      };
+
+      // Start with the African continent centered while keeping both current
+      // language networks visible. A language selection moves in closer.
+      const overviewFrame = map => {
+        const size = map.getSize();
+        return size.x <= 760
+          ? { center:[10, 17], zoom:3 }
+          : { center:[3, 15], zoom:4 };
+      };
+
+      // Keep the selected language inside the uncovered portion of the hero:
+      // below the copy on phones and to its right on larger screens.
+      const languageFrame = (map, geo) => {
+        const size = map.getSize();
+        return size.x <= 760
+          ? { center:[geo.center[0] + 8, geo.center[1]], zoom:5 }
+          : { center:[geo.center[0], geo.center[1] - 15], zoom:5 };
+      };
+
+      useEffect(() => {
+        const query = window.matchMedia("(max-width: 760px)");
+        const update = event => setCompact(event.matches);
+        query.addEventListener?.("change", update);
+        return () => query.removeEventListener?.("change", update);
+      }, []);
 
       useEffect(() => {
         if (mapInstanceRef.current) return; // already initialized
@@ -280,11 +316,10 @@
 
         loadLeaflet().then(() => {
           const L = window.L;
-          // The immersive hero map is a backdrop, not a control. It fills the
-          // first viewport, so leaving Leaflet's touch handlers on would let a
-          // vertical swipe pan the map instead of scrolling the page — the
-          // landing page would trap the reader on a phone. Language selection
-          // stays with the tabs below it, which are ordinary buttons.
+          // Desktop visitors can explore the map directly. Touch interaction
+          // stays disabled until the explicit mobile exploration mode is open,
+          // otherwise the full-height map would swallow normal page scrolling.
+          const interactionEnabled = !immersive || !compact || mapExploring;
           const map = L.map(mapRef.current, {
             center: immersive ? [1, 17] : [3, 15],
             zoom: immersive ? 5 : 4,
@@ -294,15 +329,16 @@
             // Esri's terms require the credit, so this stays on even for the
             // decorative hero. CSS keeps it to a whisper.
             attributionControl: true,
-            dragging: !immersive,
-            scrollWheelZoom: !immersive,
-            touchZoom: !immersive,
-            doubleClickZoom: !immersive,
-            boxZoom: !immersive,
-            keyboard: !immersive,
+            dragging: interactionEnabled,
+            scrollWheelZoom: interactionEnabled,
+            touchZoom: interactionEnabled,
+            doubleClickZoom: interactionEnabled,
+            boxZoom: interactionEnabled,
+            keyboard: interactionEnabled,
           });
 
-          // Esri's Light Gray Canvas, which needs no API key.
+          // Esri's original light-gray canvas keeps the growing language
+          // network in the foreground and requires no API key.
           //
           // CARTO's light_all used to be keyless and now is not — but it does
           // not fail, it answers 200 with the tile image replaced by an
@@ -319,6 +355,12 @@
           map.attributionControl.setPrefix('');
 
           mapInstanceRef.current = map;
+          applyInteractionMode(map, interactionEnabled);
+          const publishZoom = () => {
+            if (mapRef.current) mapRef.current.dataset.mapZoom = String(map.getZoom());
+          };
+          map.on('zoomend', publishZoom);
+          publishZoom();
 
           // Add city markers for each language
           Object.entries(LANG_GEO).forEach(([langName, geo]) => {
@@ -326,7 +368,7 @@
               const size = city.main ? 14 : 8;
               const icon = L.divIcon({
                 className: '',
-                html: `<div style="
+                html: `<div class="m-map-marker" data-language="${langName}" style="
                   width:${size}px; height:${size}px;
                   background:${geo.color};
                   border: 2px solid white;
@@ -349,7 +391,7 @@
                 : `<span style="font-family:'DM Sans',sans-serif;font-size:11px;">${city.name}</span>`;
 
               marker.bindTooltip(tooltipContent, {
-                permanent: city.main,
+                permanent: false,
                 direction: 'top',
                 offset: [0, -size/2 - 2],
                 className: 'clean-tooltip',
@@ -361,6 +403,20 @@
               markersRef.current.push(marker);
             });
           });
+
+          // Only the selected language owns the permanent city label. Showing
+          // every capital at once put Lagos over the Lingala headline and made
+          // the map read like an annotation layer rather than a horizon.
+          markersRef.current.forEach(marker => {
+            if (!marker.isMain) return;
+            if (marker.langName === selectedMapLang) marker.openTooltip();
+            else marker.closeTooltip();
+          });
+
+          if (immersive) {
+            const frame = overviewFrame(map);
+            map.setView(frame.center, frame.zoom, { animate:false });
+          }
 
           // Add custom tooltip style
           const style = document.createElement('style');
@@ -392,15 +448,24 @@
         };
       }, []);
 
+      useEffect(() => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+        applyInteractionMode(map, !immersive || !compact || mapExploring);
+        map.invalidateSize({ animate:false });
+      }, [compact, immersive, mapExploring]);
+
       // Fly to selected language
       useEffect(() => {
-        if (!mapInstanceRef.current || !selectedMapLang) return;
+        if (!mapInstanceRef.current) return;
+        if (!selectedMapLang) {
+          const frame = overviewFrame(mapInstanceRef.current);
+          mapInstanceRef.current.flyTo(frame.center, frame.zoom, { duration: 1 });
+        }
         const geo = LANG_GEO[selectedMapLang];
-        // The hero flies too. Opening on the selected language's region — Congo
-        // for Lingala — and travelling to the next one when a tab is tapped is
-        // the point of having a map here, not a side effect to suppress.
         if (geo) {
-          mapInstanceRef.current.flyTo(geo.center, 5, { duration: 1 });
+          const frame = immersive ? languageFrame(mapInstanceRef.current, geo) : { center:geo.center, zoom:5 };
+          mapInstanceRef.current.flyTo(frame.center, frame.zoom, { duration: 1 });
         }
 
         // Highlight markers
@@ -412,15 +477,39 @@
           if (m.langName === selectedMapLang) {
             dot.style.transform = m.isMain ? 'scale(1.4)' : 'scale(1.2)';
             dot.style.boxShadow = `0 0 0 4px ${LANG_GEO[m.langName].color}40, 0 2px 6px rgba(0,0,0,0.3)`;
+            dot.style.opacity = '1';
+            if (m.isMain) m.openTooltip();
           } else {
             dot.style.transform = 'scale(1)';
             dot.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
             dot.style.opacity = selectedMapLang ? '0.4' : '1';
+            if (m.isMain) m.closeTooltip();
           }
         });
-      }, [selectedMapLang]);
+      }, [selectedMapLang, immersive]);
 
-      return <div ref={mapRef} className={`m-language-map ${immersive ? "immersive" : ""}`} />;
+      const zoom = direction => mapInstanceRef.current?.[direction > 0 ? "zoomIn" : "zoomOut"]();
+      const resetMap = () => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+        onSelectLang(null);
+        const frame = overviewFrame(map);
+        map.flyTo(frame.center, frame.zoom, { duration:1 });
+      };
+
+      return <>
+        <div ref={mapRef} className={`m-language-map ${immersive ? "immersive" : ""}`} aria-label="Carte interactive des langues africaines" />
+        {immersive && <div className="m-landing-map-tools" aria-label="Contrôles de la carte">
+          <button className="m-map-explore-toggle" onClick={() => onMapExploringChange?.(!mapExploring)} aria-pressed={mapExploring} title={mapExploring ? "Terminer l'exploration" : "Explorer la carte"}>
+            <UiIcon name={mapExploring ? "close" : "globe"}/><span>{mapExploring ? "Terminer" : "Explorer la carte"}</span>
+          </button>
+          <div className="m-map-zoom-tools">
+            <button onClick={() => zoom(1)} aria-label="Zoomer sur la carte" title="Zoomer"><span aria-hidden="true">+</span></button>
+            <button onClick={() => zoom(-1)} aria-label="Dézoomer sur la carte" title="Dézoomer"><span aria-hidden="true">−</span></button>
+            <button onClick={resetMap} aria-label="Recentrer la carte sur l'Afrique" title="Recentrer sur l'Afrique"><UiIcon name="reset"/></button>
+          </div>
+        </div>}
+      </>;
     };
 
     const SearchIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>);
@@ -3832,6 +3921,8 @@
       book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
       messages: '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/>',
       headphones: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>',
+      pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+      mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>',
       user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
       sparkles: '<path d="m12 3-1.3 3.7L7 8l3.7 1.3L12 13l1.3-3.7L17 8l-3.7-1.3L12 3Z"/><path d="m5 14-.8 2.2L2 17l2.2.8L5 20l.8-2.2L8 17l-2.2-.8L5 14ZM19 13l-.6 1.4L17 15l1.4.6L19 17l.6-1.4L21 15l-1.4-.6L19 13Z"/>',
       flame: '<path d="M12 22c4 0 7-3 7-7 0-3-1.5-5.5-4-8-1 3-2.5 4-4 5 .5-4-1-7-3-10 0 4-3 6-3 11 0 5 3 9 7 9Z"/>',
@@ -3841,6 +3932,8 @@
       search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
       arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
       back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+      reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/>',
+      pause: '<path d="M9 5v14M15 5v14"/>',
       settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
       logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
       graduation: '<path d="m2 10 10-5 10 5-10 5L2 10Z"/><path d="M6 12v5c3 3 9 3 12 0v-5M22 10v6"/>',
@@ -4024,8 +4117,9 @@
       return <section className="m-landing-dictionary" id="landing-dictionary" aria-label="Dictionnaire">
         <header>
           <div>
-            <div className="m-kicker"><span>Libre d'accès</span></div>
-            <h2>Dictionnaire</h2>
+            <div className="m-kicker"><span>Libre d'accès</span><span>Vérifié par un professeur</span></div>
+            <h2>Les mots pour commencer</h2>
+            <p className="m-landing-dict-intro">Un dictionnaire vivant, enrichi de traductions, d'exemples et de voix pour retrouver le mot juste dans son contexte.</p>
           </div>
           {onClose && <button className="m-landing-dict-close" onClick={onClose} aria-label="Fermer le dictionnaire"><UiIcon name="close"/></button>}
         </header>
@@ -4088,16 +4182,142 @@
       </section>;
     }
 
+    const EXERCISE_PREVIEWS = [
+      { title:"Associer les mots", skill:"Compréhension écrite", copy:"Relier le français au lingala et consolider le vocabulaire par paires.", kind:"match" },
+      { title:"Reconnaître à l'oreille", skill:"Compréhension orale", copy:"Écouter une voix experte, puis retrouver le sens de ce qui a été prononcé.", kind:"listen" },
+      { title:"Reconstruire une phrase", skill:"Expression écrite", copy:"Replacer les mots dans l'ordre pour intérioriser la structure de la langue.", kind:"order" },
+      { title:"Comparer sa voix", skill:"Expression orale", copy:"Écouter le professeur, s'enregistrer et comparer les deux prononciations.", kind:"speak" },
+    ];
+
+    function ExercisePreview({ kind }) {
+      if (kind === "match") return <div className="m-exercise-shot-body match">
+        <h4>Associez chaque mot à sa traduction</h4>
+        <div className="m-exercise-pairs">
+          <span>Bonjour</span><span className="lingala">Matondo</span>
+          <span>Merci</span><span className="lingala selected">Mbote</span>
+          <span>Je m'appelle</span><span className="lingala">Kombo na ngai</span>
+        </div>
+      </div>;
+
+      if (kind === "listen") return <div className="m-exercise-shot-body listen">
+        <h4>Qu'est-ce que vous entendez&nbsp;?</h4>
+        <div className="m-exercise-audio"><span aria-hidden="true"><UiIcon name="play"/></span><div>{[7,13,20,11,25,17,30,14,23,9,18,27,12,21,8,16].map((height, index) => <i key={index} style={{height}}/>)}</div></div>
+        <strong>Mbote</strong>
+        <div className="m-exercise-options"><span className="selected">Bonjour</span><span>Merci</span><span>Au revoir</span></div>
+      </div>;
+
+      if (kind === "order") return <div className="m-exercise-shot-body order">
+        <h4>Remettez la phrase dans l'ordre</h4>
+        <p>Je m'appelle Anthony.</p>
+        <div className="m-exercise-answer"><span>Kombo</span><span>na</span><span>ngai</span><i/></div>
+        <div className="m-exercise-bank"><span>Anthony</span><span>Mbote</span><span>yo</span></div>
+      </div>;
+
+      return <div className="m-exercise-shot-body speak">
+        <small>Comparez votre prononciation</small>
+        <h4>Matondo mingi</h4>
+        <p>Merci beaucoup.</p>
+        <span className="m-exercise-professor"><UiIcon name="play"/> Écouter le professeur</span>
+        <span className="m-exercise-record" aria-hidden="true"><UiIcon name="mic"/></span>
+        <span>Enregistrez votre voix</span>
+      </div>;
+    }
+
+    function ExerciseShowcase() {
+      const [active, setActive] = useState(0);
+      const [hovered, setHovered] = useState(false);
+      const [focusWithin, setFocusWithin] = useState(false);
+      const [touching, setTouching] = useState(false);
+      const [manualPaused, setManualPaused] = useState(false);
+      const [pageVisible, setPageVisible] = useState(() => !document.hidden);
+      const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      const touchStart = useRef(null);
+      const count = EXERCISE_PREVIEWS.length;
+      const move = step => setActive(index => (index + step + count) % count);
+      const releasePointerFocus = event => { if (event.detail > 0) event.currentTarget.blur(); };
+      const preview = EXERCISE_PREVIEWS[active];
+      const autoPaused = hovered || focusWithin || touching || manualPaused || !pageVisible || reducedMotion;
+
+      useEffect(() => {
+        const updateVisibility = () => setPageVisible(!document.hidden);
+        document.addEventListener("visibilitychange", updateVisibility);
+        return () => document.removeEventListener("visibilitychange", updateVisibility);
+      }, []);
+
+      useEffect(() => {
+        const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const updateMotion = event => setReducedMotion(event.matches);
+        query.addEventListener?.("change", updateMotion);
+        return () => query.removeEventListener?.("change", updateMotion);
+      }, []);
+
+      useEffect(() => {
+        if (autoPaused) return;
+        const timer = window.setTimeout(() => move(1), 6000);
+        return () => window.clearTimeout(timer);
+      }, [active, autoPaused]);
+
+      return <div className="m-exercise-showcase" data-carousel-index={active}
+                  onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+                  onFocusCapture={() => setFocusWithin(true)}
+                  onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false); }}>
+        <header>
+          <div>
+            <span>{preview.skill}</span>
+            <h3>{preview.title}</h3>
+            <p>{preview.copy}</p>
+          </div>
+          <div className="m-exercise-controls">
+            <button onClick={event => { move(-1); releasePointerFocus(event); }} aria-label="Exercice précédent" title="Exercice précédent"><UiIcon name="back"/></button>
+            <b>{String(active + 1).padStart(2,"0")} / {String(count).padStart(2,"0")}</b>
+            <button onClick={event => { move(1); releasePointerFocus(event); }} aria-label="Exercice suivant" title="Exercice suivant"><UiIcon name="arrow"/></button>
+            <button onClick={event => { setManualPaused(value => !value); releasePointerFocus(event); }} aria-label={manualPaused ? "Relancer le défilement automatique" : "Mettre les aperçus en pause"} title={manualPaused ? "Relancer" : "Mettre en pause"}><UiIcon name={manualPaused ? "play" : "pause"}/></button>
+          </div>
+        </header>
+
+        <div className="m-exercise-viewport"
+             onTouchStart={event => { setTouching(true); touchStart.current = event.touches[0]?.clientX ?? null; }}
+             onTouchEnd={event => {
+               setTouching(false);
+               if (touchStart.current === null) return;
+               const delta = (event.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current;
+               if (Math.abs(delta) > 45) move(delta < 0 ? 1 : -1);
+               touchStart.current = null;
+             }}
+             onTouchCancel={() => { touchStart.current = null; setTouching(false); }}>
+          <div className="m-exercise-track" style={{transform:`translateX(-${active * 100}%)`}}>
+            {EXERCISE_PREVIEWS.map((item, index) => <article key={item.kind} aria-hidden={index !== active}>
+              <div className="m-exercise-shot">
+                <div className="m-exercise-shot-top"><span><i/> Niveau 1 · Salutations</span><b>{index + 2}/8</b></div>
+                <div className="m-exercise-progress"><i style={{width:`${34 + index * 14}%`}}/></div>
+                <ExercisePreview kind={item.kind}/>
+              </div>
+            </article>)}
+          </div>
+        </div>
+
+        <div className="m-exercise-dots" aria-label="Choisir un aperçu d'exercice">
+          {EXERCISE_PREVIEWS.map((item, index) => <button key={item.kind} className={index === active ? "active" : ""} onClick={event => { setActive(index); releasePointerFocus(event); }} aria-label={item.title} aria-current={index === active ? "true" : undefined}/>)}
+        </div>
+      </div>;
+    }
+
     function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, currentUser }) {
-      // The dictionary is always on the page. It was mounted only on click,
-      // so the one screen a visitor can use without an account was invisible
-      // until they went looking for it — and it is the SEO and goodwill engine
-      // per PHASE3_LAUNCH_PLAN.md. The buttons now scroll to it and set which
-      // language it opens on.
       const [dictionaryFor, setDictionaryFor] = useState(null);
+      const [mapExploring, setMapExploring] = useState(false);
+      useEffect(() => {
+        if (!mapExploring) return;
+        const closeOnEscape = event => { if (event.key === "Escape") setMapExploring(false); };
+        window.addEventListener("keydown", closeOnEscape);
+        return () => window.removeEventListener("keydown", closeOnEscape);
+      }, [mapExploring]);
+      const scrollTo = id => window.setTimeout(() => document.querySelector(`#${id}`)?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block:"start",
+      }), 40);
       const openDictionary = language => {
         setDictionaryFor(language || languages[0] || null);
-        window.setTimeout(() => document.querySelector("#landing-dictionary")?.scrollIntoView({ behavior:"smooth", block:"start" }), 60);
+        scrollTo("landing-dictionary");
       };
       const selectedName = selectedMapLang || "Lingala";
       const geo = LANG_GEO[selectedName] || LANG_GEO.Lingala;
@@ -4106,34 +4326,48 @@
       const openLanguage = language => language && onSelectLanguage(language);
 
       return <div className="m-landing">
-        <section className="m-landing-hero" aria-labelledby="landing-title">
-          <LeafletMap immersive selectedMapLang={selectedName} onSelectLang={onSelectMapLang}/>
+        <section className={`m-landing-hero ${mapExploring ? "map-exploring" : ""}`} aria-labelledby="landing-title">
+          <LeafletMap immersive selectedMapLang={selectedMapLang} onSelectLang={onSelectMapLang} mapExploring={mapExploring} onMapExploringChange={setMapExploring}/>
           <div className="m-landing-map-wash" aria-hidden="true"/>
           <header className="m-landing-header">
-            <span className="m-landing-brand"><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></span>
-            <nav aria-label="Navigation publique">
-              <button onClick={() => openDictionary(lingala)}>Dictionnaire</button>
-              <button className="primary" disabled={!lingala} onClick={() => openLanguage(lingala)}>{currentUser ? "Mon espace" : "Commencer"}</button>
-            </nav>
+            <div className="m-landing-header-inner">
+              <span className="m-landing-brand"><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></span>
+              <nav aria-label="Navigation publique">
+                <button className="m-landing-nav-link" onClick={() => scrollTo("landing-mission")}>Notre mission</button>
+                <button className="m-landing-nav-link" onClick={() => scrollTo("landing-method")}>La méthode</button>
+                <button className="m-landing-nav-link" onClick={() => openDictionary(lingala)}>Dictionnaire</button>
+                <button className="primary" disabled={!lingala || loading} onClick={() => openLanguage(lingala)}>{currentUser ? "Mon espace" : "Commencer"}</button>
+              </nav>
+            </div>
           </header>
 
-          <div className="m-landing-copy">
-            <div className="m-kicker"><span>Langues africaines</span><span>Culture vivante</span></div>
-            <h1 id="landing-title">Monɔkɔ</h1>
-            <p>Apprenez le lingala à travers une méthode progressive, un dictionnaire vivant et la voix de locuteurs experts.</p>
-            <div className="m-landing-actions">
-              <button className="primary" disabled={!lingala} onClick={() => openLanguage(lingala)}><span>🇨🇩</span> Apprendre le lingala <UiIcon name="arrow"/></button>
-              <button className="secondary" onClick={() => openDictionary(lingala)}><UiIcon name="book"/> Consulter le dictionnaire</button>
+          <div className="m-landing-hero-stage">
+            <div className="m-landing-copy">
+              <div className="m-kicker"><span>Apprendre</span><span>Parler</span><span>Transmettre</span></div>
+              <h1 id="landing-title">Monɔkɔ</h1>
+              <p className="m-landing-promise">Apprendre une langue africaine, c'est retrouver une voix qui nous relie.</p>
+              <p className="m-landing-support">Commencez par le lingala avec un parcours ludique, des méthodes appuyées par la recherche et un corpus construit avec des linguistes et des locuteurs natifs.</p>
+              <div className="m-landing-actions">
+                <button className="primary" disabled={!lingala || loading} onClick={() => openLanguage(lingala)}><span className="m-landing-action-full">Commencer gratuitement</span><span className="m-landing-action-short">Commencer</span><UiIcon name="arrow"/></button>
+                <button className="secondary" onClick={() => openDictionary(lingala)}><UiIcon name="book"/><span className="m-landing-action-full">Ouvrir le dictionnaire</span><span className="m-landing-action-short">Dictionnaire</span></button>
+              </div>
+              <div className="m-landing-trust" aria-label="Points forts">
+                <span><UiIcon name="volume"/> 4 compétences</span>
+                <span><UiIcon name="shield"/> Corpus expert</span>
+                <span><UiIcon name="map"/> 50+ leçons</span>
+              </div>
             </div>
-          </div>
 
-          {/* The selected language reads as one line under the tabs rather than
-              a card beside the map. The card cost ~110px of height on a phone,
-              which is exactly the height the map needed to look like Africa
-              rather than a strip of coastline. */}
-          <div className="m-landing-map-picker">
-            <div className="m-landing-map-tabs" aria-label="Langues sur la carte">
-              {Object.entries(LANG_GEO).map(([name, item]) => <button key={name} className={selectedName === name ? "active" : ""} onClick={() => onSelectMapLang(name)}><i style={{background:item.color}}/><span>{name}</span></button>)}
+          </div>
+        </section>
+
+        <section className="m-landing-language-explorer" aria-label="Langues sur la carte">
+          <div className="m-landing-section-inner m-landing-map-picker">
+            <div className="m-landing-map-controls">
+              <span className="m-landing-map-label"><UiIcon name="globe"/> Notre carte des langues</span>
+              <div className="m-landing-map-tabs" aria-label="Choisir une langue">
+                {Object.entries(LANG_GEO).map(([name, item]) => <button key={name} className={selectedName === name ? "active" : ""} onClick={() => onSelectMapLang(selectedMapLang === name ? null : name)}><i style={{background:item.color}}/><span>{name}</span></button>)}
+              </div>
             </div>
             <div className="m-landing-map-caption" aria-live="polite">
               <span className="m-landing-map-facts">
@@ -4142,24 +4376,123 @@
               </span>
               {geo.description && <p className="m-landing-map-blurb">{geo.description}</p>}
               {geo.regions?.length > 0 && <p className="m-landing-map-regions">{geo.regions.join(" · ")}</p>}
-              {selectedLanguage && <button onClick={() => openLanguage(selectedLanguage)}>Apprendre {selectedName}<UiIcon name="arrow"/></button>}
+              {selectedLanguage
+                ? <button onClick={() => openLanguage(selectedLanguage)}>Explorer {selectedName}<UiIcon name="arrow"/></button>
+                : <span className="m-landing-coming">Bientôt disponible dans Monɔkɔ</span>}
             </div>
           </div>
         </section>
 
-        {/* The "Un point de départ" directory used to sit here: a second list of
-            the same languages the map already offers, reachable by tapping a
-            marker or a tab. Two selectors for one choice, and it pushed the only
-            thing that says "Africa" off a phone screen. The map is the selector;
-            the dictionary is reachable from the hero and switches language from
-            inside. */}
+        <section className="m-landing-proof" aria-label="Le parcours Lingala en chiffres">
+          <div className="m-landing-proof-inner">
+            <p><strong>Le lingala, aujourd'hui.</strong><span>D'autres langues africaines suivront sur la même carte.</span></p>
+            <dl>
+              <div><dt>6</dt><dd>niveaux à parcourir</dd></div>
+              <div><dt>50+</dt><dd>leçons progressives</dd></div>
+              <div><dt>1 000+</dt><dd>exercices ludiques</dd></div>
+              <div><dt>2 500+</dt><dd>phrases d'exemple avec audio</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section className="m-landing-mission" id="landing-mission">
+          <div className="m-landing-section-inner m-landing-mission-grid">
+            <figure className="m-landing-mission-visual">
+              <img src="assets/landing/language-transmission.jpg" width="1440" height="960" loading="lazy" alt="Deux générations partageant une conversation autour d'un enregistrement vocal"/>
+              <figcaption><UiIcon name="volume"/><span>Une langue passe d'abord d'une voix à une autre.</span></figcaption>
+            </figure>
+            <div className="m-landing-mission-copy">
+              <div className="m-kicker"><span>Pourquoi Monɔkɔ existe</span></div>
+              <h2>Nos langues portent notre histoire. Elles doivent pouvoir traverser le monde.</h2>
+              <p>Les langues africaines sont d'abord parlées : elles vivent dans les voix, les gestes, les histoires et les liens entre générations. Les apprendre, c'est retrouver une culture autant qu'un moyen de communiquer.</p>
+              <p>Mais tout le monde n'a pas accès à un locuteur natif. Monɔkɔ rassemble leurs voix, le savoir des linguistes et un parcours structuré pour rendre cet héritage accessible, où que l'on vive.</p>
+              <blockquote>
+                <strong>monɔkɔ</strong>
+                <span>En lingala : la bouche, la langue parlée. Pour nous : la parole que l'on transmet.</span>
+              </blockquote>
+            </div>
+          </div>
+        </section>
+
+        <section className="m-landing-method" id="landing-method">
+          <div className="m-landing-section-inner m-landing-method-grid">
+            <div className="m-landing-method-copy">
+              <div className="m-kicker"><span>Apprendre en jouant</span><span>Du premier mot à la conversation</span></div>
+              <h2>Des leçons qui donnent envie de revenir.</h2>
+              <p>Quelques minutes suffisent pour avancer. Les défis, l'XP, les récompenses et les découvertes culturelles rendent la progression visible sans perdre de vue l'objectif : communiquer.</p>
+              <ol>
+                <li><span>01</span><div><strong>Découvrir</strong><p>Allez au-delà de la traduction : découvrez les mots, les règles et les principes qui structurent la langue, puis apprenez à les utiliser dans des phrases et des situations du quotidien.</p></div></li>
+                <li><span>02</span><div><strong>Jouer pour pratiquer</strong><p>Des défis courts et variés avec une correction immédiate pour apprendre de chaque réponse.</p></div></li>
+                <li><span>03</span><div><strong>Progresser</strong><p>Des niveaux, des médailles et des récompenses qui donnent un cap à chaque effort.</p></div></li>
+              </ol>
+            </div>
+            <div className="m-landing-product" aria-label="Aperçu du parcours d'apprentissage">
+              <header><span><UiIcon name="map"/></span><div><small>Niveau 1 · Fondations</small><strong>Votre chemin en lingala</strong></div><b>2/8</b></header>
+              <div className="m-landing-product-path">
+                <span className="m-landing-product-line" aria-hidden="true"/>
+                <div className="done"><i><UiIcon name="check"/></i><p><strong>Sons et alphabet</strong><small>Leçon maîtrisée</small></p><b>+40 XP</b></div>
+                <div className="current"><i><UiIcon name="messages"/></i><p><strong>Salutations</strong><small>Votre prochaine leçon</small></p><button onClick={() => openLanguage(lingala)} aria-label="Ouvrir la leçon Salutations"><UiIcon name="play"/></button></div>
+                <div className="reward"><i><UiIcon name="gift"/></i><p><strong>Découverte culturelle</strong><small>Une récompense sur le chemin</small></p></div>
+                <div className="locked"><i><UiIcon name="lock"/></i><p><strong>Se présenter</strong><small>À débloquer</small></p></div>
+              </div>
+              <footer><UiIcon name="medal"/><span><strong>Une médaille à chaque niveau</strong><small>Votre progression reste visible.</small></span></footer>
+            </div>
+          </div>
+        </section>
+
+        <section className="m-landing-skills" aria-labelledby="landing-skills-title">
+          <div className="m-landing-section-inner">
+            <header className="m-landing-skills-heading">
+              <div className="m-kicker"><span>Une langue dans toutes ses dimensions</span></div>
+              <h2 id="landing-skills-title">Lire, écrire, écouter et parler.</h2>
+              <p>Monɔkɔ relie compréhension et expression, à l'écrit comme à l'oral. Les quatre compétences se renforcent ensemble, du premier exercice jusqu'à la conversation.</p>
+            </header>
+            <div className="m-landing-skills-grid">
+              <article><span><UiIcon name="book"/></span><small>01 · Compréhension écrite</small><h3>Lire</h3><p>Reconnaître les mots et comprendre des phrases ancrées dans leur contexte.</p></article>
+              <article><span><UiIcon name="pencil"/></span><small>02 · Expression écrite</small><h3>Écrire</h3><p>Construire ses propres phrases et recevoir un retour immédiat.</p></article>
+              <article><span><UiIcon name="headphones"/></span><small>03 · Compréhension orale</small><h3>Écouter</h3><p>Habituer son oreille à des voix et des usages enregistrés par nos experts.</p></article>
+              <article><span><UiIcon name="mic"/></span><small>04 · Expression orale</small><h3>Parler</h3><p>S'enregistrer, comparer sa voix et gagner en assurance à chaque essai.</p></article>
+            </div>
+            <ExerciseShowcase/>
+          </div>
+        </section>
+
+        <section className="m-landing-quality">
+          <div className="m-landing-section-inner">
+            <div className="m-landing-quality-heading">
+              <div className="m-kicker"><span>Notre engagement</span></div>
+              <h2>La recherche guide. L'IA aide. Les experts font foi.</h2>
+              <p>Nous associons des méthodes pédagogiques appuyées par la recherche, des outils d'IA pour pratiquer et le jugement humain indispensable à une langue vivante.</p>
+            </div>
+            <div className="m-landing-quality-flow">
+              <article><span><UiIcon name="messages"/></span><small>01</small><h3>Ancrer dans la langue vivante</h3><p>Des linguistes et locuteurs experts rassemblent les usages, les exemples et les situations de la vie réelle.</p></article>
+              <i aria-hidden="true"><UiIcon name="arrow"/></i>
+              <article><span><UiIcon name="shield"/></span><small>02</small><h3>Vérifier et enregistrer</h3><p>Chaque contenu est revu humainement et les voix expertes donnent vie au corpus.</p></article>
+              <i aria-hidden="true"><UiIcon name="arrow"/></i>
+              <article><span><UiIcon name="sparkles"/></span><small>03</small><h3>Faire pratiquer avec l'IA</h3><p>La technologie transforme ce corpus en exercices, révisions et outils de conversation accessibles partout.</p></article>
+            </div>
+          </div>
+        </section>
+
         {languages.length > 0 && <LandingDictionary
           languages={languages}
           initialLanguage={dictionaryFor || lingala || languages[0]}
         />}
 
+        <section className="m-landing-final">
+          <div className="m-landing-section-inner">
+            <div><div className="m-kicker"><span>Votre première étape</span></div><h2>La langue qui vous relie peut devenir celle que vous parlez.</h2></div>
+            <div className="m-landing-final-actions">
+              <button className="primary" disabled={!lingala || loading} onClick={() => openLanguage(lingala)}>Commencer le parcours <UiIcon name="arrow"/></button>
+              <button onClick={() => openDictionary(lingala)}>Chercher un mot</button>
+            </div>
+          </div>
+        </section>
+
         <footer className="m-landing-foot">
-          <span>Le dictionnaire est libre d'accès. Les cours demandent un compte.</span>
+          <span className="m-landing-brand"><span className="m-brand-mark">M</span><strong>Monɔkɔ</strong></span>
+          <p>Apprenez la langue de vos ancêtres.</p>
+          <span>Le dictionnaire reste libre d'accès · © {new Date().getFullYear()} Monɔkɔ</span>
         </footer>
       </div>;
     }

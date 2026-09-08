@@ -48,7 +48,53 @@ sender. The DNS lives on that subdomain — `resend._domainkey.mail` (DKIM),
 the root, ever; a second is a PermError that breaks Google Workspace too. DMARC
 sits at `p=none` while the new sender warms up.
 
-## Landing page (2026-09-04)
+## Landing page (2026-09-05)
+
+**The public page sells transmission, not a feature checklist.** Its narrative is
+now: the full-bleed language map and promise, concrete Lingala proof, the human
+reason Monoko exists, the continuous learning path, professor-led corpus quality,
+the four language skills, the free dictionary, then one final invitation. Keep the forest/gold identity and
+the map as the first-viewport product signal. The headline is deliberately
+`Monɔkɔ`, followed by "Apprendre une langue africaine, c'est retrouver une voix
+qui nous relie." Do not turn the hero back into a card or a generic dictionary
+directory.
+
+**The promise has two equal halves: joyful practice and human authority.** The
+course path explains short challenges, XP, rewards, culture capsules and visible
+progress as the motivation system. The next band names all four outcomes — read,
+write, listen and speak — across written/oral comprehension and expression. The
+quality section may say that research guides the pedagogy and AI supports
+practice, but linguists and native speakers remain the authority over the corpus.
+Never collapse those contributors back into a single "expert" statistic.
+
+**Landing proof numbers are intentionally conservative round claims.** The band
+shows `6` levels, `50+` progressive lessons, `1 000+` playful exercises and
+`2 500+` example sentences with audio, in that order. Their verified floors are
+50 lessons / 1,346 audio-backed course items and 2,593 dictionary examples with
+audio. The exercise count is lower than the available course rows before even
+counting the engine's multiple formats. Update the public round numbers only when
+the underlying floors cross the next meaningful threshold.
+
+The complete pre-expansion landing remains runnable at
+`design-prototypes/landing-comparison/version-1/`. This is intentionally a built
+snapshot rather than a second source tree. Use it only to compare the shorter
+story against the expanded Version 2 before release; production development stays
+in `index.html` and `monoko-ui.css`.
+
+**The mission image is a first-party generated asset.**
+`assets/landing/language-transmission.jpg` shows an intergenerational conversation
+with a phone recording on the table. Its generation record is kept in
+`assets/landing/README.md`; keep that provenance file with any future replacement.
+The image is `3 / 2`, uses `object-fit: cover`, and becomes image-then-caption on
+phones. The landing smoke test checks that it has loaded, that every major new
+section remains horizontally contained, and that the language explorer begins inside
+the first viewport at 1440, 390 and 320 pixels.
+
+**The dark course preview is a truthful miniature of the product.** It shows the
+same completed, current, culture-reward and locked states as the real continuous
+trail, plus the level medal. It is illustrative rather than a second course-state
+implementation; only its current lesson action enters the app. Keep progression
+logic in the real course trail.
 
 **The apex is the only indexable identity.** `index.html` self-canonicals to
 `https://monoko.africa/` and includes description, Open Graph, X/Twitter and
@@ -66,20 +112,32 @@ only thing that says *Africa* off screen. It is gone; the map markers and tabs
 select, and the caption under the tabs carries that language's name, family,
 speaker count, description and regions.
 
+**The map needs an unobstructed field because it is the expansion story.** The
+hero remains full-bleed, but its solid readability wash covers only the left half
+on desktop and the upper text zone on phones. `LeafletMap.overviewFrame()` keeps
+West and Central Africa in the exposed right/lower field. The language tabs and
+description live in `.m-landing-language-explorer` immediately below the map,
+never over it. Landing smoke tests require at least 240 CSS pixels of uncovered
+map and visible markers for both Lingala and Yoruba at every supported viewport;
+do not trade that space back to hero copy.
+
 **The dictionary is a permanent section of the landing page**, not something a
 visitor summons. It used to mount only on click, which hid the one screen usable
 without an account — and it is the SEO and goodwill engine per
 `PHASE3_LAUNCH_PLAN.md`. The buttons now scroll to it and set which language it
 opens on; its close button renders only when an `onClose` is passed.
 
-**The hero map opens on the selected language's region and flies between them.**
-Lingala opens over the Congo, tapping Yoruba travels to Nigeria, both at zoom 5.
-A continent-wide `fitBounds` was tried and reverted: it does show all of Africa,
-but a 1:2 portrait phone cannot hold a roughly square continent without filling
-the spare height with Europe, and the result read as a world map rather than a
-place. Travelling between regions is the point of having a map here.
+**The hero map keeps a stable Africa overview.** Selecting a language highlights
+its city network and changes the explorer copy, but does not hide the other
+languages by flying into one region. The desktop framing places current West and
+Central African markers to the right of the copy; phone framing moves them below
+the copy. As languages are added, their markers must join this shared overview so
+the map visibly records Monoko's growth across the continent.
 
-**Basemap is Esri Light Gray Canvas, and the reason matters.** CARTO's
+**Basemap is Esri World Topographic Map, and the reason matters.** At the stable
+Africa overview, Light Gray Canvas made the continent look like an empty gray
+panel; the topographic layer keeps its coastline and terrain legible, with a
+restrained saturation/brightness filter in CSS. CARTO's
 `light_all` began requiring an API key — but it does not fail. It answers **200
 with the tile replaced by an "API KEY REQUIRED" watermark**, so nothing appears
 in the console or the network tab and the landing page simply renders the demand
@@ -467,10 +525,28 @@ Rules that fall out of it:
   null there and `MutationObserver.observe()` throws — which turned the first
   version of this test into a silent no-op that passed against the bug.
 
-The hero map is a backdrop, not a control: at full-viewport height Leaflet's own
-touch handlers would swallow a vertical swipe and trap a phone reader on the
-first screen, so every interaction handler is off for `immersive` and the
-container is `pointer-events: none`. The language tabs under it do the selecting.
+The hero map is directly pannable and zoomable on desktop, with compact zoom and
+Africa-reset controls. On a phone, Leaflet's touch handlers stay disabled until
+the visitor presses `Explorer la carte`; exploration mode temporarily clears the
+hero copy, enables gestures, and keeps a visible exit control so the full-height
+map cannot trap ordinary page scrolling. The language tabs live in
+`.m-landing-language-explorer` below the map. The initial frame centers Africa
+from `overviewFrame()`; selecting a tab uses `flyTo()` and `languageFrame()` to
+focus its network, and reset returns to the overview. Keep the original Esri
+Light Gray Canvas layer unless the product direction explicitly changes it. The
+`.m-landing-map-wash` remains transparent: the map is one continuous hero
+surface, not visually divided into text and map panels.
+
+`ExerciseShowcase` follows the four skill pillars with responsive DOM previews
+of four real exercise formats: matching words, listening recognition, sentence
+reconstruction and speaking comparison. They deliberately reuse the learner
+app's visual language instead of static screenshot files, so they stay sharp and
+legible at every viewport. Navigation is manual through icon arrows, pagination
+dots or a horizontal swipe. The showcase also advances every six seconds, pauses
+for hover, focus, touch, hidden tabs and reduced-motion preferences, and provides
+an explicit pause/resume control. Keep the sample Lingala aligned with the
+professor-verified corpus whenever the exercise content changes.
+
 tests/                            — Vitest unit tests for every api/*.js file (see tests/README.md); test Supabase harness docs live here
 sql/test_schema.sql               — idempotent schema for the test Supabase project (harness sprint; see HARNESS_SPRINT.md)
 scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test project via psql (refuses to run against any non-test project ref)
