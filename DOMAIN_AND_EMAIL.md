@@ -20,6 +20,18 @@ that looked right, and settings that silently overrode the app.
 
 TLS is Let's Encrypt, issued by Vercel, renewing itself.
 
+## Vercel project ownership
+
+`monoko-app` is the only active application project. It owns `monoko.africa`,
+holds the Production/Preview environment variables, and is the only project
+connected to the GitHub repository.
+
+`monoko-dictionary` is a frozen legacy redirect project. Its Git integration
+was disconnected and all environment variables were removed on 2026-09-08.
+Do not add application secrets or reconnect Git there: it remains solely so
+`monoko-dictionary.vercel.app` can keep returning a permanent 308 redirect to
+the canonical domain instead of breaking old bookmarks and indexed links.
+
 ## Canonical URL and crawl files
 
 `https://monoko.africa/` is the only canonical public URL. Three matching

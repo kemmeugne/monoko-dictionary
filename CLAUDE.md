@@ -11,6 +11,12 @@ Monɔkɔ is a multilingual dictionary and AI conversation app for African langua
 `monoko.ca` and `www.monoko.ca` all 308 to the apex. **Never hardcode any of
 them** — see the origin rule below.
 
+**Vercel project rule:** `monoko-app` is the only active app project and the
+only place for application environment variables. `monoko-dictionary` is a
+frozen, Git-disconnected, secret-free legacy project retained only to preserve
+the permanent redirect from its `.vercel.app` URL. Do not deploy code to it or
+restore environment variables there.
+
 The frontend is a mobile-first responsive web app that will be wrapped with Capacitor and shipped to the App Store and Play Store. All UI work must follow the mobile-first rules below.
 
 ---
