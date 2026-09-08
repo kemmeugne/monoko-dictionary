@@ -91,8 +91,9 @@ in `index.html` and `monoko-ui.css`.
 `assets/landing/language-transmission.jpg` shows an intergenerational conversation
 with a phone recording on the table. Its generation record is kept in
 `assets/landing/README.md`; keep that provenance file with any future replacement.
-The image is `3 / 2`, uses `object-fit: cover`, and becomes image-then-caption on
-phones. The landing smoke test checks that it has loaded, that every major new
+The image is `3 / 2`, uses `object-fit: cover`, and is image-then-caption at every
+width — the caption used to be absolutely positioned over the photo on desktop,
+which covered the hands and the recording phone that carry the point of the picture. The landing smoke test checks that it has loaded, that every major new
 section remains horizontally contained, and that the language explorer begins inside
 the first viewport at 1440, 390 and 320 pixels.
 
@@ -558,18 +559,48 @@ Monɔkɔ as a generic chatbot. `.m-landing-ai` is one two-slide carousel:
 `Traduction en direct` is deliberately the default because it is the stronger
 differentiator, followed by `Parler avec Monɔkɔ`. Persistent named tabs keep both
 products discoverable while each slide moves its benefit copy and responsive DOM
-product preview together. Navigation is deliberately manual through the tabs,
-icon arrows or horizontal swipes so product copy never changes while a visitor is
-reading it. On stacked layouts, both tools place the product preview before their
+product preview together. Navigation is deliberately manual through the tabs or a
+horizontal swipe so product copy never changes while a visitor is reading it.
+**The prev/next arrows and the `01 / 02` counter were removed (2026-09-08)** — the
+named tabs already say what each tool is and switch straight to it, so the arrows
+were a second, blinder control for the same two panels. On stacked layouts, both tools place the product preview before their
 description. Each CTA preserves its destination through authentication: a
 visitor choosing translation or chat lands in that tool after signing in, not on
 the generic learner home. The exact free daily quotas remain off the landing
 until Phase 3.5 enforces them server-side.
 
+**The in-app chat now wears the landing preview's design (2026-09-08).** The
+`view === "chat"` screen was the last surface still using the old blue-gradient
+bubbles and a 🗣️ emoji header. It now uses the same language as
+`.m-ai-chat-demo`: a solid `#2075db` mark with the `messages` icon plus an
+`En ligne` badge, a solid blue user bubble at `10px 10px 3px 10px`, and — the
+part that carries the brand — the gold `.m-brand-mark` "M" as the assistant
+avatar beside a white card at `10px 10px 10px 3px`. The listen control moved out
+of the text-button row into a 44px round button to the right of the bubble;
+`Corriger` stays under the card. The send button is gold, not blue.
+
+What the landing preview shows and the app cannot is the *structured* answer
+("On peut dire : / lingala / french"): the real assistant streams free prose from
+the model, so only the shell is shared, never a fixed answer template.
+
 The old standalone quality flow was removed to avoid placing abstract AI claims
-before the products. Research support now appears in the teaching-method section;
-the AI trust strip says linguists and native speakers construct the corpus,
-examples and voices. The live-translation story covers both language practice
+before the products. Research support now appears in the teaching-method section; the AI trust strip
+says linguists and native speakers construct the corpus, examples and voices.
+
+**That strip is its own white section, `.m-landing-ai-bridge` (2026-09-08)** —
+between the skills section and the tinted `.m-landing-ai-section`, not inside the
+showcase. It used to sit below the panels, where it read as fine print after the
+pitch. "Is the AI inventing this?" is the first objection an African-language
+learner has, so it is answered *before* the demo, and given its own band so the
+answer is a transition into the AI section rather than a caption on it. The
+section kicker is `L'IA au service de la langue`, naming what powers the section
+rather than counting its contents.
+
+The `brain` icon in the method section is Lucide's two-hemisphere brain. Three
+attempts at an anatomical side view were reverted: a hand-drawn half-brain is
+roughly 9x18 units and cannot fill a square icon box without distorting, and the
+only real side-view icons available are circuit-board variants that read as
+hardware rather than research. Do not retry this without a purpose-drawn asset. The live-translation story covers both language practice
 and an exchange between people who do not share a language; the chat copy
 explicitly says it relies on a corpus validated by expert linguists. Do not
 promise instantaneous or perfect translation while the voice pipeline still

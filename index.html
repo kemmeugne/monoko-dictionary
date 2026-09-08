@@ -4360,7 +4360,7 @@
 
       return <div className="m-landing-ai" aria-labelledby="landing-ai-title" data-carousel-index={active}>
         <header className="m-landing-ai-heading">
-          <div className="m-kicker"><span>Deux outils pour parler</span></div>
+          <div className="m-kicker"><span>L'IA au service de la langue</span></div>
           <h2 id="landing-ai-title">Traduisez en direct. Pratiquez avec Monɔkɔ.</h2>
           <p>L'intelligence artificielle rend la langue disponible au moment où vous en avez besoin, pendant une rencontre comme entre deux leçons.</p>
         </header>
@@ -4373,11 +4373,6 @@
             <span><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/></span>
             <span><strong>{feature.label}</strong><small>{feature.tabCopy}</small></span>
           </button>)}
-          <div className="m-landing-ai-controls">
-            <button type="button" onClick={event => { move(-1); releasePointerFocus(event); }} aria-label="Outil précédent" title="Outil précédent"><UiIcon name="back"/></button>
-            <b>{String(active + 1).padStart(2,"0")} / {String(count).padStart(2,"0")}</b>
-            <button type="button" onClick={event => { move(1); releasePointerFocus(event); }} aria-label="Outil suivant" title="Outil suivant"><UiIcon name="arrow"/></button>
-          </div>
         </div>
 
         <div className="m-landing-ai-viewport"
@@ -4408,7 +4403,6 @@
           </div>
         </div>
 
-        <aside className="m-landing-ai-trust"><UiIcon name="shield"/><p><strong>Une technologie guidée par l'expertise humaine.</strong><span>Le corpus, les exemples et les voix sont construits avec des linguistes et des locuteurs natifs ; l'IA les rend disponibles pour apprendre et communiquer.</span></p></aside>
       </div>;
     }
 
@@ -4565,6 +4559,12 @@
               <article><span><UiIcon name="mic"/></span><small>04 · Expression orale</small><h3>Parler</h3><p>S'enregistrer, comparer sa voix et gagner en assurance à chaque essai.</p></article>
             </div>
             <ExerciseShowcase/>
+          </div>
+        </section>
+
+        <section className="m-landing-ai-bridge" aria-label="Notre approche de l'intelligence artificielle">
+          <div className="m-landing-section-inner">
+            <aside className="m-landing-ai-trust"><UiIcon name="shield"/><p><strong>Une technologie guidée par l'expertise humaine.</strong><span>Le corpus, les exemples et les voix sont construits avec des linguistes et des locuteurs natifs ; l'IA les rend disponibles pour apprendre et communiquer.</span></p></aside>
           </div>
         </section>
 
@@ -8235,11 +8235,12 @@
                 }}><ArrowLeft /> Accueil</button>
 
                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-                  <div style={{ width:44, height:44, borderRadius:8, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🗣️</div>
-                  <div>
+                  <div style={{ width:46, height:46, flexShrink:0, borderRadius:8, background:"#2075db", color:"white", display:"grid", placeItems:"center" }}><UiIcon name="messages"/></div>
+                  <div style={{ minWidth:0 }}>
                     <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"var(--m-ink)", margin:0, lineHeight:1.1 }}>Parler avec Monɔkɔ</h2>
                     <p style={{ fontSize:12, color:"var(--m-muted)", margin:"2px 0 0" }}>IA conversationnelle en {langName}</p>
                   </div>
+                  <span style={{ marginLeft:"auto", flexShrink:0, padding:"6px 10px", borderRadius:5, background:"var(--m-green-soft)", color:"var(--m-correct)", fontSize:10, fontWeight:800, textTransform:"uppercase", letterSpacing:"0.04em", fontFamily:"'DM Sans', sans-serif" }}>En ligne</span>
                 </div>
 
                 <React.Fragment>
@@ -8268,50 +8269,63 @@
                         </div>
                       )}
 
-                      {chatMessages.map((msg, idx) => !msg.content ? null : (
-                        <div key={idx} style={{
-                          alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
-                          maxWidth: "85%",
-                          animation: "slideIn 0.2s ease-out",
-                        }}>
-                          <div style={{
-                            background: msg.role === "user"
-                              ? "linear-gradient(135deg, #0EA5E9, #2563EB)"
-                              : "white",
-                            color: msg.role === "user" ? "white" : "var(--m-ink)",
-                            padding: "12px 16px",
-                            borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                            fontSize: 14, lineHeight: 1.6,
-                            border: msg.role === "user" ? "none" : "1px solid var(--m-line)",
-                            fontFamily: "'DM Sans', sans-serif",
-                            whiteSpace: "pre-wrap",
-                          }}>
-                            {msg.content}
+                      {chatMessages.map((msg, idx) => {
+                        if (!msg.content) return null;
+
+                        if (msg.role === "user") return (
+                          <div key={idx} style={{ alignSelf:"flex-end", maxWidth:"80%", animation:"slideIn 0.2s ease-out" }}>
+                            <div style={{
+                              background:"#2075db", color:"white", padding:"12px 16px",
+                              borderRadius:"10px 10px 3px 10px", fontSize:14, lineHeight:1.6,
+                              fontFamily:"'DM Sans', sans-serif", whiteSpace:"pre-wrap",
+                            }}>{msg.content}</div>
                           </div>
-                          {/* Action buttons for AI messages — only when streaming is complete */}
-                          {msg.role === "assistant" && !msg.content.startsWith("⚠️") && !chatLoading && (
-                            <div style={{ display:"flex", gap:6, marginTop:4, marginLeft:4 }}>
-                              <button onClick={() => { setCorrectionMsg(idx); setCorrectionSent(false); setCorrectionText(""); setCorrectionExample(""); }}
-                                style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid var(--m-line)", borderRadius:8, padding:"4px 10px", fontSize:11, color:"var(--m-muted)", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
-                                onMouseOver={e => { e.currentTarget.style.borderColor="#E57373"; e.currentTarget.style.color="#E57373"; }}
-                                onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.color="var(--m-muted)"; }}>
-                                <FlagIcon /> Corriger
-                              </button>
-                              {extractLingalaFragments(msg.content).length > 0 && (
-                                <button
-                                  onClick={() => playChatLingala(idx, msg.content)}
-                                  disabled={chatPlayingIdx !== null && chatPlayingIdx !== idx}
-                                  title="Écouter les traductions en Lingala"
-                                  style={{ display:"flex", alignItems:"center", gap:4, background:"none", border:"1px solid var(--m-line)", borderRadius:8, padding:"4px 10px", fontSize:11, color: chatPlayingIdx === idx ? "var(--m-correct)" : "var(--m-muted)", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
-                                  onMouseOver={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="var(--m-correct)"; }}
-                                  onMouseOut={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="var(--m-line)"; }}>
-                                  {chatPlayingIdx === idx ? "⏳" : "🔊"}
+                        );
+
+                        const settled = !msg.content.startsWith("⚠️") && !chatLoading;
+                        const canListen = settled && extractLingalaFragments(msg.content).length > 0;
+                        return (
+                          <div key={idx} style={{
+                            alignSelf:"flex-start", maxWidth:"92%", display:"grid",
+                            gridTemplateColumns: canListen ? "36px minmax(0,1fr) 44px" : "36px minmax(0,1fr)",
+                            alignItems:"end", gap:10, animation:"slideIn 0.2s ease-out",
+                          }}>
+                            <span className="m-brand-mark" style={{ width:36, height:36, fontSize:16 }}>M</span>
+                            <div style={{ minWidth:0 }}>
+                              <div style={{
+                                background:"white", border:"1px solid var(--m-line)", color:"var(--m-ink)",
+                                padding:"13px 16px", borderRadius:"10px 10px 10px 3px",
+                                fontSize:14, lineHeight:1.6, fontFamily:"'DM Sans', sans-serif", whiteSpace:"pre-wrap",
+                              }}>{msg.content}</div>
+                              {settled && (
+                                <button onClick={() => { setCorrectionMsg(idx); setCorrectionSent(false); setCorrectionText(""); setCorrectionExample(""); }}
+                                  style={{ display:"inline-flex", alignItems:"center", gap:5, marginTop:6, background:"none", border:"1px solid var(--m-line)", borderRadius:8, padding:"6px 11px", fontSize:11, color:"var(--m-muted)", cursor:"pointer", fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s" }}
+                                  onMouseOver={e => { e.currentTarget.style.borderColor="#E57373"; e.currentTarget.style.color="#E57373"; }}
+                                  onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.color="var(--m-muted)"; }}>
+                                  <FlagIcon /> Corriger
                                 </button>
                               )}
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            {canListen && (
+                              <button
+                                onClick={() => playChatLingala(idx, msg.content)}
+                                disabled={chatPlayingIdx !== null && chatPlayingIdx !== idx}
+                                aria-label="Écouter les traductions en lingala"
+                                title="Écouter les traductions en Lingala"
+                                style={{
+                                  width:44, height:44, padding:0, borderRadius:"50%", background:"white",
+                                  border:"1px solid var(--m-line)", display:"grid", placeItems:"center",
+                                  color: chatPlayingIdx === idx ? "var(--m-correct)" : "var(--m-forest-2)",
+                                  cursor:"pointer", transition:"all 0.15s",
+                                }}
+                                onMouseOver={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="var(--m-correct)"; }}
+                                onMouseOut={e => { if (chatPlayingIdx !== idx) e.currentTarget.style.borderColor="var(--m-line)"; }}>
+                                {chatPlayingIdx === idx ? "⏳" : <UiIcon name="volume"/>}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
 
                       {chatLoading && chatMessages[chatMessages.length - 1]?.content === "" && chatCorpusPairs.length > 0 && (
                         <div style={{ alignSelf:"flex-start", maxWidth:"90%", animation:"fadeIn 0.3s ease-out" }}>
@@ -8333,11 +8347,14 @@
 
                       {chatLoading && chatMessages[chatMessages.length - 1]?.content === "" && (
                         <div style={{ alignSelf:"flex-start", maxWidth:"85%" }}>
-                          <div style={{ background:"white", border:"1px solid var(--m-line)", padding:"12px 20px", borderRadius:"16px 16px 16px 4px" }}>
-                            <div style={{ display:"flex", gap:4 }}>
-                              {[0,1,2].map(i => (
-                                <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:"#0EA5E9", animation:`float 1.2s ease-in-out ${i*0.2}s infinite` }} />
-                              ))}
+                          <div style={{ display:"grid", gridTemplateColumns:"36px auto", alignItems:"end", gap:10 }}>
+                            <span className="m-brand-mark" style={{ width:36, height:36, fontSize:16 }}>M</span>
+                            <div style={{ background:"white", border:"1px solid var(--m-line)", padding:"14px 18px", borderRadius:"10px 10px 10px 3px" }}>
+                              <div style={{ display:"flex", gap:4 }}>
+                                {[0,1,2].map(i => (
+                                  <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:"#2075db", animation:`float 1.2s ease-in-out ${i*0.2}s infinite` }} />
+                                ))}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -8353,13 +8370,13 @@
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
                           placeholder={`Écrivez en français ou ${langName.toLowerCase()}...`}
                           style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"13px 0", background:"transparent", color:"var(--m-ink)", fontFamily:"'DM Sans', sans-serif" }}
-                          onFocus={e => e.target.parentElement.style.borderColor="#0EA5E9"}
+                          onFocus={e => e.target.parentElement.style.borderColor="#2075db"}
                           onBlur={e => e.target.parentElement.style.borderColor="var(--m-line)"}
                           disabled={chatLoading}
                         />
                       </div>
                       <button onClick={sendChat} disabled={chatLoading || !chatInput.trim()} style={{
-                        background: chatInput.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "var(--m-line)",
+                        background: chatInput.trim() ? "var(--m-gold)" : "var(--m-line)",
                         color: "white", border:"none", borderRadius:8, width:48, height:48,
                         display:"flex", alignItems:"center", justifyContent:"center", cursor: chatInput.trim() ? "pointer" : "default",
                         transition:"all 0.2s", flexShrink:0,
