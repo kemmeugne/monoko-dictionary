@@ -8,8 +8,7 @@ const credentialsPresent = Boolean(
 );
 
 async function openLingalaCourse(page) {
-  const landingActions = page.locator(".m-landing-actions");
-  await landingActions.getByRole("button", { name: /Apprendre le lingala/i }).click();
+  await page.locator(".m-landing-actions .primary").click();
 }
 
 async function resetDeveloperBoundary(page) {
