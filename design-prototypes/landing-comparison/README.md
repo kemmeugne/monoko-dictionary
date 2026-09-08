@@ -11,8 +11,8 @@ chosen.
   section includes an accessible four-exercise carousel with six-second autoplay,
   pause and swipe controls. The hero map supports direct desktop exploration and
   a dedicated touch-safe mobile mode with zoom and Africa reset controls. The
-  footer keeps the transmission statement and closes with
-  `Apprenez la langue de vos ancêtres.` beside the copyright.
+  final call to action is `Apprenez la langue de vos ancêtres.` The footer keeps
+  the transmission statement and public-dictionary access note.
 
 Serve each directory over HTTP on a different local port. These are comparison
 artifacts only; the maintained source remains at the project root.

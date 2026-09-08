@@ -86,9 +86,9 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
   // silently back to click-to-mount.
   await expect(page.locator("#landing-dictionary")).toBeVisible();
   const landingFooter = page.locator(".m-landing-foot");
+  await expect(page.locator(".m-landing-final h2")).toHaveText("Apprenez la langue de vos ancêtres.");
   await expect(landingFooter).toContainText("Les langues africaines, transmises par celles et ceux qui les parlent.");
-  await expect(landingFooter).toContainText("Apprenez la langue de vos ancêtres.");
-  await expect(landingFooter).not.toContainText("Le dictionnaire reste libre d'accès");
+  await expect(landingFooter).toContainText("Le dictionnaire reste libre d'accès");
 
   const report = await page.evaluate(() => {
     const viewport = document.documentElement.clientWidth;
