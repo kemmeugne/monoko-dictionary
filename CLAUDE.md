@@ -553,6 +553,28 @@ for hover, focus, touch, hidden tabs and reduced-motion preferences, and provide
 an explicit pause/resume control. Keep the sample Lingala aligned with the
 professor-verified corpus whenever the exercise content changes.
 
+The landing's AI section makes the two private tools concrete without presenting
+Monɔkɔ as a generic chatbot. `.m-landing-ai` is one two-slide carousel:
+`Traduction en direct` is deliberately the default because it is the stronger
+differentiator, followed by `Parler avec Monɔkɔ`. Persistent named tabs keep both
+products discoverable while each slide moves its benefit copy and responsive DOM
+product preview together. Navigation is deliberately manual through the tabs,
+icon arrows or horizontal swipes so product copy never changes while a visitor is
+reading it. On stacked layouts, both tools place the product preview before their
+description. Each CTA preserves its destination through authentication: a
+visitor choosing translation or chat lands in that tool after signing in, not on
+the generic learner home. The exact free daily quotas remain off the landing
+until Phase 3.5 enforces them server-side.
+
+The old standalone quality flow was removed to avoid placing abstract AI claims
+before the products. Research support now appears in the teaching-method section;
+the AI trust strip says linguists and native speakers construct the corpus,
+examples and voices. The live-translation story covers both language practice
+and an exchange between people who do not share a language; the chat copy
+explicitly says it relies on a corpus validated by expert linguists. Do not
+promise instantaneous or perfect translation while the voice pipeline still
+includes browser STT, a model call and a sleeping Hugging Face Space.
+
 tests/                            — Vitest unit tests for every api/*.js file (see tests/README.md); test Supabase harness docs live here
 sql/test_schema.sql               — idempotent schema for the test Supabase project (harness sprint; see HARNESS_SPRINT.md)
 scripts/sync_test_schema.js       — applies sql/test_schema.sql to the test project via psql (refuses to run against any non-test project ref)

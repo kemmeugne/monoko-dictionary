@@ -851,7 +851,7 @@ an effect redirects to `auth` when `currentUser` is absent, checked only once
 
 | View | Access | Description |
 |---|---|---|
-| `lang_select` | public | **Marketing landing** (`PublicLanding`) — immersive map, folding language card, language directory, and `LandingDictionary` rendered in place |
+| `lang_select` | public | **Marketing landing** (`PublicLanding`) — immersive language map, mission and research-backed learning-method story, exercise showcase, live-translation-first AI carousel with direct auth return routing, plus `LandingDictionary` rendered in place |
 | `auth` | public | **Login page** (`AuthPage`) — sign in, sign up, password reset. Signing out lands here, not on the landing |
 | `search` / `browse` / `detail` | public | Dictionary. Reachable signed-out; `StandardPage` then renders a visitor shell (`signedIn={false}`) |
 | `home` | private | Learner home (`HomeHub`) — resume card, dictionary panel, streak, tools |

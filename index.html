@@ -3924,6 +3924,7 @@
       pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
       mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>',
       user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+      brain: '<path d="M9.5 4A2.5 2.5 0 0 1 12 6.5v11a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24A2.5 2.5 0 0 1 9.5 4Z"/><path d="M14.5 4A2.5 2.5 0 0 0 12 6.5v11a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24A2.5 2.5 0 0 0 14.5 4Z"/>',
       sparkles: '<path d="m12 3-1.3 3.7L7 8l3.7 1.3L12 13l1.3-3.7L17 8l-3.7-1.3L12 3Z"/><path d="m5 14-.8 2.2L2 17l2.2.8L5 20l.8-2.2L8 17l-2.2-.8L5 14ZM19 13l-.6 1.4L17 15l1.4.6L19 17l.6-1.4L21 15l-1.4-.6L19 13Z"/>',
       flame: '<path d="M12 22c4 0 7-3 7-7 0-3-1.5-5.5-4-8-1 3-2.5 4-4 5 .5-4-1-7-3-10 0 4-3 6-3 11 0 5 3 9 7 9Z"/>',
       medal: '<circle cx="12" cy="13" r="5"/><path d="m9 8-3-6h4l2 4 2-4h4l-3 6M9 17l-1 5 4-2 4 2-1-5"/>',
@@ -4302,7 +4303,116 @@
       </div>;
     }
 
-    function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, currentUser }) {
+    const AI_FEATURES = [
+      {
+        kind:"live",
+        label:"Traduction en direct",
+        tabCopy:"Une conversation, deux langues",
+        title:"Parlez en français. Faites-vous comprendre en lingala.",
+        copy:"Lors d'une rencontre, chacun peut parler dans sa langue et suivre la traduction de l'échange, à l'écrit comme à l'oral. Le même outil vous aide aussi à entraîner votre écoute et votre prononciation.",
+        benefits:["Français ⇄ lingala", "Texte et restitution audio", "Pour apprendre et échanger"],
+        cta:"Essayer gratuitement",
+      },
+      {
+        kind:"chat",
+        label:"Parler avec Monɔkɔ",
+        tabCopy:"Votre partenaire de pratique",
+        title:"Posez vos questions. Pratiquez la conversation.",
+        copy:"Demandez une traduction, explorez une expression ou échangez en lingala. Monɔkɔ s'appuie sur un corpus validé par des linguistes experts pour vous aider à pratiquer en contexte, où que vous soyez.",
+        benefits:["Questions libres", "Réponses contextualisées", "Corpus validé par des experts"],
+        cta:"Parler avec Monɔkɔ",
+      },
+    ];
+
+    function AiFeaturePreview({ kind }) {
+      if (kind === "live") return <figure className="m-ai-demo m-ai-live-demo" aria-label="Aperçu d'une traduction vocale entre le français et le lingala">
+        <figcaption className="m-sr-only">Une conversation orale est transcrite et traduite dans les deux directions.</figcaption>
+        <header><span><UiIcon name="headphones"/></span><div><strong>Traduction en direct</strong><small>Une conversation, deux langues</small></div></header>
+        <div className="m-ai-language-switch"><span><small>Je parle</small><strong>Français</strong></span><i>⇄</i><span><small>Traduction</small><strong>Lingala</strong></span></div>
+        <div className="m-ai-live-thread">
+          <div><small>Français</small><span>Bonjour, où se trouve le marché ?</span><strong>Mbote, zando ezali wapi ?</strong></div>
+          <div className="reply"><small>Lingala</small><span>Zando ezali pene na station.</span><strong>Le marché est près de la station.</strong></div>
+        </div>
+        <footer><span className="m-ai-wave" aria-hidden="true">{[8,16,25,13,30,19,11,23,9].map((height,index) => <i key={index} style={{height}}/>)}</span><b><UiIcon name="mic"/></b><small>Parlez naturellement</small></footer>
+      </figure>;
+
+      return <figure className="m-ai-demo m-ai-chat-demo" aria-label="Aperçu d'une conversation avec Monoko">
+        <figcaption className="m-sr-only">Une question en français reçoit une réponse et une traduction en lingala.</figcaption>
+        <header><span><UiIcon name="messages"/></span><div><strong>Parler avec Monɔkɔ</strong><small>IA conversationnelle en lingala</small></div><i>En ligne</i></header>
+        <div className="m-ai-chat-thread">
+          <p className="user">Comment dit-on « Je suis heureux de te revoir » ?</p>
+          <div className="assistant">
+            <span className="m-ai-avatar">M</span>
+            <p>On peut dire :<strong>Nazali na esengo ya komona yo lisusu.</strong><small>Je suis heureux de te revoir.</small></p>
+            <button aria-label="Écouter la phrase en lingala" tabIndex="-1"><UiIcon name="volume"/></button>
+          </div>
+        </div>
+        <footer><span>Écrivez votre message…</span><i><UiIcon name="arrow"/></i></footer>
+      </figure>;
+    }
+
+    function AiShowcase({ onTry, ctaDisabled }) {
+      const [active, setActive] = useState(0);
+      const touchStart = useRef(null);
+      const count = AI_FEATURES.length;
+      const move = direction => setActive(current => (current + direction + count) % count);
+      const releasePointerFocus = event => event.currentTarget.blur();
+
+      return <div className="m-landing-ai" aria-labelledby="landing-ai-title" data-carousel-index={active}>
+        <header className="m-landing-ai-heading">
+          <div className="m-kicker"><span>Deux outils pour parler</span></div>
+          <h2 id="landing-ai-title">Traduisez en direct. Pratiquez avec Monɔkɔ.</h2>
+          <p>L'intelligence artificielle rend la langue disponible au moment où vous en avez besoin, pendant une rencontre comme entre deux leçons.</p>
+        </header>
+
+        <div className="m-landing-ai-tabs" role="tablist" aria-label="Outils d'intelligence artificielle">
+          {AI_FEATURES.map((feature, index) => <button key={feature.kind} type="button" role="tab"
+            id={`m-ai-tab-${feature.kind}`} aria-controls={`m-ai-panel-${feature.kind}`}
+            aria-selected={index === active} className={index === active ? "active" : ""}
+            onClick={event => { setActive(index); releasePointerFocus(event); }}>
+            <span><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/></span>
+            <span><strong>{feature.label}</strong><small>{feature.tabCopy}</small></span>
+          </button>)}
+          <div className="m-landing-ai-controls">
+            <button type="button" onClick={event => { move(-1); releasePointerFocus(event); }} aria-label="Outil précédent" title="Outil précédent"><UiIcon name="back"/></button>
+            <b>{String(active + 1).padStart(2,"0")} / {String(count).padStart(2,"0")}</b>
+            <button type="button" onClick={event => { move(1); releasePointerFocus(event); }} aria-label="Outil suivant" title="Outil suivant"><UiIcon name="arrow"/></button>
+          </div>
+        </div>
+
+        <div className="m-landing-ai-viewport"
+             onTouchStart={event => { touchStart.current = event.touches[0]?.clientX ?? null; }}
+             onTouchEnd={event => {
+               if (touchStart.current === null) return;
+               const delta = (event.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current;
+               if (Math.abs(delta) > 45) move(delta < 0 ? 1 : -1);
+               touchStart.current = null;
+             }}
+             onTouchCancel={() => { touchStart.current = null; }}>
+          <div className="m-landing-ai-track" style={{transform:`translateX(-${active * 100}%)`}}>
+            {AI_FEATURES.map((feature, index) => <article key={feature.kind} id={`m-ai-panel-${feature.kind}`}
+              role="tabpanel" aria-labelledby={`m-ai-tab-${feature.kind}`} aria-hidden={index !== active}
+              className={`m-landing-ai-feature ${feature.kind}`}>
+              <div className="m-landing-ai-copy">
+                <span className="m-landing-ai-label"><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/> {feature.label}</span>
+                <h3>{feature.title}</h3>
+                <p>{feature.copy}</p>
+                <div className="m-landing-ai-benefits">
+                  {feature.benefits.map(benefit => <span key={benefit}><UiIcon name="check"/> {benefit}</span>)}
+                </div>
+                <button type="button" className="m-landing-ai-cta" disabled={ctaDisabled} onClick={() => onTry(feature.kind)}>{feature.cta}<UiIcon name="arrow"/></button>
+                <small className="m-landing-ai-access">Accès gratuit avec un compte</small>
+              </div>
+              <AiFeaturePreview kind={feature.kind}/>
+            </article>)}
+          </div>
+        </div>
+
+        <aside className="m-landing-ai-trust"><UiIcon name="shield"/><p><strong>Une technologie guidée par l'expertise humaine.</strong><span>Le corpus, les exemples et les voix sont construits avec des linguistes et des locuteurs natifs ; l'IA les rend disponibles pour apprendre et communiquer.</span></p></aside>
+      </div>;
+    }
+
+    function PublicLanding({ languages, loading, selectedMapLang, onSelectMapLang, onSelectLanguage, onOpenFeature, currentUser }) {
       const [dictionaryFor, setDictionaryFor] = useState(null);
       const [mapExploring, setMapExploring] = useState(false);
       useEffect(() => {
@@ -4420,6 +4530,7 @@
               <div className="m-kicker"><span>Apprendre en jouant</span><span>Du premier mot à la conversation</span></div>
               <h2>Des leçons qui donnent envie de revenir.</h2>
               <p>Quelques minutes suffisent pour avancer. Les défis, l'XP, les récompenses et les découvertes culturelles rendent la progression visible sans perdre de vue l'objectif : communiquer.</p>
+              <div className="m-landing-method-proof"><UiIcon name="brain"/><span><strong>Une pédagogie appuyée par la recherche</strong><small>Chaque activité mobilise la langue dans un contexte utile, avec une progression structurée et un retour immédiat.</small></span></div>
               <ol>
                 <li><span>01</span><div><strong>Découvrir</strong><p>Allez au-delà de la traduction : découvrez les mots, les règles et les principes qui structurent la langue, puis apprenez à les utiliser dans des phrases et des situations du quotidien.</p></div></li>
                 <li><span>02</span><div><strong>Jouer pour pratiquer</strong><p>Des défis courts et variés avec une correction immédiate pour apprendre de chaque réponse.</p></div></li>
@@ -4457,20 +4568,9 @@
           </div>
         </section>
 
-        <section className="m-landing-quality">
+        <section className="m-landing-ai-section">
           <div className="m-landing-section-inner">
-            <div className="m-landing-quality-heading">
-              <div className="m-kicker"><span>Notre engagement</span></div>
-              <h2>La recherche guide. L'IA aide. Les experts font foi.</h2>
-              <p>Nous associons des méthodes pédagogiques appuyées par la recherche, des outils d'IA pour pratiquer et le jugement humain indispensable à une langue vivante.</p>
-            </div>
-            <div className="m-landing-quality-flow">
-              <article><span><UiIcon name="messages"/></span><small>01</small><h3>Ancrer dans la langue vivante</h3><p>Des linguistes et locuteurs experts rassemblent les usages, les exemples et les situations de la vie réelle.</p></article>
-              <i aria-hidden="true"><UiIcon name="arrow"/></i>
-              <article><span><UiIcon name="shield"/></span><small>02</small><h3>Vérifier et enregistrer</h3><p>Chaque contenu est revu humainement et les voix expertes donnent vie au corpus.</p></article>
-              <i aria-hidden="true"><UiIcon name="arrow"/></i>
-              <article><span><UiIcon name="sparkles"/></span><small>03</small><h3>Faire pratiquer avec l'IA</h3><p>La technologie transforme ce corpus en exercices, révisions et outils de conversation accessibles partout.</p></article>
-            </div>
+            <AiShowcase onTry={kind => onOpenFeature(lingala, kind)} ctaDisabled={!lingala || loading}/>
           </div>
         </section>
 
@@ -5655,6 +5755,17 @@
         if (!authLoading && !currentUser) requireAuth("home");
         else setView("home");
         loadLanguageData(lang);
+      };
+
+      const openLanguageFeature = (lang, feature) => {
+        if (!lang || !["live", "chat"].includes(feature)) return;
+        setSelectedLang(lang);
+        setHomeSection("home");
+        rememberLanguage(lang);
+        loadLanguageData(lang);
+        if (recoveryPendingRef.current) return;
+        if (!authLoading && !currentUser) requireAuth(feature);
+        else setView(feature);
       };
 
       const loadLanguageData = async (lang) => {
@@ -6999,6 +7110,7 @@
             {view === "lang_select" && (bootingIntoApp ? <BootSplash/> : <PublicLanding
               languages={languages} loading={loadingLangs} selectedMapLang={mapLang}
               onSelectMapLang={name => setMapLang(name)} onSelectLanguage={selectLanguage}
+              onOpenFeature={openLanguageFeature}
               currentUser={currentUser}
             />)}
 

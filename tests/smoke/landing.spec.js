@@ -76,7 +76,26 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
   await page.getByRole("button", { name: "Exercice suivant" }).click();
   await expect(page.locator(".m-exercise-showcase > header h3")).toHaveText("Reconnaître à l'oreille");
   await page.getByRole("button", { name: "Exercice précédent" }).click();
-  await expect(page.locator(".m-landing-quality")).toContainText("Les experts font foi");
+  await expect(page.locator(".m-landing-method-proof")).toContainText("Une pédagogie appuyée par la recherche");
+  await expect(page.locator(".m-landing-quality")).toHaveCount(0);
+  const aiShowcase = page.locator(".m-landing-ai");
+  await expect(aiShowcase).toContainText("Traduisez en direct. Pratiquez avec Monɔkɔ.");
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
+  await expect(page.locator(".m-landing-ai-feature")).toHaveCount(2);
+  await expect(page.locator(".m-landing-ai-feature.live")).toContainText("Parlez en français. Faites-vous comprendre en lingala");
+  await expect(page.locator(".m-landing-ai-feature.live")).toHaveAttribute("aria-hidden", "false");
+  await expect(page.getByRole("tab", { name:/Traduction en direct/ })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name:/Parler avec Monɔkɔ/ }).click();
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "1");
+  await expect(page.locator(".m-landing-ai-feature.chat")).toHaveAttribute("aria-hidden", "false");
+  await expect(page.locator(".m-landing-ai-feature.chat")).toContainText("corpus validé par des linguistes experts");
+  await expect(page.locator(".m-landing-ai-cta")).toHaveCount(2);
+  await expect(page.locator(".m-landing-ai-trust")).toContainText("Une technologie guidée par l'expertise humaine");
+  await page.waitForTimeout(600);
+  await page.locator(".m-landing-ai").screenshot({ path: testInfo.outputPath("landing-ai-chat.png") });
+  await page.getByRole("tab", { name:/Traduction en direct/ }).click();
+  await page.waitForTimeout(600);
+  await page.locator(".m-landing-ai").screenshot({ path: testInfo.outputPath("landing-ai-live.png") });
   await expect(page.locator(".m-landing-mission-visual img")).toHaveJSProperty("complete", true);
   expect(await page.locator(".m-landing-mission-visual img").evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
 
@@ -109,7 +128,11 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
       ".m-landing-skills-grid",
       ".m-exercise-showcase",
       ".m-exercise-viewport",
-      ".m-landing-quality-flow",
+      ".m-landing-ai",
+      ".m-landing-ai-tabs",
+      ".m-landing-ai-viewport",
+      ".m-landing-ai-feature[aria-hidden='false']",
+      ".m-landing-ai-feature[aria-hidden='false'] .m-ai-demo",
       ".m-landing-dictionary",
       ".m-landing-final .m-landing-section-inner",
       ".m-landing-foot",
@@ -161,12 +184,28 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
   await expect(page.locator(".m-language-map.immersive")).toHaveAttribute("data-map-zoom", overviewZoom);
 });
 
-test("exercise previews advance automatically", async ({ page }, testInfo) => {
+test("exercise previews advance automatically while AI tools remain manual", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Autoplay timing is viewport-independent");
   await page.goto("/");
   const showcase = page.locator(".m-exercise-showcase");
+  const aiShowcase = page.locator(".m-landing-ai");
   await expect(showcase).toHaveAttribute("data-carousel-index", "0");
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
   await expect.poll(() => showcase.getAttribute("data-carousel-index"), { timeout:7_500 }).toBe("1");
+  await page.waitForTimeout(1_000);
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
+});
+
+test("AI calls to action preserve their intended destination", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Feature routing is viewport-independent");
+  await page.goto("/");
+  await page.locator(".m-landing-ai-feature.live").getByRole("button", { name:"Essayer gratuitement" }).click();
+  await expect(page.locator(".m-auth-gate")).toContainText("à la traduction en direct");
+
+  await page.getByRole("button", { name:"Découvrir Monɔkɔ" }).click();
+  await page.getByRole("tab", { name:/Parler avec Monɔkɔ/ }).click();
+  await page.locator(".m-landing-ai-feature.chat").getByRole("button", { name:"Parler avec Monɔkɔ" }).click();
+  await expect(page.locator(".m-auth-gate")).toContainText("aux conversations");
 });
 
 test("canonical SEO and crawl assets point only to monoko.africa", async ({ page, request }, testInfo) => {
