@@ -1115,6 +1115,13 @@ Phase 2 of the product roadmap. Users can now track their advancement through th
 
 ## Live Translation + Lingala TTS (added 2026-04-22, V2 2026-09-08)
 
+**Release status (2026-09-08):** frontend/API commit `3182d3c` is live on
+`monoko.africa`. Vercel reached Ready, the 322-test verification suite passed,
+both GitHub Actions jobs passed, the production bundle was checked for the new
+autoplay/cache code, and an anonymous telemetry write returned the expected 401.
+The optimized `tts_space/app.py` is committed here but is **not deployed by
+Vercel**; it still has to be copied to the separate Hugging Face Space.
+
 The "Traduction en direct" view is a turn-based, two-person translator. Dedicated
 "Parler en français" and "Parler en Lingala" controls remove the old direction
 switch. One phrase is captured at a time, then moves through explicit listening,
@@ -1214,6 +1221,12 @@ The Space is a separate git repo on HuggingFace. Fastest update path:
 Changing Monoko's Vercel deployment does not deploy the Space. For a hardware
 trial, deploy `tts_space/app.py` first, then select the Space hardware separately
 under Hugging Face **Settings → Hardware**.
+
+**Rollout order:** deploy the Space source on CPU Basic, confirm the logs contain
+`Model ready on cpu` and `Model warm-up complete`, measure a repeatable baseline,
+then trial CPU Upgrade. Compare warm p50/p95 `tts_ms` with the ~7.2s baseline and
+only consider T4 if CPU Upgrade misses the target. After the TTS trial, build the
+25-clip professor-audio STT benchmark before considering recognition fine-tuning.
 
 ---
 

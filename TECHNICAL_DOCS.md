@@ -1932,6 +1932,11 @@ The `correct_french`, `correct_lingala`, and `example_sentence` fields in the co
 
 ## 16. Live Translation + Lingala TTS (2026-04-22; V2 2026-09-08)
 
+**Production checkpoint:** commit `3182d3c` was deployed to `monoko.africa` on
+2026-09-08. Vercel reported Ready; 21 test files / 322 tests, the authenticated
+smoke job and production bundle checks passed. The Hugging Face runtime is a
+separate deployment and has not yet received the optimized `tts_space/app.py`.
+
 ### Overview
 
 The "Traduction en direct" view provides two-way, turn-based speech translation.
@@ -2070,6 +2075,17 @@ speechSynthesis.speak(utterance);
 - **STT quality gate**: benchmark Lingala Scribe against a professor-verified set
   before deciding whether a Lingala ASR fine-tune is justified. The V2 correction
   control makes recognition mistakes recoverable but does not improve the model.
+
+### Professor-audio STT quality gate
+
+Start with 25 stratified professor clips paired with their verified Lingala text:
+short, medium and long utterances across several course themes. Send each clip
+through the same `/api/elevenlabs-stt` Scribe v2 path used in production, normalize
+orthography consistently, and report word error rate, character error rate, exact
+normalized match, substitutions, deletions and insertions. Preserve a human-readable
+HTML/CSV row with audio, reference and hypothesis. Expand to 100 clips after the
+pilot, then add ordinary phone recordings from other speakers before using STT as
+an automatic pronunciation judge. Fine-tuning is conditional on this evidence.
 
 ---
 

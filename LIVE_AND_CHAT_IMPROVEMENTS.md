@@ -5,6 +5,11 @@
 Last updated: 2026-09-08
 Scope: chat (`view === "chat"`) and live translation (`view === "live"`) only. Dictionary, courses, admin, auth are out of scope here.
 
+**Deployment checkpoint (2026-09-08):** Live Translation V2 and privacy-safe
+telemetry shipped to production in commit `3182d3c`. Vercel, the complete 322-test
+suite and both GitHub Actions jobs passed. The optimized Hugging Face source is
+committed but awaits the independent Space update and CPU Upgrade benchmark.
+
 **Implementation status**: Tier 1 ✅ shipped 2026-04-29. Tier 2 ✅ shipped
 2026-04-30. Live Translation V2 is code-complete 2026-09-08; its privacy-safe
 telemetry migration was applied on 2026-09-08.
@@ -296,6 +301,17 @@ for low traffic only if the lower bill is worth reintroducing cold starts.
 Sources: [Spaces overview](https://huggingface.co/docs/hub/spaces-overview),
 [GPU hardware](https://huggingface.co/docs/hub/spaces-gpus), and
 [Hugging Face pricing](https://huggingface.co/pricing).
+
+### Next execution order
+
+1. Copy `tts_space/app.py` into `Kemz42/monoko-lingala-tts` and confirm a healthy
+   CPU Basic rebuild before changing hardware.
+2. Capture the same warm phrase set on CPU Basic, then CPU Upgrade, and compare
+   p50/p95 TTS latency and failures from `live_translation_events`.
+3. Keep CPU Upgrade only if the measured gain justifies the cost; test T4 only
+   if the CPU tier misses the agreed latency target.
+4. Build the 25-clip professor-audio Scribe benchmark, expand it to 100 clips,
+   and decide from WER/CER and error patterns whether Lingala STT needs fine-tuning.
 
 ---
 
