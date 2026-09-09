@@ -2072,9 +2072,10 @@ speechSynthesis.speak(utterance);
 - The Space is deployed independently from Vercel: copy `tts_space/app.py` to the
   Hugging Face Space before changing hardware.
 - Treat `tts_space/app.py`, `README.md` and `requirements.txt` as one deployment.
-  The README pins Python 3.10; requirements pin ESPnet `v.202604-patch1` with TTS
-  extras and `setuptools<74`. This prevents the Space from silently moving to
-  Python 3.13 or an incompatible ESPnet/librosa dependency set on rebuild.
+  The README pins Python 3.10; requirements pin ESPnet `v.202604-patch1`, list
+  its TTS dependencies explicitly and pin the renamed `espnet-g2p-en` fork.
+  This avoids both incompatible Python/librosa resolution and ESPnet's broken
+  `g2p-en` dependency alias on modern pip.
 - **Next**: fine-tune DigitalUmuganda on professor's voice once remaining audio collection is complete. See "Next: Fine-tune TTS on professor's voice" in CLAUDE.md for full pipeline.
 - **STT quality gate**: benchmark Lingala Scribe against a professor-verified set
   before deciding whether a Lingala ASR fine-tune is justified. The V2 correction

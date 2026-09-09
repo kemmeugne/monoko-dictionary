@@ -1,8 +1,14 @@
-# Keep the runtime reproducible. ESPnet master moved to Python 3.12+ after this
-# Space was created, while this tagged release supports the Python 3.10 runtime
-# pinned in README.md and uses the modern librosa dependency path.
+# Keep the runtime reproducible. Install ESPnet's TTS extras explicitly because
+# its tagged `tts` extra still requests the renamed G2P fork as `g2p-en`, which
+# modern pip rejects. The fork still exposes the Python module `g2p_en`.
 setuptools<74
-espnet[tts] @ git+https://github.com/espnet/espnet.git@v.202604-patch1
+espnet @ git+https://github.com/espnet/espnet.git@v.202604-patch1
+pyworld>=0.3.4
+pypinyin<=0.44.0
+espnet-tts-frontend
+espnet-g2p-en @ git+https://github.com/espnet/g2p.git@5f0bf457999e4bc4a8266b5248ea34e49e7952b7
+jamo==0.4.1
+jaconv
 huggingface_hub
 numpy>=2,<3
 soundfile

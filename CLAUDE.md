@@ -1207,6 +1207,7 @@ be private. `extractLingalaFragments(text)` finds playable Lingala in chat repli
 | `{"error": null}` from Space | `demo.queue()` missing — required by Gradio 6.x event API | Add `demo.queue()` before launch |
 | SSE `.text()` hangs forever | Gradio 6.x keeps SSE connection open indefinitely | Stream with `getReader()`, break on `event: complete` |
 | `averaged_perceptron_tagger_eng` LookupError | Newer NLTK renamed the resource; `g2p_en` (used by ESPnet2 VITS) needs it | Add `nltk.download('averaged_perceptron_tagger_eng')` in `app.py` startup |
+| `No matching distribution found for g2p-en` while installing `espnet[tts]` | ESPnet's TTS extra names its maintained fork `g2p-en`, but the fork metadata now declares `espnet-g2p-en`; modern pip rejects the mismatch | Install tagged ESPnet without `[tts]`, list its TTS dependencies explicitly, and pin `espnet-g2p-en` to the tested fork commit |
 | SSE parser misses audio | Was checking for `process_completed` but Gradio 6.x sends `event: complete`; data is a raw JSON array, not `{output:{data:[]}}` | Check for both markers; parse array directly |
 | French TTS silent | Chrome loads voices async | Listen to `voiceschanged` event before calling `speechSynthesis.speak()` |
 | French TTS `cancel()` fires error | `cancel()` on new utterance triggers `onerror` on the previous one | Filter `e.error !== "canceled"` in the error handler |

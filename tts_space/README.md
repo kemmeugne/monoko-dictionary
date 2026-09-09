@@ -2,7 +2,7 @@
 title: Monoko Lingala TTS
 emoji: 🎙️
 colorFrom: green
-colorTo: teal
+colorTo: yellow
 sdk: gradio
 sdk_version: 6.13.0
 python_version: "3.10"
