@@ -20,6 +20,12 @@ nltk.download('cmudict', quiet=True)
 
 REPO_ID  = "DigitalUmuganda/lingala_vits_tts"
 HF_TOKEN = os.environ.get("HF_TOKEN")
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+if DEVICE == "cpu":
+    # Use the additional cores when the Space is upgraded, without oversubscribing
+    # the small free instance or machines with very high host CPU counts.
+    torch.set_num_threads(max(1, min(8, os.cpu_count() or 1)))
 
 print(f"Downloading model files from {REPO_ID} …")
 config_path = hf_hub_download(repo_id=REPO_ID, filename="config.yaml", token=HF_TOKEN)
@@ -31,22 +37,32 @@ from espnet2.bin.tts_inference import Text2Speech
 text2speech = Text2Speech(
     train_config=config_path,
     model_file=model_path,
-    device="cpu",
+    device=DEVICE,
 )
 SAMPLE_RATE = text2speech.fs if hasattr(text2speech, "fs") else 22050
-print(f"Model ready — sample rate {SAMPLE_RATE} Hz")
+print(f"Model ready on {DEVICE} — sample rate {SAMPLE_RATE} Hz")
+
+# Pay the framework's first-inference setup cost during Space startup, before a
+# learner is waiting on a translation. The fixed phrase contains no user data.
+try:
+    with torch.inference_mode():
+        text2speech("Mbote")
+    print("Model warm-up complete")
+except Exception as warm_error:
+    print(f"Model warm-up skipped: {type(warm_error).__name__}")
 
 
 def synthesise(text: str):
     """Generate Lingala speech. Returns WAV filepath."""
-    print(f"[synthesise] input: {text!r}")
     try:
         if not text or not text.strip():
             return None
-        with torch.no_grad():
-            output = text2speech(text.strip())
+        clean_text = text.strip()
+        print(f"[synthesise] input length: {len(clean_text)} characters")
+        with torch.inference_mode():
+            output = text2speech(clean_text)
         print(f"[synthesise] output keys: {list(output.keys())}")
-        wav = output["wav"].numpy().astype(np.float32)
+        wav = output["wav"].detach().cpu().numpy().astype(np.float32)
         print(f"[synthesise] wav shape: {wav.shape}, sr: {SAMPLE_RATE}")
         tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir="/tmp")
         sf.write(tmp.name, wav, SAMPLE_RATE)

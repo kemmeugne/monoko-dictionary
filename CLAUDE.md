@@ -711,6 +711,11 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
   dictionary was **not in the RAG index at all** — see the RAG section below
 - `corrections` — user-submitted AI corrections (pending → approved); `professor_modified boolean` tracks whether the professor edited the correction before approving; `reviewed_at timestamptz` set on approve/reject for session pace tracking (added 2026-04-18)
 - `chat_events` — tester-tracked chat activity (`tester_name`, `session_id`, query/response, timestamps, `t_rag_ms`, `t_llm_ms` added 2026-04-30)
+- `live_translation_events` — privacy-safe live-translation operations only:
+  direction, speech/text/edit input mode, success/failure stage, coarse length and
+  audio-duration buckets, and pipeline timings. It deliberately has no transcript,
+  translation, prompt, corpus context or audio column (`sql/live_translation_telemetry.sql`,
+  added 2026-09-08; run the migration before deploying the endpoint)
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
 - `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell` — Lingala course example audio links (added 2026-03-16)
@@ -1108,18 +1113,42 @@ Phase 2 of the product roadmap. Users can now track their advancement through th
 
 ---
 
-## Live Translation + Lingala TTS (added 2026-04-22)
+## Live Translation + Lingala TTS (added 2026-04-22, V2 2026-09-08)
 
-The "Traduction en direct" view streams microphone input through speech recognition, translates segments via the AI chat pipeline, and plays back Lingala audio using a custom HuggingFace Space.
+The "Traduction en direct" view is a turn-based, two-person translator. Dedicated
+"Parler en français" and "Parler en Lingala" controls remove the old direction
+switch. One phrase is captured at a time, then moves through explicit listening,
+transcribing, corpus retrieval and translation states. Every request is cancellable
+and guarded by a generation ID, so a stale response cannot appear after cancel,
+navigation or a new turn. The transcript can be corrected and retranslated, and a
+text composer is available when speech recognition or the microphone is unsuitable.
+Playback offers normal or 0.75x speed and starts automatically by default. The
+header toggle persists to `monoko_live_autoplay`; turning it off cancels pending
+automatic playback and prevents synthesis until the user presses the audio button.
+Lingala audio generation starts as soon as translation completes, exposes a
+per-turn preparation state, deduplicates concurrent synthesis and caches the URL
+for immediate replay. One bounded, tab-memory-only cache is shared by Live
+Translation and chat; it survives view remounts but is never persisted to disk.
+Opening Live Translation also schedules a fixed `Mbote` synthesis during browser
+idle time when automatic playback is enabled. The written result is independent
+of audio success.
 
 ### Architecture
 
 ```
-Microphone → Web Speech API (STT, browser built-in)
-          → segment translation via /api/chat.js (OpenAI gpt-4o-mini)
+French microphone → Web Speech API (browser STT)
+Lingala microphone → /api/elevenlabs-stt (Scribe v2, `lin`)
+          → /api/rag-context + /api/lesson-context
+          → cancellable segment translation via /api/chat.js (OpenAI gpt-4o-mini SSE)
           → Lingala audio: lingalaTTS() → HuggingFace Space (ESPnet2 VITS)
           → French audio: Web Speech API SpeechSynthesisUtterance (browser built-in)
 ```
+
+`api/live-translation-events.js` records aggregate operational outcomes through a
+server credential. It rejects payloads containing conversation fields and the table
+has RLS enabled with no browser policy. Telemetry failure is ignored by the client
+and never blocks a translation. `sql/live_translation_telemetry.sql` was applied
+on 2026-09-08.
 
 ### HuggingFace Space
 
@@ -1127,10 +1156,14 @@ Microphone → Web Speech API (STT, browser built-in)
 - **Model**: `DigitalUmuganda/lingala_vits_tts` (ESPnet2 VITS, trained on 71.6h real Lingala speech)
 - **Source**: `tts_space/app.py` in this repo — edit there, then copy to Space UI (Files tab → Edit → Commit)
 - **SDK**: Gradio 6.13.0, Python 3.10
+- **Runtime**: selects CUDA when available and otherwise uses up to eight CPU
+  threads; a fixed startup inference pays the framework setup cost before traffic
 
 ### How `lingalaTTS()` works (index.html)
 
-The client calls the Space **directly** (not via Vercel) because ESPnet2 CPU inference takes 20-40s, far beyond Vercel's 10s free-plan timeout.
+The client calls the Space **directly** (not via Vercel) because ESPnet2 inference
+can outlast an edge-function request. A warm short phrase measured about 7.2s on
+the free CPU Space on 2026-09-08.
 
 1. `POST https://kemz42-monoko-lingala-tts.hf.space/gradio_api/call/synthesise` → returns `{ event_id }`
 2. `GET .../gradio_api/call/synthesise/{event_id}` → SSE stream, read with `getReader()` (never `.text()` — Gradio 6.x keeps the connection open)
@@ -1142,9 +1175,19 @@ The client calls the Space **directly** (not via Vercel) because ESPnet2 CPU inf
 
 `liveStreamRef = useRef(null)` holds the `MediaStream` for the entire `LiveTranslationView` lifetime. Both `startLingalaSTT` and `startFrenchSTT` reuse it — `getUserMedia` is only called when `liveStreamRef.current` is null or has ended tracks. Tracks are only stopped in the component's unmount `useEffect`. `stopAmplitudeLoop()` does **not** stop any tracks. This prevents iOS/Android from re-prompting on every stop/restart cycle.
 
-### Chat Lingala TTS (`chatAudioCache` pattern)
+Lingala capture uses adaptive VAD: the first 350ms establishes a bounded local
+noise floor, silence can only close a turn after speech is detected, 850ms of
+silence ends the phrase, five seconds without speech stops an empty capture, and
+15 seconds is the hard ceiling. The audio blob is sent to STT and then discarded;
+it is not included in Monoko telemetry.
 
-`const chatAudioCache = {}` at module level caches synthesised Lingala audio URLs keyed by fragment text. `extractLingalaFragments(text)` regex-parses Lingala from assistant responses (after `→`, in backticks, in quotes). `playChatLingala(msgIdx)` calls `lingalaTTS` sequentially on all fragments, using the cache to skip already-synthesised text. The 🔊 button on assistant messages triggers this; only visible when fragments are found and `!chatLoading`.
+### Shared Lingala TTS cache
+
+`lingalaAudioCache` is a module-level, 80-entry LRU-style `Map`, while
+`lingalaAudioRequests` deduplicates matching in-flight requests. Both chat and Live
+Translation call the same `lingalaTTS()` wrapper. The cache is intentionally not
+written to `localStorage`, Cache Storage or the server because interpreter text may
+be private. `extractLingalaFragments(text)` finds playable Lingala in chat replies.
 
 ### Key gotchas (hard-won)
 
@@ -1167,6 +1210,10 @@ The Space is a separate git repo on HuggingFace. Fastest update path:
 1. Edit `tts_space/app.py` locally
 2. Go to `https://huggingface.co/spaces/Kemz42/monoko-lingala-tts` → Files → `app.py` → Edit
 3. Paste the updated content → Commit changes → Space rebuilds automatically (~2-3 min)
+
+Changing Monoko's Vercel deployment does not deploy the Space. For a hardware
+trial, deploy `tts_space/app.py` first, then select the Space hardware separately
+under Hugging Face **Settings → Hardware**.
 
 ---
 

@@ -38,6 +38,10 @@ for (const file of ["api/chat.js", "api/rag-context.js", "api/lesson-context.js"
   if (!readFileSync(file, "utf8").includes("authorizeApiRequest")) failures.push(`${file}: missing authenticated quota guard`);
 }
 
+const liveTelemetry = readFileSync("api/live-translation-events.js", "utf8");
+if (!liveTelemetry.includes("authenticatedUser")) failures.push("api/live-translation-events.js: missing authenticated user guard");
+if (!liveTelemetry.includes("FORBIDDEN_FIELDS")) failures.push("api/live-translation-events.js: missing conversation-content rejection");
+
 for (const file of textFiles.filter(file => file.startsWith("api/") && /\.(?:js|mjs)$/.test(file))) {
   if (file === "api/_supabase.js") continue;
   const source = readFileSync(file, "utf8");

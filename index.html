@@ -3224,9 +3224,23 @@
     // Space is public — no API key to protect.
     const LINGALA_TTS_SPACE = "https://kemz42-monoko-lingala-tts.hf.space";
 
-    const chatAudioCache = {}; // module-level — survives re-renders, shared across chat messages
+    const LINGALA_TTS_CACHE_LIMIT = 80;
+    const lingalaAudioCache = new Map();
+    const lingalaAudioRequests = new Map();
 
-    async function lingalaTTS(text) {
+    const lingalaAudioKey = (text) => String(text || "").trim().replace(/\s+/g, " ");
+
+    function cachedLingalaAudio(text) {
+      const key = lingalaAudioKey(text);
+      const audioUrl = lingalaAudioCache.get(key);
+      if (!audioUrl) return null;
+      // Refresh insertion order so the least recently used phrase is evicted first.
+      lingalaAudioCache.delete(key);
+      lingalaAudioCache.set(key, audioUrl);
+      return audioUrl;
+    }
+
+    async function synthesiseLingalaTTS(text) {
       // Step 1: start Gradio prediction
       // Gradio 6.x uses /gradio_api/ prefix (was /call/ in 4.x)
       const startRes = await fetch(`${LINGALA_TTS_SPACE}/gradio_api/call/synthesise`, {
@@ -3292,64 +3306,132 @@
       return audioUrl;
     }
 
+    function lingalaTTS(text) {
+      const key = lingalaAudioKey(text);
+      if (!key) return Promise.reject(new Error("Texte Lingala vide"));
+
+      const cached = cachedLingalaAudio(key);
+      if (cached) return Promise.resolve(cached);
+      if (lingalaAudioRequests.has(key)) return lingalaAudioRequests.get(key);
+
+      const request = synthesiseLingalaTTS(key).then(audioUrl => {
+        lingalaAudioCache.set(key, audioUrl);
+        while (lingalaAudioCache.size > LINGALA_TTS_CACHE_LIMIT) {
+          lingalaAudioCache.delete(lingalaAudioCache.keys().next().value);
+        }
+        return audioUrl;
+      }).finally(() => {
+        lingalaAudioRequests.delete(key);
+      });
+      lingalaAudioRequests.set(key, request);
+      return request;
+    }
+
     // ── Live Translation View ─────────────────────────────────────────────────
     function LiveTranslationView({ langName, langId, onBack }) {
       const [direction, setDirection] = useState("fr_to_lingala");
-      const [isListening, setIsListening] = useState(false);
+      const [phase, setPhase] = useState("idle");
       const [segments, setSegments] = useState([]);
       const [liveText, setLiveText] = useState("");
-      const [translating, setTranslating] = useState(false);
-      const [error, setError] = useState("");
+      const [pendingTurn, setPendingTurn] = useState(null);
+      const [error, setError] = useState(null);
       const [playingId, setPlayingId] = useState(null);
+      const [slowPlayback, setSlowPlayback] = useState(false);
+      const [autoPlayback, setAutoPlayback] = useState(() => {
+        try { return localStorage.getItem("monoko_live_autoplay") !== "false"; }
+        catch { return true; }
+      });
+      const [audioPreparingIds, setAudioPreparingIds] = useState([]);
+      const [showComposer, setShowComposer] = useState(false);
+      const [textDirection, setTextDirection] = useState("fr_to_lingala");
+      const [typedText, setTypedText] = useState("");
+      const [editingId, setEditingId] = useState(null);
+      const [editText, setEditText] = useState("");
 
       const isListeningRef = useRef(false);
-      const directionRef = useRef("fr_to_lingala");
+      const recordingDirectionRef = useRef("fr_to_lingala");
       const recognitionRef = useRef(null);
       const mediaRecorderRef = useRef(null);
       const audioChunksRef = useRef([]);
       const chunkTimerRef = useRef(null);
-      const translateTimerRef = useRef(null);
-      const liveStreamRef = useRef(null); // persistent mic stream — reused across start/stop cycles
+      const liveStreamRef = useRef(null);
       const mimeTypeRef = useRef("audio/webm");
-      const audioCacheRef = useRef({});
+      const currentAudioRef = useRef(null);
+      const playbackRequestRef = useRef(0);
+      const autoPlaybackRef = useRef(autoPlayback);
       const transEndRef = useRef(null);
-      const analyserRef = useRef(null);   // { ctx, analyser, stream } — stream only set when we own it
+      const analyserRef = useRef(null);
       const rafRef = useRef(null);
       const barRefs = useRef([]);
       const vadTimerRef = useRef(null);
       const silenceStartRef = useRef(null);
       const utteranceStartRef = useRef(null);
-      const liveHistoryRef = useRef([]);  // rolling last-4-turns for conversation memory
+      const speechDetectedRef = useRef(false);
+      const noiseSamplesRef = useRef([]);
+      const captureStartedRef = useRef(null);
+      const discardCaptureRef = useRef(false);
+      const liveHistoryRef = useRef([]);
+      const requestRef = useRef({ id: 0, controller: null });
 
-      // Warm-up TTS Space + RAG endpoints on mount so the first segment is fast
+      const isListening = phase === "listening";
+      const isProcessing = ["transcribing", "retrieving", "translating"].includes(phase);
+      const phaseCopy = {
+        idle: "Choisissez la personne qui parle",
+        listening: `Écoute en cours · ${direction === "lingala_to_fr" ? langName : "Français"}`,
+        transcribing: "Transcription de la voix…",
+        retrieving: "Recherche dans le corpus expert…",
+        translating: "Traduction en cours…",
+        error: "La traduction a besoin de votre attention",
+      };
+
+      const lengthBucket = (length) => length <= 25 ? "1-25" : length <= 75 ? "26-75" : length <= 150 ? "76-150" : "151+";
+      const durationBucket = (ms) => ms < 3000 ? "0-3s" : ms < 7000 ? "3-7s" : ms < 15000 ? "7-15s" : "15s+";
+      const newEventId = () => window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      const trackLiveEvent = (payload) => {
+        apiFetch("/api/live-translation-events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ event_id:newEventId(), language_id:langId, ...payload }),
+        }).catch(() => {});
+      };
+
       useEffect(() => {
+        window.scrollTo({ top:0, left:0, behavior:"auto" });
         apiFetch("/api/mms-tts").catch(() => {});
+        let warmTimer = null;
+        let warmIdle = null;
+        try {
+          if (localStorage.getItem("monoko_live_autoplay") !== "false") {
+            const warm = () => lingalaTTS("Mbote").catch(() => {});
+            if (window.requestIdleCallback) warmIdle = window.requestIdleCallback(warm, { timeout:1500 });
+            else warmTimer = window.setTimeout(warm, 400);
+          }
+        } catch {}
         if (langId) {
-          apiFetch("/api/rag-context",    { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
+          apiFetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
           apiFetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:"warm", language_id:langId }) }).catch(() => {});
         }
-      }, []);
+        return () => {
+          if (warmTimer) window.clearTimeout(warmTimer);
+          if (warmIdle && window.cancelIdleCallback) window.cancelIdleCallback(warmIdle);
+        };
+      }, [langId]);
 
-      // Keep refs in sync with state (needed inside async callbacks)
-      useEffect(() => { isListeningRef.current = isListening; }, [isListening]);
-      useEffect(() => { directionRef.current = direction; }, [direction]);
+      useEffect(() => {
+        autoPlaybackRef.current = autoPlayback;
+        try { localStorage.setItem("monoko_live_autoplay", String(autoPlayback)); } catch {}
+      }, [autoPlayback]);
 
-      // Auto-scroll to bottom when new content arrives
-      useEffect(() => { transEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [segments, liveText, translating]);
-
-      // Cleanup on unmount — stop everything including the persistent stream
-      useEffect(() => () => {
-        stopAll();
-        if (liveStreamRef.current) {
-          liveStreamRef.current.getTracks().forEach(t => t.stop());
-          liveStreamRef.current = null;
-        }
-      }, []);
+      useEffect(() => {
+        const conversation = transEndRef.current?.parentElement;
+        conversation?.scrollTo({ top:conversation.scrollHeight, behavior:"smooth" });
+      }, [segments, liveText, pendingTurn, phase]);
 
       const stopAmplitudeLoop = () => {
         if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
         if (analyserRef.current) {
-          try { analyserRef.current.ctx.close(); } catch(e) {}
+          try { analyserRef.current.ctx.close(); } catch {}
           analyserRef.current = null;
         }
         barRefs.current.forEach(el => { if (el) el.style.height = "4px"; });
@@ -3359,180 +3441,337 @@
         if (vadTimerRef.current) { clearInterval(vadTimerRef.current); vadTimerRef.current = null; }
         silenceStartRef.current = null;
         utteranceStartRef.current = null;
+        speechDetectedRef.current = false;
+        noiseSamplesRef.current = [];
       };
 
-      // Replaces the fixed 6-second timer. Uses the AnalyserNode from startAmplitudeLoop
-      // to detect real silence (RMS < threshold for 700ms) and trigger mediaRecorder.stop().
-      // Falls back to a 6s timeout if AudioContext isn't available.
-      const VAD_POLL_MS = 50;
-      const VAD_SILENCE_MS = 700;
-      const VAD_SILENCE_THRESH = 0.01;
-      const VAD_MAX_MS = 15000;
-
-      const startVAD = () => {
-        stopVAD();
-        if (!analyserRef.current) {
-          // AudioContext unavailable — fall back to original fixed-window behaviour
-          chunkTimerRef.current = setTimeout(() => {
-            if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
-          }, 6000);
-          return;
-        }
-        silenceStartRef.current = null;
-        utteranceStartRef.current = Date.now();
-        vadTimerRef.current = setInterval(() => {
-          if (!analyserRef.current || !isListeningRef.current || mediaRecorderRef.current?.state !== "recording") return;
-          const { analyser } = analyserRef.current;
-          const data = new Uint8Array(analyser.frequencyBinCount);
-          analyser.getByteTimeDomainData(data);
-          let rms = 0;
-          for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; rms += v * v; }
-          rms = Math.sqrt(rms / data.length);
-          const now = Date.now();
-          // Hard ceiling — split after VAD_MAX_MS regardless of speech
-          if (utteranceStartRef.current && now - utteranceStartRef.current >= VAD_MAX_MS) {
-            if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
-            stopVAD();
-            return;
-          }
-          if (rms < VAD_SILENCE_THRESH) {
-            if (!silenceStartRef.current) silenceStartRef.current = now;
-            else if (now - silenceStartRef.current >= VAD_SILENCE_MS) {
-              if (mediaRecorderRef.current?.state === "recording") mediaRecorderRef.current.stop();
-              stopVAD();
-            }
-          } else {
-            silenceStartRef.current = null; // reset on speech
-          }
-        }, VAD_POLL_MS);
-      };
-
-      // ownStream=true: we opened the stream just for the waveform and must close it.
-      // ownStream=false: MediaRecorder owns the stream; we must not stop its tracks.
-      const startAmplitudeLoop = (stream, ownStream = false) => {
+      const startAmplitudeLoop = (stream) => {
         stopAmplitudeLoop();
         try {
-          const ctx = new AudioContext();
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          const ctx = new AudioContextClass();
           const source = ctx.createMediaStreamSource(stream);
           const analyser = ctx.createAnalyser();
           analyser.fftSize = 128;
           source.connect(analyser);
           const data = new Uint8Array(analyser.frequencyBinCount);
-          analyserRef.current = { ctx, analyser, stream: ownStream ? stream : null };
+          analyserRef.current = { ctx, analyser };
           const tick = () => {
             analyser.getByteTimeDomainData(data);
             let rms = 0;
-            for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; rms += v * v; }
+            for (let i = 0; i < data.length; i++) { const value = (data[i] - 128) / 128; rms += value * value; }
             rms = Math.sqrt(rms / data.length);
             const scale = Math.min(rms * 8, 1);
             const now = Date.now();
-            barRefs.current.forEach((el, i) => {
+            barRefs.current.forEach((el, index) => {
               if (!el) return;
-              const wobble = 0.65 + 0.35 * Math.sin(now / 180 + i * 0.75);
-              el.style.height = Math.round(4 + 28 * scale * wobble) + "px";
+              const wobble = 0.65 + 0.35 * Math.sin(now / 180 + index * 0.75);
+              el.style.height = `${Math.round(4 + 28 * scale * wobble)}px`;
             });
             rafRef.current = requestAnimationFrame(tick);
           };
           tick();
-        } catch(e) { /* AudioContext unsupported — waveform stays flat */ }
+        } catch { /* The waveform is decorative; recording can continue without it. */ }
       };
 
-      const stopAll = () => {
-        clearTimeout(chunkTimerRef.current);
-        clearTimeout(translateTimerRef.current);
+      // The first 350ms establish a local noise floor. Silence only ends a turn
+      // after speech has actually been detected, avoiding empty chunks in quiet rooms.
+      const startVAD = () => {
         stopVAD();
-        if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch(e) {} recognitionRef.current = null; }
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-          try { mediaRecorderRef.current.stop(); } catch(e) {}
-        }
-        stopAmplitudeLoop();
-      };
-
-      const toggleListening = async () => {
-        if (isListening) {
-          stopAll();
-          setIsListening(false);
-          setLiveText("");
-        } else {
-          setError("");
-          if (direction === "lingala_to_fr") await startLingalaSTT();
-          else startFrenchSTT();
-        }
-      };
-
-      // ── French STT via Web Speech API ─────────────────────────────────────
-      const startFrenchSTT = () => {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) {
-          setError("La reconnaissance vocale n'est pas supportée dans ce navigateur. Utilisez Chrome ou Safari.");
+        if (!analyserRef.current) {
+          chunkTimerRef.current = setTimeout(() => mediaRecorderRef.current?.state === "recording" && mediaRecorderRef.current.stop(), 7000);
           return;
         }
-        const recognition = new SR();
-        recognition.lang = "fr-FR";
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        let finalBuffer = "";
-
-        recognition.onresult = (e) => {
-          let interim = "";
-          for (let i = e.resultIndex; i < e.results.length; i++) {
-            const r = e.results[i];
-            if (r.isFinal) finalBuffer += r[0].transcript + " ";
-            else interim += r[0].transcript;
+        utteranceStartRef.current = Date.now();
+        vadTimerRef.current = setInterval(() => {
+          if (!analyserRef.current || !isListeningRef.current || mediaRecorderRef.current?.state !== "recording") return;
+          const data = new Uint8Array(analyserRef.current.analyser.frequencyBinCount);
+          analyserRef.current.analyser.getByteTimeDomainData(data);
+          let rms = 0;
+          for (let i = 0; i < data.length; i++) { const value = (data[i] - 128) / 128; rms += value * value; }
+          rms = Math.sqrt(rms / data.length);
+          const elapsed = Date.now() - utteranceStartRef.current;
+          if (elapsed < 350) noiseSamplesRef.current.push(rms);
+          const floor = noiseSamplesRef.current.length
+            ? noiseSamplesRef.current.reduce((sum, value) => sum + value, 0) / noiseSamplesRef.current.length
+            : 0.004;
+          const threshold = Math.max(0.01, Math.min(0.035, floor * 2.2));
+          if (rms >= threshold) {
+            speechDetectedRef.current = true;
+            silenceStartRef.current = null;
+          } else if (speechDetectedRef.current) {
+            if (!silenceStartRef.current) silenceStartRef.current = Date.now();
+            if (Date.now() - silenceStartRef.current >= 850) mediaRecorderRef.current.stop();
           }
-          setLiveText(finalBuffer + interim);
-          // Auto-translate after 1s pause — no punctuation needed
-          if (finalBuffer.trim()) {
-            clearTimeout(translateTimerRef.current);
-            translateTimerRef.current = setTimeout(() => {
-              const toTranslate = finalBuffer.trim();
-              if (toTranslate) {
-                finalBuffer = "";
-                setLiveText("");
-                handleTranslate(toTranslate, directionRef.current);
-              }
-            }, 1000);
-          }
-        };
+          if ((!speechDetectedRef.current && elapsed >= 5000) || elapsed >= 15000) mediaRecorderRef.current.stop();
+        }, 50);
+      };
 
-        let fatalError = false;
-        recognition.onerror = (e) => {
-          if (e.error === "not-allowed" || e.error === "audio-capture") {
-            fatalError = true;
-            setError("Accès au microphone refusé. Autorisez le microphone dans les paramètres de votre navigateur.");
-            setIsListening(false); isListeningRef.current = false;
-          }
-          // "no-speech" and "network" are transient — onend will handle restart
-        };
+      const invalidateRequest = () => {
+        requestRef.current.controller?.abort();
+        requestRef.current = { id:requestRef.current.id + 1, controller:null };
+      };
 
-        recognition.onend = () => {
-          // Flush remaining text as a sentence
-          if (finalBuffer.trim()) { handleTranslate(finalBuffer.trim(), directionRef.current); finalBuffer = ""; }
-          // Chrome stops mid-session on silence — restart after a short delay so the
-          // browser has time to fully close the previous session (avoids InvalidStateError)
-          if (isListeningRef.current && !fatalError) {
-            setTimeout(() => {
-              if (isListeningRef.current) { try { recognition.start(); } catch(e) {} }
-            }, 250);
-          }
-        };
+      const stopCapture = (discard = false) => {
+        discardCaptureRef.current = discard;
+        isListeningRef.current = false;
+        clearTimeout(chunkTimerRef.current);
+        stopVAD();
+        if (recognitionRef.current) {
+          recognitionRef.current.__monokoDiscarded = discard;
+          try { discard ? recognitionRef.current.abort() : recognitionRef.current.stop(); } catch {}
+        }
+        if (mediaRecorderRef.current?.state === "recording") {
+          if (discard) mediaRecorderRef.current.onstop = null;
+          try { mediaRecorderRef.current.stop(); } catch {}
+        }
+        stopAmplitudeLoop();
+        if (discard) { setLiveText(""); setPhase("idle"); }
+      };
 
-        recognitionRef.current = recognition;
-        recognition.start();
-        setIsListening(true);
-        isListeningRef.current = true;
-        // Web Speech API doesn't expose raw audio — use/reuse liveStreamRef for the waveform
-        const existingStream = liveStreamRef.current;
-        if (existingStream && existingStream.getTracks().every(t => t.readyState === "live")) {
-          startAmplitudeLoop(existingStream);
-        } else {
-          navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => { liveStreamRef.current = stream; startAmplitudeLoop(stream); })
-            .catch(() => {}); // waveform is cosmetic — fail silently
+      const stopPlayback = () => {
+        playbackRequestRef.current += 1;
+        window.speechSynthesis?.cancel();
+        if (currentAudioRef.current) { currentAudioRef.current.pause(); currentAudioRef.current = null; }
+        setPlayingId(null);
+      };
+
+      const updateAutoPlayback = (enabled) => {
+        autoPlaybackRef.current = enabled;
+        setAutoPlayback(enabled);
+        if (!enabled) stopPlayback();
+      };
+
+      const leaveLive = () => {
+        stopCapture(true);
+        stopPlayback();
+        invalidateRequest();
+        onBack();
+      };
+
+      useEffect(() => () => {
+        discardCaptureRef.current = true;
+        invalidateRequest();
+        if (recognitionRef.current) {
+          recognitionRef.current.__monokoDiscarded = true;
+          try { recognitionRef.current.abort(); } catch {}
+        }
+        if (mediaRecorderRef.current?.state === "recording") {
+          mediaRecorderRef.current.onstop = null;
+          try { mediaRecorderRef.current.stop(); } catch {}
+        }
+        stopVAD();
+        stopAmplitudeLoop();
+        stopPlayback();
+        liveStreamRef.current?.getTracks().forEach(track => track.stop());
+      }, []);
+
+      const responseError = async (response, fallback) => {
+        const data = await response.json().catch(() => ({}));
+        const detail = typeof data.error === "string" ? data.error : fallback;
+        const failure = new Error(detail);
+        failure.code = `http_${response.status}`;
+        return failure;
+      };
+
+      const prepareLingalaAudio = (segment) => {
+        const cacheKey = segment.translation;
+        const cached = cachedLingalaAudio(cacheKey);
+        if (cached) return Promise.resolve({ audioUrl:cached, ttsMs:0 });
+
+        setAudioPreparingIds(previous => previous.includes(segment.id) ? previous : [...previous, segment.id]);
+        const startedAt = performance.now();
+        const promise = lingalaTTS(cacheKey).then(audioUrl => ({
+          audioUrl,
+          ttsMs:Math.round(performance.now() - startedAt),
+        }));
+
+        return promise.finally(() => {
+          setAudioPreparingIds(previous => previous.filter(id => id !== segment.id));
+        });
+      };
+
+      const playAudio = async (segment, { automatic = false } = {}) => {
+        if (!automatic && playingId === segment.id) { stopPlayback(); return; }
+        stopPlayback();
+        const playbackRequestId = playbackRequestRef.current;
+        setPlayingId(segment.id);
+        const startedAt = performance.now();
+        try {
+          if (segment.fromLingala) {
+            const synth = window.speechSynthesis;
+            if (!synth) throw new Error("Lecture audio indisponible");
+            const speak = () => {
+              if (playbackRequestRef.current !== playbackRequestId || (automatic && !autoPlaybackRef.current)) return;
+              const utterance = new SpeechSynthesisUtterance(segment.translation);
+              utterance.lang = "fr-FR";
+              utterance.rate = slowPlayback ? 0.75 : 0.95;
+              const voice = synth.getVoices().find(item => item.lang.startsWith("fr"));
+              if (voice) utterance.voice = voice;
+              utterance.onend = () => setPlayingId(null);
+              utterance.onerror = event => { if (event.error !== "canceled") setPlayingId(null); };
+              synth.speak(utterance);
+            };
+            if (synth.getVoices().length === 0) synth.onvoiceschanged = () => { synth.onvoiceschanged = null; speak(); };
+            else setTimeout(speak, 50);
+          } else {
+            const { audioUrl } = await prepareLingalaAudio(segment);
+            if (playbackRequestRef.current !== playbackRequestId || (automatic && !autoPlaybackRef.current)) return;
+            const audio = new Audio(audioUrl);
+            currentAudioRef.current = audio;
+            audio.playbackRate = slowPlayback ? 0.75 : 1;
+            audio.onended = () => { currentAudioRef.current = null; setPlayingId(null); };
+            await audio.play();
+          }
+          setSegments(previous => previous.map(item => item.id === segment.id ? { ...item, audioFailed:false } : item));
+          trackLiveEvent({
+            event_type:"playback",
+            direction:segment.direction,
+            input_mode:segment.inputMode,
+            outcome:"success",
+            source_length_bucket:lengthBucket(segment.translation.length),
+            tts_ms:Math.round(performance.now() - startedAt),
+          });
+        } catch (audioError) {
+          if (playbackRequestRef.current !== playbackRequestId) return;
+          console.error("TTS error:", audioError);
+          setSegments(previous => previous.map(item => item.id === segment.id ? { ...item, audioFailed:true } : item));
+          setError({ message:"La traduction est prête, mais la lecture audio n'est pas disponible pour le moment." });
+          setPlayingId(null);
+          trackLiveEvent({
+            event_type:"playback",
+            direction:segment.direction,
+            input_mode:segment.inputMode,
+            outcome:"failure",
+            failure_stage:"tts",
+            failure_code:audioError.name === "NotAllowedError" ? "autoplay_blocked" : "client_error",
+            source_length_bucket:lengthBucket(segment.translation.length),
+            tts_ms:Math.round(performance.now() - startedAt),
+          });
         }
       };
 
-      // ── Lingala STT via ElevenLabs Scribe (chunked) ───────────────────────
+      const translateTurn = async (rawSource, currentDirection, inputMode = "speech", existingId = null, captureMs = 0, sttMs = 0) => {
+        const sourceText = rawSource.trim();
+        if (!sourceText) return;
+        invalidateRequest();
+        const requestId = requestRef.current.id;
+        const controller = new AbortController();
+        requestRef.current.controller = controller;
+        const fromLingala = currentDirection === "lingala_to_fr";
+        const metrics = { capture_ms:captureMs, stt_ms:sttMs, context_ms:0, translation_ms:0 };
+        setDirection(currentDirection);
+        setError(null);
+        setLiveText("");
+        setPendingTurn({ source:sourceText, direction:currentDirection, inputMode, existingId });
+        setPhase("retrieving");
+        let failureStage = "context";
+
+        try {
+          const contextStart = performance.now();
+          const options = (body) => ({
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body:JSON.stringify(body),
+            signal:controller.signal,
+          });
+          const [ragResult, lessonResult] = await Promise.allSettled([
+            apiFetch("/api/rag-context", options({ query:sourceText, language_id:langId, min_similarity:0.5 })).then(async response => response.ok ? response.json() : Promise.reject(await responseError(response, "Corpus indisponible"))),
+            apiFetch("/api/lesson-context", options({ query:sourceText, language_id:langId })).then(async response => response.ok ? response.json() : Promise.reject(await responseError(response, "Cours indisponibles"))),
+          ]);
+          if (requestRef.current.id !== requestId) return;
+          metrics.context_ms = Math.round(performance.now() - contextStart);
+          const ragContext = ragResult.status === "fulfilled" ? ragResult.value?.context || "" : "";
+          const lessonContext = lessonResult.status === "fulfilled" ? lessonResult.value?.context || "" : "";
+
+          failureStage = "translation";
+          setPhase("translating");
+          const translationStart = performance.now();
+          const chatResponse = await apiFetch("/api/chat", options({
+            mode:"live-translation",
+            direction:currentDirection,
+            ragContext,
+            lessonContext,
+            languageId:langId,
+            messages:[...liveHistoryRef.current.slice(-8), { role:"user", content:sourceText }],
+          }));
+          if (!chatResponse.ok) throw await responseError(chatResponse, "Traduction indisponible");
+          if (!chatResponse.body) throw new Error("Réponse de traduction vide");
+
+          const reader = chatResponse.body.getReader();
+          const decoder = new TextDecoder();
+          let accumulated = "";
+          let lineBuffer = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            lineBuffer += decoder.decode(value, { stream:true });
+            const lines = lineBuffer.split("\n");
+            lineBuffer = lines.pop();
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const payload = line.slice(6).trim();
+              if (payload === "[DONE]") continue;
+              try { const parsed = JSON.parse(payload); if (parsed.delta) accumulated += parsed.delta; } catch {}
+            }
+          }
+          if (requestRef.current.id !== requestId) return;
+          metrics.translation_ms = Math.round(performance.now() - translationStart);
+          const translation = accumulated.trim();
+          if (!translation) throw new Error("Aucune traduction reçue");
+
+          const segment = {
+            id:existingId || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            source:sourceText,
+            translation,
+            direction:currentDirection,
+            fromLingala,
+            inputMode,
+          };
+          liveHistoryRef.current = [...liveHistoryRef.current, { role:"user", content:sourceText }, { role:"assistant", content:translation }].slice(-8);
+          setSegments(previous => existingId
+            ? previous.map(item => item.id === existingId ? segment : item)
+            : [...previous, segment]);
+          setEditingId(null);
+          setEditText("");
+          setPhase("idle");
+          if (autoPlaybackRef.current) playAudio(segment, { automatic:true });
+          trackLiveEvent({
+            event_type:"translation",
+            direction:currentDirection,
+            input_mode:inputMode,
+            outcome:"success",
+            source_length_bucket:lengthBucket(sourceText.length),
+            audio_duration_bucket:inputMode === "speech" ? durationBucket(captureMs) : null,
+            ...metrics,
+          });
+        } catch (translationError) {
+          if (translationError.name === "AbortError" || requestRef.current.id !== requestId) return;
+          console.error("Translation error:", translationError);
+          const message = translationError.code === "http_429"
+            ? "Vous avez atteint la limite temporaire. Patientez quelques minutes puis réessayez."
+            : "La traduction n'a pas abouti. Votre phrase est conservée pour réessayer.";
+          setError({ message, source:sourceText, direction:currentDirection, inputMode, existingId });
+          setPhase("error");
+          trackLiveEvent({
+            event_type:"translation",
+            direction:currentDirection,
+            input_mode:inputMode,
+            outcome:"failure",
+            failure_stage:failureStage,
+            failure_code:translationError.code || "client_error",
+            source_length_bucket:lengthBucket(sourceText.length),
+            audio_duration_bucket:inputMode === "speech" ? durationBucket(captureMs) : null,
+            ...metrics,
+          });
+        } finally {
+          if (requestRef.current.id === requestId) {
+            requestRef.current.controller = null;
+            setPendingTurn(null);
+          }
+        }
+      };
+
       const blobToBase64 = (blob) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result.split(",")[1]);
@@ -3540,378 +3779,339 @@
         reader.readAsDataURL(blob);
       });
 
-      const sendChunk = async () => {
-        if (!audioChunksRef.current.length) return;
-        const mime = mimeTypeRef.current;
-        const blob = new Blob(audioChunksRef.current, { type: mime });
+      const transcribeLingala = async () => {
+        const captureMs = captureStartedRef.current ? Date.now() - captureStartedRef.current : 0;
+        const chunks = audioChunksRef.current;
         audioChunksRef.current = [];
-        if (blob.size < 500) { restartChunk(); return; } // skip silence
-
+        mediaRecorderRef.current = null;
+        stopVAD();
+        stopAmplitudeLoop();
+        isListeningRef.current = false;
+        setLiveText("");
+        if (discardCaptureRef.current) return;
+        if (!chunks.length) {
+          setError({ message:"Aucune voix détectée. Rapprochez-vous du micro et réessayez.", direction:"lingala_to_fr", inputMode:"speech" });
+          setPhase("error");
+          return;
+        }
+        const blob = new Blob(chunks, { type:mimeTypeRef.current });
+        if (blob.size < 500) {
+          setError({ message:"Aucune voix détectée. Rapprochez-vous du micro et réessayez.", direction:"lingala_to_fr", inputMode:"speech" });
+          setPhase("error");
+          return;
+        }
+        setPhase("transcribing");
+        const sttStart = performance.now();
         try {
           const base64 = await blobToBase64(blob);
-          const res = await apiFetch("/api/elevenlabs-stt", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ audio: base64, mimeType: mime }),
+          const response = await apiFetch("/api/elevenlabs-stt", {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body:JSON.stringify({ audio:base64, mimeType:mimeTypeRef.current }),
           });
-          if (res.ok) {
-            const data = await res.json();
-            const transcript = (data.text || "").trim();
-            if (transcript) {
-              setLiveText(transcript);
-              await handleTranslate(transcript, directionRef.current);
-              setLiveText("");
-            }
-          } else {
-            const err = await res.json().catch(() => ({}));
-            setError(`STT Lingala: ${err.error || res.status}. Vérifiez la clé ElevenLabs.`);
-          }
-        } catch(e) { console.error("Lingala STT error:", e); }
-        restartChunk();
+          if (!response.ok) throw await responseError(response, "Transcription indisponible");
+          const transcript = ((await response.json()).text || "").trim();
+          if (!transcript) throw new Error("Aucune voix reconnue");
+          await translateTurn(transcript, "lingala_to_fr", "speech", null, captureMs, Math.round(performance.now() - sttStart));
+        } catch (sttError) {
+          console.error("Lingala STT error:", sttError);
+          const message = sttError.code === "http_429"
+            ? "Vous avez atteint la limite de transcription. Patientez quelques minutes puis réessayez."
+            : "La voix n'a pas pu être transcrite. Vous pouvez réessayer ou écrire la phrase.";
+          setError({ message, direction:"lingala_to_fr", inputMode:"speech" });
+          setPhase("error");
+          trackLiveEvent({
+            event_type:"translation",
+            direction:"lingala_to_fr",
+            input_mode:"speech",
+            outcome:"failure",
+            failure_stage:"stt",
+            failure_code:sttError.code || "client_error",
+            audio_duration_bucket:durationBucket(captureMs),
+            capture_ms:captureMs,
+            stt_ms:Math.round(performance.now() - sttStart),
+          });
+        }
       };
 
-      const restartChunk = () => {
-        if (!isListeningRef.current || !mediaRecorderRef.current) return;
-        try {
-          if (mediaRecorderRef.current.state === "inactive") mediaRecorderRef.current.start();
-          startVAD();
-        } catch(e) {}
+      const startFrenchSTT = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          setError({ message:"La reconnaissance vocale française n'est pas disponible ici. Utilisez la saisie texte.", direction:"fr_to_lingala", inputMode:"speech" });
+          setShowComposer(true);
+          setTextDirection("fr_to_lingala");
+          setPhase("error");
+          return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = "fr-FR";
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        let finalBuffer = "";
+        let interimBuffer = "";
+        let recognitionFailed = false;
+        discardCaptureRef.current = false;
+        recognition.onresult = (event) => {
+          interimBuffer = "";
+          for (let index = event.resultIndex; index < event.results.length; index++) {
+            const result = event.results[index];
+            if (result.isFinal) finalBuffer += `${result[0].transcript} `;
+            else interimBuffer += result[0].transcript;
+          }
+          setLiveText(`${finalBuffer}${interimBuffer}`.trim());
+        };
+        recognition.onerror = (event) => {
+          if (recognition.__monokoDiscarded) return;
+          recognitionFailed = true;
+          const denied = event.error === "not-allowed" || event.error === "audio-capture";
+          setError({
+            message:denied ? "Autorisez le microphone dans les paramètres du navigateur, ou écrivez la phrase." : "La voix n'a pas été reconnue. Réessayez ou écrivez la phrase.",
+            direction:"fr_to_lingala",
+            inputMode:"speech",
+          });
+          setPhase("error");
+        };
+        recognition.onend = () => {
+          recognitionRef.current = null;
+          stopAmplitudeLoop();
+          isListeningRef.current = false;
+          if (recognition.__monokoDiscarded) return;
+          const transcript = (finalBuffer || interimBuffer).trim();
+          const captureMs = captureStartedRef.current ? Date.now() - captureStartedRef.current : 0;
+          if (transcript) translateTurn(transcript, "fr_to_lingala", "speech", null, captureMs, 0);
+          else if (!recognitionFailed) {
+            setError({ message:"Aucune voix détectée. Réessayez ou écrivez la phrase.", direction:"fr_to_lingala", inputMode:"speech" });
+            setPhase("error");
+          }
+        };
+        recognitionRef.current = recognition;
+        recognition.start();
+        const stream = liveStreamRef.current;
+        if (stream?.getTracks().every(track => track.readyState === "live")) startAmplitudeLoop(stream);
+        else navigator.mediaDevices?.getUserMedia({ audio:true }).then(nextStream => {
+          liveStreamRef.current = nextStream;
+          if (isListeningRef.current) startAmplitudeLoop(nextStream);
+        }).catch(() => {});
       };
 
       const startLingalaSTT = async () => {
+        if (!window.MediaRecorder || !navigator.mediaDevices?.getUserMedia) {
+          setError({ message:"L'enregistrement vocal n'est pas disponible ici. Utilisez la saisie texte.", direction:"lingala_to_fr", inputMode:"speech" });
+          setShowComposer(true);
+          setTextDirection("lingala_to_fr");
+          setPhase("error");
+          return;
+        }
         try {
-          // Reuse the existing stream if tracks are still live — avoids re-prompting on mobile
           let stream = liveStreamRef.current;
-          if (!stream || stream.getTracks().some(t => t.readyState === "ended")) {
-            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (!stream || stream.getTracks().some(track => track.readyState === "ended")) {
+            stream = await navigator.mediaDevices.getUserMedia({ audio:true });
             liveStreamRef.current = stream;
           }
-          const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-            ? "audio/webm;codecs=opus"
-            : MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm"
-            : "audio/mp4";
-          mimeTypeRef.current = mimeType;
-          const recorder = new MediaRecorder(stream, { mimeType });
-          // timeslice=250 ensures ondataavailable fires reliably every 250ms
-          recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
-          recorder.onstop = sendChunk;
+          const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"]
+            .find(candidate => MediaRecorder.isTypeSupported(candidate));
+          audioChunksRef.current = [];
+          discardCaptureRef.current = false;
+          const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+          mimeTypeRef.current = mimeType || recorder.mimeType || "audio/webm";
+          recorder.ondataavailable = event => { if (event.data.size > 0) audioChunksRef.current.push(event.data); };
+          recorder.onstop = transcribeLingala;
           mediaRecorderRef.current = recorder;
           recorder.start(250);
-          setIsListening(true);
-          isListeningRef.current = true;
-          startAmplitudeLoop(stream); // MediaRecorder owns this stream; don't stop its tracks
+          startAmplitudeLoop(stream);
           startVAD();
-        } catch(e) {
-          setError(e.name === "NotAllowedError"
-            ? "Accès au microphone refusé. Autorisez le microphone dans les paramètres."
-            : `Erreur microphone: ${e.message}`);
-        }
-      };
-
-      // ── RAG translation pipeline ──────────────────────────────────────────
-      const handleTranslate = async (sourceText, currentDirection) => {
-        if (!sourceText.trim()) return;
-        setTranslating(true);
-        const fromLingala = currentDirection === "lingala_to_fr";
-
-        try {
-          const [ragRes, lessonRes] = await Promise.allSettled([
-            apiFetch("/api/rag-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId, min_similarity:0.5 }) }).then(r => r.ok ? r.json() : null),
-            apiFetch("/api/lesson-context", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ query:sourceText, language_id:langId }) }).then(r => r.ok ? r.json() : null),
-          ]);
-          const ragContext    = ragRes.value?.context    || "";
-          const lessonContext = lessonRes.value?.context || "";
-
-          // Include last 4 turns so pronouns and continuations resolve correctly across segments
-          const chatRes = await apiFetch("/api/chat", {
-            method:"POST", headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({
-              mode: "live-translation",
-              direction: fromLingala ? "lingala_to_fr" : "fr_to_lingala",
-              ragContext,
-              lessonContext,
-              languageId: langId,
-              messages: [...liveHistoryRef.current.slice(-8), { role:"user", content:sourceText }],
-            }),
+        } catch (microphoneError) {
+          setError({
+            message:microphoneError.name === "NotAllowedError" ? "Autorisez le microphone dans les paramètres du navigateur, ou écrivez la phrase." : "Le microphone n'a pas pu démarrer. Réessayez ou écrivez la phrase.",
+            direction:"lingala_to_fr",
+            inputMode:"speech",
           });
-          if (!chatRes.ok) { setTranslating(false); return; }
-          // api/chat streams SSE — accumulate full translation before rendering the segment
-          const reader = chatRes.body.getReader();
-          const decoder = new TextDecoder();
-          let accumulated = "";
-          let lineBuffer = "";
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            lineBuffer += decoder.decode(value, { stream: true });
-            const lines = lineBuffer.split("\n");
-            lineBuffer = lines.pop();
-            for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-              const payload = line.slice(6).trim();
-              if (payload === "[DONE]") continue;
-              try { const p = JSON.parse(payload); if (p.delta) accumulated += p.delta; } catch {}
-            }
-          }
-          const translation = accumulated.trim();
-          if (translation) {
-            // Update rolling history before rendering (keep last 4 turns = 8 messages)
-            liveHistoryRef.current = [...liveHistoryRef.current, { role:"user", content:sourceText }, { role:"assistant", content:translation }].slice(-8);
-            const newSeg = { id:Date.now(), source:sourceText, translation, audioUrl:null, fromLingala };
-            setSegments(prev => [...prev, newSeg]);
-          }
-        } catch(e) { console.error("Translation error:", e); }
-        setTranslating(false);
+          setPhase("error");
+        }
       };
 
-      // ── Audio playback ────────────────────────────────────────────────────
-      const playAudio = async (seg) => {
-        setPlayingId(seg.id);
-        if (seg.fromLingala) {
-          // Target is French → Web Speech API
-          const synth = window.speechSynthesis;
-          if (!synth) { setPlayingId(null); return; }
-
-          const doSpeak = () => {
-            const u = new SpeechSynthesisUtterance(seg.translation);
-            u.lang = "fr-FR";
-            u.rate = 0.95;
-            // Pick a French voice if available (avoids "canceled" on first load in Chrome)
-            const voices = synth.getVoices();
-            const frVoice = voices.find(v => v.lang.startsWith("fr"));
-            if (frVoice) u.voice = frVoice;
-            u.onend = () => setPlayingId(null);
-            // Ignore "canceled" — fired when cancel() clears a stuck queue, not a real error
-            u.onerror = (e) => { if (e.error !== "canceled") setPlayingId(null); };
-            synth.speak(u);
-          };
-
-          synth.cancel(); // clear any stuck queue
-          // Voices may not be loaded yet (Chrome loads them async)
-          if (synth.getVoices().length === 0) {
-            synth.onvoiceschanged = () => { synth.onvoiceschanged = null; doSpeak(); };
-          } else {
-            setTimeout(doSpeak, 50); // small gap for cancel() to settle
-          }
+      const startTurn = async (nextDirection) => {
+        if (isProcessing) return;
+        if (isListeningRef.current) {
+          if (recordingDirectionRef.current === nextDirection) stopCapture(false);
+          else { stopCapture(true); setTimeout(() => startTurn(nextDirection), 100); }
           return;
         }
-        // TODO: Fine-tune VITS on native Lingala recordings (Borgeas studio sessions)
-        // Current: DigitalUmuganda/lingala_vits_tts via Kemz42/monoko-lingala-tts Space
-        // Called directly from browser (bypasses Vercel 10s timeout — inference takes 20-40s)
-        // Fallback: /api/elevenlabs-tts (English accent bias, but reliable)
-        if (audioCacheRef.current[seg.translation]) {
-          const audio = new Audio(audioCacheRef.current[seg.translation]);
-          audio.onended = () => setPlayingId(null);
-          audio.play();
-          return;
-        }
-        try {
-          const audioUrl = await lingalaTTS(seg.translation);
-          audioCacheRef.current[seg.translation] = audioUrl;
-          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioFailed:false } : s));
-          const audio = new Audio(audioUrl);
-          audio.onended = () => setPlayingId(null);
-          audio.play();
-        } catch(e) {
-          console.error("TTS error:", e);
-          // ── ElevenLabs fallback (English accent, but reliable) ────────────
-          // try {
-          //   const res = await fetch("/api/elevenlabs-tts", {
-          //     method:"POST", headers:{"Content-Type":"application/json"},
-          //     body: JSON.stringify({ text: seg.translation }),
-          //   });
-          //   if (!res.ok) throw new Error(`ElevenLabs ${res.status}`);
-          //   const blob = await res.blob();
-          //   const url = URL.createObjectURL(blob);
-          //   audioCacheRef.current[seg.translation] = url;
-          //   const audio = new Audio(url);
-          //   audio.onended = () => setPlayingId(null);
-          //   audio.play(); return;
-          // } catch(e2) { console.error("ElevenLabs fallback failed:", e2); }
-          // ─────────────────────────────────────────────────────────────────
-          setSegments(prev => prev.map(s => s.id === seg.id ? { ...s, audioFailed:true, audioError:e.message } : s));
-          setPlayingId(null);
-        }
+        stopPlayback();
+        setDirection(nextDirection);
+        recordingDirectionRef.current = nextDirection;
+        captureStartedRef.current = Date.now();
+        isListeningRef.current = true;
+        setError(null);
+        setLiveText("");
+        setPhase("listening");
+        if (nextDirection === "lingala_to_fr") await startLingalaSTT();
+        else startFrenchSTT();
       };
 
-      const swapDirection = () => {
-        if (isListening) { stopAll(); setIsListening(false); isListeningRef.current = false; setLiveText(""); }
-        setDirection(prev => prev === "fr_to_lingala" ? "lingala_to_fr" : "fr_to_lingala");
-        setError("");
-        liveHistoryRef.current = []; // conversation context is language-specific — reset on swap
+      const submitTypedTurn = (event) => {
+        event.preventDefault();
+        if (!typedText.trim() || isProcessing) return;
+        const source = typedText;
+        setTypedText("");
+        setShowComposer(false);
+        translateTurn(source, textDirection, "text");
       };
 
-      const isFromLingala = direction === "lingala_to_fr";
-      const sourceLang = isFromLingala ? langName : "Français";
-      const targetLang = isFromLingala ? "Français" : langName;
+      const submitEdit = (segment) => {
+        if (!editText.trim()) return;
+        liveHistoryRef.current = [];
+        translateTurn(editText, segment.direction, "edit", segment.id);
+      };
 
+      const retryError = () => {
+        if (error?.source) translateTurn(error.source, error.direction, error.inputMode, error.existingId);
+        else startTurn(error?.direction || direction);
+      };
+
+      const cancelPending = () => {
+        invalidateRequest();
+        setPendingTurn(null);
+        setError(null);
+        setPhase("idle");
+      };
+
+      const clearConversation = () => {
+        stopCapture(true);
+        stopPlayback();
+        invalidateRequest();
+        setSegments([]);
+        setPendingTurn(null);
+        setLiveText("");
+        setError(null);
+        setEditingId(null);
+        liveHistoryRef.current = [];
+      };
+
+      const activeLanguage = direction === "lingala_to_fr" ? langName : "Français";
 
       return (
-        <div style={{ animation:"fadeIn 0.3s ease-out", display:"flex", flexDirection:"column", height:"calc(100dvh - 80px)", paddingTop:12 }}>
-
-          {/* ── Top bar ── */}
-          <div style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-            <button onClick={() => { stopAll(); onBack(); }} style={{
-              display:"flex", alignItems:"center", gap:5, background:"none", border:"none",
-              color:"var(--m-muted)", fontSize:14, fontWeight:600, cursor:"pointer", padding:"6px 0",
-              fontFamily:"'DM Sans', sans-serif",
-            }}><ArrowLeft size={16} /> Accueil</button>
-
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-{segments.length > 0 && (
-                <button onClick={() => { setSegments([]); setLiveText(""); }} style={{
-                  background:"none", border:"none", color:"var(--m-muted)", fontSize:12,
-                  cursor:"pointer", fontFamily:"'DM Sans', sans-serif", padding:"6px 0",
-                }}>Effacer</button>
-              )}
+        <main className="m-live" aria-labelledby="live-title">
+          <header className="m-live-heading">
+            <button className="m-live-back" onClick={leaveLive}><UiIcon name="back"/> Accueil</button>
+            <div className="m-live-title-row">
+              <div>
+                <div className="m-kicker"><span>Conversation assistée</span><span>Français · {langName}</span></div>
+                <h1 id="live-title">Traduction en direct</h1>
+                <p>Une personne parle, Monɔkɔ transcrit et traduit pour l'autre.</p>
+              </div>
+              <div className="m-live-heading-actions">
+                <label className="m-live-autoplay">
+                  <input type="checkbox" checked={autoPlayback} onChange={event => updateAutoPlayback(event.target.checked)}/>
+                  <span className="m-live-switch" aria-hidden="true"><i/></span>
+                  <span>Lecture automatique</span>
+                </label>
+                <button className={`m-live-speed ${slowPlayback ? "active" : ""}`} onClick={() => setSlowPlayback(value => !value)} aria-pressed={slowPlayback} title="Ralentir la lecture">
+                  <UiIcon name="clock"/> {slowPlayback ? "Lecture lente" : "Lecture normale"}
+                </button>
+                {segments.length > 0 && <button className="m-live-clear" onClick={clearConversation}>Effacer</button>}
+              </div>
             </div>
-          </div>
+          </header>
 
-          {/* ── Language switcher ── */}
-          <div style={{
-            flexShrink:0, display:"flex", alignItems:"center",
-            background:"white", borderRadius:10, border:"1px solid var(--m-line)",
-            boxShadow:"0 2px 8px rgba(0,0,0,0.06)", marginBottom:12, overflow:"hidden",
-          }}>
-            <div style={{ flex:1, textAlign:"center", padding:"14px 10px" }}>
-              <div style={{ fontSize:10, fontWeight:700, color:"var(--m-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Je parle</div>
-              <div style={{ fontSize:17, fontWeight:800, color:"var(--m-ink)", fontFamily:"'DM Sans', sans-serif" }}>{sourceLang}</div>
-            </div>
-            <button onClick={swapDirection} title="Inverser" style={{
-              flexShrink:0, width:44, height:44, borderRadius:"50%",
-              background:"var(--m-forest)",
-              border:"none", color:"white", fontSize:18, cursor:"pointer",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              boxShadow:"0 2px 8px rgba(0,0,0,0.18)", transition:"transform 0.2s",
-            }}>⇄</button>
-            <div style={{ flex:1, textAlign:"center", padding:"14px 10px" }}>
-              <div style={{ fontSize:10, fontWeight:700, color:"var(--m-muted)", letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:3 }}>Traduction</div>
-              <div style={{ fontSize:17, fontWeight:800, color:"var(--m-correct)", fontFamily:"'DM Sans', sans-serif" }}>{targetLang}</div>
-            </div>
-          </div>
-
-          {/* ── Error banner ── */}
-          {error && (
-            <div style={{ flexShrink:0, background:"#FEF2F2", border:"1px solid #FECACA", borderRadius:8, padding:"10px 14px", marginBottom:10, fontSize:13, color:"var(--m-wrong)" }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          {/* ── Conversation scroll ── */}
-          <div style={{ flex:1, minHeight:0, overflowY:"auto", paddingBottom:4 }}>
-
-            {/* Empty state */}
-            {segments.length === 0 && !liveText && !translating && (
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:12, color:"var(--m-muted)" }}>
-                <div style={{ fontSize:40 }}>🎙️</div>
-                <p style={{ fontSize:14, fontStyle:"italic", textAlign:"center", lineHeight:1.6, maxWidth:220 }}>
-                  {isListening ? `Parlez en ${sourceLang}…` : "Appuyez sur le micro et parlez — la traduction s'affiche en temps réel"}
-                </p>
+          <section className="m-live-conversation" aria-label="Conversation traduite" aria-live="polite">
+            {segments.length === 0 && !pendingTurn && !liveText && (
+              <div className="m-live-empty">
+                <span><UiIcon name="messages"/></span>
+                <h2>Commencez la conversation</h2>
+                <p>Chaque personne touche sa langue avant de parler. Monɔkɔ s'arrête après la phrase et prépare la traduction.</p>
               </div>
             )}
 
-            {/* Segments — side-aligned by speaker: FR left, Lingala right */}
-            {segments.map((s, idx) => {
-              const sFromLang = s.fromLingala ? langName : "Français";
-              const isRight = s.fromLingala;
+            {segments.map(segment => {
+              const fromLingala = segment.direction === "lingala_to_fr";
+              const sourceLanguage = fromLingala ? langName : "Français";
+              const targetLanguage = fromLingala ? "Français" : langName;
+              const isEditing = editingId === segment.id;
+              const audioPreparing = audioPreparingIds.includes(segment.id);
               return (
-                <div key={s.id} style={{
-                  marginBottom:10, width:"85%",
-                  marginLeft: isRight ? "auto" : 0,
-                  marginRight: isRight ? 0 : "auto",
-                  background: isRight ? "#F0FDF4" : "white",
-                  borderRadius:8,
-                  border: `1px solid ${isRight ? "#BBF7D0" : "var(--m-line)"}`,
-                  boxShadow:"0 1px 6px rgba(0,0,0,0.05)",
-                  overflow:"hidden", animation:"slideIn 0.25s ease-out",
-                }}>
-                  {/* Source text */}
-                  <div style={{ padding:"10px 14px 6px", borderBottom:`1px solid ${isRight ? "#DCFCE7" : "#F2EDE6"}` }}>
-                    <span style={{ fontSize:11, fontWeight:700, color: isRight ? "var(--m-correct)" : "var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sFromLang}</span>
-                    <span style={{ fontSize:13, color:"var(--m-muted)", fontFamily:"'DM Sans', sans-serif" }}>{s.source}</span>
-                  </div>
-                  {/* Translation */}
-                  <div style={{ padding:"10px 14px 12px", display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ flex:1, fontSize:17, fontWeight:700, color:"var(--m-ink)", lineHeight:1.5, fontFamily:"'DM Sans', sans-serif" }}>
-                      {s.translation}
+                <article className={`m-live-turn ${fromLingala ? "lingala" : "french"}`} key={segment.id}>
+                  <header><span>{sourceLanguage}</span><small>{segment.inputMode === "speech" ? "Voix" : segment.inputMode === "edit" ? "Corrigé" : "Texte"}</small></header>
+                  {isEditing ? (
+                    <form className="m-live-edit" onSubmit={event => { event.preventDefault(); submitEdit(segment); }}>
+                      <label htmlFor={`live-edit-${segment.id}`}>Corriger la transcription</label>
+                      <textarea id={`live-edit-${segment.id}`} value={editText} onChange={event => setEditText(event.target.value)} rows="2" autoFocus />
+                      <div><button type="button" onClick={() => setEditingId(null)}>Annuler</button><button type="submit">Retraduire</button></div>
+                    </form>
+                  ) : <p className="m-live-source">{segment.source}</p>}
+                  <div className="m-live-result">
+                    <div>
+                      <small>{targetLanguage}</small>
+                      <strong>{segment.translation}</strong>
+                      {audioPreparing && <span className="m-live-audio-status">Préparation de la voix…</span>}
                     </div>
-                    {!s.audioFailed ? (
-                      <button onClick={() => playAudio(s)} style={{
-                        flexShrink:0, width:38, height:38, borderRadius:"50%", border:"none",
-                        cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center",
-                        background: playingId === s.id ? "var(--m-correct)" : "#F0F9F0",
-                        color: playingId === s.id ? "white" : "var(--m-correct)",
-                        transition:"all 0.15s",
-                      }}>
-                        {playingId === s.id ? "■" : "▶"}
+                    <div className="m-live-turn-actions">
+                      <button onClick={() => { setEditingId(segment.id); setEditText(segment.source); }} title="Corriger la transcription" aria-label="Corriger la transcription"><UiIcon name="pencil"/></button>
+                      <button className={`${playingId === segment.id ? "playing" : ""} ${audioPreparing ? "preparing" : ""}`} onClick={() => playAudio(segment)} disabled={audioPreparing} title={audioPreparing ? "Préparation de la voix" : segment.audioFailed ? "Réessayer la lecture" : "Écouter la traduction"} aria-label={audioPreparing ? "Préparation de la voix" : "Écouter la traduction"}>
+                        <UiIcon name={playingId === segment.id ? "stop" : "volume"}/>
                       </button>
-                    ) : (
-                      <span style={{ fontSize:11, color:"var(--m-muted)" }}>—</span>
-                    )}
+                    </div>
                   </div>
-                </div>
+                </article>
               );
             })}
 
-            {/* Live interim text while speaking */}
             {liveText && (
-              <div style={{ padding:"8px 14px", borderRadius:8, background:"var(--m-canvas)", border:"1px dashed var(--m-line)", marginBottom:8 }}>
-                <span style={{ fontSize:11, fontWeight:700, color:"var(--m-muted)", textTransform:"uppercase", letterSpacing:"0.07em", marginRight:6 }}>{sourceLang}</span>
-                <span style={{ fontSize:14, color:"var(--m-muted)", fontStyle:"italic" }}>{liveText}</span>
+              <div className="m-live-draft">
+                <span className="m-live-pulse"/><div><small>{activeLanguage} · transcription</small><p>{liveText}</p></div>
               </div>
             )}
 
-            {/* Translating spinner */}
-            {translating && (
-              <div style={{ padding:"10px 14px", borderRadius:8, background:"#F0FDF4", border:"1px solid #BBF7D0", marginBottom:8, display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ fontSize:13, color:"var(--m-correct)", animation:"spin 1s linear infinite", display:"inline-block" }}>⟳</span>
-                <span style={{ fontSize:13, color:"var(--m-correct)", fontStyle:"italic" }}>Traduction en cours…</span>
+            {pendingTurn && (
+              <div className={`m-live-turn pending ${pendingTurn.direction === "lingala_to_fr" ? "lingala" : "french"}`}>
+                <header><span>{pendingTurn.direction === "lingala_to_fr" ? langName : "Français"}</span><small>{pendingTurn.inputMode === "speech" ? "Voix" : "Texte"}</small></header>
+                <p className="m-live-source">{pendingTurn.source}</p>
+                <div className="m-live-processing"><span/><p>{phaseCopy[phase]}</p><button onClick={cancelPending}>Annuler</button></div>
               </div>
             )}
+            <div ref={transEndRef}/>
+          </section>
 
-            <div ref={transEndRef} />
-          </div>
-
-          {/* ── Bottom mic section ── */}
-          <div style={{ flexShrink:0, paddingTop:10 }}>
-
-            {/* Waveform — heights driven by real mic amplitude via AnalyserNode */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:3, height:36, marginBottom:12 }}>
-              {Array.from({length:9}).map((_, i) => (
-                <div key={i} ref={el => barRefs.current[i] = el} style={{
-                  width:4, borderRadius:3,
-                  background: isListening ? "var(--m-correct)" : "var(--m-line)",
-                  height:"4px",
-                  transition:"background 0.3s",
-                }} />
-              ))}
+          {error && (
+            <div className="m-live-error" role="alert">
+              <UiIcon name="circle"/>
+              <p>{error.message}</p>
+              {(error.source || error.direction) && <button onClick={retryError}><UiIcon name="reset"/> Réessayer</button>}
+              <button className="dismiss" onClick={() => { setError(null); setPhase("idle"); }} aria-label="Fermer"><UiIcon name="close"/></button>
             </div>
+          )}
 
-            {/* Mic button */}
-            <div style={{ display:"flex", justifyContent:"center", marginBottom:10 }}>
-              <button onClick={toggleListening} style={{
-                width:80, height:80, borderRadius:"50%", border:"none", cursor:"pointer",
-                background: isListening
-                  ? "var(--m-correct)"
-                  : "var(--m-forest)",
-                color:"white", fontSize:30,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                animation: isListening ? "micRing 1.8s ease-in-out infinite" : "none",
-                transition:"background 0.25s, transform 0.15s",
-                transform: isListening ? "scale(1.05)" : "scale(1)",
-              }}>
-                {isListening ? "■" : "🎤"}
+          <section className="m-live-controls" aria-label="Contrôles de traduction">
+            <div className={`m-live-status ${phase}`}><span/>{phaseCopy[phase] || phaseCopy.idle}</div>
+            <div className={`m-live-waveform ${isListening ? "active" : ""}`} aria-hidden="true">
+              {Array.from({ length:11 }).map((_, index) => <i key={index} ref={element => barRefs.current[index] = element}/>)}
+            </div>
+            <div className="m-live-speakers">
+              <button className={`french ${isListening && direction === "fr_to_lingala" ? "listening" : ""}`} onClick={() => startTurn("fr_to_lingala")} disabled={isProcessing}>
+                <span><UiIcon name={isListening && direction === "fr_to_lingala" ? "stop" : "mic"}/></span>
+                <strong>{isListening && direction === "fr_to_lingala" ? "Terminer" : "Parler en français"}</strong>
+                <small>Traduire vers {langName}</small>
+              </button>
+              <button className={`lingala ${isListening && direction === "lingala_to_fr" ? "listening" : ""}`} onClick={() => startTurn("lingala_to_fr")} disabled={isProcessing}>
+                <span><UiIcon name={isListening && direction === "lingala_to_fr" ? "stop" : "mic"}/></span>
+                <strong>{isListening && direction === "lingala_to_fr" ? "Terminer" : `Parler en ${langName}`}</strong>
+                <small>Traduire vers le français</small>
               </button>
             </div>
 
-            {/* Status label */}
-            <div style={{ textAlign:"center", fontSize:12, fontWeight:600, fontFamily:"'DM Sans', sans-serif", paddingBottom:4,
-              color: translating ? "var(--m-correct)" : isListening ? "var(--m-correct)" : "var(--m-muted)" }}>
-              {translating ? "Traduction…" : isListening ? `En écoute — ${sourceLang}` : "Appuyer pour parler"}
-            </div>
-
-          </div>
-        </div>
+            <button className="m-live-text-toggle" onClick={() => setShowComposer(value => !value)} aria-expanded={showComposer}><UiIcon name="keyboard"/> Écrire au lieu de parler</button>
+            {showComposer && (
+              <form className="m-live-composer" onSubmit={submitTypedTurn}>
+                <div className="m-live-direction-tabs" aria-label="Langue du texte">
+                  <button type="button" className={textDirection === "fr_to_lingala" ? "active" : ""} onClick={() => setTextDirection("fr_to_lingala")}>Français</button>
+                  <button type="button" className={textDirection === "lingala_to_fr" ? "active" : ""} onClick={() => setTextDirection("lingala_to_fr")}>{langName}</button>
+                </div>
+                <label htmlFor="live-text-input">Phrase à traduire</label>
+                <div><textarea id="live-text-input" value={typedText} onChange={event => setTypedText(event.target.value)} placeholder={`Écrivez en ${textDirection === "fr_to_lingala" ? "français" : langName}…`} rows="2"/><button type="submit" disabled={!typedText.trim() || isProcessing} aria-label="Traduire"><UiIcon name="arrow"/></button></div>
+              </form>
+            )}
+          </section>
+        </main>
       );
     }
 
@@ -3934,6 +4134,8 @@
       arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
       back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
       reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/>',
+      stop: '<rect x="7" y="7" width="10" height="10" rx="1"/>',
+      keyboard: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M18 10h.01M6 14h8M16 14h2"/>',
       pause: '<path d="M9 5v14M15 5v14"/>',
       settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
       logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
@@ -6919,8 +7121,7 @@
         setChatPlayingIdx(idx);
         for (const frag of fragments) {
           try {
-            let url = chatAudioCache[frag];
-            if (!url) { url = await lingalaTTS(frag); chatAudioCache[frag] = url; }
+            const url = await lingalaTTS(frag);
             await new Promise(resolve => {
               const audio = new Audio(url);
               audio.onended = resolve;

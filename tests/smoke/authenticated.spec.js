@@ -65,6 +65,100 @@ test.describe("authenticated learner", () => {
     await expect(page.locator(".m-developer-complete")).toContainText("Simuler la leçon réussie");
   });
 
+  test("live translation offers two speaker turns and a text fallback", async ({ page }) => {
+    await page.goto("/");
+    await openLingalaCourse(page);
+    await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
+    await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
+    await page.locator(".m-auth-submit").click();
+    await expect(page.locator(".m-home")).toBeVisible({ timeout:20_000 });
+
+    // Install the Space mocks before opening the view: opening it now starts a
+    // preference-aware fixed-phrase warm-up in the background.
+    await page.route("**/api/rag-context", route => route.fulfill({ status:200, contentType:"application/json", body:JSON.stringify({ context:"", result_count:0 }) }));
+    await page.route("**/api/lesson-context", route => route.fulfill({ status:200, contentType:"application/json", body:JSON.stringify({ context:"", result_count:0 }) }));
+    await page.route("**/api/live-translation-events", route => route.fulfill({ status:201, contentType:"application/json", body:JSON.stringify({ ok:true }) }));
+    let ttsStarts = 0;
+    await page.route(/\/gradio_api\/call\/synthesise$/, route => {
+      ttsStarts += 1;
+      return route.fulfill({ status:200, contentType:"application/json", body:JSON.stringify({ event_id:`test-event-${ttsStarts}` }) });
+    });
+    await page.route(/\/gradio_api\/call\/synthesise\/test-event-\d+$/, route => route.fulfill({
+      status:200,
+      contentType:"text/event-stream",
+      body:'event: complete\ndata: [{"url":"data:audio/wav;base64,UklGRg=="}]\n\n',
+    }));
+    await page.route("**/api/chat", async route => {
+      const source = route.request().postDataJSON().messages.at(-1).content;
+      const translation = source === "Bonjour à tous" ? "Mbote na bino nyonso" : source === "Bonsoir" ? "Mbote ya mpokwa" : "Mbote";
+      await route.fulfill({
+        status:200,
+        headers:{ "Content-Type":"text/event-stream" },
+        body:`data: ${JSON.stringify({ delta:translation })}\n\ndata: [DONE]\n\n`,
+      });
+    });
+    await page.evaluate(() => {
+      window.__monokoAudioPlayCount = 0;
+      window.Audio = class {
+        constructor(src) { this.src = src; this.playbackRate = 1; }
+        play() {
+          window.__monokoAudioPlayCount += 1;
+          setTimeout(() => this.onended?.(), 0);
+          return Promise.resolve();
+        }
+        pause() {}
+      };
+    });
+
+    const railLink = page.locator(".m-rail nav button", { hasText:"Traduction en direct" });
+    if (await railLink.isVisible()) await railLink.click();
+    else await page.locator(".m-tool.live").click();
+
+    await expect(page.locator(".m-live")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(page.locator(".m-live-speakers button")).toHaveCount(2);
+    await expect(page.locator(".m-live-speakers")).toContainText("Parler en français");
+    await expect(page.locator(".m-live-speakers")).toContainText("Parler en Lingala");
+    let autoplay = page.getByRole("checkbox", { name:"Lecture automatique" });
+    await expect(autoplay).toBeChecked();
+    await page.locator(".m-live-text-toggle").click();
+    await expect(page.locator(".m-live-composer")).toBeVisible();
+    await expect(page.locator("#live-text-input")).toBeVisible();
+
+    await page.locator("#live-text-input").fill("Bonjour");
+    await page.locator('.m-live-composer button[type="submit"]').click();
+    await expect(page.locator(".m-live-turn.french")).toContainText("Mbote");
+    await expect.poll(() => ttsStarts).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__monokoAudioPlayCount)).toBe(1);
+
+    await page.locator(".m-live-back").click();
+    await expect(page.locator(".m-home")).toBeVisible();
+    if (await railLink.isVisible()) await railLink.click();
+    else await page.locator(".m-tool.live").click();
+    await page.locator(".m-live-text-toggle").click();
+    await page.locator("#live-text-input").fill("Bonjour");
+    await page.locator('.m-live-composer button[type="submit"]').click();
+    await expect(page.locator(".m-live-turn.french")).toContainText("Mbote");
+    await expect.poll(() => page.evaluate(() => window.__monokoAudioPlayCount)).toBe(2);
+    expect(ttsStarts).toBe(1);
+
+    autoplay = page.getByRole("checkbox", { name:"Lecture automatique" });
+    await page.locator(".m-live-autoplay").click();
+    await expect(autoplay).not.toBeChecked();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("monoko_live_autoplay"))).toBe("false");
+    await page.locator(".m-live-text-toggle").click();
+    await page.locator("#live-text-input").fill("Bonsoir");
+    await page.locator('.m-live-composer button[type="submit"]').click();
+    await expect(page.locator(".m-live-turn.french", { hasText:"Mbote ya mpokwa" })).toBeVisible();
+    await page.waitForTimeout(250);
+    expect(ttsStarts).toBe(1);
+
+    await page.locator('.m-live-turn.french button[aria-label="Corriger la transcription"]').first().click();
+    await page.locator(".m-live-edit textarea").fill("Bonjour à tous");
+    await page.locator('.m-live-edit button[type="submit"]').click();
+    await expect(page.locator("article.m-live-turn.french", { hasText:"Mbote na bino nyonso" })).toBeVisible();
+  });
+
   // The landing page is a pitch. A learner who is already signed in must never
   // see it flash on the way to their own home — which is what happened while the
   // session, the language list and the stored preference resolved.

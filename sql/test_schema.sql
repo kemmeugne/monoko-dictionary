@@ -116,6 +116,28 @@ create table if not exists chat_events (
   t_llm_ms            integer
 );
 
+-- Operational metrics only: deliberately no conversation text or audio.
+create table if not exists live_translation_events (
+  id                    bigserial primary key,
+  event_id              text not null unique,
+  user_id               uuid not null references auth.users(id) on delete cascade,
+  language_id           bigint not null references languages(id),
+  event_type            text not null,
+  direction             text not null,
+  input_mode            text not null,
+  outcome               text not null,
+  failure_stage         text,
+  failure_code          text,
+  source_length_bucket  text,
+  audio_duration_bucket text,
+  capture_ms            integer,
+  stt_ms                integer,
+  context_ms            integer,
+  translation_ms        integer,
+  tts_ms                integer,
+  created_at            timestamptz not null default now()
+);
+
 -- ── Courses ──────────────────────────────────────────────────────────────
 
 create table if not exists courses (
@@ -304,5 +326,10 @@ drop policy if exists "Public insert" on corrections;
 
 -- 4. Chat events — no public access (service key only, bypasses RLS)
 alter table chat_events enable row level security;
+
+-- 4b. Live-translation metrics — no public access (service endpoint only)
+alter table live_translation_events enable row level security;
+revoke all on table live_translation_events from public, anon, authenticated;
+revoke all on sequence live_translation_events_id_seq from public, anon, authenticated;
 
 -- 5. profiles / user_progress RLS already applied above, with their tables.

@@ -23,4 +23,14 @@ describe("production trust boundaries", () => {
   it("enforces country immutability in PostgreSQL", () => {
     expect(read("sql/security_hardening.sql")).toContain("create trigger profiles_country_immutable");
   });
+
+  it("keeps live translation telemetry free of conversation content", () => {
+    const schema = read("sql/live_translation_telemetry.sql");
+    const endpoint = read("api/live-translation-events.js");
+    expect(schema).toContain("alter table live_translation_events enable row level security");
+    expect(schema).not.toMatch(/^\s*(transcript|translation_text|source_text|audio_data|prompt)\s+/im);
+    expect(endpoint).toContain('"transcript"');
+    expect(endpoint).toContain('"translation"');
+    expect(endpoint).toContain("FORBIDDEN_FIELDS");
+  });
 });

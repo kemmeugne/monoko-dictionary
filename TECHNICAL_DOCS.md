@@ -1930,22 +1930,48 @@ The `correct_french`, `correct_lingala`, and `example_sentence` fields in the co
 
 ---
 
-## 16. Live Translation + Lingala TTS (2026-04-22)
+## 16. Live Translation + Lingala TTS (2026-04-22; V2 2026-09-08)
 
 ### Overview
 
-The "Traduction en direct" view provides real-time speech translation: the user speaks in French, segments are transcribed and translated to Lingala by the AI, and both French and Lingala audio are played back automatically.
+The "Traduction en direct" view provides two-way, turn-based speech translation.
+Two dedicated speaker controls capture one French or Lingala phrase at a time.
+Results form one bilingual thread; users can correct a transcript and retranslate,
+type instead of speaking, cancel an in-flight turn, retry a failure and play the
+result at normal or 0.75x speed. Result audio plays automatically by default. A
+persistent `monoko_live_autoplay` preference lets readers disable it; when disabled,
+no synthesis starts until the result's audio button is pressed.
 
 ### Pipeline
 
 ```
-Microphone
-  └─ Web Speech API (SpeechRecognition, browser built-in)
-       └─ interimResults + onresult events → segment detection (pause-based)
-            ├─ French TTS: SpeechSynthesisUtterance (Web Speech API, browser built-in)
-            └─ Translation: POST /api/chat.js → gpt-4o-mini (Lingala output)
-                 └─ Lingala TTS: lingalaTTS() → HuggingFace Space (ESPnet2 VITS)
+French microphone → browser SpeechRecognition
+Lingala microphone → adaptive VAD → POST /api/elevenlabs-stt (Scribe v2)
+  └─ POST /api/rag-context + /api/lesson-context
+       └─ POST /api/chat (`live-translation`, SSE)
+            ├─ French result: SpeechSynthesisUtterance
+            └─ Lingala result: lingalaTTS() → HuggingFace Space (ESPnet2 VITS)
 ```
+
+The client state machine is `idle → listening → transcribing (Lingala only) →
+retrieving → translating`. `AbortController` plus a monotonically increasing
+request ID prevents cancelled or out-of-order requests from mutating the thread.
+The same protection covers delayed Lingala TTS, which must not start after stop.
+When automatic playback is enabled, Lingala synthesis begins as soon as translated
+text arrives, displays a per-turn preparation state, and reuses an 80-entry,
+tab-memory-only URL cache shared with chat. Matching in-flight requests are also
+deduplicated, including across Live Translation remounts. Opening the view schedules
+a fixed `Mbote` warm-up during browser idle time, unless automatic playback is off.
+Disabling automatic playback cancels pending play without hiding or delaying text.
+
+### Privacy-safe live telemetry
+
+`POST /api/live-translation-events` authenticates the user and writes only
+operational dimensions to `live_translation_events`: direction, input mode,
+outcome/failure stage, coarse text/audio buckets and stage timings. The endpoint
+explicitly rejects audio, text, source, transcript, translation, messages, prompt
+context and corpus context fields. The table has RLS with no browser policy.
+Migration `sql/live_translation_telemetry.sql` was applied on 2026-09-08.
 
 ### Lingala TTS: HuggingFace Space
 
@@ -1958,13 +1984,15 @@ Microphone
 | Training data | 71.6h real Lingala speech |
 | SDK | Gradio 6.13.0 |
 | Python | 3.10 |
-| Device | CPU (HuggingFace free tier) |
+| Device | Runtime-selected CUDA, otherwise CPU (current Space: free CPU) |
 | Sample rate | 44,100 Hz |
 | Model size | ~373 MB |
-| Inference time | 20–40s (CPU) |
+| Observed warm inference | ~7.2s for a short phrase (2026-09-08 telemetry) |
 
 **Why the client calls the Space directly** (not via Vercel):  
-Vercel free plan enforces a 10s function timeout. ESPnet2 CPU inference takes 20–40s. Routing through Vercel would always timeout. The Space is called directly from the browser via Gradio's public API.
+ESPnet2 inference can outlast an edge-function request, so routing synthesis through
+Vercel adds a timeout boundary without improving the work. The Space is called
+directly from the browser through Gradio's public API.
 
 ### Gradio 6.x API (important differences from 4.x)
 
@@ -2002,6 +2030,11 @@ async function lingalaTTS(text) {
 Key points:
 - Downloads model files from `DigitalUmuganda/lingala_vits_tts` via `hf_hub_download` at startup
 - Downloads NLTK resources at startup: `averaged_perceptron_tagger_eng`, `averaged_perceptron_tagger`, `cmudict` — all required by `g2p_en` (the text tokenizer used by ESPnet2 VITS)
+- Selects CUDA automatically when a GPU is attached; otherwise uses a bounded
+  number of CPU threads so a CPU hardware upgrade is actually used
+- Runs one fixed `Mbote` inference at startup and uses `torch.inference_mode()`
+- Logs input length rather than conversation text, and moves GPU output to CPU
+  before WAV serialization
 - `demo.queue()` is required — Gradio 6.x event API fails without it
 - `api_name="synthesise"` matches the endpoint name
 
@@ -2027,9 +2060,16 @@ speechSynthesis.speak(utterance);
 
 ### Known issues / future work
 
-- Space sleeps after ~15 min of inactivity. Warm-up ping helps but the first synthesis after a long idle still takes 60-120s.
-- No GPU — inference on CPU only (HuggingFace free tier). A paid Space or self-hosted GPU would cut inference to <2s.
+- A sleeping Space can still make the first request slow. The view ping and fixed
+  warm-up reduce learner-visible setup time but cannot remove hardware startup.
+- Paid hardware has not been benchmarked. Trial CPU Upgrade first and compare
+  p50/p95 `tts_ms`; only trial a GPU if the CPU result misses the agreed target.
+- The Space is deployed independently from Vercel: copy `tts_space/app.py` to the
+  Hugging Face Space before changing hardware.
 - **Next**: fine-tune DigitalUmuganda on professor's voice once remaining audio collection is complete. See "Next: Fine-tune TTS on professor's voice" in CLAUDE.md for full pipeline.
+- **STT quality gate**: benchmark Lingala Scribe against a professor-verified set
+  before deciding whether a Lingala ASR fine-tune is justified. The V2 correction
+  control makes recognition mistakes recoverable but does not improve the model.
 
 ---
 

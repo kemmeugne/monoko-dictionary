@@ -2,10 +2,12 @@
 
 > Audience: an AI agent (or developer) picking up this work. This file is self-contained — read it, then read the file:line references it points to. Code paths are absolute from the repo root.
 
-Last updated: 2026-04-30
+Last updated: 2026-09-08
 Scope: chat (`view === "chat"`) and live translation (`view === "live"`) only. Dictionary, courses, admin, auth are out of scope here.
 
-**Implementation status**: Tier 1 ✅ shipped 2026-04-29. Tier 2 ✅ shipped 2026-04-30. 2.1 + 3.4 ✅ shipped 2026-04-30.
+**Implementation status**: Tier 1 ✅ shipped 2026-04-29. Tier 2 ✅ shipped
+2026-04-30. Live Translation V2 is code-complete 2026-09-08; its privacy-safe
+telemetry migration was applied on 2026-09-08.
 
 ---
 
@@ -55,8 +57,21 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 - Loading dots now only show while the placeholder is still empty (`chatMessages[last].content === ""`); they disappear on first token.
 - `Corriger` button only appears after streaming is complete (`!chatLoading` guard).
 
-### ~~2.2 Auto-play the latest Live Translation segment~~ — REMOVED
-- Shipped 2026-04-29, then removed 2026-04-30. Button and auto-play logic stripped entirely — didn't work reliably and confused users. Audio plays on manual ▶ tap only.
+### ✅ 2.2 Automatic Live Translation playback with opt-out — CODE COMPLETE 2026-09-08
+- The first autoplay attempt shipped 2026-04-29 and was removed because it lacked
+  clear state and user control. V2 restores it as a deliberate interpreter mode:
+  automatic playback is on by default, has a visible persistent toggle, and can be
+  disabled for reading-only use.
+- Lingala synthesis starts immediately after translation, shows "Préparation de
+  la voix…", deduplicates concurrent requests and caches completed audio for replay.
+- Live Translation and chat now share one bounded, tab-memory-only cache and one
+  in-flight request map. Reopening a view or replaying a chat phrase does not repeat
+  synthesis, while private conversation text is not persisted.
+- Opening Live Translation schedules a fixed `Mbote` synthesis during idle time
+  when automatic playback is enabled. The Space itself performs the same fixed
+  warm-up at process startup.
+- Turning automatic playback off cancels any pending play and avoids synthesis
+  until the user explicitly presses the audio button. Text never depends on TTS.
 
 ### ✅ 2.3 Pre-warm RAG endpoints on mount — SHIPPED 2026-04-29
 - `LiveTranslationView` useEffect fires fire-and-forget POSTs to `/api/rag-context` and `/api/lesson-context` with `{query:"warm", language_id:langId}` alongside the existing TTS Space ping.
@@ -80,6 +95,21 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 
 ## 3. Live Translation — smoothness fixes
 
+### ✅ V2 two-speaker workflow — CODE COMPLETE 2026-09-08
+- Replaced the direction switch and continuous capture with two explicit speaker
+  controls and one phrase per turn.
+- Added pipeline states, cancel/retry, text fallback, editable transcript with
+  retranslation, normal/slow playback and responsive conversation cards.
+- Added default-on automatic result playback with a persistent reading-only opt-out,
+  eager Lingala synthesis, visible preparation state and per-session audio caching.
+- Context, translation and TTS requests are generation-guarded; stale responses
+  cannot reappear after cancel, speaker change, navigation or playback stop.
+- Added `api/live-translation-events.js` and
+  `sql/live_translation_telemetry.sql`. Only aggregate operational metadata is
+  accepted; raw conversation and audio fields are rejected.
+- Added Vitest privacy/handler coverage and an authenticated Playwright flow at
+  desktop, 390px and 320px, including text translation and transcript correction.
+
 ### ✅ 3.1 Replace fixed 6-second Lingala chunking with VAD — SHIPPED 2026-04-30
 - Added `startVAD()` / `stopVAD()` using the shared `AnalyserNode` from `startAmplitudeLoop`.
 - Polls RMS at 50ms. End-of-utterance: 700ms silence (RMS < 0.01) → `mediaRecorder.stop()`. Hard ceiling at 15s.
@@ -93,11 +123,13 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 - `stopAmplitudeLoop()` cancels RAF, closes AudioContext, resets bar heights to 4px.
 - Old CSS keyframe animations (`waveA/B/C`) and the `waveBars` config array removed from the component.
 
-### 3.3 Live translation preview while speaking
+### 3.3 Live translation preview while speaking — SUPERSEDED
 - File: `index.html:724-744` (FR `recognition.onresult`).
 - Today: `liveText` shows interim STT only; translation only fires after 1s pause.
 - Change: when `(finalBuffer + interim).length` crosses 12 chars and 1.5s elapsed since last preview call, fire a debounced `/api/chat` with `previewMode:true` (skip RAG, use a tiny prompt) and render its output in a faded segment card. On final commit, replace it with the real translated segment.
-- Caveat: track and cancel the in-flight preview when a new commit happens. Use an `AbortController`.
+- Decision 2026-09-08: do not spend requests on unstable interim speech. V2 shows
+  the live transcript, then performs one cancellable corpus-backed translation
+  when the speaker finishes. This is clearer and cheaper for a pass-the-phone use case.
 
 ### ✅ 3.4 Preserve segments across direction swap — SHIPPED 2026-04-30
 - Removed `setSegments([])` from `swapDirection`. Segments persist across swaps, building a single bilingual conversation thread.
@@ -110,9 +142,10 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 - Per-segment source label renders `s.fromLingala ? langName : "Français"` — always correct regardless of current direction.
 - Screen now reads like a bilingual chat thread between FR and LN speakers.
 
-### 3.6 Slow-down playback
-- File: `index.html:914-926` (`playAudio` Lingala branch).
-- Change: render two play buttons — `▶` and `▶ 0.75x`. The slow one sets `audio.playbackRate = 0.75` before `audio.play()`. One extra button, ~5 lines.
+### ✅ 3.6 Slow-down playback — CODE COMPLETE 2026-09-08
+- A single mode control switches all result playback between normal and 0.75x.
+- Lingala audio uses `HTMLAudioElement.playbackRate`; French uses the matching
+  `SpeechSynthesisUtterance.rate`.
 
 ### 3.7 Replay button on the source row
 - File: `index.html:1043-1046` (source text rendering).
@@ -122,7 +155,8 @@ The plumbing works. Most remaining wins are **perceived-latency, missing feature
 
 ## 4. "Parler avec Monoko" — close the voice gap
 
-The chat is keyboard-only and silent. Pipelines for STT and TTS already exist next door — they just aren't wired in.
+The chat remains keyboard-only, but Lingala fragments in assistant replies can be
+played through the shared TTS pipeline.
 
 ### 4.1 Mic button inside the chat input pill
 - File: `index.html:2887-2898` (input row).
@@ -132,12 +166,14 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 ### ✅ 4.2 ▶ play button on assistant Lingala phrases — SHIPPED 2026-04-30
 - `extractLingalaFragments(text)` parses Lingala from assistant responses: matches after `→`, inside backticks, and inside quotes. Returns an array of fragment strings.
 - `playChatLingala(msgIdx)` calls `lingalaTTS` on all fragments from that message, plays them sequentially. `chatPlayingIdx` state tracks which message is currently playing.
-- `const chatAudioCache = {}` at module level (keyed by fragment text) — avoids re-synthesising the same phrase across messages.
+- The shared `lingalaAudioCache` and `lingalaAudioRequests` maps avoid duplicate
+  synthesis across chat, Live Translation and view remounts.
 - 🔊 button shown next to "Corriger" on any assistant message that has fragments and is not currently streaming (`!chatLoading`). Shows a spinner while audio is generating.
 - No auto-play — user taps to hear.
 
-### 4.3 Warm the TTS Space on chat mount too
-- File: `index.html:678` is currently inside `LiveTranslationView`. Move (or duplicate) that warm-up so it also fires on `view === "chat"`. Once 4.2 ships, chat needs the Space warm.
+### ✅ 4.3 Warm the TTS Space for voice features — SHIPPED 2026-09-08
+- Chat retains its lightweight Space ping. Live Translation additionally schedules
+  one fixed `Mbote` synthesis during browser idle time when autoplay is enabled.
 
 ---
 
@@ -159,11 +195,12 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 - File: `index.html:1557` (`newMessages.slice(-6)`).
 - After 5.1, input cost is mostly cached, so doubling history is cheap. Long conversations (the natural use case for an AI tutor) currently lose context fast.
 
-### ✅ 5.3 Conversation memory in Live Translation — SHIPPED 2026-04-30
+### ✅ 5.3 Conversation memory in Live Translation — UPDATED 2026-09-08
 - `liveHistoryRef` (useRef) stores last 4 turns (8 messages, `.slice(-8)`).
 - Each `/api/chat` call receives `[...liveHistoryRef.current.slice(-8), {role:"user", content:sourceText}]`.
 - History updated after each successful translation: pushes user + assistant messages, slices to 8.
-- History reset to `[]` on direction swap (language changes → context no longer relevant).
+- V2 preserves history while speakers alternate direction. Editing an earlier
+  transcript resets history before retranslation so stale wording is not reused.
 
 ### ✅ 5.4 Per-mode RAG similarity threshold — SHIPPED 2026-04-30
 - `api/rag-context.js` now accepts optional `min_similarity` in the request body (defaults to `SIMILARITY_THRESHOLD = 0.3`).
@@ -174,10 +211,12 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 - File: `api/elevenlabs-stt.js:14-17` already documents the WaxalNLP fine-tune plan.
 - Action while waiting: opt-in capture of user mic blobs from Live Translation → R2 → free training data. Privacy banner required. This is a separate workstream; flag it for product.
 
-### ✅ 5.6 Kill TTS cold-start with a cron warm-up — SHIPPED 2026-04-29
+### ⚠ 5.6 TTS warm-up — VIEW PING SHIPPED; CRON NOT CONFIGURED
 - `api/cron/keep-tts-warm.js` — pings `${MMS_SPACE_URL}/` with an 8s timeout, returns `{status: "ok"|"loading"|"warming"}`.
-- `vercel.json` created with `"crons": [{"path": "/api/cron/keep-tts-warm", "schedule": "*/9 * * * *"}]`.
-- **Requires Vercel Pro** for sub-hourly cron frequency. On Hobby the file deploys without error but the schedule won't run — upgrade plan or accept the cold-start risk on low-traffic periods.
+- `api/cron/keep-tts-warm.js` exists, but `vercel.json` currently has no cron
+  declaration. The view-level GET ping remains active.
+- A sub-hourly Vercel cron requires a suitable paid plan. Until that decision,
+  low-traffic periods still carry the HuggingFace cold-start risk.
 
 ### ✅ 5.7 Add latency telemetry to `chat_events` — SHIPPED 2026-04-30
 - `sendChat` measures RAG duration client-side with `performance.now()` and passes `tRagMs` in the `/api/chat` request body.
@@ -210,7 +249,7 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 
 | # | Status | Effort | Impact | Notes |
 |---|---|---|---|---|
-| ~~2.2 Auto-play latest segment~~ | Removed 2026-04-30 | — | — | Removed — audio plays on manual ▶ tap only |
+| ✅ 2.2 Automatic result playback | Code complete 2026-09-08 | S | High | Default on; persistent opt-out; eager synthesis + cache |
 | ✅ 2.3 Pre-warm RAG endpoints | Shipped 2026-04-29 | XS | High | On LiveTranslationView mount |
 | ✅ 3.2 Real waveform | Shipped 2026-04-29 | S | Medium | AnalyserNode RAF loop, both STT modes |
 | ✅ 5.6 Cron TTS warm-up | Shipped 2026-04-29 | XS | High | Needs Vercel Pro for */9 schedule |
@@ -224,14 +263,15 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 | 2.5 Persistent chat chips | Pending | XS | Low | |
 | ✅ 2.6 Show corpus in loader | Shipped 2026-04-30 | S | Medium | Pairs parsed from RAG, fade in above dots |
 | 4.1 Mic button in chat | Skipped | M | High | Token cost concern — revisit when monetised |
-| ✅ 4.2 ▶ on assistant Lingala | Shipped 2026-04-30 | M | High | extractLingalaFragments + chatAudioCache, 🔊 button |
+| ✅ 4.2 ▶ on assistant Lingala | Shipped 2026-04-30 | M | High | `extractLingalaFragments` + shared audio cache |
 | ✅ 4.3 Warm Space on chat mount | Shipped 2026-04-30 | XS | Medium | Fires on view === "chat" change |
 | ✅ 5.1 Prompt cache restructure | Shipped 2026-04-30 | S | Medium (cost) | Fixed prefix expanded to ≥1024 tokens, corpus appended after |
 | ✅ 5.2 12-turn chat history | Shipped 2026-04-30 | XS | Medium | slice(-12) |
 | ✅ 5.7 Latency telemetry | Shipped 2026-04-30 | S | Medium | t_rag_ms + t_llm_ms; SQL migration applied |
 | ✅ Mobile mic stability | Shipped 2026-04-30 | S | High | liveStreamRef — persistent stream, no re-prompt on restart |
 | 3.3 Live translation preview | Pending | M | Medium | AbortController, debounced preview |
-| 3.6 Slow-down playback | Pending | XS | Low-Medium | 0.75x playbackRate button |
+| ✅ 3.6 Slow-down playback | Code complete 2026-09-08 | XS | Low-Medium | 0.75x playbackRate button |
+| ✅ TTS cache + inference warm-up | Code complete 2026-09-08 | S | High | Shared bounded cache; fixed warm-up; CPU/GPU-aware Space |
 | 3.7 Replay source button | Pending | XS | Low-Medium | Re-utter or re-fetch source audio |
 | 6.x Strategic | Pending | L | Very high | Merge chat+LT, export, SR |
 
@@ -243,6 +283,19 @@ The chat is keyboard-only and silent. Pipelines for STT and TTS already exist ne
 - Gradio 6.x specifics in `tts_space/app.py` and `lingalaTTS()`: `demo.queue()`, `/gradio_api/call/` prefix, SSE `getReader()` (never `.text()`), `event: complete` parsing. Each of these has a documented past failure in `CLAUDE.md`.
 - Auth gating logic at `index.html:1341-1402`. It's stable and not on this scope.
 - The corpus-first / "✓ vs ~" / "do not invent words" rules in the system prompt at `index.html:1540-1546`. They were tuned against `monoko_auto_test.py` and the auto-test corpus — touch only with that test re-run.
+
+### Paid TTS decision ladder
+
+Hugging Face bills upgraded Spaces while they are starting or running. At published
+rates, CPU Upgrade is `$0.03/hour` (about `$21.60/month` if always on) and a small
+Nvidia T4 is `$0.40/hour` (about `$288/month` if always on). Start with CPU Upgrade,
+collect warm p50/p95 `tts_ms`, and keep it only if it materially improves the current
+~7.2s short-phrase baseline. Trial T4 only if CPU misses the target. Configure sleep
+for low traffic only if the lower bill is worth reintroducing cold starts.
+
+Sources: [Spaces overview](https://huggingface.co/docs/hub/spaces-overview),
+[GPU hardware](https://huggingface.co/docs/hub/spaces-gpus), and
+[Hugging Face pricing](https://huggingface.co/pricing).
 
 ---
 
