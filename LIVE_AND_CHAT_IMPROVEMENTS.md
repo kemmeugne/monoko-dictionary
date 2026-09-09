@@ -305,7 +305,8 @@ Sources: [Spaces overview](https://huggingface.co/docs/hub/spaces-overview),
 ### Next execution order
 
 1. Copy `tts_space/app.py` into `Kemz42/monoko-lingala-tts` and confirm a healthy
-   CPU Basic rebuild before changing hardware.
+   CPU Basic rebuild before changing hardware. Deploy the matching `README.md`
+   and `requirements.txt` in the same Space commit so Python and ESPnet stay pinned.
 2. Capture the same warm phrase set on CPU Basic, then CPU Upgrade, and compare
    p50/p95 TTS latency and failures from `live_translation_events`.
 3. Keep CPU Upgrade only if the measured gain justifies the cost; test T4 only

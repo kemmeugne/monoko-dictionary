@@ -1,4 +1,8 @@
-git+https://github.com/espnet/espnet.git
+# Keep the runtime reproducible. ESPnet master moved to Python 3.12+ after this
+# Space was created, while this tagged release supports the Python 3.10 runtime
+# pinned in README.md and uses the modern librosa dependency path.
+setuptools<74
+espnet[tts] @ git+https://github.com/espnet/espnet.git@v.202604-patch1
 huggingface_hub
-numpy
+numpy>=2,<3
 soundfile

@@ -1228,6 +1228,13 @@ then trial CPU Upgrade. Compare warm p50/p95 `tts_ms` with the ~7.2s baseline an
 only consider T4 if CPU Upgrade misses the target. After the TTS trial, build the
 25-clip professor-audio STT benchmark before considering recognition fine-tuning.
 
+**Space files are one release unit.** Deploy `tts_space/app.py`, `README.md` and
+`requirements.txt` together. On 2026-09-08, updating only `app.py` exposed stale
+Space files: Hugging Face selected Python 3.13 and pip resolved an old librosa that
+failed on `pkg_resources`. The repo now pins Python 3.10 in the README and ESPnet
+`v.202604-patch1` with its TTS extras plus `setuptools<74`. Do not switch the git
+requirement back to unpinned ESPnet master; its supported Python range can move.
+
 ---
 
 ## Professor ZIP ingest + variant policy (2026-08-04)
