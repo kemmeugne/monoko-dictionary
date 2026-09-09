@@ -1227,8 +1227,17 @@ under Hugging Face **Settings → Hardware**.
 **Hardware decision (2026-09-09):** two identical eight-phrase passes produced
 16/16 valid WAVs on each tier. CPU Basic measured 3.7s median / 8.3s p95; CPU
 Upgrade measured 0.93s / 2.20s, reductions of about 75% and 73%. Keep CPU Upgrade
-at $0.03/hour and do not trial T4 while these targets hold. Next, build the 25-clip
-professor-audio STT benchmark before considering recognition fine-tuning.
+at $0.03/hour and do not trial T4 while these targets hold.
+
+**STT benchmark decision (2026-09-09):** 25/25 stratified professor clips were
+transcribed by production-equivalent Scribe v2 settings. Accent-insensitive WER
+was 48.6%, but CER was 7.0%; 12/25 transcripts were character-perfect after
+ignoring spaces, revealing frequent Lingala word-boundary differences rather than
+wholly incorrect recognition. API latency was 669 ms median / 915 ms p95. Retain
+Scribe for editable live translation, but keep course speaking as record-and-compare:
+the model is not ready for automatic pass/fail grading. Audit `B-D63`, expand to
+100 multi-speaker clips, then test corpus-wide keyterms before any fine-tune.
+Recreate reports without API calls using `npm run benchmark:stt -- --report-only`.
 
 **Space files are one release unit.** Deploy `tts_space/app.py`, `README.md` and
 `requirements.txt` together. On 2026-09-08, updating only `app.py` exposed stale
@@ -1645,7 +1654,7 @@ the 6,539 professor recordings before committing to either.
   - `examples` with `audio_url`: 2,593 clips (~3.6h estimated)
   - `lesson_items` with `audio_url`: **1,346** clips (all of them, after the
     2026-08-04 ingest) — was 815
-  - plus **203** single-utterance clips cut out of multi-variant recordings,
+  - plus **210** single-utterance clips cut out of multi-variant recordings,
     listed with their transcripts in
     `artifacts/professor_ingest/variant_clips_for_tts.json`
   - Total: **~6h+** — comfortably above what fine-tuning a VITS checkpoint needs
@@ -1657,7 +1666,7 @@ the 6,539 professor recordings before committing to either.
 1. **Data prep script** (`prepare_tts_finetune.py` — to write):
    - Query Supabase for all `(audio_url, dialect)` pairs from `examples` + `lesson_items`
    - Download MP3s from R2
-   - Convert to 22kHz mono WAV (ESPnet2 format)
+   - Convert to 44.1kHz mono WAV to match the current checkpoint
    - Write `wav.scp` and `text` files in Kaldi/ESPnet2 format
 
 2. **Fine-tune** on Google Colab A100 (free tier sufficient):

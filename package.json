@@ -15,7 +15,8 @@
     "verify:progression": "node scripts/verify_progression.mjs",
     "verify:security:test": "node scripts/verify_security_hardening.mjs",
     "audit:native-content": "node scripts/audit_native_content.mjs",
-    "benchmark:tts": "node scripts/benchmark_lingala_tts.mjs"
+    "benchmark:tts": "node scripts/benchmark_lingala_tts.mjs",
+    "benchmark:stt": "node scripts/benchmark_lingala_stt.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

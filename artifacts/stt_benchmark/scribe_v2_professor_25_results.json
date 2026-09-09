@@ -1,0 +1,2162 @@
+{
+  "benchmark_version": 1,
+  "generated_at": "2026-09-09T11:19:47.621Z",
+  "model_id": "scribe_v2",
+  "language_code": "lin",
+  "production_equivalent": {
+    "model_id": "scribe_v2",
+    "language_code": "lin",
+    "tag_audio_events": true,
+    "note": "Calls ElevenLabs directly to avoid Monoko auth and the 20-per-5-minute app rate limit; transcription parameters match production."
+  },
+  "selection": {
+    "population": "Professor-recorded, database-matched dictionary example sentences",
+    "buckets": {
+      "short": {
+        "min": 2,
+        "max": 4,
+        "target": 3,
+        "quota": 5
+      },
+      "medium": {
+        "min": 5,
+        "max": 8,
+        "target": 6,
+        "quota": 10
+      },
+      "long": {
+        "min": 9,
+        "max": 15,
+        "target": 11,
+        "quota": 10
+      }
+    },
+    "unique_workbook_letters": 24,
+    "exclusions": "Missing/unmatched audio, duplicate normalized text, slash alternatives, <2 or >15 words"
+  },
+  "samples": 25,
+  "successes": 25,
+  "failures": 0,
+  "total_audio_duration_s": 73.12,
+  "latency_ms": {
+    "median": 669,
+    "p95": 915,
+    "max": 920
+  },
+  "strict": {
+    "reference_words": 179,
+    "word_errors": 87,
+    "wer": 0.4860335195530726,
+    "reference_characters": 701,
+    "character_errors": 50,
+    "cer": 0.07132667617689016,
+    "exact_matches": 4,
+    "exact_match_rate": 0.16,
+    "word_edits": {
+      "substitutions": 50,
+      "deletions": 34,
+      "insertions": 3
+    }
+  },
+  "accent_insensitive": {
+    "reference_words": 179,
+    "word_errors": 87,
+    "wer": 0.4860335195530726,
+    "reference_characters": 701,
+    "character_errors": 49,
+    "cer": 0.06990014265335236,
+    "exact_matches": 4,
+    "exact_match_rate": 0.16,
+    "word_edits": {
+      "substitutions": 50,
+      "deletions": 34,
+      "insertions": 3
+    }
+  },
+  "practical_quality": {
+    "character_perfect_ignoring_boundaries": 12,
+    "clips_at_or_below_5_percent_cer": 15,
+    "clips_at_or_below_10_percent_cer": 18,
+    "clips_at_or_below_20_percent_cer": 23,
+    "by_bucket": {
+      "short": {
+        "clips": 5,
+        "reference_words": 15,
+        "word_errors": 8,
+        "wer": 0.5333333333333333,
+        "reference_characters": 83,
+        "character_errors": 3,
+        "cer": 0.03614457831325301,
+        "exact_matches": 1,
+        "exact_match_rate": 0.2,
+        "word_edits": {
+          "substitutions": 6,
+          "deletions": 1,
+          "insertions": 1
+        }
+      },
+      "medium": {
+        "clips": 10,
+        "reference_words": 60,
+        "word_errors": 23,
+        "wer": 0.38333333333333336,
+        "reference_characters": 229,
+        "character_errors": 15,
+        "cer": 0.06550218340611354,
+        "exact_matches": 3,
+        "exact_match_rate": 0.3,
+        "word_edits": {
+          "substitutions": 13,
+          "deletions": 8,
+          "insertions": 2
+        }
+      },
+      "long": {
+        "clips": 10,
+        "reference_words": 104,
+        "word_errors": 56,
+        "wer": 0.5384615384615384,
+        "reference_characters": 389,
+        "character_errors": 31,
+        "cer": 0.07969151670951156,
+        "exact_matches": 0,
+        "exact_match_rate": 0,
+        "word_edits": {
+          "substitutions": 31,
+          "deletions": 25,
+          "insertions": 0
+        }
+      }
+    }
+  },
+  "language_classifier": {
+    "requested_language": "lin",
+    "returned_language_counts": {
+      "war": 3,
+      "epo": 3,
+      "eng": 1,
+      "spa": 2,
+      "swa": 7,
+      "ita": 1,
+      "cbk": 1,
+      "ind": 5,
+      "tur": 1,
+      "slv": 1
+    },
+    "mean_probability": 0.3916689559817314
+  },
+  "results": [
+    {
+      "id": "D-D16",
+      "bucket": "short",
+      "word_count": 3,
+      "reference": "Bo lembisi ngai.",
+      "hypothesis": "Bulembisi ngayi",
+      "detected_language": "war",
+      "language_probability": 0.5014675855636597,
+      "audio_duration_s": 1.499,
+      "latency_ms": 911,
+      "ok": true,
+      "strict": {
+        "reference_words": 3,
+        "hypothesis_words": 2,
+        "word_errors": 3,
+        "wer": 1,
+        "character_errors": 2,
+        "reference_characters": 13,
+        "cer": 0.15384615384615385,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "bo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "lembisi",
+            "hypothesis": "bulembisi"
+          },
+          {
+            "type": "substitute",
+            "reference": "ngai",
+            "hypothesis": "ngayi"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 3,
+        "hypothesis_words": 2,
+        "word_errors": 3,
+        "wer": 1,
+        "character_errors": 2,
+        "reference_characters": 13,
+        "cer": 0.15384615384615385,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "bo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "lembisi",
+            "hypothesis": "bulembisi"
+          },
+          {
+            "type": "substitute",
+            "reference": "ngai",
+            "hypothesis": "ngayi"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E-G32",
+      "bucket": "short",
+      "word_count": 3,
+      "reference": "Mikakatano ekaboli biso.",
+      "hypothesis": "Mikakatano eka bolibiso",
+      "detected_language": "epo",
+      "language_probability": 0.3516216278076172,
+      "audio_duration_s": 2.7,
+      "latency_ms": 502,
+      "ok": true,
+      "strict": {
+        "reference_words": 3,
+        "hypothesis_words": 3,
+        "word_errors": 2,
+        "wer": 0.6666666666666666,
+        "character_errors": 0,
+        "reference_characters": 21,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "ekaboli",
+            "hypothesis": "eka"
+          },
+          {
+            "type": "substitute",
+            "reference": "biso",
+            "hypothesis": "bolibiso"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 3,
+        "hypothesis_words": 3,
+        "word_errors": 2,
+        "wer": 0.6666666666666666,
+        "character_errors": 0,
+        "reference_characters": 21,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "ekaboli",
+            "hypothesis": "eka"
+          },
+          {
+            "type": "substitute",
+            "reference": "biso",
+            "hypothesis": "bolibiso"
+          }
+        ]
+      }
+    },
+    {
+      "id": "M-D42",
+      "bucket": "short",
+      "word_count": 3,
+      "reference": "Mangolo oyo epoli.",
+      "hypothesis": "Mangoro oyo epoli",
+      "detected_language": "eng",
+      "language_probability": 0.35479822754859924,
+      "audio_duration_s": 1.819,
+      "latency_ms": 533,
+      "ok": true,
+      "strict": {
+        "reference_words": 3,
+        "hypothesis_words": 3,
+        "word_errors": 1,
+        "wer": 0.3333333333333333,
+        "character_errors": 1,
+        "reference_characters": 15,
+        "cer": 0.06666666666666667,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "mangolo",
+            "hypothesis": "mangoro"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 3,
+        "hypothesis_words": 3,
+        "word_errors": 1,
+        "wer": 0.3333333333333333,
+        "character_errors": 1,
+        "reference_characters": 15,
+        "cer": 0.06666666666666667,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "mangolo",
+            "hypothesis": "mangoro"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R-D140",
+      "bucket": "short",
+      "word_count": 3,
+      "reference": "Ningisa libanga oyo.",
+      "hypothesis": "Ni ngisa libanga oyo",
+      "detected_language": "epo",
+      "language_probability": 0.4671211838722229,
+      "audio_duration_s": 1.699,
+      "latency_ms": 540,
+      "ok": true,
+      "strict": {
+        "reference_words": 3,
+        "hypothesis_words": 4,
+        "word_errors": 2,
+        "wer": 0.6666666666666666,
+        "character_errors": 0,
+        "reference_characters": 17,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 1
+        },
+        "word_operations": [
+          {
+            "type": "insert",
+            "reference": null,
+            "hypothesis": "ni"
+          },
+          {
+            "type": "substitute",
+            "reference": "ningisa",
+            "hypothesis": "ngisa"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 3,
+        "hypothesis_words": 4,
+        "word_errors": 2,
+        "wer": 0.6666666666666666,
+        "character_errors": 0,
+        "reference_characters": 17,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 1
+        },
+        "word_operations": [
+          {
+            "type": "insert",
+            "reference": null,
+            "hypothesis": "ni"
+          },
+          {
+            "type": "substitute",
+            "reference": "ningisa",
+            "hypothesis": "ngisa"
+          }
+        ]
+      }
+    },
+    {
+      "id": "S-D36",
+      "bucket": "short",
+      "word_count": 3,
+      "reference": "Nzambe abikisi ngai.",
+      "hypothesis": "Nzambe abikisi ngai",
+      "detected_language": "war",
+      "language_probability": 0.3761676847934723,
+      "audio_duration_s": 1.719,
+      "latency_ms": 427,
+      "ok": true,
+      "strict": {
+        "reference_words": 3,
+        "hypothesis_words": 3,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 17,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      },
+      "accent_insensitive": {
+        "reference_words": 3,
+        "hypothesis_words": 3,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 17,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      }
+    },
+    {
+      "id": "B-D63",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Atambolaka tengu banda motuka etuta ye.",
+      "hypothesis": "Akoma kotambola tengu-tengu banda motuka etuta ye.",
+      "detected_language": "spa",
+      "language_probability": 0.3448317050933838,
+      "audio_duration_s": 4.679,
+      "latency_ms": 861,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 8,
+        "word_errors": 3,
+        "wer": 0.5,
+        "character_errors": 11,
+        "reference_characters": 33,
+        "cer": 0.3333333333333333,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 2
+        },
+        "word_operations": [
+          {
+            "type": "insert",
+            "reference": null,
+            "hypothesis": "akoma"
+          },
+          {
+            "type": "insert",
+            "reference": null,
+            "hypothesis": "kotambola"
+          },
+          {
+            "type": "substitute",
+            "reference": "atambolaka",
+            "hypothesis": "tengu"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 8,
+        "word_errors": 3,
+        "wer": 0.5,
+        "character_errors": 11,
+        "reference_characters": 33,
+        "cer": 0.3333333333333333,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 2
+        },
+        "word_operations": [
+          {
+            "type": "insert",
+            "reference": null,
+            "hypothesis": "akoma"
+          },
+          {
+            "type": "insert",
+            "reference": null,
+            "hypothesis": "kotambola"
+          },
+          {
+            "type": "substitute",
+            "reference": "atambolaka",
+            "hypothesis": "tengu"
+          }
+        ]
+      }
+    },
+    {
+      "id": "F-D27",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Mwasi na ngai azali na zemi.",
+      "hypothesis": "Mwasi na ngai azali na zemi",
+      "detected_language": "war",
+      "language_probability": 0.3945760130882263,
+      "audio_duration_s": 2.2,
+      "latency_ms": 669,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 22,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 22,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      }
+    },
+    {
+      "id": "G-D66",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Sima ya ko bela mingi obiki.",
+      "hypothesis": "Sima ya kobela mingi obiki",
+      "detected_language": "swa",
+      "language_probability": 0.836986780166626,
+      "audio_duration_s": 3.2,
+      "latency_ms": 594,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 5,
+        "word_errors": 2,
+        "wer": 0.3333333333333333,
+        "character_errors": 0,
+        "reference_characters": 22,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bela",
+            "hypothesis": "kobela"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 5,
+        "word_errors": 2,
+        "wer": 0.3333333333333333,
+        "character_errors": 0,
+        "reference_characters": 22,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bela",
+            "hypothesis": "kobela"
+          }
+        ]
+      }
+    },
+    {
+      "id": "I-D65",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Ba paya ba ye nanu te.",
+      "hypothesis": "Bapa ya bayé naino te",
+      "detected_language": "swa",
+      "language_probability": 0.4041890799999237,
+      "audio_duration_s": 1.819,
+      "latency_ms": 503,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 5,
+        "word_errors": 5,
+        "wer": 0.8333333333333334,
+        "character_errors": 3,
+        "reference_characters": 16,
+        "cer": 0.1875,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 4,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "paya",
+            "hypothesis": "bapa"
+          },
+          {
+            "type": "substitute",
+            "reference": "ba",
+            "hypothesis": "ya"
+          },
+          {
+            "type": "substitute",
+            "reference": "ye",
+            "hypothesis": "bayé"
+          },
+          {
+            "type": "substitute",
+            "reference": "nanu",
+            "hypothesis": "naino"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 5,
+        "word_errors": 5,
+        "wer": 0.8333333333333334,
+        "character_errors": 2,
+        "reference_characters": 16,
+        "cer": 0.125,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 4,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "paya",
+            "hypothesis": "bapa"
+          },
+          {
+            "type": "substitute",
+            "reference": "ba",
+            "hypothesis": "ya"
+          },
+          {
+            "type": "substitute",
+            "reference": "ye",
+            "hypothesis": "baye"
+          },
+          {
+            "type": "substitute",
+            "reference": "nanu",
+            "hypothesis": "naino"
+          }
+        ]
+      }
+    },
+    {
+      "id": "L-D70",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Eza ye nde na ko bala.",
+      "hypothesis": "Ezayende na kubala",
+      "detected_language": "spa",
+      "language_probability": 0.3693920969963074,
+      "audio_duration_s": 1.739,
+      "latency_ms": 510,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 3,
+        "word_errors": 5,
+        "wer": 0.8333333333333334,
+        "character_errors": 1,
+        "reference_characters": 16,
+        "cer": 0.0625,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "eza",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "ye",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "nde",
+            "hypothesis": "ezayende"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bala",
+            "hypothesis": "kubala"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 3,
+        "word_errors": 5,
+        "wer": 0.8333333333333334,
+        "character_errors": 1,
+        "reference_characters": 16,
+        "cer": 0.0625,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "eza",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "ye",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "nde",
+            "hypothesis": "ezayende"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bala",
+            "hypothesis": "kubala"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N-G53",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Na yebi ko beta ndembo te.",
+      "hypothesis": "Nayebi kobeta ndembo te.",
+      "detected_language": "ita",
+      "language_probability": 0.2816535532474518,
+      "audio_duration_s": 2.019,
+      "latency_ms": 733,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 4,
+        "word_errors": 4,
+        "wer": 0.6666666666666666,
+        "character_errors": 0,
+        "reference_characters": 20,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "yebi",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "nayebi"
+          },
+          {
+            "type": "substitute",
+            "reference": "beta",
+            "hypothesis": "kobeta"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 4,
+        "word_errors": 4,
+        "wer": 0.6666666666666666,
+        "character_errors": 0,
+        "reference_characters": 20,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "yebi",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "nayebi"
+          },
+          {
+            "type": "substitute",
+            "reference": "beta",
+            "hypothesis": "kobeta"
+          }
+        ]
+      }
+    },
+    {
+      "id": "O-D20",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Pakola mafuta na nzoto na yo.",
+      "hypothesis": "Pakola mafuta na nzoto na yo",
+      "detected_language": "cbk",
+      "language_probability": 0.3322453200817108,
+      "audio_duration_s": 2.18,
+      "latency_ms": 715,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 23,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 23,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      }
+    },
+    {
+      "id": "P-D3",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "To yokani na mboka ya pembeni.",
+      "hypothesis": "Toyoka nina mboka ya pembeni",
+      "detected_language": "ind",
+      "language_probability": 0.8307868242263794,
+      "audio_duration_s": 1.959,
+      "latency_ms": 920,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 5,
+        "word_errors": 3,
+        "wer": 0.5,
+        "character_errors": 0,
+        "reference_characters": 24,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "to",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "yokani",
+            "hypothesis": "toyoka"
+          },
+          {
+            "type": "substitute",
+            "reference": "na",
+            "hypothesis": "nina"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 5,
+        "word_errors": 3,
+        "wer": 0.5,
+        "character_errors": 0,
+        "reference_characters": 24,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "to",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "yokani",
+            "hypothesis": "toyoka"
+          },
+          {
+            "type": "substitute",
+            "reference": "na",
+            "hypothesis": "nina"
+          }
+        ]
+      }
+    },
+    {
+      "id": "Q-D15",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Mokila ya mbisi eza mokuse mingi.",
+      "hypothesis": "Mokila ya mbisi eza mokuse mingi.",
+      "detected_language": "swa",
+      "language_probability": 0.49671444296836853,
+      "audio_duration_s": 2.879,
+      "latency_ms": 610,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 27,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 0,
+        "wer": 0,
+        "character_errors": 0,
+        "reference_characters": 27,
+        "cer": 0,
+        "exact": true,
+        "word_edits": {
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": []
+      }
+    },
+    {
+      "id": "V-D69",
+      "bucket": "medium",
+      "word_count": 6,
+      "reference": "Nzinga na bino eza makasi mingi.",
+      "hypothesis": "Nzenga na bino eza makasi mingi",
+      "detected_language": "ind",
+      "language_probability": 0.40169042348861694,
+      "audio_duration_s": 3.019,
+      "latency_ms": 503,
+      "ok": true,
+      "strict": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 1,
+        "wer": 0.16666666666666666,
+        "character_errors": 1,
+        "reference_characters": 26,
+        "cer": 0.038461538461538464,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "nzinga",
+            "hypothesis": "nzenga"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 6,
+        "hypothesis_words": 6,
+        "word_errors": 1,
+        "wer": 0.16666666666666666,
+        "character_errors": 1,
+        "reference_characters": 26,
+        "cer": 0.038461538461538464,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "nzinga",
+            "hypothesis": "nzenga"
+          }
+        ]
+      }
+    },
+    {
+      "id": "A-D31",
+      "bucket": "long",
+      "word_count": 11,
+      "reference": "Na za na makambu ebele ya ko sala na mposo oyo.",
+      "hypothesis": "Nazana makambo ebili ya kosala na mposu oyo",
+      "detected_language": "swa",
+      "language_probability": 0.1311292052268982,
+      "audio_duration_s": 4.319,
+      "latency_ms": 612,
+      "ok": true,
+      "strict": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 8,
+        "wer": 0.7272727272727273,
+        "character_errors": 4,
+        "reference_characters": 36,
+        "cer": 0.1111111111111111,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 5,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "za",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "na",
+            "hypothesis": "nazana"
+          },
+          {
+            "type": "substitute",
+            "reference": "makambu",
+            "hypothesis": "makambo"
+          },
+          {
+            "type": "substitute",
+            "reference": "ebele",
+            "hypothesis": "ebili"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "sala",
+            "hypothesis": "kosala"
+          },
+          {
+            "type": "substitute",
+            "reference": "mposo",
+            "hypothesis": "mposu"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 8,
+        "wer": 0.7272727272727273,
+        "character_errors": 4,
+        "reference_characters": 36,
+        "cer": 0.1111111111111111,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 5,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "za",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "na",
+            "hypothesis": "nazana"
+          },
+          {
+            "type": "substitute",
+            "reference": "makambu",
+            "hypothesis": "makambo"
+          },
+          {
+            "type": "substitute",
+            "reference": "ebele",
+            "hypothesis": "ebili"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "sala",
+            "hypothesis": "kosala"
+          },
+          {
+            "type": "substitute",
+            "reference": "mposo",
+            "hypothesis": "mposu"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C-D223",
+      "bucket": "long",
+      "word_count": 11,
+      "reference": "Na zo mona bolangeti ya sika te, pe ya kala epasuki.",
+      "hypothesis": "Nazomona bolangeti ya sika te pe ya kala epasuki.",
+      "detected_language": "swa",
+      "language_probability": 0.5021056532859802,
+      "audio_duration_s": 4.4,
+      "latency_ms": 594,
+      "ok": true,
+      "strict": {
+        "reference_words": 11,
+        "hypothesis_words": 9,
+        "word_errors": 3,
+        "wer": 0.2727272727272727,
+        "character_errors": 0,
+        "reference_characters": 40,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "zo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "mona",
+            "hypothesis": "nazomona"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 11,
+        "hypothesis_words": 9,
+        "word_errors": 3,
+        "wer": 0.2727272727272727,
+        "character_errors": 0,
+        "reference_characters": 40,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 1,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "zo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "mona",
+            "hypothesis": "nazomona"
+          }
+        ]
+      }
+    },
+    {
+      "id": "H-D39",
+      "bucket": "long",
+      "word_count": 11,
+      "reference": "Na zo lala na esika yo ko lala wuta poso moko.",
+      "hypothesis": "Nazolala na esika yo kolala wuta poso moko.",
+      "detected_language": "epo",
+      "language_probability": 0.19730450212955475,
+      "audio_duration_s": 4.139,
+      "latency_ms": 641,
+      "ok": true,
+      "strict": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 5,
+        "wer": 0.45454545454545453,
+        "character_errors": 0,
+        "reference_characters": 35,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "zo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "lala",
+            "hypothesis": "nazolala"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "lala",
+            "hypothesis": "kolala"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 5,
+        "wer": 0.45454545454545453,
+        "character_errors": 0,
+        "reference_characters": 35,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "zo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "lala",
+            "hypothesis": "nazolala"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "lala",
+            "hypothesis": "kolala"
+          }
+        ]
+      }
+    },
+    {
+      "id": "J-D22",
+      "bucket": "long",
+      "word_count": 11,
+      "reference": "Bana oyo ba bongisaka biloko na bango ya ko sakana te.",
+      "hypothesis": "Bana oyo babongisaka biloko na bango ya kosakana",
+      "detected_language": "tur",
+      "language_probability": 0.23699700832366943,
+      "audio_duration_s": 3.139,
+      "latency_ms": 910,
+      "ok": true,
+      "strict": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 5,
+        "wer": 0.45454545454545453,
+        "character_errors": 2,
+        "reference_characters": 43,
+        "cer": 0.046511627906976744,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bongisaka",
+            "hypothesis": "babongisaka"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "sakana",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "te",
+            "hypothesis": "kosakana"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 5,
+        "wer": 0.45454545454545453,
+        "character_errors": 2,
+        "reference_characters": 43,
+        "cer": 0.046511627906976744,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bongisaka",
+            "hypothesis": "babongisaka"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "sakana",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "te",
+            "hypothesis": "kosakana"
+          }
+        ]
+      }
+    },
+    {
+      "id": "R-D143",
+      "bucket": "long",
+      "word_count": 11,
+      "reference": "Simba ndako ya nzoi te soki te ba ko sua yo.",
+      "hypothesis": "Simba ndako ya nzoyi te, nukiti bakoswa yo",
+      "detected_language": "swa",
+      "language_probability": 0.4133456349372864,
+      "audio_duration_s": 3.319,
+      "latency_ms": 915,
+      "ok": true,
+      "strict": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 6,
+        "wer": 0.5454545454545454,
+        "character_errors": 5,
+        "reference_characters": 33,
+        "cer": 0.15151515151515152,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 3,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "nzoi",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "te",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "soki",
+            "hypothesis": "nzoyi"
+          },
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "nukiti"
+          },
+          {
+            "type": "substitute",
+            "reference": "sua",
+            "hypothesis": "bakoswa"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 11,
+        "hypothesis_words": 8,
+        "word_errors": 6,
+        "wer": 0.5454545454545454,
+        "character_errors": 5,
+        "reference_characters": 33,
+        "cer": 0.15151515151515152,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 3,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "nzoi",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "te",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "soki",
+            "hypothesis": "nzoyi"
+          },
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "nukiti"
+          },
+          {
+            "type": "substitute",
+            "reference": "sua",
+            "hypothesis": "bakoswa"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T-D135",
+      "bucket": "long",
+      "word_count": 11,
+      "reference": "Esengeli ko sala nionso pona ko koma na suka ya nzela.",
+      "hypothesis": "Isingeli kusala nyoso puna hukuma na suka ya nzila",
+      "detected_language": "swa",
+      "language_probability": 0.22094126045703888,
+      "audio_duration_s": 3.319,
+      "latency_ms": 815,
+      "ok": true,
+      "strict": {
+        "reference_words": 11,
+        "hypothesis_words": 9,
+        "word_errors": 8,
+        "wer": 0.7272727272727273,
+        "character_errors": 10,
+        "reference_characters": 43,
+        "cer": 0.23255813953488372,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 6,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "esengeli",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "sala",
+            "hypothesis": "isingeli"
+          },
+          {
+            "type": "substitute",
+            "reference": "nionso",
+            "hypothesis": "kusala"
+          },
+          {
+            "type": "substitute",
+            "reference": "pona",
+            "hypothesis": "nyoso"
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "puna"
+          },
+          {
+            "type": "substitute",
+            "reference": "koma",
+            "hypothesis": "hukuma"
+          },
+          {
+            "type": "substitute",
+            "reference": "nzela",
+            "hypothesis": "nzila"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 11,
+        "hypothesis_words": 9,
+        "word_errors": 8,
+        "wer": 0.7272727272727273,
+        "character_errors": 10,
+        "reference_characters": 43,
+        "cer": 0.23255813953488372,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 6,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "esengeli",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "sala",
+            "hypothesis": "isingeli"
+          },
+          {
+            "type": "substitute",
+            "reference": "nionso",
+            "hypothesis": "kusala"
+          },
+          {
+            "type": "substitute",
+            "reference": "pona",
+            "hypothesis": "nyoso"
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "puna"
+          },
+          {
+            "type": "substitute",
+            "reference": "koma",
+            "hypothesis": "hukuma"
+          },
+          {
+            "type": "substitute",
+            "reference": "nzela",
+            "hypothesis": "nzila"
+          }
+        ]
+      }
+    },
+    {
+      "id": "U-D5",
+      "bucket": "long",
+      "word_count": 10,
+      "reference": "Mobali na mwasi ba sanganaka pona libela mokolo ya libala.",
+      "hypothesis": "Mwasi na mobali basanganaka mpona libela mokolo ya libala.",
+      "detected_language": "ind",
+      "language_probability": 0.17366257309913635,
+      "audio_duration_s": 4.299,
+      "latency_ms": 711,
+      "ok": true,
+      "strict": {
+        "reference_words": 10,
+        "hypothesis_words": 9,
+        "word_errors": 5,
+        "wer": 0.5,
+        "character_errors": 7,
+        "reference_characters": 48,
+        "cer": 0.14583333333333334,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 4,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "mobali",
+            "hypothesis": "mwasi"
+          },
+          {
+            "type": "delete",
+            "reference": "mwasi",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ba",
+            "hypothesis": "mobali"
+          },
+          {
+            "type": "substitute",
+            "reference": "sanganaka",
+            "hypothesis": "basanganaka"
+          },
+          {
+            "type": "substitute",
+            "reference": "pona",
+            "hypothesis": "mpona"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 10,
+        "hypothesis_words": 9,
+        "word_errors": 5,
+        "wer": 0.5,
+        "character_errors": 7,
+        "reference_characters": 48,
+        "cer": 0.14583333333333334,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 4,
+          "deletions": 1,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "substitute",
+            "reference": "mobali",
+            "hypothesis": "mwasi"
+          },
+          {
+            "type": "delete",
+            "reference": "mwasi",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ba",
+            "hypothesis": "mobali"
+          },
+          {
+            "type": "substitute",
+            "reference": "sanganaka",
+            "hypothesis": "basanganaka"
+          },
+          {
+            "type": "substitute",
+            "reference": "pona",
+            "hypothesis": "mpona"
+          }
+        ]
+      }
+    },
+    {
+      "id": "W-D3",
+      "bucket": "long",
+      "word_count": 9,
+      "reference": "Na zo zela suka ya mposo po na pema.",
+      "hypothesis": "Nazo zela suka yapuso pona pema",
+      "detected_language": "ind",
+      "language_probability": 0.9135257601737976,
+      "audio_duration_s": 2.379,
+      "latency_ms": 715,
+      "ok": true,
+      "strict": {
+        "reference_words": 9,
+        "hypothesis_words": 6,
+        "word_errors": 6,
+        "wer": 0.6666666666666666,
+        "character_errors": 2,
+        "reference_characters": 27,
+        "cer": 0.07407407407407407,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 3,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "zo",
+            "hypothesis": "nazo"
+          },
+          {
+            "type": "delete",
+            "reference": "ya",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "mposo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "po",
+            "hypothesis": "yapuso"
+          },
+          {
+            "type": "substitute",
+            "reference": "na",
+            "hypothesis": "pona"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 9,
+        "hypothesis_words": 6,
+        "word_errors": 6,
+        "wer": 0.6666666666666666,
+        "character_errors": 2,
+        "reference_characters": 27,
+        "cer": 0.07407407407407407,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 3,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "zo",
+            "hypothesis": "nazo"
+          },
+          {
+            "type": "delete",
+            "reference": "ya",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "mposo",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "po",
+            "hypothesis": "yapuso"
+          },
+          {
+            "type": "substitute",
+            "reference": "na",
+            "hypothesis": "pona"
+          }
+        ]
+      }
+    },
+    {
+      "id": "Y-D3",
+      "bucket": "long",
+      "word_count": 9,
+      "reference": "Miso na nga ekangamaka soki kaka ba bomi mwinda.",
+      "hypothesis": "Misonanga ekangamaka soki kaka babomi mwinda.",
+      "detected_language": "ind",
+      "language_probability": 0.14441993832588196,
+      "audio_duration_s": 3.579,
+      "latency_ms": 703,
+      "ok": true,
+      "strict": {
+        "reference_words": 9,
+        "hypothesis_words": 6,
+        "word_errors": 5,
+        "wer": 0.5555555555555556,
+        "character_errors": 0,
+        "reference_characters": 39,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "miso",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "nga",
+            "hypothesis": "misonanga"
+          },
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bomi",
+            "hypothesis": "babomi"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 9,
+        "hypothesis_words": 6,
+        "word_errors": 5,
+        "wer": 0.5555555555555556,
+        "character_errors": 0,
+        "reference_characters": 39,
+        "cer": 0,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 2,
+          "deletions": 3,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "miso",
+            "hypothesis": null
+          },
+          {
+            "type": "delete",
+            "reference": "na",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "nga",
+            "hypothesis": "misonanga"
+          },
+          {
+            "type": "delete",
+            "reference": "ba",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "bomi",
+            "hypothesis": "babomi"
+          }
+        ]
+      }
+    },
+    {
+      "id": "Z-D4",
+      "bucket": "long",
+      "word_count": 10,
+      "reference": "Pona ko koma zomi esengeli ko koma moko na libungutulu.",
+      "hypothesis": "Puna kokoma zomi esengeli kokoma moko na libungutulu",
+      "detected_language": "slv",
+      "language_probability": 0.11404981464147568,
+      "audio_duration_s": 5.099,
+      "latency_ms": 704,
+      "ok": true,
+      "strict": {
+        "reference_words": 10,
+        "hypothesis_words": 8,
+        "word_errors": 5,
+        "wer": 0.5,
+        "character_errors": 1,
+        "reference_characters": 45,
+        "cer": 0.022222222222222223,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 3,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "pona",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "puna"
+          },
+          {
+            "type": "substitute",
+            "reference": "koma",
+            "hypothesis": "kokoma"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "koma",
+            "hypothesis": "kokoma"
+          }
+        ]
+      },
+      "accent_insensitive": {
+        "reference_words": 10,
+        "hypothesis_words": 8,
+        "word_errors": 5,
+        "wer": 0.5,
+        "character_errors": 1,
+        "reference_characters": 45,
+        "cer": 0.022222222222222223,
+        "exact": false,
+        "word_edits": {
+          "substitutions": 3,
+          "deletions": 2,
+          "insertions": 0
+        },
+        "word_operations": [
+          {
+            "type": "delete",
+            "reference": "pona",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "ko",
+            "hypothesis": "puna"
+          },
+          {
+            "type": "substitute",
+            "reference": "koma",
+            "hypothesis": "kokoma"
+          },
+          {
+            "type": "delete",
+            "reference": "ko",
+            "hypothesis": null
+          },
+          {
+            "type": "substitute",
+            "reference": "koma",
+            "hypothesis": "kokoma"
+          }
+        ]
+      }
+    }
+  ]
+}

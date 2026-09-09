@@ -197,11 +197,16 @@ re-suggested for the new count.
 professor's voice is unblocked but deprioritized: recorded course material already
 uses his voice, while recognition quality limits future objective speaking
 exercises. The optimized existing TTS Space is deployed and CPU Upgrade was kept
-after improving warm latency from 3.7s median / 8.3s p95 to 0.93s / 2.20s. Next,
-run a 25-clip professor-audio Scribe v2 benchmark (expand to 100) with WER/CER and
-a human-readable error review. Fine-tune Lingala STT only if that quality gate fails.
+after improving warm latency from 3.7s median / 8.3s p95 to 0.93s / 2.20s.
+
+The 25-clip professor-audio Scribe v2 pilot is complete: 25/25 transcriptions,
+48.6% WER, 7.0% accent-insensitive CER, 12/25 character-perfect results when word
+boundaries are ignored, and 669 ms median / 915 ms p95 API latency. Keep Scribe
+for editable live translation; it is not ready to judge speaking automatically.
+Next, audit the worst reference/audio pairs, expand to 100 clips with multiple
+speakers, and test corpus-wide keyterm prompting before deciding on fine-tuning.
 The future TTS dataset remains ready: `artifacts/professor_ingest/variant_clips_for_tts.json`
-holds **203** additional single-utterance audio/transcript pairs, and CLAUDE.md
+holds **210** additional single-utterance audio/transcript pairs, and CLAUDE.md
 retains the complete ESPnet2 fine-tuning pipeline.
 
 ---

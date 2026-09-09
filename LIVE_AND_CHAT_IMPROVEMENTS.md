@@ -212,9 +212,21 @@ played through the shared TTS pipeline.
 - `handleTranslate` in `LiveTranslationView` sends `min_similarity: 0.5` — only near-exact corpus pairs for live translation.
 - Chat (`sendChat`) sends no `min_similarity` — keeps the broad 0.3 threshold for grammar discussions.
 
-### 5.5 Plan for Lingala STT: ElevenLabs is a stop-gap
-- File: `api/elevenlabs-stt.js:14-17` already documents the WaxalNLP fine-tune plan.
-- Action while waiting: opt-in capture of user mic blobs from Live Translation → R2 → free training data. Privacy banner required. This is a separate workstream; flag it for product.
+### ✅ 5.5 Measure Lingala STT before fine-tuning — PILOT COMPLETE 2026-09-09
+- The deterministic 25-clip professor benchmark completed with 25/25 successful
+  Scribe v2 requests: 48.6% WER, 7.0% accent-insensitive CER, 669 ms median and
+  915 ms p95 API latency.
+- The WER/CER gap is mostly orthographic word-boundary variation. Twelve of 25
+  transcripts are character-perfect when spaces are ignored; 18/25 are at or
+  below 10% CER. This is adequate to retain Scribe for editable live translation,
+  but not for automatic pronunciation pass/fail scoring.
+- Audit likely audio/reference mismatches (begin with `B-D63`), then expand to
+  100 clips and add ordinary phone recordings from several speakers. Fine-tune
+  only if the cleaned broader benchmark still fails the product gate.
+- `npm run benchmark:stt -- --report-only` regenerates JSON, CSV and the local
+  audio-enabled HTML review without sending recordings to ElevenLabs again.
+- Future opt-in user mic capture still requires explicit consent, retention rules
+  and a privacy notice before any blob is stored for training.
 
 ### ⚠ 5.6 TTS warm-up — VIEW PING SHIPPED; CRON NOT CONFIGURED
 - `api/cron/keep-tts-warm.js` — pings `${MMS_SPACE_URL}/` with an 8s timeout, returns `{status: "ok"|"loading"|"warming"}`.
@@ -329,8 +341,10 @@ the product target.
 1. Keep monitoring production `tts_ms` and failures from
    `live_translation_events`; CPU Upgrade is the selected tier and no T4 trial is
    currently warranted.
-2. Build the 25-clip professor-audio Scribe benchmark, expand it to 100 clips,
-   and decide from WER/CER and error patterns whether Lingala STT needs fine-tuning.
+2. Have the professor audit the worst 25-clip benchmark rows, beginning with
+   `B-D63`, then expand the clean benchmark to 100 clips and multiple speakers.
+3. With a separate upload authorization, compare baseline Scribe with a global
+   Lingala keyterm list. Decide on STT fine-tuning only after those two controls.
 
 ---
 

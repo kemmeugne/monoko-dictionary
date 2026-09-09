@@ -1,0 +1,332 @@
+{
+  "version": 1,
+  "created_at": "2026-09-09T11:19:47.617Z",
+  "source": "artifacts/lingala_audio/lingala_audio_manifest.json",
+  "selection": {
+    "population": "Professor-recorded, database-matched dictionary example sentences",
+    "buckets": {
+      "short": {
+        "min": 2,
+        "max": 4,
+        "target": 3,
+        "quota": 5
+      },
+      "medium": {
+        "min": 5,
+        "max": 8,
+        "target": 6,
+        "quota": 10
+      },
+      "long": {
+        "min": 9,
+        "max": 15,
+        "target": 11,
+        "quota": 10
+      }
+    },
+    "unique_workbook_letters": 24,
+    "exclusions": "Missing/unmatched audio, duplicate normalized text, slash alternatives, <2 or >15 words"
+  },
+  "clips": [
+    {
+      "id": "D-D16",
+      "bucket": "short",
+      "word_count": 3,
+      "workbook_letter": "D",
+      "source_cell": "D16",
+      "object_key": "Linfala/examples/D/D.D16.mp3",
+      "audio_relative_path": "Lettre D/D.D16.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/D/D.D16.mp3",
+      "reference": "Bo lembisi ngai.",
+      "french": "Vous m'avez déçu"
+    },
+    {
+      "id": "E-G32",
+      "bucket": "short",
+      "word_count": 3,
+      "workbook_letter": "E",
+      "source_cell": "G32",
+      "object_key": "Linfala/examples/E/E.G32.mp3",
+      "audio_relative_path": "Lettre E/E.G32.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/E/E.G32.mp3",
+      "reference": "Mikakatano ekaboli biso.",
+      "french": "Les problèmes nous ont éloignés"
+    },
+    {
+      "id": "M-D42",
+      "bucket": "short",
+      "word_count": 3,
+      "workbook_letter": "M",
+      "source_cell": "D42",
+      "object_key": "Linfala/examples/M/M.D42.mp3",
+      "audio_relative_path": "Lettre M/M.D42.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/M/M.D42.mp3",
+      "reference": "Mangolo oyo epoli.",
+      "french": "Cette mangue est pourrie"
+    },
+    {
+      "id": "R-D140",
+      "bucket": "short",
+      "word_count": 3,
+      "workbook_letter": "R",
+      "source_cell": "D140",
+      "object_key": "Linfala/examples/R/R.D140.mp3",
+      "audio_relative_path": "Lettre R/R.D140.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/R/R.D140.mp3",
+      "reference": "Ningisa libanga oyo.",
+      "french": "Fais rouler cette pierre"
+    },
+    {
+      "id": "S-D36",
+      "bucket": "short",
+      "word_count": 3,
+      "workbook_letter": "S",
+      "source_cell": "D36",
+      "object_key": "Linfala/examples/S/S.D36.mp3",
+      "audio_relative_path": "Lettre S/S.D36.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/S/S.D36.mp3",
+      "reference": "Nzambe abikisi ngai.",
+      "french": "Dieu m'a sauvé."
+    },
+    {
+      "id": "B-D63",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "B",
+      "source_cell": "D63",
+      "object_key": "Linfala/examples/B/B.D63.mp3",
+      "audio_relative_path": "Lettre B/B.D63.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/B/B.D63.mp3",
+      "reference": "Atambolaka tengu banda motuka etuta ye.",
+      "french": "Il boite depuis son accident."
+    },
+    {
+      "id": "F-D27",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "F",
+      "source_cell": "D27",
+      "object_key": "Linfala/examples/F/F.D27.mp3",
+      "audio_relative_path": "Lettre F/F.D27.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/F/F.D27.mp3",
+      "reference": "Mwasi na ngai azali na zemi.",
+      "french": "Ma femme est enceinte"
+    },
+    {
+      "id": "G-D66",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "G",
+      "source_cell": "D66",
+      "object_key": "Linfala/examples/G/G.D66.mp3",
+      "audio_relative_path": "Lettre G/G.D66.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/G/G.D66.mp3",
+      "reference": "Sima ya ko bela mingi obiki.",
+      "french": "Après beaucoup de souffrances tu es finalement guéri."
+    },
+    {
+      "id": "I-D65",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "I",
+      "source_cell": "D65",
+      "object_key": "Linfala/examples/I/I.D65.mp3",
+      "audio_relative_path": "Lettre I/I.D65.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/I/I.D65.mp3",
+      "reference": "Ba paya ba ye nanu te.",
+      "french": "Les invités ne sont pas encore arrivés"
+    },
+    {
+      "id": "L-D70",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "L",
+      "source_cell": "D70",
+      "object_key": "Linfala/examples/L/L.D70.mp3",
+      "audio_relative_path": "Lettre L/L.D70.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/L/L.D70.mp3",
+      "reference": "Eza ye nde na ko bala.",
+      "french": "C'est lui que je vais épouser"
+    },
+    {
+      "id": "N-G53",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "N",
+      "source_cell": "G53",
+      "object_key": "Linfala/examples/N/N.G53.mp3",
+      "audio_relative_path": "Lettre N/N.G53.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/N/N.G53.mp3",
+      "reference": "Na yebi ko beta ndembo te.",
+      "french": "Je suis nul au football."
+    },
+    {
+      "id": "O-D20",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "O",
+      "source_cell": "D20",
+      "object_key": "Linfala/examples/O/O.D20.mp3",
+      "audio_relative_path": "Lettre O/O.D20.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/O/O.D20.mp3",
+      "reference": "Pakola mafuta na nzoto na yo.",
+      "french": "Applique bien l'huile sur ton corps (oins toi bien)"
+    },
+    {
+      "id": "P-D3",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "P",
+      "source_cell": "D3",
+      "object_key": "Linfala/examples/P/P.D3.mp3",
+      "audio_relative_path": "Lettre P/P.D3.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/P/P.D3.mp3",
+      "reference": "To yokani na mboka ya pembeni.",
+      "french": "Nous avons conclu un pacte avec le village voisin."
+    },
+    {
+      "id": "Q-D15",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "Q",
+      "source_cell": "D15",
+      "object_key": "Linfala/examples/Q/Q.D15.mp3",
+      "audio_relative_path": "Lettre Q/Q.D15.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/Q/Q.D15.mp3",
+      "reference": "Mokila ya mbisi eza mokuse mingi.",
+      "french": "La queue du poisson est très courte"
+    },
+    {
+      "id": "V-D69",
+      "bucket": "medium",
+      "word_count": 6,
+      "workbook_letter": "V",
+      "source_cell": "D69",
+      "object_key": "Linfala/examples/V/V.D69.mp3",
+      "audio_relative_path": "Lettre V/V.D69.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/V/V.D69.mp3",
+      "reference": "Nzinga na bino eza makasi mingi.",
+      "french": "Votre langue est difficile."
+    },
+    {
+      "id": "A-D31",
+      "bucket": "long",
+      "word_count": 11,
+      "workbook_letter": "A",
+      "source_cell": "D31",
+      "object_key": "Linfala/examples/A/A.D31.mp3",
+      "audio_relative_path": "Lettre A/A.D31.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/A/A.D31.mp3",
+      "reference": "Na za na makambu ebele ya ko sala na mposo oyo.",
+      "french": "J’ai trop d'activités cette semaine."
+    },
+    {
+      "id": "C-D223",
+      "bucket": "long",
+      "word_count": 11,
+      "workbook_letter": "C",
+      "source_cell": "D223",
+      "object_key": "Linfala/examples/C/C.D223.mp3",
+      "audio_relative_path": "Lettre C/C.D223.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/C/C.D223.mp3",
+      "reference": "Na zo mona bolangeti ya sika te, pe ya kala epasuki.",
+      "french": "Je ne trouve pas la nouvelle couverture, et l’ancienne est déchirée."
+    },
+    {
+      "id": "H-D39",
+      "bucket": "long",
+      "word_count": 11,
+      "workbook_letter": "H",
+      "source_cell": "D39",
+      "object_key": "Linfala/examples/H/H.D39.mp3",
+      "audio_relative_path": "Lettre H/H.D39.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/H/H.D39.mp3",
+      "reference": "Na zo lala na esika yo ko lala wuta poso moko.",
+      "french": "Je dors à l'hôtel depuis 1 semaine."
+    },
+    {
+      "id": "J-D22",
+      "bucket": "long",
+      "word_count": 11,
+      "workbook_letter": "J",
+      "source_cell": "D22",
+      "object_key": "Linfala/examples/J/J.D22.mp3",
+      "audio_relative_path": "Lettre J/J.D22.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/J/J.D22.mp3",
+      "reference": "Bana oyo ba bongisaka biloko na bango ya ko sakana te.",
+      "french": "Ces enfants ne rangent jamais leurs jouets"
+    },
+    {
+      "id": "R-D143",
+      "bucket": "long",
+      "word_count": 11,
+      "workbook_letter": "R",
+      "source_cell": "D143",
+      "object_key": "Linfala/examples/R/R.D143.mp3",
+      "audio_relative_path": "Lettre R/R.D143.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/R/R.D143.mp3",
+      "reference": "Simba ndako ya nzoi te soki te ba ko sua yo.",
+      "french": "Ne touche pas la ruche sinon tu vas te faire piquer"
+    },
+    {
+      "id": "T-D135",
+      "bucket": "long",
+      "word_count": 11,
+      "workbook_letter": "T",
+      "source_cell": "D135",
+      "object_key": "Linfala/examples/T/T.D135.mp3",
+      "audio_relative_path": "Lettre T/T.D135.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/T/T.D135.mp3",
+      "reference": "Esengeli ko sala nionso pona ko koma na suka ya nzela.",
+      "french": "Il faut tout faire pour arriver au bout du tunnel."
+    },
+    {
+      "id": "U-D5",
+      "bucket": "long",
+      "word_count": 10,
+      "workbook_letter": "U",
+      "source_cell": "D5",
+      "object_key": "Linfala/examples/U/U.D5.mp3",
+      "audio_relative_path": "Lettre U/U.D5.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/U/U.D5.mp3",
+      "reference": "Mobali na mwasi ba sanganaka pona libela mokolo ya libala.",
+      "french": "L'homme et la femme s'unissent pour la vie le jour du mariage."
+    },
+    {
+      "id": "W-D3",
+      "bucket": "long",
+      "word_count": 9,
+      "workbook_letter": "W",
+      "source_cell": "D3",
+      "object_key": "Linfala/examples/W/W.D3.mp3",
+      "audio_relative_path": "Lettre W/W.D3.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/W/W.D3.mp3",
+      "reference": "Na zo zela suka ya mposo po na pema.",
+      "french": "J'attends le week-end pour me reposer"
+    },
+    {
+      "id": "Y-D3",
+      "bucket": "long",
+      "word_count": 9,
+      "workbook_letter": "Y",
+      "source_cell": "D3",
+      "object_key": "Linfala/examples/Y/Y.D3.mp3",
+      "audio_relative_path": "Lettre Y/Y.D3.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/Y/Y.D3.mp3",
+      "reference": "Miso na nga ekangamaka soki kaka ba bomi mwinda.",
+      "french": "Mes yeux se ferment dès qu’on éteint la lumière."
+    },
+    {
+      "id": "Z-D4",
+      "bucket": "long",
+      "word_count": 10,
+      "workbook_letter": "Z",
+      "source_cell": "D4",
+      "object_key": "Linfala/examples/Z/Z.D4.mp3",
+      "audio_relative_path": "Lettre Z/Z.D4.mp3",
+      "audio_url": "https://pub-78d23bf07fce46b3adc19df91148ffb8.r2.dev/Linfala/examples/Z/Z.D4.mp3",
+      "reference": "Pona ko koma zomi esengeli ko koma moko na libungutulu.",
+      "french": "Pour écrire dix il faut écrire un et zéro"
+    }
+  ]
+}

@@ -2087,16 +2087,36 @@ speechSynthesis.speak(utterance);
 
 ### Professor-audio STT quality gate
 
-Start with 25 stratified professor clips paired with their verified Lingala text:
-short, medium and long utterances across several course themes. Send each clip
-through the same `/api/elevenlabs-stt` Scribe v2 path used in production, normalize
-orthography consistently, and report word error rate, character error rate, exact
-normalized match, substitutions, deletions and insertions. Preserve a human-readable
-HTML/CSV row with audio, reference and hypothesis. Expand to 100 clips after the
-pilot, then add ordinary phone recordings from other speakers before using STT as
-an automatic pronunciation judge. Fine-tuning is conditional on this evidence.
+The 25-clip pilot ran on 2026-09-09 with verified professor recordings selected
+deterministically across 24 workbook letters: 5 short, 10 medium and 10 long
+utterances. `scripts/benchmark_lingala_stt.mjs` called ElevenLabs directly with
+the same production transcription parameters (`scribe_v2`, `language_code=lin`,
+audio-event tagging enabled), while avoiding application authentication and rate
+limits. Run `npm run benchmark:stt -- --report-only` to regenerate the summaries
+without uploading audio again.
+
+Results: 25/25 requests succeeded across 73.12 seconds of speech. Median API
+latency was 669 ms and p95 was 915 ms. Accent-insensitive WER was 48.6%, but CER
+was only 7.0%: Scribe frequently joined or split words (`ko bela` / `kobela`,
+`na zo mona` / `nazomona`) while preserving most characters. Twelve clips were
+character-perfect after ignoring spaces, 18/25 had CER <=10%, and 23/25 had CER
+<=20%. Only 4/25 were exact word-normalized matches. Despite forcing `lin`, the
+returned language classifier was unstable (mean confidence 0.39 and no response
+labelled `lin`), another sign that Lingala remains weakly represented.
+
+Decision: retain Scribe v2 for assisted live translation, where the user can edit
+the transcript and the downstream translation has context. Do not use this model
+as an automatic pass/fail pronunciation judge yet. First audit the largest
+reference/audio mismatches, especially `B-D63`, then expand to 100 clips and add
+ordinary phone recordings from several speakers. A keyterm-prompting A/B test is
+a reasonable intermediate experiment, but it requires another authorized upload
+and carries ElevenLabs' keyterm surcharge. Fine-tuning is conditional on the
+cleaned, broader benchmark still missing the product threshold.
+
+Artifacts: `artifacts/stt_benchmark/professor_25_manifest.json`, the complete JSON
+report, a sortable CSV, and an audio-enabled local HTML review page.
 
 ---
 
-*Documentation last updated: 2026-04-22*
+*Documentation last updated: 2026-09-09*
 *Stack: React · Supabase · pgvector · FastAPI · FAISS · sentence-transformers · OpenAI gpt-4o-mini · Vercel · Railway · Cloudflare R2 · HuggingFace Spaces · ESPnet2 VITS*
