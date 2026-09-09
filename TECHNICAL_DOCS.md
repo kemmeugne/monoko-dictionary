@@ -1989,10 +1989,10 @@ Migration `sql/live_translation_telemetry.sql` was applied on 2026-09-08.
 | Training data | 71.6h real Lingala speech |
 | SDK | Gradio 6.13.0 |
 | Python | 3.10 |
-| Device | Runtime-selected CUDA, otherwise CPU (current Space: free CPU) |
+| Device | Runtime-selected CUDA, otherwise CPU (current Space: CPU Upgrade, 8 vCPU / 32 GB) |
 | Sample rate | 44,100 Hz |
 | Model size | ~373 MB |
-| Observed warm inference | 3.7s median / 8.3s p95 across 16 CPU Basic samples (2026-09-09 benchmark) |
+| Observed warm inference | 0.93s median / 2.20s p95 across 16 CPU Upgrade samples (2026-09-09 benchmark) |
 
 **Why the client calls the Space directly** (not via Vercel):  
 ESPnet2 inference can outlast an edge-function request, so routing synthesis through
@@ -2067,8 +2067,9 @@ speechSynthesis.speak(utterance);
 
 - A sleeping Space can still make the first request slow. The view ping and fixed
   warm-up reduce learner-visible setup time but cannot remove hardware startup.
-- Paid hardware has not been benchmarked. Trial CPU Upgrade first and compare
-  p50/p95 `tts_ms`; only trial a GPU if the CPU result misses the agreed target.
+- CPU Upgrade was retained after reducing the same benchmark workload from a
+  3.7s median / 8.3s p95 to 0.93s / 2.20s. A GPU trial is not justified while
+  this tier continues to meet the agreed target.
 - `npm run benchmark:tts` runs eight fixed phrases through the production Gradio
   API and validates each downloaded WAV. The 2026-09-09 CPU Basic baseline was
   16/16 successful across two passes, with a combined 3.7s median and 8.3s p95.

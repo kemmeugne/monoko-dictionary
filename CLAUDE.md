@@ -1119,8 +1119,9 @@ Phase 2 of the product roadmap. Users can now track their advancement through th
 `monoko.africa`. Vercel reached Ready, the 322-test verification suite passed,
 both GitHub Actions jobs passed, the production bundle was checked for the new
 autoplay/cache code, and an anonymous telemetry write returned the expected 401.
-The optimized `tts_space/app.py` is committed here but is **not deployed by
-Vercel**; it still has to be copied to the separate Hugging Face Space.
+The optimized `tts_space/app.py` and pinned Space runtime are deployed separately
+from Vercel. CPU Upgrade is the selected production tier after the 2026-09-09
+benchmark; see the latency results below.
 
 The "Traduction en direct" view is a turn-based, two-person translator. Dedicated
 "Parler en français" and "Parler en Lingala" controls remove the old direction
@@ -1223,11 +1224,11 @@ Changing Monoko's Vercel deployment does not deploy the Space. For a hardware
 trial, deploy `tts_space/app.py` first, then select the Space hardware separately
 under Hugging Face **Settings → Hardware**.
 
-**Rollout order:** deploy the Space source on CPU Basic, confirm the logs contain
-`Model ready on cpu` and `Model warm-up complete`, measure a repeatable baseline,
-then trial CPU Upgrade. Compare warm p50/p95 `tts_ms` with the ~7.2s baseline and
-only consider T4 if CPU Upgrade misses the target. After the TTS trial, build the
-25-clip professor-audio STT benchmark before considering recognition fine-tuning.
+**Hardware decision (2026-09-09):** two identical eight-phrase passes produced
+16/16 valid WAVs on each tier. CPU Basic measured 3.7s median / 8.3s p95; CPU
+Upgrade measured 0.93s / 2.20s, reductions of about 75% and 73%. Keep CPU Upgrade
+at $0.03/hour and do not trial T4 while these targets hold. Next, build the 25-clip
+professor-audio STT benchmark before considering recognition fine-tuning.
 
 **Space files are one release unit.** Deploy `tts_space/app.py`, `README.md` and
 `requirements.txt` together. On 2026-09-08, updating only `app.py` exposed stale

@@ -2,13 +2,13 @@
 
 > Audience: an AI agent (or developer) picking up this work. This file is self-contained — read it, then read the file:line references it points to. Code paths are absolute from the repo root.
 
-Last updated: 2026-09-08
+Last updated: 2026-09-09
 Scope: chat (`view === "chat"`) and live translation (`view === "live"`) only. Dictionary, courses, admin, auth are out of scope here.
 
-**Deployment checkpoint (2026-09-08):** Live Translation V2 and privacy-safe
+**Deployment checkpoint (2026-09-09):** Live Translation V2 and privacy-safe
 telemetry shipped to production in commit `3182d3c`. Vercel, the complete 322-test
 suite and both GitHub Actions jobs passed. The optimized Hugging Face source is
-committed but awaits the independent Space update and CPU Upgrade benchmark.
+deployed, its pinned runtime is healthy, and CPU Upgrade passed the latency gate.
 
 **Implementation status**: Tier 1 ✅ shipped 2026-04-29. Tier 2 ✅ shipped
 2026-04-30. Live Translation V2 is code-complete 2026-09-08; its privacy-safe
@@ -312,16 +312,24 @@ ready-time median was about 3.7s and p95 was 8.3s; short phrases were generally
 so synthesis rather than transfer is the dominant cost. Use this exact workload
 for the CPU Upgrade comparison.
 
+### CPU Upgrade decision (2026-09-09)
+
+The same benchmark was run twice after moving the Space from CPU Basic
+(2 vCPU / 16 GB) to CPU Upgrade (8 vCPU / 32 GB). It again produced 16/16 valid
+44.1 kHz WAV files, with a combined 0.93s median and 2.20s p95. Relative to CPU
+Basic, median ready time fell by about 75% and p95 by about 73%. This comfortably
+clears the 2.5s median / 5s p95 retention targets, so CPU Upgrade is the selected
+production tier. At $0.03/hour, the maximum continuous monthly cost is about
+$21.60; the configured inactivity sleep policy still controls when billing stops.
+Do not trial a T4 for the current workload because the CPU result already meets
+the product target.
+
 ### Next execution order
 
-1. Copy `tts_space/app.py` into `Kemz42/monoko-lingala-tts` and confirm a healthy
-   CPU Basic rebuild before changing hardware. Deploy the matching `README.md`
-   and `requirements.txt` in the same Space commit so Python and ESPnet stay pinned.
-2. Capture the same warm phrase set on CPU Basic, then CPU Upgrade, and compare
-   p50/p95 TTS latency and failures from `live_translation_events`.
-3. Keep CPU Upgrade only if the measured gain justifies the cost; test T4 only
-   if the CPU tier misses the agreed latency target.
-4. Build the 25-clip professor-audio Scribe benchmark, expand it to 100 clips,
+1. Keep monitoring production `tts_ms` and failures from
+   `live_translation_events`; CPU Upgrade is the selected tier and no T4 trial is
+   currently warranted.
+2. Build the 25-clip professor-audio Scribe benchmark, expand it to 100 clips,
    and decide from WER/CER and error patterns whether Lingala STT needs fine-tuning.
 
 ---

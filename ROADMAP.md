@@ -193,12 +193,13 @@ utterances in one clip — and **no confidence score detects this**: row 8494 sc
 0.97 and was 4.8 s wrong. The reviewer can add or remove segments, and cuts are
 re-suggested for the new count.
 
-**Voice-model order updated 2026-09-08.** Fine-tuning Lingala TTS on the
+**Voice-model order updated 2026-09-09.** Fine-tuning Lingala TTS on the
 professor's voice is unblocked but deprioritized: recorded course material already
 uses his voice, while recognition quality limits future objective speaking
-exercises. First deploy and benchmark the optimized existing TTS Space, then run a
-25-clip professor-audio Scribe v2 benchmark (expand to 100) with WER/CER and a
-human-readable error review. Fine-tune Lingala STT only if that quality gate fails.
+exercises. The optimized existing TTS Space is deployed and CPU Upgrade was kept
+after improving warm latency from 3.7s median / 8.3s p95 to 0.93s / 2.20s. Next,
+run a 25-clip professor-audio Scribe v2 benchmark (expand to 100) with WER/CER and
+a human-readable error review. Fine-tune Lingala STT only if that quality gate fails.
 The future TTS dataset remains ready: `artifacts/professor_ingest/variant_clips_for_tts.json`
 holds **203** additional single-utterance audio/transcript pairs, and CLAUDE.md
 retains the complete ESPnet2 fine-tuning pipeline.
