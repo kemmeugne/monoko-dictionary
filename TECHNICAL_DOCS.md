@@ -1992,7 +1992,7 @@ Migration `sql/live_translation_telemetry.sql` was applied on 2026-09-08.
 | Device | Runtime-selected CUDA, otherwise CPU (current Space: free CPU) |
 | Sample rate | 44,100 Hz |
 | Model size | ~373 MB |
-| Observed warm inference | ~7.2s for a short phrase (2026-09-08 telemetry) |
+| Observed warm inference | 3.7s median / 8.3s p95 across 16 CPU Basic samples (2026-09-09 benchmark) |
 
 **Why the client calls the Space directly** (not via Vercel):  
 ESPnet2 inference can outlast an edge-function request, so routing synthesis through
@@ -2069,6 +2069,9 @@ speechSynthesis.speak(utterance);
   warm-up reduce learner-visible setup time but cannot remove hardware startup.
 - Paid hardware has not been benchmarked. Trial CPU Upgrade first and compare
   p50/p95 `tts_ms`; only trial a GPU if the CPU result misses the agreed target.
+- `npm run benchmark:tts` runs eight fixed phrases through the production Gradio
+  API and validates each downloaded WAV. The 2026-09-09 CPU Basic baseline was
+  16/16 successful across two passes, with a combined 3.7s median and 8.3s p95.
 - The Space is deployed independently from Vercel: copy `tts_space/app.py` to the
   Hugging Face Space before changing hardware.
 - Treat `tts_space/app.py`, `README.md` and `requirements.txt` as one deployment.

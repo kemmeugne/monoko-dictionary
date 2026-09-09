@@ -302,6 +302,16 @@ Sources: [Spaces overview](https://huggingface.co/docs/hub/spaces-overview),
 [GPU hardware](https://huggingface.co/docs/hub/spaces-gpus), and
 [Hugging Face pricing](https://huggingface.co/pricing).
 
+### CPU Basic baseline (2026-09-09)
+
+Run `npm run benchmark:tts` to exercise the same Gradio event API as the browser,
+download every result and validate its RIFF/WAVE metadata. Two sequential warm
+passes over eight phrases produced 16/16 valid 44.1 kHz WAV files. Combined
+ready-time median was about 3.7s and p95 was 8.3s; short phrases were generally
+2.2-3.7s and the longest phrases 4.0-8.3s. Audio downloads added only 88-343ms,
+so synthesis rather than transfer is the dominant cost. Use this exact workload
+for the CPU Upgrade comparison.
+
 ### Next execution order
 
 1. Copy `tts_space/app.py` into `Kemz42/monoko-lingala-tts` and confirm a healthy
