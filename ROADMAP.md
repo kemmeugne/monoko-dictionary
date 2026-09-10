@@ -78,6 +78,12 @@ with no unexpected missing audio.
 
 ### Recent history
 
+- **Lesson-level Monɔkɔ assistant (2026-09-10)** — every lesson now opens a
+  responsive contextual chat without leaving the page. Its prompt prioritizes
+  that lesson's professor-authored rows, conjugation paradigms and notes before
+  broader corpus retrieval; replies stream, offer starter questions and Lingala
+  playback, and closing the panel preserves the learner's place. A persistent
+  floating tutor control keeps the assistant available throughout long lessons.
 - **Conjugation teaching UI (2026-09-10)** — precise phrase-level highlights,
   per-verb and per-tense example sections, structured professor explanations, and an
   in-session lesson reference that does not reset practice.

@@ -1069,6 +1069,96 @@ button.m-chip { cursor: pointer; }
 
 .m-lesson-practice { min-width: 0; padding: 18px; border: 1px solid var(--m-line); border-radius: 8px; background: var(--m-surface); box-shadow: 0 3px 14px rgba(31,47,37,.05); }
 
+/* Lesson assistant. The lesson remains mounted while this surface is open, so
+   asking for an explanation never resets a conjugation tab or the page scroll. */
+.m-lesson-workspace { padding-bottom: 64px; }
+.m-lesson-assistant-fab { position: fixed; right: 14px; bottom: calc(82px + env(safe-area-inset-bottom)); z-index: 44; width: 56px; height: 56px; padding: 0; border: 2px solid #f6c65a; border-radius: 50%; display: grid; place-items: center; background: var(--m-forest); color: #fff; cursor: pointer; box-shadow: 0 10px 28px rgba(20,45,34,.28); }
+.m-lesson-assistant-fab > span { display: grid; place-items: center; }
+.m-lesson-assistant-fab .m-ui-icon { width: 23px; height: 23px; }
+.m-lesson-assistant-fab strong { display: none; }
+.m-lesson-assistant-fab:hover { background: var(--m-forest-2); transform: translateY(-2px); }
+.m-lesson-assistant-fab:focus-visible { outline: 3px solid rgba(47,125,84,.3); outline-offset: 3px; }
+
+@media (min-width: 760px) {
+  .m-lesson-assistant-fab { right: 24px; bottom: 24px; width: auto; min-width: 190px; height: 54px; padding: 0 18px 0 10px; border-width: 1px; border-radius: 27px; grid-template-columns: 36px auto; gap: 9px; }
+  .m-lesson-assistant-fab > span { width: 36px; height: 36px; border-radius: 50%; background: #f6c65a; color: var(--m-forest); }
+  .m-lesson-assistant-fab .m-ui-icon { width: 18px; height: 18px; }
+  .m-lesson-assistant-fab strong { display: block; font: 800 12px "DM Sans",sans-serif; white-space: nowrap; }
+}
+
+.m-lesson-assistant-shell { position: fixed; inset: 0; z-index: 78; display: grid; align-items: end; pointer-events: none; }
+.m-lesson-assistant-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: rgba(12,28,22,.44); pointer-events: auto; cursor: default; }
+.m-lesson-assistant { position: relative; width: 100%; max-height: min(88dvh,760px); border: 1px solid var(--m-line); border-radius: 12px 12px 0 0; overflow: hidden; display: flex; flex-direction: column; background: var(--m-surface); box-shadow: 0 -18px 50px rgba(20,45,34,.2); pointer-events: auto; animation: slideIn .22s ease-out; }
+.m-lesson-assistant-head { min-height: 86px; padding: 14px 13px; border-bottom: 1px solid var(--m-line); display: grid; grid-template-columns: 42px minmax(0,1fr) 40px 40px; align-items: center; gap: 9px; background: var(--m-forest); color: #fff; }
+.m-lesson-assistant-mark { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: #f6c65a; color: var(--m-forest); }
+.m-lesson-assistant-mark .m-ui-icon { width: 20px; height: 20px; }
+.m-lesson-assistant-head > div { min-width: 0; }
+.m-lesson-assistant-head small { color: #a8c7ba; font: 700 8px "DM Mono",monospace; letter-spacing: .08em; text-transform: uppercase; }
+.m-lesson-assistant-head h2 { margin: 1px 0 0; font: 800 19px/1.12 "Playfair Display",serif; }
+.m-lesson-assistant-head p { margin: 2px 0 0; overflow: hidden; color: #c9ddd4; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.m-lesson-assistant-close, .m-lesson-assistant-reset { width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.1); color: #fff; cursor: pointer; }
+.m-lesson-assistant-close:hover, .m-lesson-assistant-reset:hover { background: rgba(255,255,255,.18); }
+.m-lesson-assistant-reset:disabled { opacity: .42; cursor: wait; }
+.m-lesson-assistant-close .m-ui-icon, .m-lesson-assistant-reset .m-ui-icon { width: 17px; height: 17px; }
+.m-lesson-assistant-reset { grid-column: 3; }
+.m-lesson-assistant-close { grid-column: 4; }
+
+.m-lesson-assistant-thread { min-height: 260px; flex: 1 1 auto; padding: 18px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; background: var(--m-canvas); }
+.m-lesson-assistant-welcome { margin: auto; padding: 18px 4px; display: grid; justify-items: center; text-align: center; }
+.m-lesson-assistant-welcome > span { width: 54px; height: 54px; margin-bottom: 12px; border-radius: 50%; display: grid; place-items: center; background: var(--m-green-soft); color: var(--m-forest-2); }
+.m-lesson-assistant-welcome > span .m-ui-icon { width: 24px; height: 24px; }
+.m-lesson-assistant-welcome h3 { margin: 0; font: 800 21px "Playfair Display",serif; }
+.m-lesson-assistant-welcome > p { max-width: 350px; margin: 7px 0 15px; color: var(--m-muted); font-size: 11px; line-height: 1.5; }
+.m-lesson-assistant-welcome > div { width: min(100%,390px); display: grid; gap: 7px; }
+.m-lesson-assistant-welcome button { min-height: 42px; padding: 8px 12px; border: 1px solid var(--m-line); border-radius: 7px; background: #fff; color: var(--m-forest); font: 700 11px "DM Sans",sans-serif; cursor: pointer; }
+.m-lesson-assistant-welcome button:hover { border-color: var(--m-green); background: var(--m-green-soft); }
+.m-lesson-assistant-message { max-width: 92%; display: grid; align-items: end; gap: 7px; animation: slideIn .18s ease-out; }
+.m-lesson-assistant-message.user { align-self: flex-end; }
+.m-lesson-assistant-message.user > div { padding: 10px 13px; border-radius: 9px 9px 2px 9px; background: var(--m-forest-2); color: #fff; font-size: 12px; line-height: 1.5; white-space: pre-wrap; }
+.m-lesson-assistant-message.assistant { align-self: flex-start; grid-template-columns: 29px minmax(0,1fr); }
+.m-lesson-assistant-message.assistant.has-audio { grid-template-columns: 29px minmax(0,1fr) 34px; }
+.m-lesson-assistant-avatar { width: 29px; height: 29px; border-radius: 50%; display: grid; place-items: center; background: #f6c65a; color: var(--m-forest); box-shadow: 0 2px 0 #d8a83a; font: 800 12px "Playfair Display",serif; }
+.m-lesson-assistant-message.assistant > div { min-width: 0; padding: 11px 13px; border: 1px solid var(--m-line); border-radius: 9px 9px 9px 2px; background: #fff; color: var(--m-ink); font-size: 12px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.m-lesson-assistant-audio { width: 34px; height: 34px; padding: 0; border: 1px solid var(--m-line); border-radius: 50%; display: grid; place-items: center; background: #fff; color: var(--m-forest-2); cursor: pointer; }
+.m-lesson-assistant-audio .m-ui-icon { width: 15px; height: 15px; }
+.m-lesson-assistant-audio:hover { border-color: var(--m-green); background: var(--m-green-soft); }
+.m-lesson-assistant-sources { align-self: flex-start; max-width: 92%; padding: 10px 12px; border: 1px solid var(--m-line); border-radius: 7px; background: rgba(255,255,255,.72); }
+.m-lesson-assistant-sources > small { display: block; margin-bottom: 5px; color: var(--m-muted); font: 700 8px "DM Mono",monospace; letter-spacing: .06em; text-transform: uppercase; }
+.m-lesson-assistant-sources p { margin: 3px 0; display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 5px; color: var(--m-muted); font-size: 9px; line-height: 1.4; }
+.m-lesson-assistant-sources b { color: var(--m-gold); }
+.m-lesson-assistant-sources strong { color: var(--m-forest-2); }
+.m-lesson-assistant-thinking { align-self: flex-start; display: grid; grid-template-columns: 29px auto; align-items: end; gap: 7px; }
+.m-lesson-assistant-thinking > div { min-height: 38px; padding: 0 13px; border: 1px solid var(--m-line); border-radius: 9px 9px 9px 2px; display: flex; align-items: center; gap: 4px; background: #fff; }
+.m-lesson-assistant-thinking i { width: 6px; height: 6px; border-radius: 50%; background: var(--m-green); animation: dots 1.1s ease-in-out infinite; }
+.m-lesson-assistant-thinking i:nth-child(2) { animation-delay: .18s; }
+.m-lesson-assistant-thinking i:nth-child(3) { animation-delay: .36s; }
+.m-lesson-assistant-composer { flex: 0 0 auto; padding: 12px 12px 7px; border-top: 1px solid var(--m-line); display: grid; grid-template-columns: minmax(0,1fr) 46px; align-items: end; gap: 8px; background: #fff; }
+.m-lesson-assistant-composer textarea { min-height: 48px; max-height: 120px; padding: 10px 11px; border: 1.5px solid var(--m-line); border-radius: 7px; resize: none; background: #fff; color: var(--m-ink); font: 13px/1.4 "DM Sans",sans-serif; }
+.m-lesson-assistant-composer textarea:focus { border-color: var(--m-gold); outline: 0; }
+.m-lesson-assistant-composer button { width: 46px; height: 48px; padding: 0; border: 0; border-radius: 7px; display: grid; place-items: center; background: var(--m-forest); color: #fff; cursor: pointer; }
+.m-lesson-assistant-composer button:disabled { background: #dbe2dc; color: #89928b; cursor: not-allowed; }
+.m-lesson-assistant-note { flex: 0 0 auto; margin: 0; padding: 0 12px 10px; background: #fff; color: var(--m-muted); font-size: 8px; line-height: 1.4; text-align: center; }
+
+@media (min-width: 760px) {
+  .m-lesson-assistant-shell { inset: auto 24px 24px auto; width: min(380px,calc(100vw - 48px)); height: min(640px,calc(100dvh - 48px)); align-items: stretch; }
+  .m-lesson-assistant-backdrop { display: none; }
+  .m-lesson-assistant { width: 100%; height: 100%; max-height: none; border-radius: 10px; box-shadow: 0 18px 52px rgba(20,45,34,.22); animation: slideIn .2s ease-out; }
+}
+
+@media (min-width: 560px) and (max-width: 759px) {
+  .m-lesson-assistant-shell { padding: 20px; place-items: center; }
+  .m-lesson-assistant { width: min(100%,620px); height: min(82dvh,720px); border-radius: 10px; box-shadow: 0 22px 60px rgba(20,45,34,.25); }
+}
+
+@media (max-width: 420px) {
+  .m-lesson-assistant-head { grid-template-columns: 38px minmax(0,1fr) 38px 38px; gap: 6px; }
+  .m-lesson-assistant-mark, .m-lesson-assistant-close, .m-lesson-assistant-reset { width: 38px; height: 38px; }
+  .m-lesson-assistant-message.assistant { max-width: 100%; grid-template-columns: 27px minmax(0,1fr); gap: 5px; }
+  .m-lesson-assistant-message.assistant.has-audio { grid-template-columns: 27px minmax(0,1fr) 32px; }
+  .m-lesson-assistant-avatar { width: 27px; height: 27px; }
+  .m-lesson-assistant-audio { width: 32px; height: 32px; }
+}
+
 /* Shared by the language switcher sheet (.m-language-sheet). These were
    written for the landing directory that has been removed; the sheet is
    now their only consumer. */

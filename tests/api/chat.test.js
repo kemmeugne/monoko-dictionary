@@ -52,6 +52,19 @@ describe("buildSystemPrompt", () => {
     const p = buildSystemPrompt("Lingala", "• Bonjour → Mbote [vérifié]", "", "chat");
     expect(p).toContain("Bonjour → Mbote");
   });
+
+  it("lesson-assistant mode prioritizes the active lesson and concise explanations", () => {
+    const p = buildSystemPrompt(
+      "Lingala",
+      "• parler → koloba [vérifié]",
+      "=== LEÇON ACTIVE ===\nLeçon : Conjugaison — futur",
+      "lesson-assistant"
+    );
+    expect(p).toContain("MODE ASSISTANT DE LEÇON");
+    expect(p).toContain("Réponds d'abord à partir de cette leçon");
+    expect(p).toContain("Leçon : Conjugaison — futur");
+    expect(p).toContain("Reste concis");
+  });
 });
 
 describe("chat handler", () => {

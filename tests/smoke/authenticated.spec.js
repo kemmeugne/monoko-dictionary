@@ -65,15 +65,16 @@ test.describe("authenticated learner", () => {
     await expect(page.locator(".m-developer-complete")).toContainText("Simuler la leçon réussie");
   });
 
-  test("lesson help pauses and resumes the same exercise", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop", "The state-preservation assertion only needs one browser");
+  test("lesson assistant and lesson help preserve the learner's place", async ({ page }, testInfo) => {
     await page.goto("/");
     await openLingalaCourse(page);
     await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
     await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
     await page.locator(".m-auth-submit").click();
     await expect(page.locator(".m-home")).toBeVisible({ timeout:20_000 });
-    await page.locator(".m-rail nav button", { hasText:"Apprendre" }).click();
+    const trailButton = page.locator(".m-bottom-nav button", { hasText:"Parcours" });
+    if (await trailButton.isVisible()) await trailButton.click();
+    else await page.locator(".m-rail nav button", { hasText:"Apprendre" }).click();
     await expect(page.locator(".m-path-trail")).toBeVisible({ timeout:20_000 });
 
     const deferredReward = page.locator(".m-trail-reward-modal button", { hasText:"Plus tard" });
@@ -81,6 +82,39 @@ test.describe("authenticated learner", () => {
     await page.locator("[data-trail-lesson-id]", { has:page.locator(".m-path-node.completed") }).first().locator(".m-path-node").click();
     await page.locator(".m-lesson-primary").click();
     await expect(page.locator(".m-lesson-workspace")).toBeVisible();
+
+    let lessonAssistantRequest = null;
+    await page.route("**/api/rag-context", route => route.fulfill({ status:200, contentType:"application/json", body:JSON.stringify({ context:"• parler → koloba [vérifié]", result_count:1 }) }));
+    await page.route("**/api/lesson-context", route => route.fulfill({ status:200, contentType:"application/json", body:JSON.stringify({ context:"Règle connexe du parcours", result_count:1 }) }));
+    await page.route("**/api/chat", async route => {
+      lessonAssistantRequest = route.request().postDataJSON();
+      await route.fulfill({
+        status:200,
+        headers:{ "Content-Type":"text/event-stream" },
+        body:`data: ${JSON.stringify({ delta:"Cette leçon se comprend à partir de ses exemples. ✓" })}\n\ndata: [DONE]\n\n`,
+      });
+    });
+
+    const activeLessonTitle = await page.locator(".m-lesson-heading h1").innerText();
+    await page.evaluate(() => window.scrollTo(0,Math.min(420,document.documentElement.scrollHeight - innerHeight)));
+    await page.locator(".m-lesson-assistant-fab").click();
+    await expect(page.locator(".m-lesson-assistant")).toBeVisible();
+    if (testInfo.project.name === "desktop") {
+      const assistantBox = await page.locator(".m-lesson-assistant").boundingBox();
+      expect(assistantBox.width).toBeLessThanOrEqual(390);
+      expect(assistantBox.height).toBeLessThanOrEqual(650);
+    }
+    const lessonScroll = await page.evaluate(() => window.scrollY);
+    await expect(page.locator(".m-lesson-assistant-head")).toContainText(activeLessonTitle);
+    await page.getByRole("button", { name:"Explique-moi cette leçon simplement." }).click();
+    await expect(page.locator(".m-lesson-assistant-message.assistant")).toContainText("Cette leçon se comprend");
+    expect(lessonAssistantRequest.mode).toBe("lesson-assistant");
+    expect(lessonAssistantRequest.lessonContext).toContain(`Leçon : ${activeLessonTitle}`);
+    expect(lessonAssistantRequest.lessonContext).toContain("CONTENU VALIDÉ DE LA LEÇON");
+    await page.locator(".m-lesson-assistant-close").click();
+    await expect(page.locator(".m-lesson-assistant")).toBeHidden();
+    expect(await page.evaluate(() => window.scrollY)).toBe(lessonScroll);
+
     await page.locator(".m-practice-action.primary").click();
     await expect(page.locator(".m-session-shell")).toBeVisible();
     await page.getByRole("button", { name:"Commencer", exact:true }).click();

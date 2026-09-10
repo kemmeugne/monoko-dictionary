@@ -104,6 +104,41 @@
       });
     }
 
+    const LESSON_ASSISTANT_CONTEXT_LIMIT = 30000;
+
+    const lessonAssistantContext = ({ course, lesson, items, tables, notes, langName }) => {
+      const lines = [
+        "=== LEÇON ACTIVE (SOURCE PRIORITAIRE) ===",
+        `Langue : ${langName || "Lingala"}`,
+        `Niveau : ${course?.title || "Parcours Monɔkɔ"}`,
+        `Leçon : ${lesson?.title || "Leçon en cours"}`,
+      ];
+
+      if (lesson?.description) lines.push(`Objectif : ${lesson.description}`);
+      lines.push("", "CONTENU VALIDÉ DE LA LEÇON :");
+      for (const item of items || []) {
+        if (!item?.french && !item?.dialect) continue;
+        lines.push(`• Français : ${item.french || "—"} → ${langName || "Lingala"} : ${item.dialect || "—"}`);
+        if (item.example_french || item.example_dialect) {
+          lines.push(`  Exemple : ${item.example_french || "—"} → ${item.example_dialect || "—"}`);
+        }
+      }
+
+      for (const table of tables || []) {
+        lines.push("", `CONJUGAISON — ${table.verbFr || table.verb} / ${table.verb || ""}`);
+        for (const form of table.forms || []) {
+          lines.push(`• ${form.tense_label || form.tense} · ${form.person_label || form.person} : ${form.french || "—"} → ${form.lingala || "—"}`);
+        }
+      }
+
+      for (const note of Object.values(notes || {})) {
+        if (note?.explanation) lines.push("", `EXPLICATION DU PROFESSEUR — ${note.tense_label || note.tense}:`, note.explanation);
+      }
+
+      lines.push("=== FIN DE LA LEÇON ACTIVE ===");
+      return lines.join("\n").slice(0, LESSON_ASSISTANT_CONTEXT_LIMIT);
+    };
+
     // Language colors/flags
     const LANG_THEMES = {
       "Lingala": { emoji: "🇨🇩", gradient: "linear-gradient(135deg, #2C5F2D, #4A8B4C)", accent: "#2C5F2D" },
@@ -3478,7 +3513,7 @@
         const closeOnEscape = event => { if (event.key === "Escape") onClose(); };
         window.addEventListener("keydown", closeOnEscape);
         return () => window.removeEventListener("keydown", closeOnEscape);
-      }, [onClose]);
+      }, []);
 
       return <div className="m-session-reference-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
         <section className="m-session-reference" role="dialog" aria-modal="true" aria-labelledby="session-reference-title">
@@ -3500,6 +3535,81 @@
             </div>
           </div>
           <footer><button onClick={onClose}>Reprendre l'exercice <UiIcon name="arrow"/></button></footer>
+        </section>
+      </div>;
+    };
+
+    const LESSON_ASSISTANT_STARTERS = [
+      "Explique-moi cette leçon simplement.",
+      "Donne-moi un autre exemple.",
+      "Quelle règle dois-je retenir ?",
+    ];
+
+    const LessonAssistant = ({
+      lesson, langName, messages, input, loading, corpusPairs, playingIdx,
+      onInput, onSend, onClose, onClear, onPlay, canPlay,
+    }) => {
+      const endRef = useRef(null);
+      const fieldRef = useRef(null);
+
+      useEffect(() => {
+        const closeOnEscape = event => { if (event.key === "Escape") onClose(); };
+        window.addEventListener("keydown", closeOnEscape);
+        if (window.matchMedia("(min-width: 760px)").matches) window.setTimeout(() => fieldRef.current?.focus(), 120);
+        return () => window.removeEventListener("keydown", closeOnEscape);
+      }, [onClose]);
+
+      useEffect(() => {
+        endRef.current?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+      }, [messages, loading, corpusPairs]);
+
+      return <div className="m-lesson-assistant-shell" role="presentation">
+        <button className="m-lesson-assistant-backdrop" onClick={onClose} aria-label="Fermer l'assistant"/>
+        <section className="m-lesson-assistant" role="dialog" aria-modal="false" aria-labelledby="lesson-assistant-title">
+          <header className="m-lesson-assistant-head">
+            <span className="m-lesson-assistant-mark"><UiIcon name="messages"/></span>
+            <div><small>Assistant de la leçon</small><h2 id="lesson-assistant-title">Demander à Monɔkɔ</h2><p>{lesson.title}</p></div>
+            {messages.length > 0 && <button className="m-lesson-assistant-reset" onClick={onClear} disabled={loading} aria-label="Nouvelle conversation" title="Nouvelle conversation"><UiIcon name="reset"/></button>}
+            <button className="m-lesson-assistant-close" onClick={onClose} aria-label="Fermer"><UiIcon name="close"/></button>
+          </header>
+
+          <div className="m-lesson-assistant-thread" aria-live="polite">
+            {messages.length === 0 && <div className="m-lesson-assistant-welcome">
+              <span><UiIcon name="graduation"/></span>
+              <h3>Un point reste flou ?</h3>
+              <p>Posez votre question sans quitter la leçon. Monɔkɔ répond à partir de son contenu et de notre corpus.</p>
+              <div>{LESSON_ASSISTANT_STARTERS.map(starter => <button key={starter} onClick={() => onSend(starter)}>{starter}</button>)}</div>
+            </div>}
+
+            {messages.map((message, index) => {
+              if (!message.content) return null;
+              const isUser = message.role === "user";
+              const settled = !isUser && !message.content.startsWith("⚠️") && (!loading || index < messages.length - 1);
+              const playable = settled && canPlay(message.content);
+              return <article className={`m-lesson-assistant-message ${isUser ? "user" : `assistant${playable ? " has-audio" : ""}`}`} key={`${message.role}-${index}`}>
+                {!isUser && <span className="m-lesson-assistant-avatar">M</span>}
+                <div>{message.content}</div>
+                {playable && <button className="m-lesson-assistant-audio" onClick={() => onPlay(index,message.content)} disabled={playingIdx !== null && playingIdx !== index} aria-label="Écouter les expressions en lingala" title="Écouter les expressions en lingala"><UiIcon name={playingIdx === index ? "clock" : "volume"}/></button>}
+              </article>;
+            })}
+
+            {loading && messages[messages.length - 1]?.content === "" && corpusPairs.length > 0 && <div className="m-lesson-assistant-sources">
+              <small>Recherche dans notre corpus</small>
+              {corpusPairs.map((pair,index) => <p key={index}><span>{pair.fr}</span><b>→</b><strong>{pair.ln}</strong></p>)}
+            </div>}
+
+            {loading && messages[messages.length - 1]?.content === "" && <div className="m-lesson-assistant-thinking"><span className="m-lesson-assistant-avatar">M</span><div><i/><i/><i/></div></div>}
+            <div ref={endRef}/>
+          </div>
+
+          <form className="m-lesson-assistant-composer" onSubmit={event => { event.preventDefault(); onSend(); }}>
+            <label className="m-sr-only" htmlFor="lesson-assistant-input">Votre question sur cette leçon</label>
+            <textarea id="lesson-assistant-input" ref={fieldRef} value={input} onChange={event => onInput(event.target.value)} onKeyDown={event => {
+              if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); onSend(); }
+            }} rows="2" placeholder={`Posez une question sur « ${lesson.title} »…`} disabled={loading}/>
+            <button type="submit" disabled={loading || !input.trim()} aria-label="Envoyer"><UiIcon name="arrow"/></button>
+          </form>
+          <p className="m-lesson-assistant-note">Les réponses s'appuient d'abord sur la leçon et notre corpus validé.</p>
         </section>
       </div>;
     };
@@ -4610,12 +4720,12 @@
       </nav>;
     }
 
-    function StandardPage({ active, langName, currentUser, profile, courses, userProgress, levelRewards, xp, streak, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut, children }) {
+    function StandardPage({ active, langName, currentUser, profile, courses, userProgress, levelRewards, xp, streak, onHome, onLearn, onDictionary, onChat, onLive, onProfile, onLanguage, onSettings, onSignOut, assistantOpen = false, children }) {
       const displayName = displayNameFor(currentUser,profile);
       const done = completedLessons(courses,userProgress);
       const total = totalLessons(courses) || 49;
       const medals = earnedMedals(courses,userProgress,levelRewards);
-      return <div className="m-app">
+      return <div className={`m-app${assistantOpen ? " lesson-assistant-open" : ""}`}>
         <GlobalRail active={active} langName={langName} displayName={displayName} xp={xp} completed={done} total={total} signedIn={!!currentUser} onHome={onHome} onLearn={onLearn} onDictionary={onDictionary} onChat={onChat} onLive={onLive} onProfile={onProfile} onLanguage={onLanguage} onSettings={onSettings} onSignOut={onSignOut}/>
         <main className="m-page">
           <TopBar xp={xp} streak={streak} medals={medals} signedIn={!!currentUser} onMenu={onLearn} onHome={onHome} onProfile={onProfile} onSettings={onSettings}/>
@@ -6097,6 +6207,12 @@
       const [chatLoading, setChatLoading] = useState(false);
       const [chatCorpusPairs, setChatCorpusPairs] = useState([]);
       const [chatPlayingIdx, setChatPlayingIdx] = useState(null);
+      const [lessonAssistantOpen, setLessonAssistantOpen] = useState(false);
+      const [lessonAssistantMessages, setLessonAssistantMessages] = useState([]);
+      const [lessonAssistantInput, setLessonAssistantInput] = useState("");
+      const [lessonAssistantLoading, setLessonAssistantLoading] = useState(false);
+      const [lessonAssistantCorpusPairs, setLessonAssistantCorpusPairs] = useState([]);
+      const [lessonAssistantPlayingIdx, setLessonAssistantPlayingIdx] = useState(null);
       const [correctionMsg, setCorrectionMsg] = useState(null);
       const [correctionText, setCorrectionText] = useState("");
       const [correctionFrench, setCorrectionFrench] = useState("");
@@ -6131,6 +6247,15 @@
       }, []);
 
       useEffect(() => () => window.clearTimeout(celebrationTimer.current), []);
+
+      useEffect(() => {
+        setLessonAssistantOpen(false);
+        setLessonAssistantMessages([]);
+        setLessonAssistantInput("");
+        setLessonAssistantLoading(false);
+        setLessonAssistantCorpusPairs([]);
+        setLessonAssistantPlayingIdx(null);
+      }, [selectedLesson?.id]);
 
       useEffect(() => {
         const savedTesterName = localStorage.getItem(TESTER_NAME_KEY) || "";
@@ -7519,6 +7644,24 @@
         setChatPlayingIdx(null);
       };
 
+      const playLessonAssistantLingala = async (idx, text) => {
+        const fragments = extractLingalaFragments(text);
+        if (!fragments.length) return;
+        setLessonAssistantPlayingIdx(idx);
+        for (const fragment of fragments) {
+          try {
+            const url = await lingalaTTS(fragment);
+            await new Promise(resolve => {
+              const audio = new Audio(url);
+              audio.onended = resolve;
+              audio.onerror = resolve;
+              audio.play().catch(resolve);
+            });
+          } catch (error) { console.error("Lesson assistant TTS:",error); }
+        }
+        setLessonAssistantPlayingIdx(null);
+      };
+
       // ── Chat functions ──
       const searchContext = async (userMsg) => {
         if (!langId) return { context: "", pairs: [] };
@@ -7631,6 +7774,89 @@
         }
 
         setChatLoading(false);
+      };
+
+      const sendLessonAssistant = async (suggestion = null) => {
+        const msg = (typeof suggestion === "string" ? suggestion : lessonAssistantInput).trim();
+        if (!msg || lessonAssistantLoading || !selectedLesson) return;
+
+        const newMessages = [...lessonAssistantMessages, { role:"user", content:msg }];
+        setLessonAssistantMessages([...newMessages, { role:"assistant", content:"" }]);
+        setLessonAssistantInput("");
+        setLessonAssistantLoading(true);
+        setLessonAssistantCorpusPairs([]);
+
+        try {
+          const t0 = performance.now();
+          const { ragContext, lessonContext: relatedContext, pairs } = await searchContext(msg);
+          const activeContext = lessonAssistantContext({
+            course:selectedCourse,
+            lesson:{ ...selectedLesson, description:trailLessonMeta(selectedLesson).copy },
+            items:lessonItems,
+            tables:conjTables,
+            notes:conjNotes,
+            langName,
+          });
+          const combinedLessonContext = `${activeContext}\n\n=== CONTENU CONNEXE DU PARCOURS ===\n${relatedContext || "(Aucun contenu connexe trouvé)"}`.slice(0,35000);
+          const compactRagContext = (ragContext || "").slice(0,14000);
+          const tRagMs = Math.round(performance.now() - t0);
+          if (pairs.length) setLessonAssistantCorpusPairs(pairs);
+
+          const response = await apiFetch("/api/chat", {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body:JSON.stringify({
+              mode:"lesson-assistant",
+              ragContext:compactRagContext,
+              lessonContext:combinedLessonContext,
+              messages:newMessages.slice(-10).map(message => ({ role:message.role, content:message.content })),
+              testerName:testerName.trim() || null,
+              sessionId:testerSessionId || null,
+              languageId:langId,
+              userQuery:msg,
+              turnNumber:Math.ceil(newMessages.length / 2),
+              tRagMs,
+            }),
+          });
+
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            setLessonAssistantMessages(previous => [...previous.slice(0,-1), { role:"assistant", content:`⚠️ ${data.error || "Monɔkɔ n'a pas pu répondre. Réessayez."}` }]);
+            return;
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let accumulated = "";
+          let lineBuffer = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            lineBuffer += decoder.decode(value, { stream:true });
+            const lines = lineBuffer.split("\n");
+            lineBuffer = lines.pop();
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const payload = line.slice(6).trim();
+              if (payload === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(payload);
+                if (!parsed.delta) continue;
+                if (!accumulated) setLessonAssistantCorpusPairs([]);
+                accumulated += parsed.delta;
+                const snapshot = accumulated;
+                setLessonAssistantMessages(previous => [...previous.slice(0,-1), { role:"assistant", content:snapshot }]);
+              } catch {}
+            }
+          }
+          if (!accumulated) {
+            setLessonAssistantMessages(previous => [...previous.slice(0,-1), { role:"assistant", content:"⚠️ Monɔkɔ n'a renvoyé aucune réponse. Réessayez." }]);
+          }
+        } catch (error) {
+          setLessonAssistantMessages(previous => [...previous.slice(0,-1), { role:"assistant", content:`⚠️ Erreur de connexion : ${error.message}` }]);
+        } finally {
+          setLessonAssistantLoading(false);
+        }
       };
 
       const submitCorrection = async (msgIndex) => {
@@ -8520,9 +8746,9 @@
             )}
 
             {view === "lesson" && selectedLesson && !sessionExercises && (
-              <StandardPage active="courses" {...pageShellProps}>
+              <StandardPage active="courses" assistantOpen={lessonAssistantOpen} {...pageShellProps}>
                 <article className="m-lesson-workspace">
-                  <button className="m-lesson-back" onClick={() => { setView("courses"); setSelectedLesson(null); setLessonItems([]); }}><UiIcon name="back"/><span>Retour au parcours</span></button>
+                  <button className="m-lesson-back" onClick={() => { setLessonAssistantOpen(false); setView("courses"); setSelectedLesson(null); setLessonItems([]); }}><UiIcon name="back"/><span>Retour au parcours</span></button>
 
                   <header className="m-lesson-heading">
                     <div className="m-kicker"><span>{LEVEL_META[(selectedCourse?.course_order || 1) - 1]?.cefr || "Cours"}</span><span>{selectedCourse?.title}</span></div>
@@ -8685,6 +8911,24 @@
                   )}
                   </div>
                 </article>
+                {!lessonAssistantOpen && <button className="m-lesson-assistant-fab" onClick={() => setLessonAssistantOpen(true)} aria-haspopup="dialog" aria-label="Demander à Monɔkɔ" title="Demander à Monɔkɔ">
+                  <span><UiIcon name="messages"/></span><strong>Demander à Monɔkɔ</strong>
+                </button>}
+                {lessonAssistantOpen && <LessonAssistant
+                  lesson={selectedLesson}
+                  langName={langName}
+                  messages={lessonAssistantMessages}
+                  input={lessonAssistantInput}
+                  loading={lessonAssistantLoading}
+                  corpusPairs={lessonAssistantCorpusPairs}
+                  playingIdx={lessonAssistantPlayingIdx}
+                  onInput={setLessonAssistantInput}
+                  onSend={sendLessonAssistant}
+                  onClose={() => setLessonAssistantOpen(false)}
+                  onClear={() => { setLessonAssistantMessages([]); setLessonAssistantCorpusPairs([]); setLessonAssistantInput(""); }}
+                  onPlay={playLessonAssistantLingala}
+                  canPlay={text => extractLingalaFragments(text).length > 0}
+                />}
               </StandardPage>
             )}
 

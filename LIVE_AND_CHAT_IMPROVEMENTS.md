@@ -2,8 +2,8 @@
 
 > Audience: an AI agent (or developer) picking up this work. This file is self-contained — read it, then read the file:line references it points to. Code paths are absolute from the repo root.
 
-Last updated: 2026-09-09
-Scope: chat (`view === "chat"`) and live translation (`view === "live"`) only. Dictionary, courses, admin, auth are out of scope here.
+Last updated: 2026-09-10
+Scope: chat (`view === "chat"`), lesson-level assistant, and live translation (`view === "live"`). Dictionary, admin and auth are out of scope here.
 
 **Deployment checkpoint (2026-09-09):** Live Translation V2 and privacy-safe
 telemetry shipped to production in commit `3182d3c`. Vercel, the complete 322-test
@@ -179,6 +179,25 @@ played through the shared TTS pipeline.
 ### ✅ 4.3 Warm the TTS Space for voice features — SHIPPED 2026-09-08
 - Chat retains its lightweight Space ping. Live Translation additionally schedules
   one fixed `Mbote` synthesis during browser idle time when autoplay is enabled.
+
+### ✅ 4.4 Lesson-level assistant — CODE COMPLETE 2026-09-10
+- Every lesson exposes a persistent `Demander à Monɔkɔ` control without sending
+  the learner to the standalone chat view. It is a labeled floating pill on
+  desktop and a circular chat icon above the bottom navigation on mobile, so it
+  remains reachable throughout long lesson tables.
+- `LessonAssistant` is a compact 380 × 640px floating window on desktop, a
+  centered sheet on tablets and a bottom sheet on phones. The lesson remains
+  mounted, so closing the assistant preserves scroll position and local lesson
+  UI state.
+- `sendLessonAssistant` serializes the active lesson rows, examples, conjugation
+  paradigms and professor notes, then combines that priority block with the normal
+  corpus and semantic lesson retrieval. Context is bounded below the API's 50k cap.
+- `/api/chat` supports `mode: "lesson-assistant"`: answers start from the active
+  lesson, stay concise, distinguish verified material from constructed examples,
+  and admit when a rule is not established by the lesson or corpus.
+- Starter questions, streamed answers, corpus-search feedback, conversation reset
+  and on-demand Lingala playback are included. The conversation resets when the
+  learner opens a different lesson.
 
 ---
 

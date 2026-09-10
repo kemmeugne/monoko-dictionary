@@ -885,7 +885,7 @@ an effect redirects to `auth` when `currentUser` is absent, checked only once
 | `search` / `browse` / `detail` | public | Dictionary. Reachable signed-out; `StandardPage` then renders a visitor shell (`signedIn={false}`) |
 | `home` | private | Learner home (`HomeHub`) — resume card, dictionary panel, streak, tools |
 | `courses` | private | Continuous six-level course trail (`CourseTrail`) |
-| `lesson` | private | Lesson content — cards on a phone, two-column table from 760px |
+| `lesson` | private | Lesson content plus contextual Monɔkɔ assistant — cards on a phone, two-column table from 760px |
 | `lesson` + `sessionExercises` | private | Full-screen practice session — same `view`, different render branch |
 | `level_challenge` | private | Grand défi session for a whole level |
 | `profile` | private | Medals, culture collection, weekly ranking |
@@ -1035,6 +1035,18 @@ Called before every chat API request. Fires two parallel context fetches and mer
 - Returns top-8 course lesson rows
 
 Both use `Promise.allSettled` — either can fail silently without breaking chat.
+
+**Lesson-level assistant (2026-09-10):** `lessonAssistantContext()` serializes
+the currently mounted lesson's title, objective, professor-authored rows,
+examples, conjugation forms and teaching notes. `sendLessonAssistant()` places
+that block before the two normal retrieval results and calls `/api/chat` with
+`mode: "lesson-assistant"`. The API applies lesson-specific grounding and
+brevity rules while retaining the normal corpus markers (`✓` verified, `~`
+constructed). Its responsive panel floats over the mounted lesson on desktop
+and becomes a sheet on smaller screens;
+it does not change `view`, so scroll, tense tabs and subsequent practice state
+are preserved. A fixed `.m-lesson-assistant-fab` keeps it reachable while the
+learner scrolls: labeled on desktop and icon-only above mobile navigation.
 
 **Note (2026-03-31)**: Railway/FAISS backend was decommissioned. All vector search now runs on Supabase pgvector.
 

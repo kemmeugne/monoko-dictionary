@@ -605,6 +605,20 @@ What the landing preview shows and the app cannot is the *structured* answer
 ("On peut dire : / lingala / french"): the real assistant streams free prose from
 the model, so only the shell is shared, never a fixed answer template.
 
+**Lesson-level assistant added (2026-09-10).** Lesson pages keep the learner in
+place and open `LessonAssistant` as a compact desktop window/responsive sheet. The dedicated
+`sendLessonAssistant` path sends `mode: "lesson-assistant"` and prepends a bounded
+serialization of the active lesson: title, objective, professor rows and
+examples, conjugation forms, and teaching notes. Normal corpus and semantic
+lesson retrieval still run in parallel, but the API prompt explicitly gives the
+mounted lesson priority. Changing lessons resets this local conversation;
+closing and reopening it within the same lesson preserves the exchange. Do not
+turn this entry point into navigation to `view === "chat"`, because preserving
+the lesson's scroll and local UI state is part of the feature contract. The entry
+point is the fixed `.m-lesson-assistant-fab`: an extended labeled control on
+desktop and an icon-only control above the mobile bottom navigation. Keep it
+available for the full lesson scroll and hide it while the panel is open.
+
 The old standalone quality flow was removed to avoid placing abstract AI claims
 before the products. Research support now appears in the teaching-method section; the AI trust strip
 says linguists and native speakers construct the corpus, examples and voices. The

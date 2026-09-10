@@ -116,8 +116,20 @@ CE QU'IL FAUT ÉVITER:
 - Ne dis JAMAIS "je ne traite que des traductions et des phrases" — tu expliques aussi la grammaire
 - Ne redirige JAMAIS l'utilisateur vers "pose une question plus spécifique" si le corpus contient des données pertinentes`;
 
-  const context = [ragContext, lessonContext].filter(Boolean).join("\n\n");
-  return fixedPrompt + `\n\n=== CORPUS DE RÉFÉRENCE (SOURCE PRIORITAIRE) ===\n${context || "(Aucune donnée trouvée pour cette requête)"}\n=== FIN DU CORPUS ===`;
+  const lessonGuidance = mode === "lesson-assistant" ? `
+
+MODE ASSISTANT DE LEÇON:
+L'apprenant consulte actuellement la leçon indiquée dans le bloc « LEÇON ACTIVE ».
+- Réponds d'abord à partir de cette leçon, de ses exemples et des explications du professeur.
+- Explique en français simple et relie ta réponse à un exemple précis de la leçon quand il existe.
+- Si l'apprenant demande un nouvel exemple, suis le modèle de la leçon et marque-le ~ puisqu'il est construit.
+- Si la réponse n'est pas établie par la leçon ou le corpus, dis-le clairement au lieu d'inventer une règle.
+- Reste concis : vise 3 à 8 phrases ou une courte liste. Ne récite pas toute la leçon.
+- Ne demande pas à l'apprenant de quitter la page : il doit pouvoir comprendre puis reprendre sa lecture.` : "";
+
+  const context = (mode === "lesson-assistant" ? [lessonContext, ragContext] : [ragContext, lessonContext])
+    .filter(Boolean).join("\n\n");
+  return fixedPrompt + lessonGuidance + `\n\n=== CORPUS DE RÉFÉRENCE (SOURCE PRIORITAIRE) ===\n${context || "(Aucune donnée trouvée pour cette requête)"}\n=== FIN DU CORPUS ===`;
 }
 
 async function supaWrite(table, body) {
