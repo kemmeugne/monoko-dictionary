@@ -4861,8 +4861,8 @@
         kind:"live",
         label:"Traduction en direct",
         tabCopy:"Une conversation, deux langues",
-        title:"Parlez en français. Faites-vous comprendre en lingala.",
-        copy:"Lors d'une rencontre, chacun peut parler dans sa langue et suivre la traduction de l'échange, à l'écrit comme à l'oral. Le même outil vous aide aussi à entraîner votre écoute et votre prononciation.",
+        title:"Chacun parle dans sa langue.",
+        copy:"Monɔkɔ transcrit et traduit l'échange entre le français et le lingala, à l'écrit comme à l'oral.",
         benefits:["Français ⇄ lingala", "Texte et restitution audio", "Pour apprendre et échanger"],
         cta:"Essayer gratuitement",
       },
@@ -4870,9 +4870,9 @@
         kind:"chat",
         label:"Parler avec Monɔkɔ",
         tabCopy:"Votre partenaire de pratique",
-        title:"Posez vos questions. Pratiquez la conversation.",
-        copy:"Demandez une traduction, explorez une expression ou échangez en lingala. Monɔkɔ s'appuie sur un corpus validé par des linguistes experts pour vous aider à pratiquer en contexte, où que vous soyez.",
-        benefits:["Questions libres", "Réponses contextualisées", "Corpus validé par des experts"],
+        title:"Pratiquez avec Monɔkɔ.",
+        copy:"Échangez en lingala, approfondissez une leçon ou demandez une explication grammaticale. Les réponses s'appuient sur notre corpus validé par des linguistes experts.",
+        benefits:["Questions sur les leçons", "Grammaire expliquée", "Corpus validé par des experts"],
         cta:"Parler avec Monɔkɔ",
       },
     ];
@@ -4903,29 +4903,63 @@
     }
 
     function AiShowcase({ onTry, ctaDisabled }) {
-      // Both tools render at once. They used to share one tab panel, which meant a
-      // visitor saw one of the two and the other was aria-hidden from crawlers too.
-      return <div className="m-landing-ai" aria-labelledby="landing-ai-title">
+      const [active, setActive] = useState(0);
+      const touchStart = useRef(null);
+      const count = AI_FEATURES.length;
+      const move = direction => setActive(current => (current + direction + count) % count);
+      const releasePointerFocus = event => { if (event.detail > 0) event.currentTarget.blur(); };
+
+      return <div className="m-landing-ai" aria-labelledby="landing-ai-title" data-carousel-index={active}
+                  aria-roledescription="carrousel">
         <header className="m-landing-ai-heading">
           <div className="m-kicker"><span>L'IA au service de la langue</span></div>
           <h2 id="landing-ai-title">Traduisez en direct. Pratiquez avec Monɔkɔ.</h2>
-          <p>L'intelligence artificielle rend la langue disponible au moment où vous en avez besoin, pendant une rencontre comme entre deux leçons.</p>
+          <p>Nous avons mis en place une intelligence artificielle qui s'appuie en priorité sur notre corpus vérifié par des linguistes et des locuteurs natifs pour ses réponses.</p>
         </header>
 
-        <div className="m-landing-ai-grid">
-          {AI_FEATURES.map(feature => <article key={feature.kind} className={`m-landing-ai-feature ${feature.kind}`}>
-            <div className="m-landing-ai-feature-head">
-              <span><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/></span>
-              <div><strong>{feature.label}</strong><small>{feature.tabCopy}</small></div>
-            </div>
-            <p className="m-landing-ai-feature-copy">{feature.copy}</p>
-            <AiFeaturePreview kind={feature.kind}/>
-            <div className="m-landing-ai-benefits">
-              {feature.benefits.map(benefit => <span key={benefit}><UiIcon name="check"/> {benefit}</span>)}
-            </div>
-            <button type="button" className="m-landing-ai-cta" disabled={ctaDisabled} onClick={() => onTry(feature.kind)}>{feature.cta}<UiIcon name="arrow"/></button>
-            <small className="m-landing-ai-access">Accès gratuit avec un compte</small>
-          </article>)}
+        <div className="m-landing-ai-viewport"
+             onTouchStart={event => { touchStart.current = event.touches[0]?.clientX ?? null; }}
+             onTouchEnd={event => {
+               if (touchStart.current === null) return;
+               const delta = (event.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current;
+               if (Math.abs(delta) > 45) move(delta < 0 ? 1 : -1);
+               touchStart.current = null;
+             }}
+             onTouchCancel={() => { touchStart.current = null; }}>
+          <div className="m-landing-ai-track" style={{transform:`translateX(-${active * 100}%)`}}>
+            {AI_FEATURES.map((feature, index) => <div key={feature.kind} className="m-landing-ai-slide"
+              aria-roledescription="diapositive" aria-label={`${index + 1} sur ${count} — ${feature.label}`}
+              aria-hidden={index !== active}>
+              <article className={`m-landing-ai-feature ${feature.kind}`}>
+                <div className="m-landing-ai-feature-head">
+                  <span><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/></span>
+                  <div><strong>{feature.label}</strong><small>{feature.tabCopy}</small></div>
+                </div>
+                <h3 className="m-landing-ai-feature-title">{feature.title}</h3>
+                <p className="m-landing-ai-feature-copy">{feature.copy}</p>
+                <AiFeaturePreview kind={feature.kind}/>
+                <div className="m-landing-ai-benefits">
+                  {feature.benefits.map(benefit => <span key={benefit}><UiIcon name="check"/> {benefit}</span>)}
+                </div>
+                <button type="button" className="m-landing-ai-cta" disabled={ctaDisabled} tabIndex={index === active ? 0 : -1} onClick={() => onTry(feature.kind)}>{feature.cta}<UiIcon name="arrow"/></button>
+                <small className="m-landing-ai-access">Accès gratuit avec un compte</small>
+              </article>
+            </div>)}
+          </div>
+        </div>
+
+        <div className="m-landing-ai-controls">
+          <div className="m-landing-ai-nav">
+            <button type="button" onClick={event => { move(-1); releasePointerFocus(event); }} aria-label="Outil précédent" title="Outil précédent"><UiIcon name="back"/></button>
+            <b>{String(active + 1).padStart(2,"0")} / {String(count).padStart(2,"0")}</b>
+            <button type="button" onClick={event => { move(1); releasePointerFocus(event); }} aria-label="Outil suivant" title="Outil suivant"><UiIcon name="arrow"/></button>
+          </div>
+          <div className="m-landing-ai-dots">
+            {AI_FEATURES.map((feature, index) => <button key={feature.kind} type="button"
+              className={index === active ? "active" : ""} aria-label={feature.label}
+              aria-current={index === active ? "true" : undefined}
+              onClick={event => { setActive(index); releasePointerFocus(event); }}/>)}
+          </div>
         </div>
       </div>;
     }
@@ -8083,7 +8117,7 @@
                     { icon:<SearchIcon/>, title:"Rechercher un mot", sub:`Français → ${langName} ou ${langName} → Français`, grad:"linear-gradient(135deg, var(--m-gold), #C4912E)", v:"search" },
                     { icon:<BookIcon/>, title:"Parcourir A — Z", sub:"Explorer le dictionnaire par lettre", grad:theme.gradient, v:"browse" },
                     { icon:<GradIcon/>, title:"Apprendre", sub:"Cours de grammaire, phrases utiles, vocabulaire", grad:"linear-gradient(135deg, var(--m-purple-dark), var(--m-purple))", v:"courses" },
-                    { icon:<ChatIcon/>, title:"Parler avec Monɔkɔ", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, #0EA5E9, #2563EB)", v:"chat" },
+                    { icon:<ChatIcon/>, title:"Parler avec Monɔkɔ", sub:`Discutez en ${langName} avec notre IA`, grad:"linear-gradient(135deg, var(--m-green), var(--m-forest-2))", v:"chat" },
                     { icon:<HeadphonesIcon/>, title:"Traduction en direct", sub:"Traduction vocale en temps réel", grad:"linear-gradient(135deg, #0F766E, #14B8A6)", v:"live" },
                   ].map((c,i) => (
                     <button key={i} onClick={async () => {
@@ -8753,7 +8787,7 @@
 
                 <div style={{ background:"white", border:"1px solid var(--m-line)", borderRadius:10, padding:"24px 20px", boxShadow:"0 8px 24px rgba(45,33,24,0.06)" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-                    <div style={{ width:48, height:48, borderRadius:8, background:"linear-gradient(135deg, #0EA5E9, #2563EB)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🧪</div>
+                    <div style={{ width:48, height:48, borderRadius:8, background:"linear-gradient(135deg, var(--m-green), var(--m-forest-2))", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🧪</div>
                     <div>
                       <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"var(--m-ink)", margin:0, lineHeight:1.1 }}>Nom du testeur</h2>
                       <p style={{ fontSize:13, color:"var(--m-muted)", margin:"4px 0 0" }}>Cette information est requise avant d'ouvrir le chat.</p>
@@ -8777,7 +8811,7 @@
                     disabled={!pendingTesterName.trim()}
                     style={{
                       width:"100%", border:"none", borderRadius:8, padding:"14px 18px",
-                      background: pendingTesterName.trim() ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "var(--m-line)",
+                      background: pendingTesterName.trim() ? "linear-gradient(135deg, var(--m-green), var(--m-forest-2))" : "var(--m-line)",
                       color:"white", fontSize:14, fontWeight:700, cursor: pendingTesterName.trim() ? "pointer" : "default",
                       fontFamily:"'DM Sans', sans-serif",
                     }}
@@ -8798,7 +8832,7 @@
                 }}><ArrowLeft /> Accueil</button>
 
                 <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
-                  <div style={{ width:46, height:46, flexShrink:0, borderRadius:8, background:"#2075db", color:"white", display:"grid", placeItems:"center" }}><UiIcon name="messages"/></div>
+                  <div style={{ width:46, height:46, flexShrink:0, borderRadius:8, background:"var(--m-green)", color:"white", display:"grid", placeItems:"center" }}><UiIcon name="messages"/></div>
                   <div style={{ minWidth:0 }}>
                     <h2 style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:800, color:"var(--m-ink)", margin:0, lineHeight:1.1 }}>Parler avec Monɔkɔ</h2>
                     <p style={{ fontSize:12, color:"var(--m-muted)", margin:"2px 0 0" }}>IA conversationnelle en {langName}</p>
@@ -8823,7 +8857,7 @@
                                 padding:"8px 14px", fontSize:12, color:"var(--m-ink)", cursor:"pointer",
                                 fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s",
                               }}
-                              onMouseOver={e => { e.currentTarget.style.borderColor="#0EA5E9"; e.currentTarget.style.background="#F0F9FF"; }}
+                              onMouseOver={e => { e.currentTarget.style.borderColor="var(--m-green)"; e.currentTarget.style.background="var(--m-green-soft)"; }}
                               onMouseOut={e => { e.currentTarget.style.borderColor="var(--m-line)"; e.currentTarget.style.background="white"; }}>
                                 {s}
                               </button>
@@ -8838,7 +8872,7 @@
                         if (msg.role === "user") return (
                           <div key={idx} style={{ alignSelf:"flex-end", maxWidth:"80%", animation:"slideIn 0.2s ease-out" }}>
                             <div style={{
-                              background:"#2075db", color:"white", padding:"12px 16px",
+                              background:"var(--m-green)", color:"white", padding:"12px 16px",
                               borderRadius:"10px 10px 3px 10px", fontSize:14, lineHeight:1.6,
                               fontFamily:"'DM Sans', sans-serif", whiteSpace:"pre-wrap",
                             }}>{msg.content}</div>
@@ -8915,7 +8949,7 @@
                             <div style={{ background:"white", border:"1px solid var(--m-line)", padding:"14px 18px", borderRadius:"10px 10px 10px 3px" }}>
                               <div style={{ display:"flex", gap:4 }}>
                                 {[0,1,2].map(i => (
-                                  <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:"#2075db", animation:`float 1.2s ease-in-out ${i*0.2}s infinite` }} />
+                                  <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:"var(--m-green)", animation:`float 1.2s ease-in-out ${i*0.2}s infinite` }} />
                                 ))}
                               </div>
                             </div>
@@ -8933,7 +8967,7 @@
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
                           placeholder={`Écrivez en français ou ${langName.toLowerCase()}...`}
                           style={{ flex:1, border:"none", outline:"none", fontSize:16, padding:"13px 0", background:"transparent", color:"var(--m-ink)", fontFamily:"'DM Sans', sans-serif" }}
-                          onFocus={e => e.target.parentElement.style.borderColor="#2075db"}
+                          onFocus={e => e.target.parentElement.style.borderColor="var(--m-green)"}
                           onBlur={e => e.target.parentElement.style.borderColor="var(--m-line)"}
                           disabled={chatLoading}
                         />
@@ -8974,9 +9008,9 @@
                               <button key={t.key} onClick={() => setCorrectionType(t.key)} style={{
                                 padding:"8px 14px", borderRadius:10, fontSize:12, fontWeight:600, cursor:"pointer",
                                 fontFamily:"'DM Sans', sans-serif", transition:"all 0.15s",
-                                background: correctionType === t.key ? "#0EA5E920" : "white",
-                                border: correctionType === t.key ? "2px solid #0EA5E9" : "1px solid var(--m-line)",
-                                color: correctionType === t.key ? "#0EA5E9" : "var(--m-ink)",
+                                background: correctionType === t.key ? "var(--m-green-soft)" : "white",
+                                border: correctionType === t.key ? "2px solid var(--m-green)" : "1px solid var(--m-line)",
+                                color: correctionType === t.key ? "var(--m-green)" : "var(--m-ink)",
                               }}>{t.label}</button>
                             ))}
                           </div>
@@ -8986,7 +9020,7 @@
                             placeholder={`Écrivez la traduction correcte en ${langName}...`}
                             rows={2}
                             style={{ width:"100%", padding:"12px 14px", border:"2px solid var(--m-line)", borderRadius:8, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
-                            onFocus={e => e.target.style.borderColor="#0EA5E9"}
+                            onFocus={e => e.target.style.borderColor="var(--m-green)"}
                             onBlur={e => e.target.style.borderColor="var(--m-line)"}
                           />
 
@@ -8995,7 +9029,7 @@
                             placeholder="Écrivez la phrase en français correspondante..."
                             rows={2}
                             style={{ width:"100%", padding:"12px 14px", border:"2px solid var(--m-line)", borderRadius:8, fontSize:16, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:12 }}
-                            onFocus={e => e.target.style.borderColor="#0EA5E9"}
+                            onFocus={e => e.target.style.borderColor="var(--m-green)"}
                             onBlur={e => e.target.style.borderColor="var(--m-line)"}
                           />
 
@@ -9004,7 +9038,7 @@
                             placeholder="Une phrase utilisant ce mot en contexte..."
                             rows={2}
                             style={{ width:"100%", padding:"12px 14px", border:"2px solid var(--m-line)", borderRadius:8, fontSize:14, fontFamily:"'DM Sans', sans-serif", background:"white", outline:"none", resize:"vertical", marginBottom:16 }}
-                            onFocus={e => e.target.style.borderColor="#0EA5E9"}
+                            onFocus={e => e.target.style.borderColor="var(--m-green)"}
                             onBlur={e => e.target.style.borderColor="var(--m-line)"}
                           />
 
@@ -9014,7 +9048,7 @@
                               width:"100%", padding:"14px", border:"none", borderRadius:8, fontSize:15, fontWeight:700,
                               cursor: (correctionText.trim() && correctionFrench.trim()) ? "pointer" : "default",
                               fontFamily:"'DM Sans', sans-serif",
-                              background: (correctionText.trim() && correctionFrench.trim()) ? "linear-gradient(135deg, #0EA5E9, #2563EB)" : "var(--m-line)",
+                              background: (correctionText.trim() && correctionFrench.trim()) ? "linear-gradient(135deg, var(--m-green), var(--m-forest-2))" : "var(--m-line)",
                               color: "white",
                             }}>
                             Envoyer la correction

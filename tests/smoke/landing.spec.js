@@ -80,15 +80,30 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
   await expect(page.locator(".m-landing-quality")).toHaveCount(0);
   const aiShowcase = page.locator(".m-landing-ai");
   await expect(aiShowcase).toContainText("Traduisez en direct. Pratiquez avec Monɔkɔ.");
-  // Both tools render at once — no tabs, nothing aria-hidden from crawlers.
+  // The corpus promise is stated in the section lede.
+  await expect(page.locator(".m-landing-ai-heading")).toContainText("corpus vérifié par des linguistes et des locuteurs natifs");
+  // The two tools now share a sliding window; live translation opens it.
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
+  await expect(page.locator(".m-landing-ai-slide")).toHaveCount(2);
+  await expect(page.locator(".m-landing-ai-slide").first()).toHaveAttribute("aria-hidden", "false");
   await expect(page.locator(".m-landing-ai-feature")).toHaveCount(2);
-  await expect(page.locator(".m-landing-ai-feature.live")).toBeVisible();
-  await expect(page.locator(".m-landing-ai-feature.chat")).toBeVisible();
-  await expect(page.locator(".m-landing-ai-feature.live")).toContainText("chacun peut parler dans sa langue");
+  await expect(page.locator(".m-landing-ai-feature.live")).toContainText("Chacun parle dans sa langue");
   await expect(page.locator(".m-landing-ai-feature.chat")).toContainText("corpus validé par des linguistes experts");
-  await expect(page.locator(".m-landing-ai-feature[aria-hidden]")).toHaveCount(0);
+  await expect(page.locator(".m-landing-ai-feature.chat")).toContainText("explication grammaticale");
+  await expect(page.locator(".m-landing-ai-feature-title")).toHaveCount(2);
   await expect(page.locator(".m-landing-ai-tabs")).toHaveCount(0);
   await expect(page.locator(".m-landing-ai-cta")).toHaveCount(2);
+  // The second slide must translate INTO the frame, not past it: a track wider
+  // than one viewport once left this section blank on slide 2.
+  await page.locator(".m-landing-ai-dots button").nth(1).click();
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "1");
+  await page.waitForTimeout(1_200);
+  const frame = await page.locator(".m-landing-ai-viewport").boundingBox();
+  const chatCard = await page.locator(".m-landing-ai-feature.chat").boundingBox();
+  expect(chatCard.x).toBeGreaterThanOrEqual(frame.x - 2);
+  expect(chatCard.x + chatCard.width).toBeLessThanOrEqual(frame.x + frame.width + 2);
+  await page.locator(".m-landing-ai-dots button").nth(0).click();
+  await page.waitForTimeout(1_200);
   // The live preview shows the mic flanked by waveforms.
   await expect(page.locator(".m-landing-ai-feature.live .m-ai-wave")).toHaveCount(2);
   // The trust note stays its own band ABOVE the dark section, not inside it.
@@ -129,10 +144,9 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
       ".m-exercise-showcase",
       ".m-exercise-viewport",
       ".m-landing-ai",
-      ".m-landing-ai-grid",
-      ".m-landing-ai-feature.live",
-      ".m-landing-ai-feature.chat",
-      ".m-landing-ai-feature.live .m-ai-demo",
+      ".m-landing-ai-viewport",
+      ".m-landing-ai-slide[aria-hidden='false'] .m-landing-ai-feature",
+      ".m-landing-ai-slide[aria-hidden='false'] .m-ai-demo",
       ".m-landing-dictionary",
       ".m-landing-final .m-landing-section-inner",
       ".m-landing-foot",
@@ -188,10 +202,13 @@ test("exercise previews advance automatically while AI tools remain manual", asy
   test.skip(testInfo.project.name !== "desktop", "Autoplay timing is viewport-independent");
   await page.goto("/");
   const showcase = page.locator(".m-exercise-showcase");
+  const aiShowcase = page.locator(".m-landing-ai");
   await expect(showcase).toHaveAttribute("data-carousel-index", "0");
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
   await expect.poll(() => showcase.getAttribute("data-carousel-index"), { timeout:7_500 }).toBe("1");
-  // The AI section is no longer a carousel at all, so nothing there can rotate.
-  await expect(page.locator(".m-landing-ai")).not.toHaveAttribute("data-carousel-index");
+  await page.waitForTimeout(2_000);
+  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
+  await expect(page.locator(".m-landing-ai-pause")).toHaveCount(0);
 });
 
 test("AI calls to action preserve their intended destination", async ({ page }, testInfo) => {
@@ -201,6 +218,9 @@ test("AI calls to action preserve their intended destination", async ({ page }, 
   await expect(page.locator(".m-auth-gate")).toContainText("à la traduction en direct");
 
   await page.getByRole("button", { name:"Découvrir Monɔkɔ" }).click();
+  // The chat CTA is on the second slide, so bring it into frame first.
+  await page.locator(".m-landing-ai-dots button").nth(1).click();
+  await page.waitForTimeout(1_000);
   await page.locator(".m-landing-ai-feature.chat").getByRole("button", { name:"Parler avec Monɔkɔ" }).click();
   await expect(page.locator(".m-auth-gate")).toContainText("aux conversations");
 });

@@ -557,12 +557,24 @@ professor-verified corpus whenever the exercise content changes.
 The landing's AI section makes the two private tools concrete without presenting
 Monɔkɔ as a generic chatbot.
 
-**It is two cards on a dark band, not a carousel (2026-09-10).** The tabs, the
-sliding track and the swipe handling are gone. One tab panel meant a visitor saw
-*one* of the two tools and the other was `aria-hidden` — hidden from crawlers as
-well as from anyone who did not click. `.m-landing-ai-grid` renders both
-`.m-landing-ai-feature.live` and `.chat` side by side (stacked under 940px), each
-with its own icon, copy, inline preview, benefits and CTA.
+**It is a synchronized, manual carousel on a dark band (2026-09-10).** Only one
+tool shows at a time and `Traduction en direct` opens first. Above 940px, each
+`.m-landing-ai-feature` mirrors the exercise showcase: the large product preview
+is on the left and concise feature copy, benefits and CTA sit on the right. The
+arrows and `01 / 02` counter align below the copy while the dots align below the
+preview. At tablet and mobile widths the same slide becomes the original stacked
+white card and remains swipeable. There is deliberately no autoplay or pause
+button; visitors change tools with arrows, dots or a horizontal swipe.
+
+**The track must be exactly one viewport wide**, or `translateX(-100%)` per step
+overshoots. An attempt at keeping both cards visible with `flex: 0 0 calc(50% -
+12px)` and the same translate moved the pair a full card too far and left the
+section **completely empty** on slide 2. The smoke test now measures the second
+card's box against the viewport's so that cannot return silently.
+
+**Measure a carousel after its transition, not during it.** The 520ms slide fooled
+two separate checks in one session — once reporting a broken layout as fine, once
+the reverse. Wait ~2s, or read the computed transform instead of element positions.
 
 `.m-landing-ai-section` is `--m-forest`. The landing page is cream and white end
 to end, so making this the one dark band gives the AI story its own moment rather
@@ -582,8 +594,8 @@ until Phase 3.5 enforces them server-side.
 **The in-app chat now wears the landing preview's design (2026-09-08).** The
 `view === "chat"` screen was the last surface still using the old blue-gradient
 bubbles and a 🗣️ emoji header. It now uses the same language as
-`.m-ai-chat-demo`: a solid `#2075db` mark with the `messages` icon plus an
-`En ligne` badge, a solid blue user bubble at `10px 10px 3px 10px`, and — the
+`.m-ai-chat-demo`: a solid corpus-green mark with the `messages` icon plus an
+`En ligne` badge, a solid green user bubble at `10px 10px 3px 10px`, and — the
 part that carries the brand — the gold `.m-brand-mark` "M" as the assistant
 avatar beside a white card at `10px 10px 10px 3px`. The listen control moved out
 of the text-button row into a 44px round button to the right of the bubble;
@@ -595,7 +607,12 @@ the model, so only the shell is shared, never a fixed answer template.
 
 The old standalone quality flow was removed to avoid placing abstract AI claims
 before the products. Research support now appears in the teaching-method section; the AI trust strip
-says linguists and native speakers construct the corpus, examples and voices.
+says linguists and native speakers construct the corpus, examples and voices. The
+section lede repeats that promise in the product's own voice ("notre corpus vérifié
+par des linguistes et des locuteurs natifs"), phrased as the *priority* source
+rather than the only one — `api/chat.js` lets the model fall back on its own
+Lingala for words the corpus lacks, marking those `~` against `✓` for verified, so
+"only verified content" would be a false claim.
 
 **That strip is its own white section, `.m-landing-ai-bridge` (2026-09-08)** —
 between the skills section and the tinted `.m-landing-ai-section`, not inside the
