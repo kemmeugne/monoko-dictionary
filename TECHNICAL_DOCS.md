@@ -2116,6 +2116,36 @@ cleaned, broader benchmark still missing the product threshold.
 Artifacts: `artifacts/stt_benchmark/professor_25_manifest.json`, the complete JSON
 report, a sortable CSV, and an audio-enabled local HTML review page.
 
+### End-to-end Lingala speech → French gate
+
+The same 25 stored Scribe hypotheses were sent through the production translation
+shape on 2026-09-10: `text-embedding-3-small`, vector/dictionary RAG at 0.5,
+lesson RAG, and the `gpt-4o-mini` live-translation prompt. No audio was uploaded
+again. A separate `gpt-5-mini` semantic review compared the final French with the
+professor-verified French, accepting natural paraphrases.
+
+The existing pipeline preserved meaning in only 9/25 rows (36%): 5 correct,
+4 minor and 16 incorrect. Even character-perfect STT inputs could translate
+incorrectly because vector search retrieved the exact verified pair only 4/25
+times, while lesson expansion injected 58–303 rows into many simple translation
+turns.
+
+A controlled lexical-first variant normalized accents, punctuation and whitespace,
+then ranked all professor example sentences by character edit similarity. It
+retrieved the verified pair 25/25 times and reached 24/25 semantically acceptable
+French outputs (96%): 22 correct, 2 minor and 1 incorrect. The remaining failure,
+`A-D31`, is a meaningful one-character STT ambiguity (`ebele` / `ebili`).
+
+Production change: `sql/lingala_lexical_retrieval.sql` adds the bounded lexical
+RPC at a 0.72 floor. `/api/rag-context` places those verified matches before vector
+context and degrades gracefully if the RPC is unavailable. Lingala-to-French live
+turns no longer request expanded lesson context; French-to-Lingala still does.
+Run the SQL before deploying. Re-run the local report without provider calls via
+`npm run benchmark:live-translation -- --report-only`.
+
+Artifacts: `artifacts/stt_benchmark/live_translation_professor_25_results.json`,
+CSV review and audio-enabled HTML review.
+
 ---
 
 *Documentation last updated: 2026-09-09*

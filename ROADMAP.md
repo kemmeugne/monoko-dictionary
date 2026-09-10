@@ -205,6 +205,12 @@ boundaries are ignored, and 669 ms median / 915 ms p95 API latency. Keep Scribe
 for editable live translation; it is not ready to judge speaking automatically.
 Next, audit the worst reference/audio pairs, expand to 100 clips with multiple
 speakers, and test corpus-wide keyterm prompting before deciding on fine-tuning.
+An end-to-end French meaning check changed the immediate priority: the old
+vector-plus-lesson translation path preserved meaning in only 9/25 cases, while a
+lexical-first professor-corpus A/B reached 24/25 (96%). The corresponding API and
+SQL change is code-complete; apply `sql/lingala_lexical_retrieval.sql` before the
+next deployment. User recording collection and automatic speaking judgement stay
+deferred until there is a real, consented multi-speaker cohort.
 The future TTS dataset remains ready: `artifacts/professor_ingest/variant_clips_for_tts.json`
 holds **210** additional single-utterance audio/transcript pairs, and CLAUDE.md
 retains the complete ESPnet2 fine-tuning pipeline.

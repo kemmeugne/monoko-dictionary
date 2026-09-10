@@ -3677,7 +3677,9 @@
           });
           const [ragResult, lessonResult] = await Promise.allSettled([
             apiFetch("/api/rag-context", options({ query:sourceText, language_id:langId, min_similarity:0.5 })).then(async response => response.ok ? response.json() : Promise.reject(await responseError(response, "Corpus indisponible"))),
-            apiFetch("/api/lesson-context", options({ query:sourceText, language_id:langId })).then(async response => response.ok ? response.json() : Promise.reject(await responseError(response, "Cours indisponibles"))),
+            fromLingala
+              ? Promise.resolve({ context:"" })
+              : apiFetch("/api/lesson-context", options({ query:sourceText, language_id:langId })).then(async response => response.ok ? response.json() : Promise.reject(await responseError(response, "Cours indisponibles"))),
           ]);
           if (requestRef.current.id !== requestId) return;
           metrics.context_ms = Math.round(performance.now() - contextStart);

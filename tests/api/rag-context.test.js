@@ -10,7 +10,7 @@ vi.mock("../../api/_rate-limit.js", () => ({
 vi.mock("../../api/_auth.js", () => ({ authorizeApiRequest: vi.fn(async () => ({ id: "user-1" })) }));
 
 const { checkRateLimit } = await import("../../api/_rate-limit.js");
-const { default: handler, formatContext, formatDictionaryContext, topCluster } =
+const { default: handler, formatContext, formatDictionaryContext, formatLexicalContext, topCluster } =
   await import("../../api/rag-context.js");
 
 beforeEach(() => {
@@ -100,9 +100,24 @@ describe("formatDictionaryContext", () => {
   });
 });
 
+describe("formatLexicalContext", () => {
+  it("labels close Lingala sentence matches with their score", () => {
+    const out = formatLexicalContext([
+      { sentence_french: "Vous m'avez déçu", sentence_dialect: "Bo lembisi ngai", similarity: 0.857 },
+    ]);
+    expect(out).toContain("CORPUS LEXICAL LINGALA");
+    expect(out).toContain("Vous m'avez déçu → Bo lembisi ngai");
+    expect(out).toContain("85.7%");
+  });
+
+  it("returns an empty string without matches", () => {
+    expect(formatLexicalContext([])).toBe("");
+  });
+});
+
 function mockEmbedAndMatch({
   matchRows = [], embedOk = true, matchOk = true,
-  exampleRows = [], senseRows = [], dictOk = true,
+  exampleRows = [], senseRows = [], lexicalRows = [], dictOk = true,
 } = {}) {
   const dict = async (rows) =>
     dictOk
@@ -123,6 +138,7 @@ function mockEmbedAndMatch({
           ? jsonResponse(matchRows)
           : { ok: false, status: 500, text: async () => "rpc failed" },
     ],
+    ["rpc/match_examples_lexical", async () => dict(lexicalRows)],
     ["rpc/match_examples", async () => dict(exampleRows)],
     ["rpc/match_senses",   async () => dict(senseRows)],
   ]);
@@ -252,6 +268,22 @@ describe("rag-context handler", () => {
 });
 
 describe("rag-context dictionary retrieval", () => {
+  it("puts high-confidence lexical Lingala matches ahead of vector context", async () => {
+    global.fetch = mockEmbedAndMatch({
+      matchRows: [{ french_text: "Bonjour", lingala_text: "Mbote", quality: "verified", similarity: 0.9 }],
+      lexicalRows: [{ id: 7, sentence_french: "Vous m'avez déçu", sentence_dialect: "Bo lembisi ngai", similarity: 0.857 }],
+    });
+    const req = createMockReq({ method: "POST", body: { query: "Bulembisi ngayi", language_id: 1 } });
+    const res = createMockRes();
+    await handler(req, res);
+    expect(res.statusCode).toBe(200);
+    expect(res.jsonBody.context.indexOf("CORPUS LEXICAL")).toBeLessThan(
+      res.jsonBody.context.indexOf("CORPUS VÉRIFIÉ"),
+    );
+    expect(res.jsonBody.context).toContain("Vous m'avez déçu → Bo lembisi ngai");
+    expect(res.jsonBody.result_count).toBe(2);
+  });
+
   it("merges dictionary hits into the context alongside the corpus", async () => {
     global.fetch = mockEmbedAndMatch({
       matchRows:   [{ french_text: "Bonjour", lingala_text: "Mbote", quality: "verified", similarity: 0.9 }],

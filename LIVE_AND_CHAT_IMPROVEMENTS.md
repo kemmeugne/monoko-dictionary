@@ -228,6 +228,19 @@ played through the shared TTS pipeline.
 - Future opt-in user mic capture still requires explicit consent, retention rules
   and a privacy notice before any blob is stored for training.
 
+### ✅ 5.5b Validate final French meaning — BENCHMARKED 2026-09-10
+- The original production path was only 9/25 semantically acceptable (36%), even
+  though many STT transcripts were character-perfect. Exact verified retrieval
+  succeeded only 4/25 times and lesson expansion added up to 303 rows of noise.
+- A lexical-first A/B over all professor example sentences retrieved 25/25 target
+  pairs and produced 24/25 acceptable French outputs (96%: 22 correct, 2 minor,
+  1 incorrect). The remaining error was the `ebele` / `ebili` minimal ambiguity.
+- Production implementation is code-complete: apply
+  `sql/lingala_lexical_retrieval.sql`, then deploy. High-confidence lexical pairs
+  precede vector context; Lingala-to-French turns skip lesson expansion.
+- `scripts/benchmark_lingala_live_translation.mjs` checkpoints provider results
+  and regenerates JSON, CSV and audio-enabled HTML review artifacts.
+
 ### ⚠ 5.6 TTS warm-up — VIEW PING SHIPPED; CRON NOT CONFIGURED
 - `api/cron/keep-tts-warm.js` — pings `${MMS_SPACE_URL}/` with an 8s timeout, returns `{status: "ok"|"loading"|"warming"}`.
 - `api/cron/keep-tts-warm.js` exists, but `vercel.json` currently has no cron
@@ -345,6 +358,10 @@ the product target.
    `B-D63`, then expand the clean benchmark to 100 clips and multiple speakers.
 3. With a separate upload authorization, compare baseline Scribe with a global
    Lingala keyterm list. Decide on STT fine-tuning only after those two controls.
+4. Before the next Vercel deployment, replace the currently rejected
+   `SUPABASE_SERVICE_KEY`; a read-only public key was used only for this benchmark.
+5. Apply `sql/lingala_lexical_retrieval.sql`, deploy the 96% lexical-first path,
+   and then begin the professor-voice TTS data audit.
 
 ---
 

@@ -1239,6 +1239,24 @@ the model is not ready for automatic pass/fail grading. Audit `B-D63`, expand to
 100 multi-speaker clips, then test corpus-wide keyterms before any fine-tune.
 Recreate reports without API calls using `npm run benchmark:stt -- --report-only`.
 
+**End-to-end translation decision (2026-09-10):** the original STT → vector RAG
+→ lesson RAG → `gpt-4o-mini` path preserved the professor-verified French meaning
+in only 9/25 rows (36%). Vector retrieval found the exact known pair only 4/25
+times, and lesson expansion returned 58–303 rows for many simple turns. A
+lexical-first character match over all professor examples, with lesson context
+omitted for Lingala-to-French, retrieved 25/25 pairs and reached 24/25 acceptable
+French outputs (96%). Apply `sql/lingala_lexical_retrieval.sql` before deploying
+the corresponding `/api/rag-context` and `index.html` changes. Re-run summaries
+without external calls using
+`npm run benchmark:live-translation -- --report-only`.
+
+**Deployment blocker found during the benchmark:** the `SUPABASE_SERVICE_KEY`
+pulled from the linked `monoko-app` Vercel production environment returned
+`401 Unregistered API key` for the configured `haioiccujncsehadipzb` project.
+Replace it with a current secret from that exact Supabase project and redeploy
+before releasing these changes. The benchmark temporarily used the app's public
+read key for read-only RPCs; production authentication must never do that.
+
 **Space files are one release unit.** Deploy `tts_space/app.py`, `README.md` and
 `requirements.txt` together. On 2026-09-08, updating only `app.py` exposed stale
 Space files: Hugging Face selected Python 3.13 and pip resolved an old librosa that

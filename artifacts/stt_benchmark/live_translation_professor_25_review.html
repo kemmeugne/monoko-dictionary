@@ -1,0 +1,136 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monoko - Validation traduction en direct</title><style>
+body{font-family:system-ui,sans-serif;margin:32px;color:#17231b;background:#f5f7f4}main{max-width:1500px;margin:auto}h1{font-family:Georgia,serif}
+.summary{display:flex;gap:28px;flex-wrap:wrap;margin:20px 0}.summary strong{font-size:1.45rem}table{width:100%;border-collapse:collapse;background:#fff}
+th,td{padding:12px;border:1px solid #d9e2da;text-align:left;vertical-align:top}th{background:#153f34;color:#fff;position:sticky;top:0}
+small{display:block;color:#66736b;font-weight:700;margin:0 0 3px}.badge{font-size:.75rem;text-transform:uppercase;font-weight:800}.incorrect .badge{color:#b83222}.minor .badge{color:#91610b}.correct .badge{color:#197043}
+audio{width:210px;max-width:25vw}@media(max-width:850px){body{margin:10px}table{font-size:.82rem}th,td{padding:7px}audio{width:130px}}
+</style></head><body><main><h1>Validation Lingala parle vers français</h1>
+<p>Les erreurs potentielles apparaissent en premier. La décision automatique doit être confirmée humainement.</p>
+<div class="summary"><span><strong>36.0%</strong><br>production acceptable</span><span><strong>96.0%</strong><br>lexical acceptable</span><span><strong>22</strong><br>lexical correct</span><span><strong>2</strong><br>lexical mineur</span><span><strong>1</strong><br>lexical incorrect</span><span><strong>25/25</strong><br>paire lexicale retrouvée</span></div>
+<table><thead><tr><th>Clip</th><th>Audio</th><th>Lingala</th><th>Français</th><th>Évaluation lexicale</th><th>Corpus</th></tr></thead><tbody><tr class="incorrect"><td><strong>A-D31</strong><br><span class="badge">incorrect</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre A/A.D31.mp3"></audio></td>
+<td><small>Professeur</small>Na za na makambu ebele ya ko sala na mposo oyo.<br><small>Scribe</small>Nazana makambo ebili ya kosala na mposu oyo</td>
+<td><small>Attendu</small>J’ai trop d&#039;activités cette semaine.<br><small>Production</small>Je vais faire deux choses ce soir.<br><small>Lexical</small>J&#039;ai deux choses à faire cette semaine.</td>
+<td>Phrase vérifiée indique «trop d&#039;activités» tandis que pipeline dit «deux choses»—quantité et intensité changées.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="minor"><td><strong>B-D63</strong><br><span class="badge">minor</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre B/B.D63.mp3"></audio></td>
+<td><small>Professeur</small>Atambolaka tengu banda motuka etuta ye.<br><small>Scribe</small>Akoma kotambola tengu-tengu banda motuka etuta ye.</td>
+<td><small>Attendu</small>Il boite depuis son accident.<br><small>Production</small>Il continue à boiter depuis que la voiture l&#039;a heurté.<br><small>Lexical</small>Il continue de boiter depuis son accident.</td>
+<td>Ajout de «continue de» suggère continuité actuelle mais sens global (boiter depuis l&#039;accident) reste proche.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="minor"><td><strong>O-D20</strong><br><span class="badge">minor</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre O/O.D20.mp3"></audio></td>
+<td><small>Professeur</small>Pakola mafuta na nzoto na yo.<br><small>Scribe</small>Pakola mafuta na nzoto na yo</td>
+<td><small>Attendu</small>Applique bien l&#039;huile sur ton corps (oins toi bien)<br><small>Production</small>Applique bien l&#039;huile sur ton corps.<br><small>Lexical</small>Applique bien l&#039;huile sur ton corps.</td>
+<td>Parenthèse explicative supprimée («oins toi bien») : sens principal conservé mais nuance de conseil plus explicite perdue.</td><td>Vecteur: oui<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>T-D135</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre T/T.D135.mp3"></audio></td>
+<td><small>Professeur</small>Esengeli ko sala nionso pona ko koma na suka ya nzela.<br><small>Scribe</small>Isingeli kusala nyoso puna hukuma na suka ya nzila</td>
+<td><small>Attendu</small>Il faut tout faire pour arriver au bout du tunnel.<br><small>Production</small>Il faut tout faire pour atteindre la fin du chemin.<br><small>Lexical</small>Il faut tout faire pour arriver au bout du tunnel.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>D-D16</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre D/D.D16.mp3"></audio></td>
+<td><small>Professeur</small>Bo lembisi ngai.<br><small>Scribe</small>Bulembisi ngayi</td>
+<td><small>Attendu</small>Vous m&#039;avez déçu<br><small>Production</small>Je suis fatigué.<br><small>Lexical</small>Vous m&#039;avez déçu.</td>
+<td>Ponctuation ajoutée seulement, sens identique.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>R-D143</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre R/R.D143.mp3"></audio></td>
+<td><small>Professeur</small>Simba ndako ya nzoi te soki te ba ko sua yo.<br><small>Scribe</small>Simba ndako ya nzoyi te, nukiti bakoswa yo</td>
+<td><small>Attendu</small>Ne touche pas la ruche sinon tu vas te faire piquer<br><small>Production</small>Ne reste pas debout, sinon ils vont te frapper.<br><small>Lexical</small>Ne touche pas la ruche, sinon tu vas te faire piquer.</td>
+<td>Identique à l&#039;exception d&#039;une virgule, sens conservé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>U-D5</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre U/U.D5.mp3"></audio></td>
+<td><small>Professeur</small>Mobali na mwasi ba sanganaka pona libela mokolo ya libala.<br><small>Scribe</small>Mwasi na mobali basanganaka mpona libela mokolo ya libala.</td>
+<td><small>Attendu</small>L&#039;homme et la femme s&#039;unissent pour la vie le jour du mariage.<br><small>Production</small>Les femmes et les hommes se réunissent pour célébrer le jour du mariage.<br><small>Lexical</small>L&#039;homme et la femme s&#039;unissent pour la vie le jour du mariage.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>I-D65</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre I/I.D65.mp3"></audio></td>
+<td><small>Professeur</small>Ba paya ba ye nanu te.<br><small>Scribe</small>Bapa ya bayé naino te</td>
+<td><small>Attendu</small>Les invités ne sont pas encore arrivés<br><small>Production</small>Le père des enfants n&#039;est pas là.<br><small>Lexical</small>Les invités ne sont pas encore arrivés.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>W-D3</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre W/W.D3.mp3"></audio></td>
+<td><small>Professeur</small>Na zo zela suka ya mposo po na pema.<br><small>Scribe</small>Nazo zela suka yapuso pona pema</td>
+<td><small>Attendu</small>J&#039;attends le week-end pour me reposer<br><small>Production</small>J&#039;attends la fin de la journée pour manger.<br><small>Lexical</small>J&#039;attends le week-end pour me reposer.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>M-D42</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre M/M.D42.mp3"></audio></td>
+<td><small>Professeur</small>Mangolo oyo epoli.<br><small>Scribe</small>Mangoro oyo epoli</td>
+<td><small>Attendu</small>Cette mangue est pourrie<br><small>Production</small>Cette mangue est pourrie.<br><small>Lexical</small>Cette mangue est pourrie.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: oui<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>L-D70</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre L/L.D70.mp3"></audio></td>
+<td><small>Professeur</small>Eza ye nde na ko bala.<br><small>Scribe</small>Ezayende na kubala</td>
+<td><small>Attendu</small>C&#039;est lui que je vais épouser<br><small>Production</small>C&#039;est un mariage.<br><small>Lexical</small>C&#039;est lui que je vais épouser.</td>
+<td>Identique, sens préservé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>J-D22</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre J/J.D22.mp3"></audio></td>
+<td><small>Professeur</small>Bana oyo ba bongisaka biloko na bango ya ko sakana te.<br><small>Scribe</small>Bana oyo babongisaka biloko na bango ya kosakana</td>
+<td><small>Attendu</small>Ces enfants ne rangent jamais leurs jouets<br><small>Production</small>Ces enfants fabriquent leurs jouets.<br><small>Lexical</small>Ces enfants ne rangent jamais leurs jouets.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>V-D69</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre V/V.D69.mp3"></audio></td>
+<td><small>Professeur</small>Nzinga na bino eza makasi mingi.<br><small>Scribe</small>Nzenga na bino eza makasi mingi</td>
+<td><small>Attendu</small>Votre langue est difficile.<br><small>Production</small>Votre chemin est très difficile.<br><small>Lexical</small>Votre langue est difficile.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>Z-D4</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre Z/Z.D4.mp3"></audio></td>
+<td><small>Professeur</small>Pona ko koma zomi esengeli ko koma moko na libungutulu.<br><small>Scribe</small>Puna kokoma zomi esengeli kokoma moko na libungutulu</td>
+<td><small>Attendu</small>Pour écrire dix il faut écrire un et zéro<br><small>Production</small>Pour écrire 11, il faut écrire 1 et 10.<br><small>Lexical</small>Pour écrire dix, il faut écrire un et zéro.</td>
+<td>Identique à l&#039;exception d&#039;une virgule, sens conservé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>E-G32</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre E/E.G32.mp3"></audio></td>
+<td><small>Professeur</small>Mikakatano ekaboli biso.<br><small>Scribe</small>Mikakatano eka bolibiso</td>
+<td><small>Attendu</small>Les problèmes nous ont éloignés<br><small>Production</small>Les problèmes sont nombreux.<br><small>Lexical</small>Les problèmes nous ont éloignés.</td>
+<td>Textes identiques, même sens.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>R-D140</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre R/R.D140.mp3"></audio></td>
+<td><small>Professeur</small>Ningisa libanga oyo.<br><small>Scribe</small>Ni ngisa libanga oyo</td>
+<td><small>Attendu</small>Fais rouler cette pierre<br><small>Production</small>C&#039;est un caillou.<br><small>Lexical</small>Fais rouler cette pierre.</td>
+<td>Identique à l&#039;exception d&#039;un point final.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>S-D36</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre S/S.D36.mp3"></audio></td>
+<td><small>Professeur</small>Nzambe abikisi ngai.<br><small>Scribe</small>Nzambe abikisi ngai</td>
+<td><small>Attendu</small>Dieu m&#039;a sauvé.<br><small>Production</small>Dieu m&#039;a sauvé.<br><small>Lexical</small>Dieu m&#039;a sauvé.</td>
+<td>Identique, sens préservé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>F-D27</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre F/F.D27.mp3"></audio></td>
+<td><small>Professeur</small>Mwasi na ngai azali na zemi.<br><small>Scribe</small>Mwasi na ngai azali na zemi</td>
+<td><small>Attendu</small>Ma femme est enceinte<br><small>Production</small>Ma femme est enceinte.<br><small>Lexical</small>Ma femme est enceinte.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: oui<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>G-D66</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre G/G.D66.mp3"></audio></td>
+<td><small>Professeur</small>Sima ya ko bela mingi obiki.<br><small>Scribe</small>Sima ya kobela mingi obiki</td>
+<td><small>Attendu</small>Après beaucoup de souffrances tu es finalement guéri.<br><small>Production</small>Après avoir beaucoup souffert, tu guéris.<br><small>Lexical</small>Après beaucoup de souffrances, tu es finalement guéri.</td>
+<td>Identique à l&#039;exception d&#039;une virgule, sens conservé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>N-G53</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre N/N.G53.mp3"></audio></td>
+<td><small>Professeur</small>Na yebi ko beta ndembo te.<br><small>Scribe</small>Nayebi kobeta ndembo te.</td>
+<td><small>Attendu</small>Je suis nul au football.<br><small>Production</small>Je ne sais pas jouer de la musique.<br><small>Lexical</small>Je suis nul au football.</td>
+<td>Identique, même sens.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>P-D3</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre P/P.D3.mp3"></audio></td>
+<td><small>Professeur</small>To yokani na mboka ya pembeni.<br><small>Scribe</small>Toyoka nina mboka ya pembeni</td>
+<td><small>Attendu</small>Nous avons conclu un pacte avec le village voisin.<br><small>Production</small>Nous entendons le bruit du pays voisin.<br><small>Lexical</small>Nous avons conclu un pacte avec le village voisin.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>Q-D15</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre Q/Q.D15.mp3"></audio></td>
+<td><small>Professeur</small>Mokila ya mbisi eza mokuse mingi.<br><small>Scribe</small>Mokila ya mbisi eza mokuse mingi.</td>
+<td><small>Attendu</small>La queue du poisson est très courte<br><small>Production</small>La queue du poisson est très courte.<br><small>Lexical</small>La queue du poisson est très courte.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: oui<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>C-D223</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre C/C.D223.mp3"></audio></td>
+<td><small>Professeur</small>Na zo mona bolangeti ya sika te, pe ya kala epasuki.<br><small>Scribe</small>Nazomona bolangeti ya sika te pe ya kala epasuki.</td>
+<td><small>Attendu</small>Je ne trouve pas la nouvelle couverture, et l’ancienne est déchirée.<br><small>Production</small>Je ne vois pas de nouveauté ni d&#039;ancienneté.<br><small>Lexical</small>Je ne trouve pas la nouvelle couverture, et l’ancienne est déchirée.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>H-D39</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre H/H.D39.mp3"></audio></td>
+<td><small>Professeur</small>Na zo lala na esika yo ko lala wuta poso moko.<br><small>Scribe</small>Nazolala na esika yo kolala wuta poso moko.</td>
+<td><small>Attendu</small>Je dors à l&#039;hôtel depuis 1 semaine.<br><small>Production</small>Je vais rester chez toi jusqu&#039;à demain.<br><small>Lexical</small>Je dors à l&#039;hôtel depuis 1 semaine.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr>
+<tr class="correct"><td><strong>Y-D3</strong><br><span class="badge">correct</span></td>
+<td><audio controls preload="none" src="../../../raw_data/Lingala/audio/Audios Lingala Finaux (01.02.2026)/Lettre Y/Y.D3.mp3"></audio></td>
+<td><small>Professeur</small>Miso na nga ekangamaka soki kaka ba bomi mwinda.<br><small>Scribe</small>Misonanga ekangamaka soki kaka babomi mwinda.</td>
+<td><small>Attendu</small>Mes yeux se ferment dès qu’on éteint la lumière.<br><small>Production</small>Les étoiles brillent seulement quand il fait noir.<br><small>Lexical</small>Mes yeux se ferment dès qu’on éteint la lumière.</td>
+<td>Identique, sens inchangé.</td><td>Vecteur: non<br>Lexical: oui</td></tr></tbody></table>
+</main></body></html>

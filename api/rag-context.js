@@ -43,6 +43,8 @@ const SIMILARITY_THRESHOLD = 0.3;
 const DICT_EXAMPLE_MATCH     = 12;
 const DICT_SENSE_MATCH       = 6;
 const DICT_SENSE_THRESHOLD   = 0.45;
+const LEXICAL_EXAMPLE_MATCH  = 3;
+const LEXICAL_THRESHOLD      = 0.72;
 
 // Dictionary entries are short strings, and short strings embed into a narrow
 // similarity band — on "comment dit-on une cuillère" the right answer scores
@@ -155,6 +157,39 @@ export function formatDictionaryContext(examples, senses) {
   return lines.join("\n");
 }
 
+export function formatLexicalContext(examples) {
+  if (!examples || examples.length === 0) return "";
+  const lines = ["=== CORPUS LEXICAL LINGALA (paires vérifiées) ==="];
+  for (const row of examples) {
+    lines.push(
+      `• ${row.sentence_french} → ${row.sentence_dialect} `
+      + `[vérifié; proximité ${(row.similarity * 100).toFixed(1)}%]`,
+    );
+  }
+  return lines.join("\n");
+}
+
+async function matchLexicalExamples(query, languageId) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/match_examples_lexical`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...supabaseServiceHeaders(),
+    },
+    body: JSON.stringify({
+      p_query: query,
+      match_count: LEXICAL_EXAMPLE_MATCH,
+      p_language_id: languageId,
+      min_similarity: LEXICAL_THRESHOLD,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase lexical RPC error: ${err}`);
+  }
+  return res.json();
+}
+
 export default async function handler(req, res) {
   setCorsHeaders(res, req);
 
@@ -191,10 +226,11 @@ export default async function handler(req, res) {
 
     // The corpus lookup is required; the dictionary ones are additive, so they
     // go through allSettled and a rejection there leaves chat exactly as it was.
-    const [corpusRes, exampleRes, senseRes] = await Promise.allSettled([
+    const [corpusRes, exampleRes, senseRes, lexicalRes] = await Promise.allSettled([
       matchParallelSentences(embedding, language_id, match_count || DEFAULT_MATCH),
       callMatchRpc("match_examples", embedding, language_id, DICT_EXAMPLE_MATCH),
       callMatchRpc("match_senses",   embedding, language_id, DICT_SENSE_MATCH),
+      matchLexicalExamples(query, language_id),
     ]);
 
     if (corpusRes.status === "rejected") throw corpusRes.reason;
@@ -202,10 +238,17 @@ export default async function handler(req, res) {
 
     if (exampleRes.status === "rejected") console.error("match_examples failed:", exampleRes.reason?.message);
     if (senseRes.status   === "rejected") console.error("match_senses failed:",   senseRes.reason?.message);
+    if (lexicalRes.status === "rejected") console.error("match_examples_lexical failed:", lexicalRes.reason?.message);
+
+    const lexicalExamples = topCluster(
+      lexicalRes.status === "fulfilled" ? lexicalRes.value : [],
+      0.08,
+    );
+    const lexicalIds = new Set(lexicalExamples.map(row => row.id));
 
     const dictExamples = topCluster(
       (exampleRes.status === "fulfilled" ? exampleRes.value : [])
-        .filter(r => r.similarity >= threshold)
+        .filter(r => r.similarity >= threshold && !lexicalIds.has(r.id))
     );
     const dictSenses = topCluster(
       (senseRes.status === "fulfilled" ? senseRes.value : [])
@@ -214,13 +257,14 @@ export default async function handler(req, res) {
 
     const relevant = rows.filter(r => r.similarity >= threshold);
     const parts = [
+      formatLexicalContext(lexicalExamples),
       formatContext(relevant.length > 0 ? relevant : rows),
       formatDictionaryContext(dictExamples, dictSenses),
     ].filter(Boolean);
 
     return res.status(200).json({
       context:      parts.join("\n\n"),
-      result_count: rows.length + dictExamples.length + dictSenses.length,
+      result_count: rows.length + lexicalExamples.length + dictExamples.length + dictSenses.length,
     });
   } catch (e) {
     console.error("rag-context error:", e.message);

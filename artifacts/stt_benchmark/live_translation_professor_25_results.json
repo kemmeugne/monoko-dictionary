@@ -1,0 +1,1820 @@
+{
+  "benchmark_version": 1,
+  "generated_at": "2026-09-10T14:31:19.382Z",
+  "pipeline": {
+    "input": "Stored Scribe v2 hypotheses from the professor 25-clip STT benchmark",
+    "embedding_model": "text-embedding-3-small",
+    "rag_min_similarity": 0.5,
+    "translation_model": "gpt-4o-mini",
+    "translation_mode": "live-translation / lingala_to_fr",
+    "judge_model": "gpt-5-mini",
+    "isolated_turns": true,
+    "note": "No professor audio is uploaded again. Direct provider calls reproduce production retrieval and translation settings while bypassing app auth/rate limits."
+  },
+  "samples": 25,
+  "successes": 25,
+  "failures": 0,
+  "exact_french_matches": 4,
+  "reference_pair_retrieved": 4,
+  "semantic_verdicts": {
+    "correct": 5,
+    "minor": 4,
+    "incorrect": 16,
+    "unreviewed": 0
+  },
+  "acceptable_rate": 0.36,
+  "lexical_ab": {
+    "description": "High-confidence character retrieval over professor examples; vector and lesson context omitted",
+    "reference_pair_retrieved": 25,
+    "semantic_verdicts": {
+      "correct": 22,
+      "minor": 2,
+      "incorrect": 1,
+      "unreviewed": 0
+    },
+    "acceptable_rate": 0.96
+  },
+  "latency_ms": {
+    "context_median": 585,
+    "context_p95": 2021,
+    "translation_median": 871,
+    "translation_p95": 1716
+  },
+  "results": [
+    {
+      "id": "D-D16",
+      "bucket": "short",
+      "reference_lingala": "Bo lembisi ngai.",
+      "stt_hypothesis": "Bulembisi ngayi",
+      "stt_cer": 0.15384615384615385,
+      "reference_french": "Vous m'avez déçu",
+      "translation": "Je suis fatigué.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 4,
+        "lessons": 144
+      },
+      "context_ms": 2656,
+      "translation_ms": 1716,
+      "usage": {
+        "prompt_tokens": 4904,
+        "completion_tokens": 6,
+        "total_tokens": 4910,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "D-D16",
+        "verdict": "incorrect",
+        "reason": "Sens diffère totalement : déception vs fatigue."
+      },
+      "lexical_translation": "Vous m'avez déçu.",
+      "lexical_translation_ms": 2208,
+      "lexical_usage": {
+        "prompt_tokens": 99,
+        "completion_tokens": 6,
+        "total_tokens": 105,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.8571428571428572,
+      "lexical_matches": [
+        {
+          "sentence_french": "Vous m'avez déçu",
+          "sentence_dialect": "Bo lembisi ngai.",
+          "similarity": 0.8571428571428572
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "D-D16",
+        "verdict": "correct",
+        "reason": "Ponctuation ajoutée seulement, sens identique."
+      }
+    },
+    {
+      "id": "E-G32",
+      "bucket": "short",
+      "reference_lingala": "Mikakatano ekaboli biso.",
+      "stt_hypothesis": "Mikakatano eka bolibiso",
+      "stt_cer": 0,
+      "reference_french": "Les problèmes nous ont éloignés",
+      "translation": "Les problèmes sont nombreux.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 1,
+        "lessons": 69
+      },
+      "context_ms": 585,
+      "translation_ms": 632,
+      "usage": {
+        "prompt_tokens": 2535,
+        "completion_tokens": 5,
+        "total_tokens": 2540,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "E-G32",
+        "verdict": "incorrect",
+        "reason": "Changements importants : éloignement vs simple pluralité de problèmes."
+      },
+      "lexical_translation": "Les problèmes nous ont éloignés.",
+      "lexical_translation_ms": 458,
+      "lexical_usage": {
+        "prompt_tokens": 106,
+        "completion_tokens": 8,
+        "total_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Les problèmes nous ont éloignés",
+          "sentence_dialect": "Mikakatano ekaboli biso.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "E-G32",
+        "verdict": "correct",
+        "reason": "Textes identiques, même sens."
+      }
+    },
+    {
+      "id": "M-D42",
+      "bucket": "short",
+      "reference_lingala": "Mangolo oyo epoli.",
+      "stt_hypothesis": "Mangoro oyo epoli",
+      "stt_cer": 0.06666666666666667,
+      "reference_french": "Cette mangue est pourrie",
+      "translation": "Cette mangue est pourrie.",
+      "reference_pair_retrieved": true,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 1,
+        "senses": 1,
+        "lessons": 163
+      },
+      "context_ms": 665,
+      "translation_ms": 766,
+      "usage": {
+        "prompt_tokens": 6364,
+        "completion_tokens": 7,
+        "total_tokens": 6371,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "M-D42",
+        "verdict": "correct",
+        "reason": "Identique en sens et formulation."
+      },
+      "lexical_translation": "Cette mangue est pourrie.",
+      "lexical_translation_ms": 623,
+      "lexical_usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 7,
+        "total_tokens": 107,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.9333333333333333,
+      "lexical_matches": [
+        {
+          "sentence_french": "Cette mangue est pourrie",
+          "sentence_dialect": "Mangolo oyo epoli.",
+          "similarity": 0.9333333333333333
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "M-D42",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "R-D140",
+      "bucket": "short",
+      "reference_lingala": "Ningisa libanga oyo.",
+      "stt_hypothesis": "Ni ngisa libanga oyo",
+      "stt_cer": 0,
+      "reference_french": "Fais rouler cette pierre",
+      "translation": "C'est un caillou.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 0,
+        "lessons": 179
+      },
+      "context_ms": 473,
+      "translation_ms": 643,
+      "usage": {
+        "prompt_tokens": 6471,
+        "completion_tokens": 7,
+        "total_tokens": 6478,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "R-D140",
+        "verdict": "incorrect",
+        "reason": "Action demandée (faire rouler) remplacée par simple description (c'est un caillou)."
+      },
+      "lexical_translation": "Fais rouler cette pierre.",
+      "lexical_translation_ms": 519,
+      "lexical_usage": {
+        "prompt_tokens": 100,
+        "completion_tokens": 7,
+        "total_tokens": 107,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Fais rouler cette pierre",
+          "sentence_dialect": "Ningisa libanga oyo.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "R-D140",
+        "verdict": "correct",
+        "reason": "Identique à l'exception d'un point final."
+      }
+    },
+    {
+      "id": "S-D36",
+      "bucket": "short",
+      "reference_lingala": "Nzambe abikisi ngai.",
+      "stt_hypothesis": "Nzambe abikisi ngai",
+      "stt_cer": 0,
+      "reference_french": "Dieu m'a sauvé.",
+      "translation": "Dieu m'a sauvé.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 2,
+        "examples": 6,
+        "senses": 6,
+        "lessons": 58
+      },
+      "context_ms": 600,
+      "translation_ms": 1446,
+      "usage": {
+        "prompt_tokens": 1721,
+        "completion_tokens": 7,
+        "total_tokens": 1728,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "S-D36",
+        "verdict": "correct",
+        "reason": "Même sens et même formulation."
+      },
+      "lexical_translation": "Dieu m'a sauvé.",
+      "lexical_translation_ms": 678,
+      "lexical_usage": {
+        "prompt_tokens": 101,
+        "completion_tokens": 7,
+        "total_tokens": 108,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Dieu m'a sauvé.",
+          "sentence_dialect": "Nzambe abikisi ngai.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "S-D36",
+        "verdict": "correct",
+        "reason": "Identique, sens préservé."
+      }
+    },
+    {
+      "id": "B-D63",
+      "bucket": "medium",
+      "reference_lingala": "Atambolaka tengu banda motuka etuta ye.",
+      "stt_hypothesis": "Akoma kotambola tengu-tengu banda motuka etuta ye.",
+      "stt_cer": 0.3333333333333333,
+      "reference_french": "Il boite depuis son accident.",
+      "translation": "Il continue à boiter depuis que la voiture l'a heurté.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 1,
+        "lessons": 278
+      },
+      "context_ms": 515,
+      "translation_ms": 1221,
+      "usage": {
+        "prompt_tokens": 8951,
+        "completion_tokens": 15,
+        "total_tokens": 8966,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "B-D63",
+        "verdict": "minor",
+        "reason": "Sens principal (il boite depuis l'accident) préservé mais pipeline ajoute précision temporelle/causale supplémentaire."
+      },
+      "lexical_translation": "Il continue de boiter depuis son accident.",
+      "lexical_translation_ms": 582,
+      "lexical_usage": {
+        "prompt_tokens": 118,
+        "completion_tokens": 9,
+        "total_tokens": 127,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.7380952380952381,
+      "lexical_matches": [
+        {
+          "sentence_french": "Il boite depuis son accident.",
+          "sentence_dialect": "Atambolaka tengu banda motuka etuta ye.",
+          "similarity": 0.7380952380952381
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "B-D63",
+        "verdict": "minor",
+        "reason": "Ajout de «continue de» suggère continuité actuelle mais sens global (boiter depuis l'accident) reste proche."
+      }
+    },
+    {
+      "id": "F-D27",
+      "bucket": "medium",
+      "reference_lingala": "Mwasi na ngai azali na zemi.",
+      "stt_hypothesis": "Mwasi na ngai azali na zemi",
+      "stt_cer": 0,
+      "reference_french": "Ma femme est enceinte",
+      "translation": "Ma femme est enceinte.",
+      "reference_pair_retrieved": true,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 1,
+        "senses": 1,
+        "lessons": 241
+      },
+      "context_ms": 537,
+      "translation_ms": 1427,
+      "usage": {
+        "prompt_tokens": 8127,
+        "completion_tokens": 5,
+        "total_tokens": 8132,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "F-D27",
+        "verdict": "correct",
+        "reason": "Identique en sens et formulation."
+      },
+      "lexical_translation": "Ma femme est enceinte.",
+      "lexical_translation_ms": 612,
+      "lexical_usage": {
+        "prompt_tokens": 106,
+        "completion_tokens": 5,
+        "total_tokens": 111,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Ma femme est enceinte",
+          "sentence_dialect": "Mwasi na ngai azali na zemi.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "F-D27",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "G-D66",
+      "bucket": "medium",
+      "reference_lingala": "Sima ya ko bela mingi obiki.",
+      "stt_hypothesis": "Sima ya kobela mingi obiki",
+      "stt_cer": 0,
+      "reference_french": "Après beaucoup de souffrances tu es finalement guéri.",
+      "translation": "Après avoir beaucoup souffert, tu guéris.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 1,
+        "lessons": 193
+      },
+      "context_ms": 470,
+      "translation_ms": 1070,
+      "usage": {
+        "prompt_tokens": 6612,
+        "completion_tokens": 10,
+        "total_tokens": 6622,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "G-D66",
+        "verdict": "minor",
+        "reason": "Sens principal conservé (guérison après souffrances) mais temps/nature de l'action changés légèrement."
+      },
+      "lexical_translation": "Après beaucoup de souffrances, tu es finalement guéri.",
+      "lexical_translation_ms": 581,
+      "lexical_usage": {
+        "prompt_tokens": 112,
+        "completion_tokens": 13,
+        "total_tokens": 125,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Après beaucoup de souffrances tu es finalement guéri.",
+          "sentence_dialect": "Sima ya ko bela mingi obiki.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "G-D66",
+        "verdict": "correct",
+        "reason": "Identique à l'exception d'une virgule, sens conservé."
+      }
+    },
+    {
+      "id": "I-D65",
+      "bucket": "medium",
+      "reference_lingala": "Ba paya ba ye nanu te.",
+      "stt_hypothesis": "Bapa ya bayé naino te",
+      "stt_cer": 0.125,
+      "reference_french": "Les invités ne sont pas encore arrivés",
+      "translation": "Le père des enfants n'est pas là.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 1,
+        "examples": 2,
+        "senses": 0,
+        "lessons": 123
+      },
+      "context_ms": 541,
+      "translation_ms": 737,
+      "usage": {
+        "prompt_tokens": 4422,
+        "completion_tokens": 9,
+        "total_tokens": 4431,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "I-D65",
+        "verdict": "incorrect",
+        "reason": "Sens totalement différent : absence des invités vs absence du père des enfants."
+      },
+      "lexical_translation": "Les invités ne sont pas encore arrivés.",
+      "lexical_translation_ms": 655,
+      "lexical_usage": {
+        "prompt_tokens": 108,
+        "completion_tokens": 9,
+        "total_tokens": 117,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.8823529411764706,
+      "lexical_matches": [
+        {
+          "sentence_french": "Les invités ne sont pas encore arrivés",
+          "sentence_dialect": "Ba paya ba ye nanu te.",
+          "similarity": 0.8823529411764706
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "I-D65",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "L-D70",
+      "bucket": "medium",
+      "reference_lingala": "Eza ye nde na ko bala.",
+      "stt_hypothesis": "Ezayende na kubala",
+      "stt_cer": 0.0625,
+      "reference_french": "C'est lui que je vais épouser",
+      "translation": "C'est un mariage.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 10,
+        "examples": 1,
+        "senses": 6,
+        "lessons": 202
+      },
+      "context_ms": 685,
+      "translation_ms": 619,
+      "usage": {
+        "prompt_tokens": 5485,
+        "completion_tokens": 5,
+        "total_tokens": 5490,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "L-D70",
+        "verdict": "incorrect",
+        "reason": "Phrase précise (je vais épouser lui) remplacée par une remarque générale sur un mariage."
+      },
+      "lexical_translation": "C'est lui que je vais épouser.",
+      "lexical_translation_ms": 665,
+      "lexical_usage": {
+        "prompt_tokens": 106,
+        "completion_tokens": 10,
+        "total_tokens": 116,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.9375,
+      "lexical_matches": [
+        {
+          "sentence_french": "C'est lui que je vais épouser",
+          "sentence_dialect": "Eza ye nde na ko bala.",
+          "similarity": 0.9375
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "L-D70",
+        "verdict": "correct",
+        "reason": "Identique, sens préservé."
+      }
+    },
+    {
+      "id": "N-G53",
+      "bucket": "medium",
+      "reference_lingala": "Na yebi ko beta ndembo te.",
+      "stt_hypothesis": "Nayebi kobeta ndembo te.",
+      "stt_cer": 0,
+      "reference_french": "Je suis nul au football.",
+      "translation": "Je ne sais pas jouer de la musique.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 1,
+        "examples": 0,
+        "senses": 0,
+        "lessons": 188
+      },
+      "context_ms": 668,
+      "translation_ms": 883,
+      "usage": {
+        "prompt_tokens": 5469,
+        "completion_tokens": 9,
+        "total_tokens": 5478,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "N-G53",
+        "verdict": "incorrect",
+        "reason": "Compétence au football confondue avec incapacité musicale : sens changé."
+      },
+      "lexical_translation": "Je suis nul au football.",
+      "lexical_translation_ms": 717,
+      "lexical_usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 6,
+        "total_tokens": 113,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Je suis nul au football.",
+          "sentence_dialect": "Na yebi ko beta ndembo te.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "N-G53",
+        "verdict": "correct",
+        "reason": "Identique, même sens."
+      }
+    },
+    {
+      "id": "O-D20",
+      "bucket": "medium",
+      "reference_lingala": "Pakola mafuta na nzoto na yo.",
+      "stt_hypothesis": "Pakola mafuta na nzoto na yo",
+      "stt_cer": 0,
+      "reference_french": "Applique bien l'huile sur ton corps (oins toi bien)",
+      "translation": "Applique bien l'huile sur ton corps.",
+      "reference_pair_retrieved": true,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 1,
+        "senses": 1,
+        "lessons": 303
+      },
+      "context_ms": 628,
+      "translation_ms": 1374,
+      "usage": {
+        "prompt_tokens": 11122,
+        "completion_tokens": 9,
+        "total_tokens": 11131,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "O-D20",
+        "verdict": "correct",
+        "reason": "Même instruction et sens; reformulation identique."
+      },
+      "lexical_translation": "Applique bien l'huile sur ton corps.",
+      "lexical_translation_ms": 710,
+      "lexical_usage": {
+        "prompt_tokens": 114,
+        "completion_tokens": 9,
+        "total_tokens": 123,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Applique bien l'huile sur ton corps (oins toi bien)",
+          "sentence_dialect": "Pakola mafuta na nzoto na yo.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "O-D20",
+        "verdict": "minor",
+        "reason": "Parenthèse explicative supprimée («oins toi bien») : sens principal conservé mais nuance de conseil plus explicite perdue."
+      }
+    },
+    {
+      "id": "P-D3",
+      "bucket": "medium",
+      "reference_lingala": "To yokani na mboka ya pembeni.",
+      "stt_hypothesis": "Toyoka nina mboka ya pembeni",
+      "stt_cer": 0,
+      "reference_french": "Nous avons conclu un pacte avec le village voisin.",
+      "translation": "Nous entendons le bruit du pays voisin.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 0,
+        "lessons": 109
+      },
+      "context_ms": 418,
+      "translation_ms": 2378,
+      "usage": {
+        "prompt_tokens": 3873,
+        "completion_tokens": 9,
+        "total_tokens": 3882,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "P-D3",
+        "verdict": "incorrect",
+        "reason": "Accord/pacte avec village confondu avec entendre des bruits : sens différent."
+      },
+      "lexical_translation": "Nous avons conclu un pacte avec le village voisin.",
+      "lexical_translation_ms": 697,
+      "lexical_usage": {
+        "prompt_tokens": 112,
+        "completion_tokens": 11,
+        "total_tokens": 123,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Nous avons conclu un pacte avec le village voisin.",
+          "sentence_dialect": "To yokani na mboka ya pembeni.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "P-D3",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "Q-D15",
+      "bucket": "medium",
+      "reference_lingala": "Mokila ya mbisi eza mokuse mingi.",
+      "stt_hypothesis": "Mokila ya mbisi eza mokuse mingi.",
+      "stt_cer": 0,
+      "reference_french": "La queue du poisson est très courte",
+      "translation": "La queue du poisson est très courte.",
+      "reference_pair_retrieved": true,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 2,
+        "examples": 6,
+        "senses": 1,
+        "lessons": 94
+      },
+      "context_ms": 561,
+      "translation_ms": 659,
+      "usage": {
+        "prompt_tokens": 3027,
+        "completion_tokens": 8,
+        "total_tokens": 3035,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "Q-D15",
+        "verdict": "correct",
+        "reason": "Identique en sens et formulation."
+      },
+      "lexical_translation": "La queue du poisson est très courte.",
+      "lexical_translation_ms": 540,
+      "lexical_usage": {
+        "prompt_tokens": 113,
+        "completion_tokens": 8,
+        "total_tokens": 121,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "La queue du poisson est très courte",
+          "sentence_dialect": "Mokila ya mbisi eza mokuse mingi.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "Q-D15",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "V-D69",
+      "bucket": "medium",
+      "reference_lingala": "Nzinga na bino eza makasi mingi.",
+      "stt_hypothesis": "Nzenga na bino eza makasi mingi",
+      "stt_cer": 0.038461538461538464,
+      "reference_french": "Votre langue est difficile.",
+      "translation": "Votre chemin est très difficile.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 3,
+        "examples": 4,
+        "senses": 6,
+        "lessons": 160
+      },
+      "context_ms": 444,
+      "translation_ms": 974,
+      "usage": {
+        "prompt_tokens": 4696,
+        "completion_tokens": 6,
+        "total_tokens": 4702,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "V-D69",
+        "verdict": "incorrect",
+        "reason": "Langue difficile (linguistique) remplacée par chemin difficile : acteur/objet changé."
+      },
+      "lexical_translation": "Votre langue est difficile.",
+      "lexical_translation_ms": 513,
+      "lexical_usage": {
+        "prompt_tokens": 107,
+        "completion_tokens": 5,
+        "total_tokens": 112,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.9615384615384616,
+      "lexical_matches": [
+        {
+          "sentence_french": "Votre langue est difficile.",
+          "sentence_dialect": "Nzinga na bino eza makasi mingi.",
+          "similarity": 0.9615384615384616
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "V-D69",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "A-D31",
+      "bucket": "long",
+      "reference_lingala": "Na za na makambu ebele ya ko sala na mposo oyo.",
+      "stt_hypothesis": "Nazana makambo ebili ya kosala na mposu oyo",
+      "stt_cer": 0.1111111111111111,
+      "reference_french": "J’ai trop d'activités cette semaine.",
+      "translation": "Je vais faire deux choses ce soir.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 3,
+        "examples": 1,
+        "senses": 6,
+        "lessons": 265
+      },
+      "context_ms": 606,
+      "translation_ms": 711,
+      "usage": {
+        "prompt_tokens": 7960,
+        "completion_tokens": 8,
+        "total_tokens": 7968,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "A-D31",
+        "verdict": "incorrect",
+        "reason": "Trop d'activités cette semaine vs faire deux choses ce soir : quantité et temporalité différentes."
+      },
+      "lexical_translation": "J'ai deux choses à faire cette semaine.",
+      "lexical_translation_ms": 571,
+      "lexical_usage": {
+        "prompt_tokens": 122,
+        "completion_tokens": 9,
+        "total_tokens": 131,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.8888888888888888,
+      "lexical_matches": [
+        {
+          "sentence_french": "J’ai trop d'activités cette semaine.",
+          "sentence_dialect": "Na za na makambu ebele ya ko sala na mposo oyo.",
+          "similarity": 0.8888888888888888
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "A-D31",
+        "verdict": "incorrect",
+        "reason": "Phrase vérifiée indique «trop d'activités» tandis que pipeline dit «deux choses»—quantité et intensité changées."
+      }
+    },
+    {
+      "id": "C-D223",
+      "bucket": "long",
+      "reference_lingala": "Na zo mona bolangeti ya sika te, pe ya kala epasuki.",
+      "stt_hypothesis": "Nazomona bolangeti ya sika te pe ya kala epasuki.",
+      "stt_cer": 0,
+      "reference_french": "Je ne trouve pas la nouvelle couverture, et l’ancienne est déchirée.",
+      "translation": "Je ne vois pas de nouveauté ni d'ancienneté.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 0,
+        "lessons": 136
+      },
+      "context_ms": 456,
+      "translation_ms": 658,
+      "usage": {
+        "prompt_tokens": 4819,
+        "completion_tokens": 13,
+        "total_tokens": 4832,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "C-D223",
+        "verdict": "incorrect",
+        "reason": "Perte d'information importante : couverture nouvelle vs ancienne déchirée n'est pas rendue par phrase vague."
+      },
+      "lexical_translation": "Je ne trouve pas la nouvelle couverture, et l’ancienne est déchirée.",
+      "lexical_translation_ms": 1317,
+      "lexical_usage": {
+        "prompt_tokens": 136,
+        "completion_tokens": 17,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Je ne trouve pas la nouvelle couverture, et l’ancienne est déchirée.",
+          "sentence_dialect": "Na zo mona bolangeti ya sika te, pe ya kala epasuki.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "C-D223",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "H-D39",
+      "bucket": "long",
+      "reference_lingala": "Na zo lala na esika yo ko lala wuta poso moko.",
+      "stt_hypothesis": "Nazolala na esika yo kolala wuta poso moko.",
+      "stt_cer": 0,
+      "reference_french": "Je dors à l'hôtel depuis 1 semaine.",
+      "translation": "Je vais rester chez toi jusqu'à demain.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 1,
+        "examples": 1,
+        "senses": 6,
+        "lessons": 119
+      },
+      "context_ms": 463,
+      "translation_ms": 1103,
+      "usage": {
+        "prompt_tokens": 3337,
+        "completion_tokens": 9,
+        "total_tokens": 3346,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "H-D39",
+        "verdict": "incorrect",
+        "reason": "Durée et lieu changés : dormir à l'hôtel une semaine vs rester chez toi jusqu'à demain."
+      },
+      "lexical_translation": "Je dors à l'hôtel depuis 1 semaine.",
+      "lexical_translation_ms": 977,
+      "lexical_usage": {
+        "prompt_tokens": 123,
+        "completion_tokens": 10,
+        "total_tokens": 133,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Je dors à l'hôtel depuis 1 semaine.",
+          "sentence_dialect": "Na zo lala na esika yo ko lala wuta poso moko.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "H-D39",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "J-D22",
+      "bucket": "long",
+      "reference_lingala": "Bana oyo ba bongisaka biloko na bango ya ko sakana te.",
+      "stt_hypothesis": "Bana oyo babongisaka biloko na bango ya kosakana",
+      "stt_cer": 0.046511627906976744,
+      "reference_french": "Ces enfants ne rangent jamais leurs jouets",
+      "translation": "Ces enfants fabriquent leurs jouets.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 1,
+        "examples": 8,
+        "senses": 6,
+        "lessons": 213
+      },
+      "context_ms": 624,
+      "translation_ms": 871,
+      "usage": {
+        "prompt_tokens": 6733,
+        "completion_tokens": 8,
+        "total_tokens": 6741,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "J-D22",
+        "verdict": "incorrect",
+        "reason": "Rangement des jouets vs fabrication des jouets : action et sens opposés."
+      },
+      "lexical_translation": "Ces enfants ne rangent jamais leurs jouets.",
+      "lexical_translation_ms": 472,
+      "lexical_usage": {
+        "prompt_tokens": 120,
+        "completion_tokens": 10,
+        "total_tokens": 130,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.9534883720930233,
+      "lexical_matches": [
+        {
+          "sentence_french": "Ces enfants ne rangent jamais leurs jouets",
+          "sentence_dialect": "Bana oyo ba bongisaka biloko na bango ya ko sakana te.",
+          "similarity": 0.9534883720930233
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "J-D22",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "R-D143",
+      "bucket": "long",
+      "reference_lingala": "Simba ndako ya nzoi te soki te ba ko sua yo.",
+      "stt_hypothesis": "Simba ndako ya nzoyi te, nukiti bakoswa yo",
+      "stt_cer": 0.15151515151515152,
+      "reference_french": "Ne touche pas la ruche sinon tu vas te faire piquer",
+      "translation": "Ne reste pas debout, sinon ils vont te frapper.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 1,
+        "senses": 4,
+        "lessons": 200
+      },
+      "context_ms": 507,
+      "translation_ms": 676,
+      "usage": {
+        "prompt_tokens": 7679,
+        "completion_tokens": 13,
+        "total_tokens": 7692,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "R-D143",
+        "verdict": "incorrect",
+        "reason": "Avertissement complètement différent : risque de piqûre vs risque d'être frappé/devoir se baisser."
+      },
+      "lexical_translation": "Ne touche pas la ruche, sinon tu vas te faire piquer.",
+      "lexical_translation_ms": 630,
+      "lexical_usage": {
+        "prompt_tokens": 126,
+        "completion_tokens": 15,
+        "total_tokens": 141,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.8529411764705882,
+      "lexical_matches": [
+        {
+          "sentence_french": "Ne touche pas la ruche sinon tu vas te faire piquer",
+          "sentence_dialect": "Simba ndako ya nzoi te soki te ba ko sua yo.",
+          "similarity": 0.8529411764705882
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "R-D143",
+        "verdict": "correct",
+        "reason": "Identique à l'exception d'une virgule, sens conservé."
+      }
+    },
+    {
+      "id": "T-D135",
+      "bucket": "long",
+      "reference_lingala": "Esengeli ko sala nionso pona ko koma na suka ya nzela.",
+      "stt_hypothesis": "Isingeli kusala nyoso puna hukuma na suka ya nzila",
+      "stt_cer": 0.23255813953488372,
+      "reference_french": "Il faut tout faire pour arriver au bout du tunnel.",
+      "translation": "Il faut tout faire pour atteindre la fin du chemin.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 0,
+        "lessons": 154
+      },
+      "context_ms": 734,
+      "translation_ms": 1579,
+      "usage": {
+        "prompt_tokens": 6012,
+        "completion_tokens": 11,
+        "total_tokens": 6023,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "T-D135",
+        "verdict": "minor",
+        "reason": "Sens général conservé (atteindre la fin) mais tunnel vs chemin et formulation légèrement différentes."
+      },
+      "lexical_translation": "Il faut tout faire pour arriver au bout du tunnel.",
+      "lexical_translation_ms": 796,
+      "lexical_usage": {
+        "prompt_tokens": 126,
+        "completion_tokens": 11,
+        "total_tokens": 137,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.7674418604651163,
+      "lexical_matches": [
+        {
+          "sentence_french": "Il faut tout faire pour arriver au bout du tunnel.",
+          "sentence_dialect": "Esengeli ko sala nionso pona ko koma na suka ya nzela.",
+          "similarity": 0.7674418604651163
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "T-D135",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "U-D5",
+      "bucket": "long",
+      "reference_lingala": "Mobali na mwasi ba sanganaka pona libela mokolo ya libala.",
+      "stt_hypothesis": "Mwasi na mobali basanganaka mpona libela mokolo ya libala.",
+      "stt_cer": 0.14583333333333334,
+      "reference_french": "L'homme et la femme s'unissent pour la vie le jour du mariage.",
+      "translation": "Les femmes et les hommes se réunissent pour célébrer le jour du mariage.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 0,
+        "lessons": 144
+      },
+      "context_ms": 2021,
+      "translation_ms": 863,
+      "usage": {
+        "prompt_tokens": 5723,
+        "completion_tokens": 16,
+        "total_tokens": 5739,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "U-D5",
+        "verdict": "minor",
+        "reason": "Sens principal (union lors du mariage) conservé mais inversion légère de nombre et focalisation (homme+femme vs hommes+femmes) et ton général."
+      },
+      "lexical_translation": "L'homme et la femme s'unissent pour la vie le jour du mariage.",
+      "lexical_translation_ms": 821,
+      "lexical_usage": {
+        "prompt_tokens": 137,
+        "completion_tokens": 16,
+        "total_tokens": 153,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.8571428571428572,
+      "lexical_matches": [
+        {
+          "sentence_french": "L'homme et la femme s'unissent pour la vie le jour du mariage.",
+          "sentence_dialect": "Mobali na mwasi ba sanganaka pona libela mokolo ya libala.",
+          "similarity": 0.8571428571428572
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "U-D5",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "W-D3",
+      "bucket": "long",
+      "reference_lingala": "Na zo zela suka ya mposo po na pema.",
+      "stt_hypothesis": "Nazo zela suka yapuso pona pema",
+      "stt_cer": 0.07407407407407407,
+      "reference_french": "J'attends le week-end pour me reposer",
+      "translation": "J'attends la fin de la journée pour manger.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 1,
+        "examples": 0,
+        "senses": 1,
+        "lessons": 267
+      },
+      "context_ms": 717,
+      "translation_ms": 1611,
+      "usage": {
+        "prompt_tokens": 8902,
+        "completion_tokens": 11,
+        "total_tokens": 8913,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "W-D3",
+        "verdict": "incorrect",
+        "reason": "Attente du week-end pour se reposer vs attendre fin de journée pour manger : objectif et temporalité différents."
+      },
+      "lexical_translation": "J'attends le week-end pour me reposer.",
+      "lexical_translation_ms": 1000,
+      "lexical_usage": {
+        "prompt_tokens": 117,
+        "completion_tokens": 11,
+        "total_tokens": 128,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.9259259259259259,
+      "lexical_matches": [
+        {
+          "sentence_french": "J'attends le week-end pour me reposer",
+          "sentence_dialect": "Na zo zela suka ya mposo po na pema.",
+          "similarity": 0.9259259259259259
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "W-D3",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "Y-D3",
+      "bucket": "long",
+      "reference_lingala": "Miso na nga ekangamaka soki kaka ba bomi mwinda.",
+      "stt_hypothesis": "Misonanga ekangamaka soki kaka babomi mwinda.",
+      "stt_cer": 0,
+      "reference_french": "Mes yeux se ferment dès qu’on éteint la lumière.",
+      "translation": "Les étoiles brillent seulement quand il fait noir.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 1,
+        "senses": 1,
+        "lessons": 197
+      },
+      "context_ms": 576,
+      "translation_ms": 753,
+      "usage": {
+        "prompt_tokens": 6426,
+        "completion_tokens": 10,
+        "total_tokens": 6436,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "Y-D3",
+        "verdict": "incorrect",
+        "reason": "Phénomène physiologique (yeux se ferment) remplacé par observation astronomique : sens totalement différent."
+      },
+      "lexical_translation": "Mes yeux se ferment dès qu’on éteint la lumière.",
+      "lexical_translation_ms": 1017,
+      "lexical_usage": {
+        "prompt_tokens": 128,
+        "completion_tokens": 13,
+        "total_tokens": 141,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 1,
+      "lexical_matches": [
+        {
+          "sentence_french": "Mes yeux se ferment dès qu’on éteint la lumière.",
+          "sentence_dialect": "Miso na nga ekangamaka soki kaka ba bomi mwinda.",
+          "similarity": 1
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "Y-D3",
+        "verdict": "correct",
+        "reason": "Identique, sens inchangé."
+      }
+    },
+    {
+      "id": "Z-D4",
+      "bucket": "long",
+      "reference_lingala": "Pona ko koma zomi esengeli ko koma moko na libungutulu.",
+      "stt_hypothesis": "Puna kokoma zomi esengeli kokoma moko na libungutulu",
+      "stt_cer": 0.022222222222222223,
+      "reference_french": "Pour écrire dix il faut écrire un et zéro",
+      "translation": "Pour écrire 11, il faut écrire 1 et 10.",
+      "reference_pair_retrieved": false,
+      "context_counts": {
+        "corpus": 30,
+        "relevant_corpus": 0,
+        "examples": 0,
+        "senses": 5,
+        "lessons": 119
+      },
+      "context_ms": 646,
+      "translation_ms": 842,
+      "usage": {
+        "prompt_tokens": 4486,
+        "completion_tokens": 14,
+        "total_tokens": 4500,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "ok": true,
+      "semantic_review": {
+        "id": "Z-D4",
+        "verdict": "incorrect",
+        "reason": "Explication numérique erronée : 10 expliqué correctement vs pipeline donne règle pour 11 incorrecte."
+      },
+      "lexical_translation": "Pour écrire dix, il faut écrire un et zéro.",
+      "lexical_translation_ms": 751,
+      "lexical_usage": {
+        "prompt_tokens": 127,
+        "completion_tokens": 11,
+        "total_tokens": 138,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      },
+      "lexical_best_similarity": 0.9777777777777777,
+      "lexical_matches": [
+        {
+          "sentence_french": "Pour écrire dix il faut écrire un et zéro",
+          "sentence_dialect": "Pona ko koma zomi esengeli ko koma moko na libungutulu.",
+          "similarity": 0.9777777777777777
+        }
+      ],
+      "lexical_reference_pair_retrieved": true,
+      "lexical_semantic_review": {
+        "id": "Z-D4",
+        "verdict": "correct",
+        "reason": "Identique à l'exception d'une virgule, sens conservé."
+      }
+    }
+  ]
+}
