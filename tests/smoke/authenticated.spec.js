@@ -65,6 +65,37 @@ test.describe("authenticated learner", () => {
     await expect(page.locator(".m-developer-complete")).toContainText("Simuler la leçon réussie");
   });
 
+  test("lesson help pauses and resumes the same exercise", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "The state-preservation assertion only needs one browser");
+    await page.goto("/");
+    await openLingalaCourse(page);
+    await page.locator('input[type="email"]').fill(process.env.TEST_USER_EMAIL);
+    await page.locator('input[type="password"]').fill(process.env.TEST_USER_PASSWORD);
+    await page.locator(".m-auth-submit").click();
+    await expect(page.locator(".m-home")).toBeVisible({ timeout:20_000 });
+    await page.locator(".m-rail nav button", { hasText:"Apprendre" }).click();
+    await expect(page.locator(".m-path-trail")).toBeVisible({ timeout:20_000 });
+
+    const deferredReward = page.locator(".m-trail-reward-modal button", { hasText:"Plus tard" });
+    if (await deferredReward.isVisible()) await deferredReward.click();
+    await page.locator("[data-trail-lesson-id]", { has:page.locator(".m-path-node.completed") }).first().locator(".m-path-node").click();
+    await page.locator(".m-lesson-primary").click();
+    await expect(page.locator(".m-lesson-workspace")).toBeVisible();
+    await page.locator(".m-practice-action.primary").click();
+    await expect(page.locator(".m-session-shell")).toBeVisible();
+    await page.getByRole("button", { name:"Commencer", exact:true }).click();
+
+    const shell = page.locator(".m-session-shell");
+    const before = await shell.innerText();
+    await page.getByRole("button", { name:/Pourquoi.*Voir la leçon/ }).click();
+    await expect(page.locator(".m-session-reference")).toBeVisible();
+    await expect(page.locator(".m-session-reference")).toContainText("Leçon complète");
+    await expect(page.locator(".m-session-reference")).toContainText("Votre exercice reste en pause");
+    await page.getByRole("button", { name:/Reprendre l'exercice/ }).click();
+    await expect(page.locator(".m-session-reference")).toBeHidden();
+    expect(await shell.innerText()).toBe(before);
+  });
+
   test("live translation offers two speaker turns and a text fallback", async ({ page }) => {
     await page.goto("/");
     await openLingalaCourse(page);

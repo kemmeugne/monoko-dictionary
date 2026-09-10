@@ -555,15 +555,25 @@ an explicit pause/resume control. Keep the sample Lingala aligned with the
 professor-verified corpus whenever the exercise content changes.
 
 The landing's AI section makes the two private tools concrete without presenting
-Monɔkɔ as a generic chatbot. `.m-landing-ai` is one two-slide carousel:
-`Traduction en direct` is deliberately the default because it is the stronger
-differentiator, followed by `Parler avec Monɔkɔ`. Persistent named tabs keep both
-products discoverable while each slide moves its benefit copy and responsive DOM
-product preview together. Navigation is deliberately manual through the tabs or a
-horizontal swipe so product copy never changes while a visitor is reading it.
-**The prev/next arrows and the `01 / 02` counter were removed (2026-09-08)** — the
-named tabs already say what each tool is and switch straight to it, so the arrows
-were a second, blinder control for the same two panels. On stacked layouts, both tools place the product preview before their
+Monɔkɔ as a generic chatbot.
+
+**It is two cards on a dark band, not a carousel (2026-09-10).** The tabs, the
+sliding track and the swipe handling are gone. One tab panel meant a visitor saw
+*one* of the two tools and the other was `aria-hidden` — hidden from crawlers as
+well as from anyone who did not click. `.m-landing-ai-grid` renders both
+`.m-landing-ai-feature.live` and `.chat` side by side (stacked under 940px), each
+with its own icon, copy, inline preview, benefits and CTA.
+
+`.m-landing-ai-section` is `--m-forest`. The landing page is cream and white end
+to end, so making this the one dark band gives the AI story its own moment rather
+than another interchangeable cream section, and the white cards read brighter
+against it. **The trust strip stays in its own white `.m-landing-ai-bridge`
+above** — deliberately *not* folded into the dark band — so the objection ("is
+the AI inventing this?") is still answered before the reader reaches the tools.
+
+The previews lost their fake window chrome: the card header already names the
+tool, so repeating it inside the mock was pure duplication. The live preview's
+mic is flanked by a waveform on both sides (`.m-ai-wave` + `.trailing`). On stacked layouts, both tools place the product preview before their
 description. Each CTA preserves its destination through authentication: a
 visitor choosing translation or chat lands in that tool after signing in, not on
 the generic learner home. The exact free daily quotas remain off the landing
@@ -635,6 +645,7 @@ sql/merge_ordinals_into_numbers.sql — SQL migration: folds L375 "Les nombres o
 sql/conjugation_tables.sql        — SQL migration: conjugation_forms + lesson_conjugation_tables, a paradigm stored as a GRID (applied 2026-08-18)
 sql/conjugation_lesson_tenses.sql — SQL migration: adds lesson_conjugation_tables.tenses text[] — a lesson shows only the tenses it teaches; NULL means all (applied 2026-08-18)
 sql/lesson_pool_conjugation_source.sql — SQL migration: widens lesson_pool's source_table CHECK to admit conjugation_forms (applied 2026-08-18)
+sql/conjugation_tense_notes.sql   — professor-authored tense/aspect explanations, public read with service-only writes (applied 2026-09-10)
 sql/progression.sql               — SQL migration: user_streak + review_schedule (SM-2), and the pratiquer_runs/elargir_runs drift repair (applied 2026-08-18)
 sql/lesson_exercise_policy.sql    — SQL migration: per-lesson exercise-type ALLOW-list. Only L346 has a row (applied 2026-08-22)
 sql/culture_capsules.sql          — editable lesson-linked cultural capsules + one-time claims (applied 2026-08-22)
@@ -686,6 +697,7 @@ populate_stub_modules.py          — populates stub modules with suggested Fren
 audio_collection_html/            — generated HTML recording apps (one per module), sent to professor for audio recording
 generate_course_templates.py      — generates generic HTML recording apps for all 29 modules for any new language
 ingest_professor_zips.py          — ZIP -> R2 -> Supabase ingest for returned recording apps; stages plan/upload/apply, --only <modules>, modes append/replace_all/new_lesson/upsert (2026-08-04)
+ingest_latest_course_completion.py — final thin-lesson + conjugation delivery pipeline; plan/stage/upload/apply/verify, stable provenance and rollback snapshot (2026-09-10)
 make_variant_split_tool.py        — builds variant_split_tool.html: waveform review UI for rows holding several Lingala variants in one cell
 apply_variant_split.py            — applies the tool's decisions: cuts clips, course keeps variant 1, alternatives -> parallel_sentences
 translate_examples_to_parallel_sentences.py — translates professor example sentences (Lingala) to French via GPT and inserts into parallel_sentences; supports --dry-run and --from-log to insert directly from existing JSON log
@@ -719,10 +731,11 @@ sql/chat_events_latency.sql       — migration: adds t_rag_ms + t_llm_ms intege
 - `courses` → `lessons` → `lesson_items` — structured grammar courses
 - `lesson_items.audio_url/audio_key/audio_source_cell` — Lingala course line audio links (added 2026-03-16)
 - `lesson_items.example_audio_url/example_audio_key/example_audio_source_cell` — Lingala course example audio links (added 2026-03-16)
-- `lesson_items.embedding vector(384)` — OpenAI text-embedding-3-small embeddings for pgvector search (added 2026-03-21, 1,740 rows embedded on old structure; new structure needs re-embedding via `embed_lesson_items.py`)
+- `lesson_items.embedding vector(384)` — OpenAI text-embedding-3-small embeddings for pgvector search (added 2026-03-21). Production has 2,299 lesson rows after the 2026-09-10 professor delivery, all 2,299 embedded; the 50-row delivery was backfilled with `embed_lesson_items.py` after import.
 - `lesson_exercise_policy` — `(lesson_id PK, allow_types text[], reason)`. **A lesson with no row serves every type**, which is every lesson but one. The engine picks exercise types from the *shape* of a lesson's rows, and shape cannot see what a lesson is *for*: L346 "Sons et alphabet" has `french = 'Consonne T — Conseil'`, a teaching label rather than a translation, so match-pairs is solvable by first letter in **30 of its 46 rows** and choose-the-audio is given away by the clip pronouncing the letter before the word. It serves `listen_type` + `speaking` only. **Allow-list, not deny-list** — a seventh exercise type must not silently opt a curated lesson back in. Add a row only when a type is *wrong* for a lesson, never to tune difficulty (added 2026-08-18)
-- `conjugation_forms` — one verb's paradigm as a **grid**: `(language_id, verb, tense, person)` unique, plus `french`, `lingala`, `audio_url`, sort orders. 30 rows = *ko linga* × 5 tenses × 6 persons, 24 of them with the professor's clip (added 2026-08-18)
-- `lesson_conjugation_tables` — pins a paradigm to a lesson: `(lesson_id, verb)` unique, plus `tenses text[]`. **NULL `tenses` means every tense**; a list restricts the lesson to what it teaches. Two rows today: L358 gets four tenses, L359 gets `futur`, L393 (futur proche) is deliberately attached to nothing (added 2026-08-18)
+- `conjugation_forms` — each verb paradigm as a **grid**: `(language_id, verb, tense, person)` unique, plus `french`, `lingala`, `audio_url`, sort orders. Production has 186/186 recorded rows across *koloba*, *kosilisa*, *kotekisa* and *kolinga*: 156 finite forms plus 30 tense-specific infinitive recordings (expanded 2026-09-10).
+- `lesson_conjugation_tables` — pins a paradigm to a lesson: `(lesson_id, verb)` unique, plus `tenses text[]`. **NULL `tenses` means every tense**; a list restricts the lesson to what it teaches. Production has 12 links across L358, L359 and L393; those links also place the 156 finite forms in the correct native practice pools.
+- `conjugation_tense_notes` — one professor-authored explanation per tense/aspect, keyed by `(language_id, tense)`. Seven populated notes currently render above their tables; the two imperative explanation fields were returned blank and are not fabricated.
 - `profiles` — one row per auth user: private display name/preferences plus optional unique `public_pseudonym`, `country_code` and `leaderboard_opt_in` for the community ranking
 - `user_progress` — lesson completion tracking: `user_id`, `lesson_id`, `language_id`, `completed_at`, `exam_score` (null until Phase 3); RLS ensures users only access their own rows (added 2026-04-14). **A row is written by PASSING PRATIQUER at 80%, never by the learner declaring it** (changed 2026-08-20 — it used to be a "J'ai terminé ce module" button, so the checkmark, the level progress bars and the "Continuer" card reported what someone had tapped rather than what they had learned). It stays a table rather than being read off `lesson_stage_state.pratiquer_passed` because the level cards need completion for every lesson at once, and stage state loads one lesson at a time
 - `user_streak` — **one row per USER, not per language and not per lesson**: `current_streak`, `longest_streak`, `last_day`. A streak answers "did you show up today", which is a fact about the person; keying it by language would break the streak of someone doing Lingala on Monday and Yoruba on Tuesday. `last_day` is a **date in the learner's local day**, sent by the client — never `now()::date`, which is UTC (added 2026-08-18, `sql/progression.sql`)
@@ -1488,6 +1501,35 @@ Non-obvious rules that fall out of it:
   conjugation form), and L359 went from one bucket sitting exactly at
   `PAIRS_MIN` to two. That is the shape the plan predicted these forms would
   fill.
+
+- **Conjugation final delivery replaced the sample (2026-09-10).** Production
+  now holds 186/186 recorded rows across *koloba*, *kosilisa*, *kotekisa* and
+  *kolinga*, with nine tense/aspect groups and 12 lesson links across L358,
+  L359 and L393. Of those rows, 156 are finite forms mirrored into
+  `lesson_pool`; the 30 tense-specific infinitives remain in the teaching UI.
+  Seven professor explanations live in `conjugation_tense_notes`. The page uses
+  an outer verb selector, inner tense tabs, a recorded infinitive header and a
+  collapsible explanation, while adjacent duplicate French prompts in ordinary
+  lessons render as numbered alternative formulations. The imperative note
+  fields were blank in the return and remain absent.
+
+- **Conjugation is now taught in context (2026-09-10).** The lesson page splits
+  its sentence corpus first by verb and then by French tense/aspect. L358 has
+  three six-row groups per model verb: présent, passé composé / accompli, and
+  imparfait / passé progressif. The shared paradigm tab is labelled *Présent /
+  passé composé*. Phrase-level, occurrence-aware highlighting marks the French
+  auxiliary plus participle and the corresponding Lingala verb construction;
+  this prevents unrelated occurrences such as *Lobi* or a second `nazalaki`
+  from being emphasized. Section ownership uses target lexical roots only;
+  shared auxiliaries must never move *finir* or *vendre* rows under *parler*.
+  Professor prose is rendered as
+  structured rules, formulas, examples and prefix tables rather than an
+  undifferentiated text block. `SessionLessonSnapshot` reuses those components
+  to show the complete lesson for *Pourquoi ? Voir la leçon* while leaving `SessionView` mounted, so opening
+  help cannot reset a learner's question, queue, score or retries. L358 is still
+  one database lesson; splitting its present/completed and imperfect/progressive
+  halves is a follow-up migration because existing completion and rewards must
+  be grandfathered.
 
 - **Two bugs were hiding 181 example sentences the professor had already
   recorded (2026-08-18).** Nothing was added; they simply became visible.

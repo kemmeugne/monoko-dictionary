@@ -1,12 +1,12 @@
 # Monɔkɔ — Product Roadmap
 
-Last updated: 2026-08-31
+Last updated: 2026-09-10
 
 ---
 
 ## Current state
 
-Last full review: 2026-08-27.
+Last full review: 2026-09-10.
 
 **The product.** Live at https://monoko.africa (moved from
 monoko-dictionary.vercel.app on 2026-09-04). A public Lingala
@@ -35,17 +35,36 @@ esbuild compiles the single-file JSX into `dist/app.js`, so deployed clients no
 longer download or run Babel. Splitting the source into modules remains a
 separate maintainability task (`BUILD_AND_SPLIT_PLAN.md`).
 
-**Pre-launch corpus work on hold — waiting on the professor (2026-08-27).** The
-professor package is ready in
-`audio_collection_html/professor_corpus_completion_2026-08-27/`: four standalone
-translation/recording forms add examples to *Compréhension et communication*,
-*Sentiments et émotions*, *Comparatifs et superlatifs* and *Météo*, and one
-consolidated form collects twelve short grammar rule cards. Every form supports
-additional examples and audio through **+ Ajouter un exemple**, autosaves, and
-round-trips through ZIP. Do not invent or publish the missing Lingala. When the
-professor returns the exported ZIPs: validate them, ingest the new rows/audio,
-apply the rule cards, rebuild `lesson_pool`, rerun the exercise audit, and only
-then clear this launch-content gate.
+**Pre-launch corpus completion partially delivered (2026-09-10).** The returned
+package in `audio_collection_html/Latest_data/` is now integrated. It added 15
+native playable formulations to *Compréhension et communication*, 24 to
+*Sentiments et émotions* and 11 to *Comparatifs et superlatifs*, all with the
+professor's audio. The complete conjugation delivery replaced the initial
+single-verb sample with 186 recorded rows across four verbs and nine
+tense/aspect groups, plus seven professor-written teaching notes and 156 finite
+forms in `lesson_pool`. `ingest_latest_course_completion.py` owns the re-runnable
+plan/stage/upload/apply/verify workflow and stable source provenance. All 50 new
+lesson rows were also embedded for semantic lesson search on 2026-09-10.
+
+**Still waiting on the professor:** no returned *Météo* ZIP or consolidated
+grammar-rule-card ZIP was present. Météo therefore remains at six native items;
+pronouns, comparisons, conjunctions and prepositions still need the dedicated
+rule-card delivery. Do not invent or publish those missing explanations.
+
+**Conjugation lesson presentation completed (2026-09-10).** Conjugation
+examples are now divided first by verb and then by French tense/aspect instead
+of appearing in one long table. L358 therefore presents three separate sets of
+six examples for each of *parler*, *finir* and *vendre*: présent, passé composé
+/ accompli, and imparfait / passé progressif. The complete verbal construction
+is highlighted sentence by sentence in both French and Lingala; contextual
+words that merely resemble a verb root, such as *Lobi*, are excluded.
+Professor notes render as structured rules, formulas, examples and prefix
+tables. During practice, *Pourquoi ? Voir la leçon* opens the complete lesson
+in a scrollable sheet over the current question; closing it resumes the exact same exercise and
+score state. The next curriculum-data stage is to split L358 into *Présent et
+aspect accompli* and *Imparfait et passé progressif*. That migration must
+grandfather existing completion before it changes the live 49-lesson trail to
+50 lessons.
 
 **Native exercise-content cleanup applied (2026-08-27).** The lesson pages
 remain the professor's editorial record; `lesson_pool` now has an explicit
@@ -59,6 +78,14 @@ with no unexpected missing audio.
 
 ### Recent history
 
+- **Conjugation teaching UI (2026-09-10)** — precise phrase-level highlights,
+  per-verb and per-tense example sections, structured professor explanations, and an
+  in-session lesson reference that does not reset practice.
+- **Final curriculum delivery, part 1 (2026-09-10)** — three thin lessons gained
+  50 recorded native formulations; conjugation gained four verbs, nine groups,
+  recorded infinitives and professor explanations. Lesson pages now group
+  alternative formulations and present one focused conjugation paradigm at a
+  time with tense tabs.
 - **Content completion (2026-08-04)** — all 39 professor ZIPs ingested; Lingala
   audio coverage 70% → 100%. Full record in Phase 1.
 - **Structure and hidden content (2026-07-27 → 2026-08-18)** — mega-lessons
@@ -364,6 +391,12 @@ change in the thinnest lesson as noise rather than a regression.
   sentences into headings across 4 lessons, and every niveau-1 lesson took an
   earlier "Série 1 / Série 2" branch that had no example row at all (50 more
   sentences, 48 recorded).
+
+**2026-09-10 update:** the initial conjugation sample described above has now
+been superseded by the professor's complete return: 186 recorded rows, four
+verbs, nine tense/aspect groups, seven teaching notes, 12 lesson links and 156
+finite native practice forms. L393 now correctly receives near-future and
+negative-imperative paradigms.
 
 **2026-08-18 — Slice 7 shipped: progression and retention.** XP (with a flat
 50-XP perfect-session bonus), medals at 80/90/100, a streak, SM-2 scheduling and

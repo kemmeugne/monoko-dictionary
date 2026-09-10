@@ -2653,7 +2653,8 @@
     };
 
     const SessionView = ({ lesson, stage, exercises, poolSize, stats, streak = 0, bonus = 0,
-                           milestoneBonus = 0, secondaryLabel = "Pourquoi ? Voir la leçon", onExit, onSeeLesson, onSessionEnd, onReport }) => {
+                           milestoneBonus = 0, secondaryLabel = "Pourquoi ? Voir la leçon", onExit, onSeeLesson, onSessionEnd, onReport,
+                           lessonItems = [], conjugationTables = [], conjugationNotes = {}, langName = "Lingala" }) => {
       const [started, setStarted] = useState(false);
       const [queue, setQueue] = useState(exercises);
       const [idx, setIdx] = useState(0);
@@ -2662,6 +2663,7 @@
       const [done, setDone] = useState(false);
       const [reporting, setReporting] = useState(false);
       const [reported, setReported] = useState([]);  // item ids already flagged
+      const [showLessonHelp, setShowLessonHelp] = useState(false);
 
       // The best score as it stood BEFORE this session, captured once at mount.
       // It cannot be read from `stats` at render time: handleSessionEnd's
@@ -3083,11 +3085,19 @@
               color: "white", fontSize: 16, fontWeight: 700, cursor: "pointer", marginTop: 18,
             }}>Continuer</button>
           ) : (
-            <button onClick={onSeeLesson} style={{
+            <button onClick={() => {
+              if (lessonItems.length || conjugationTables.length) setShowLessonHelp(true);
+              else onSeeLesson?.();
+            }} style={{
               width: "100%", minHeight: 48, borderRadius: 8, background: "transparent",
               border: "1.5px solid var(--m-line)", color: "var(--m-muted)", fontSize: 14, fontWeight: 600, cursor: "pointer",
             }}>{secondaryLabel}</button>
           )}
+          {showLessonHelp && <SessionLessonSnapshot
+            lesson={lesson} lessonItems={lessonItems} tables={conjugationTables}
+            notes={conjugationNotes} langName={langName} current={current}
+            onClose={() => setShowLessonHelp(false)}
+          />}
         </div>
       );
     };
@@ -3098,11 +3108,106 @@
     // to see is that the stem never moves and only the prefix does. Rendered as
     // tense tabs rather than a 5x6 matrix, because thirty cells will not fit a
     // 375px column without becoming unreadable.
-    const ConjugationTable = ({ verb, verbFr, forms }) => {
+    const lessonWords = text => String(text || "").match(/[\p{L}]+(?:[-'’ʼ][\p{L}]+)*/gu) || [];
+
+    const conjugationHighlightProfile = forms => {
+      const french = new Set(), dialect = new Set(), tenses = new Set();
+      for (const form of forms || []) {
+        tenses.add(form.tense);
+        if (form.person === "infinitif") continue;
+        const frenchWords = lessonWords(String(form.french || "").replace(/\([^)]*\)/g, ""));
+        const frenchVerb = frenchWords.at(-1);
+        if (frenchVerb) french.add(fold(frenchVerb));
+        lessonWords(form.lingala).filter(word => fold(word).length > 2).forEach(word => dialect.add(fold(word)));
+      }
+      return { french, dialect, tenses };
+    };
+
+    const lessonItemHighlightProfile = item => {
+      if (!item?.example_french && !item?.example_dialect) return null;
+      return {
+        french: new Set(lessonWords(item.french).filter(word => fold(word).length > 2).map(fold)),
+        dialect: new Set(lessonWords(item.dialect).filter(word => fold(word).length > 2).map(fold)),
+        tenses: new Set(),
+      };
+    };
+
+    const isConjugationMarker = (word, language, profile, wordIndex) => {
+      const value = fold(word);
+      const indexes = profile?.[`${language}Indexes`];
+      if (indexes) return indexes.has(wordIndex);
+      if (profile?.[language]?.has(value)) return true;
+      if (language !== "dialect") return false;
+      const tenses = profile?.tenses || new Set();
+      if ((tenses.has("futur") || tenses.has("futur_proche")) && /^(?:na|o|a|to|bo|ba)ko[a-z]/.test(value)) return true;
+      if (tenses.has("present_prog") && /^(?:na|o|a|to|bo|ba)(?:zo|zali)[a-z]/.test(value)) return true;
+      if (tenses.has("present_habituel") && /aka$/.test(value)) return true;
+      if ((tenses.has("imparfait") || tenses.has("passe_prog")) && /aki$/.test(value)) return true;
+      return false;
+    };
+
+    const FocusedText = ({ text, language, profile }) => {
+      if (!text || !profile) return <React.Fragment>{text}</React.Fragment>;
+      const parts = String(text).split(/([\p{L}]+(?:[-'’ʼ][\p{L}]+)*)/gu);
+      let wordIndex = -1;
+      return <React.Fragment>{parts.map((part, index) => {
+        if (/^[\p{L}]/u.test(part)) wordIndex += 1;
+        return isConjugationMarker(part, language, profile, wordIndex)
+          ? <mark className="m-lesson-focus" key={index}>{part}</mark>
+          : <React.Fragment key={index}>{part}</React.Fragment>;
+      })}</React.Fragment>;
+    };
+
+    const ExplanationText = ({ text }) => {
+      const parts = String(text).split(/(«[^»]+»|"[^"]+"|(?:na|o|a|to|bo|ba|ko)-|-(?:aka|aki|zo|i)-?)/gi);
+      return <React.Fragment>{parts.map((part, index) =>
+        /^(?:«|"|(?:na|o|a|to|bo|ba|ko)-|-(?:aka|aki|zo|i)-?$)/i.test(part)
+          ? <strong className="m-conj-term" key={index}>{part}</strong>
+          : <React.Fragment key={index}>{part}</React.Fragment>
+      )}</React.Fragment>;
+    };
+
+    const ExplanationBlock = ({ block }) => {
+      const lines = block.split("\n").map(line => line.trim()).filter(Boolean);
+      if (lines.length >= 3 && block.includes("\t")) {
+        return <div className="m-conj-rule-table">
+          {lines.map((line, index) => {
+            const cells = line.split(/\t+/).map(cell => cell.trim()).filter(Boolean);
+            return <div className={index === 0 ? "head" : ""} key={index}>{cells.map((cell, cellIndex) => <span key={cellIndex}><ExplanationText text={cell}/></span>)}</div>;
+          })}
+        </div>;
+      }
+      if (/^\d+\.\s/.test(block)) return <h4>{block}</h4>;
+      if (lines.length > 1 && lines.some(line => line.includes("→"))) {
+        return <div className="m-conj-explanation-examples">{lines.map((line, index) => <p key={index}><ExplanationText text={line}/></p>)}</div>;
+      }
+      if (block.includes("+") || (/PRÉFIXE|INFINITIF/.test(block) && block.length < 120)) {
+        return <div className="m-conj-formula"><ExplanationText text={block}/></div>;
+      }
+      return <p><ExplanationText text={block}/></p>;
+    };
+
+    const ConjugationExplanation = ({ note }) => {
+      if (!note?.explanation) return null;
+      const blocks = note.explanation.split(/\n{2,}/).map(block => block.trim()).filter(Boolean);
+      return <details className="m-conj-note">
+        <summary><span className="m-conj-note-icon"><UiIcon name="graduation"/></span><span><small>Explication du professeur</small><strong>Comprendre la logique du {note.tense_label.toLowerCase()}</strong></span><UiIcon name="chevron"/></summary>
+        <div className="m-conj-note-body">
+          {blocks.map((block, index) => <ExplanationBlock block={block} key={index}/>) }
+        </div>
+      </details>;
+    };
+
+    const ConjugationTable = ({ verb, verbFr, forms, notes }) => {
       const tenses = React.useMemo(() => {
         const by = new Map();
         for (const f of forms) {
-          if (!by.has(f.tense)) by.set(f.tense, { key: f.tense, label: f.tense_label, order: f.tense_order, rows: [] });
+          if (!by.has(f.tense)) by.set(f.tense, {
+            key:f.tense,
+            label:f.tense === "present" ? "Présent / passé composé" : f.tense_label,
+            order:f.tense_order,
+            rows:[],
+          });
           by.get(f.tense).rows.push(f);
         }
         return [...by.values()]
@@ -3111,14 +3216,17 @@
       }, [forms]);
 
       const [active, setActive] = useState(0);
+      useEffect(() => setActive(0), [verb]);
       const tense = tenses[active];
       if (!tense) return null;
+      const infinitive = tense.rows.find(row => row.person === "infinitif");
+      const finiteRows = tense.rows.filter(row => row.person !== "infinitif");
 
       return (
-        <div className="m-conj-table">
+        <div className="m-conj-table-inner">
           <div className="m-conj-head">
-            <p>Conjugaison</p>
-            <h3>{verb} <span>— {verbFr}</span></h3>
+            <div><p>Verbe modèle</p><h3>{infinitive?.lingala || verb} <span>— {verbFr}</span></h3></div>
+            {infinitive?.audio_url && <AudioButton src={infinitive.audio_url} title={`Écouter l'infinitif ${infinitive.lingala}`} />}
           </div>
 
           {/* Tense tabs. Scroll sideways INSIDE this strip only — the page itself
@@ -3129,13 +3237,13 @@
             ))}
           </div>
 
-          <div>
-            {tense.rows.map((f, i) => (
+          <ConjugationExplanation note={notes?.[tense.key]} />
+
+          <div className="m-conj-forms">
+            {finiteRows.map(f => (
               <div key={f.person} className="m-conj-row">
                 <span className="fr">{f.french}</span>
                 <span className="ln">{f.lingala}</span>
-                {/* The présent column was never recorded, so a third of the grid
-                    has no clip. An empty slot keeps the rows aligned. */}
                 {f.audio_url
                   ? <AudioButton src={f.audio_url} title={`Écouter ${f.lingala}`} />
                   : <span className="m-conj-noaudio" />}
@@ -3146,14 +3254,255 @@
       );
     };
 
-    const LessonAudioText = ({ text, audioUrl, title, color = "var(--m-forest-2)", fontSize = 14, fontWeight = 500, italic = false }) => (
+    const ConjugationPanel = ({ tables, notes }) => {
+      const [activeVerb, setActiveVerb] = useState(0);
+      useEffect(() => setActiveVerb(0), [tables.map(table => table.verb).join("|")]);
+      const table = tables[activeVerb];
+      if (!table) return null;
+      return <section className="m-conj-panel">
+        <header className="m-conj-panel-intro">
+          <div><div className="m-kicker"><span>Grammaire active</span><span>Audio du professeur</span></div><h2>Observez le modèle, puis écoutez chaque forme.</h2></div>
+          <p>Choisissez un verbe et un temps. Les préfixes personnels révèlent la structure de la conjugaison en lingala.</p>
+        </header>
+        <div className="m-conj-verbs" aria-label="Choisir un verbe">
+          {tables.map((candidate, index) => <button key={candidate.verb} className={index === activeVerb ? "active" : ""} onClick={() => setActiveVerb(index)}><strong>{candidate.verbFr}</strong><span>{candidate.forms.find(form => form.person === "infinitif")?.lingala || candidate.verb}</span></button>)}
+        </div>
+        <ConjugationTable verb={table.verb} verbFr={table.verbFr} forms={table.forms} notes={notes}/>
+      </section>;
+    };
+
+    const LessonAudioText = ({ text, children, audioUrl, title, color = "var(--m-forest-2)", fontSize = 14, fontWeight = 500, italic = false }) => (
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
         <div style={{ flex:1, fontSize, color, fontWeight, fontStyle: italic ? "italic" : "normal", lineHeight:1.5 }}>
-          {text}
+          {children || text}
         </div>
         <AudioButton src={audioUrl} title={title} />
       </div>
     );
+
+    // CONJUGATION_EXAMPLE_LOGIC_START
+    const conjugationVerbRoots = table => {
+      const frenchVerb = fold(table.verbFr || "");
+      const french = frenchVerb.endsWith("er") || frenchVerb.endsWith("ir") || frenchVerb.endsWith("re")
+        ? frenchVerb.slice(0,-2)
+        : frenchVerb;
+      const knownDialect = {
+        koloba: ["lob", "solol"],
+        kosilisa: ["silis", "suk"],
+        kotekisa: ["tek"],
+        kolinga: ["ling"],
+      };
+      const dialectVerb = fold(table.verb || "");
+      const dialectBase = dialectVerb.startsWith("ko") ? dialectVerb.slice(2) : dialectVerb;
+      return { french:[french], dialect:knownDialect[dialectVerb] || [dialectBase.slice(0,Math.min(4,dialectBase.length))] };
+    };
+
+    const targetWordIndexes = (text, roots) => {
+      const words = lessonWords(text).map(fold);
+      return words.reduce((matches, word, index) => {
+        if (roots.some(root => root && word.includes(root))) matches.push(index);
+        return matches;
+      }, []);
+    };
+
+    const dialectTargetWordIndexes = (text, roots) => {
+      const words = lessonWords(text).map(fold);
+      const matches = words.reduce((indexes,word,index) => {
+        if (roots.some(root => root && word.includes(root))) indexes.push(index);
+        return indexes;
+      },[]);
+      const verbal = matches.filter(index => {
+        const word = words[index];
+        return roots.some(root =>
+          new RegExp(`^(?:na|o|a|to|bo|ba|ko)(?:[^\\s]{0,3})?${root}`).test(word) ||
+          (word.startsWith(root) && word !== "lobi")
+        );
+      });
+      return verbal;
+    };
+
+    const tenseTargetWords = (table, tense) => {
+      const roots = conjugationVerbRoots(table).french;
+      return new Set(table.forms
+        .filter(form => form.tense === tense && form.person !== "infinitif")
+        .flatMap(form => lessonWords(String(form.french || "").replace(/\([^)]*\)/g,"")))
+        .map(fold)
+        .filter(word => roots.some(root => word.includes(root))));
+    };
+
+    const conjugationExampleCategory = (item, table) => {
+      const words = lessonWords(item.french).map(fold);
+      const targetIndex = targetWordIndexes(item.french, conjugationVerbRoots(table).french)[0];
+      const target = words[targetIndex] || "";
+      const previous = words[targetIndex - 1] || "";
+      const pastAuxiliaries = new Set(["j'ai","ai","as","a","avons","avez","ont"]);
+      if (pastAuxiliaries.has(previous)) return "passe_compose";
+
+      const before = words.slice(Math.max(0,targetIndex - 4),targetIndex);
+      if (before.includes("train")) return before.some(word => /etai|etion|etiez|etaient/.test(word)) ? "passe_prog" : "present_prog";
+      if (before.some(word => /^(?:vais|vas|va|allons|allez|vont)$/.test(word))) return "futur_proche";
+      if (tenseTargetWords(table,"futur").has(target)) return "futur";
+      if (tenseTargetWords(table,"imparfait").has(target)) return "imparfait";
+
+      const targetIsOpening = targetIndex === 0 || (targetIndex === 1 && /^(?:ne|n)$/.test(words[0]));
+      const hasNegation = words.slice(Math.max(0,targetIndex - 2),targetIndex + 3).some(word => word === "pas" || word === "te");
+      if (targetIsOpening && hasNegation) return "imperatif_negatif";
+      if (targetIsOpening && /!/.test(item.french)) return "imperatif_affirmatif";
+      return "present";
+    };
+
+    const CONJUGATION_EXAMPLE_CATEGORIES = {
+      present: { order:1, icon:"target", label:"Présent", description:"Action actuelle, régulière ou prévue selon le contexte." },
+      present_habituel: { order:1.1, icon:"target", label:"Présent habituel", description:"Action répétée ou habituelle." },
+      present_prog: { order:1.2, icon:"target", label:"Présent progressif", description:"Action en cours au moment où l'on parle." },
+      passe_compose: { order:2, icon:"check", label:"Passé composé / aspect accompli", description:"En lingala, le contexte peut donner à la même forme une valeur de présent ou d'action accomplie." },
+      imparfait: { order:3, icon:"clock", label:"Imparfait / passé progressif", description:"Situation, habitude ou action en cours dans le passé." },
+      passe_prog: { order:3.1, icon:"clock", label:"Passé progressif", description:"Action qui était en train de se dérouler." },
+      futur: { order:4, icon:"arrow", label:"Futur", description:"Action située après le moment où l'on parle." },
+      futur_proche: { order:4.1, icon:"arrow", label:"Futur proche", description:"Action prochaine ou déjà envisagée." },
+      imperatif_affirmatif: { order:5, icon:"volume", label:"Impératif affirmatif", description:"Ordre, conseil ou invitation à agir." },
+      imperatif_negatif: { order:5.1, icon:"volume", label:"Impératif négatif", description:"Ordre ou conseil de ne pas agir." },
+      other: { order:99, icon:"book", label:"Autres exemples", description:"Formes complémentaires à observer." },
+    };
+
+    const conjugationExampleHighlightProfile = (item, table, category) => {
+      const roots = conjugationVerbRoots(table);
+      const frenchWords = lessonWords(item.french).map(fold);
+      const dialectWords = lessonWords(item.dialect).map(fold);
+      const frenchTargets = targetWordIndexes(item.french, roots.french);
+      const dialectTargets = dialectTargetWordIndexes(item.dialect, roots.dialect);
+      const frenchIndexes = new Set(frenchTargets);
+      const dialectIndexes = new Set(dialectTargets);
+
+      for (const index of frenchTargets) {
+        if (category === "passe_compose" && index > 0) frenchIndexes.add(index - 1);
+        if (category === "futur_proche") {
+          const start = Math.max(0,index - 4);
+          for (let cursor = start; cursor < index; cursor += 1) {
+            if (/^(?:vais|vas|va|allons|allez|vont)$/.test(frenchWords[cursor])) frenchIndexes.add(cursor);
+          }
+        }
+        if (category === "present_prog" || category === "passe_prog") {
+          const train = frenchWords.lastIndexOf("train",index);
+          if (train >= 1 && index - train <= 3) {
+            for (let cursor = train - 1; cursor <= index; cursor += 1) frenchIndexes.add(cursor);
+          }
+        }
+        if (category.startsWith("imperatif_")) {
+          if (frenchWords[index - 1] === "ne" || frenchWords[index - 1] === "n") frenchIndexes.add(index - 1);
+          if (frenchWords[index + 1] === "pas") frenchIndexes.add(index + 1);
+        }
+      }
+
+      for (const index of dialectTargets) {
+        if (index > 0 && /zal(?:i|aki)|zo/.test(dialectWords[index - 1])) dialectIndexes.add(index - 1);
+        if (category === "imperatif_negatif" && dialectWords[index + 1] === "te") dialectIndexes.add(index + 1);
+      }
+      return { frenchIndexes, dialectIndexes, french:new Set(), dialect:new Set(), tenses:new Set() };
+    };
+
+    const exampleMatchesConjugationVerb = (item,table) => {
+      const roots = conjugationVerbRoots(table);
+      return targetWordIndexes(item.french,roots.french).length > 0 ||
+        dialectTargetWordIndexes(item.dialect,roots.dialect).length > 0;
+    };
+    // CONJUGATION_EXAMPLE_LOGIC_END
+
+    const conjugationExampleSections = (items, tables) => {
+      const remaining = new Set(items.map(item => item.id));
+      const sections = [];
+      for (const table of tables) {
+        const matches = items.filter(item => remaining.has(item.id) && exampleMatchesConjugationVerb(item,table));
+        if (!matches.length) continue;
+        matches.forEach(item => remaining.delete(item.id));
+        const groupsByCategory = new Map();
+        for (const item of matches) {
+          const key = conjugationExampleCategory(item,table);
+          if (!groupsByCategory.has(key)) groupsByCategory.set(key,[]);
+          groupsByCategory.get(key).push(item);
+        }
+        const groups = [...groupsByCategory].map(([key,groupItems]) => ({
+          key,
+          ...CONJUGATION_EXAMPLE_CATEGORIES[key],
+          items:groupItems,
+        })).sort((a,b) => a.order - b.order);
+        sections.push({
+          key: table.verb,
+          title: table.verbFr,
+          subtitle: table.forms.find(form => form.person === "infinitif")?.lingala || table.verb,
+          items: matches,
+          table,
+          groups,
+        });
+      }
+      const unmatched = items.filter(item => remaining.has(item.id));
+      if (unmatched.length) {
+        const allForms = tables.flatMap(table => table.forms);
+        sections.push({ key:"other", title:"Autres formes", subtitle:"À observer", items:unmatched, table:null, groups:[{ key:"other", ...CONJUGATION_EXAMPLE_CATEGORIES.other, items:unmatched, profile:conjugationHighlightProfile(allForms) }] });
+      }
+      return sections;
+    };
+
+    const ConjugationExamples = ({ items, tables, langName, limit = null }) => {
+      const sections = conjugationExampleSections(items, tables);
+      return <section className="m-conj-context">
+        <header className="m-conj-context-intro"><span>Exemples en contexte</span><h2>Repérez la forme du verbe dans chaque phrase.</h2><p>Les éléments mis en évidence sont ceux qui portent la conjugaison étudiée.</p></header>
+        <div className="m-conj-context-groups">
+          {sections.map((section, index) => {
+            if (!section.items.length) return null;
+            return <div className={`m-conj-context-group tone-${index % 4}`} key={section.key}>
+              <header><span>{String(index + 1).padStart(2,"0")}</span><div><h3>{section.title}</h3><p>{section.subtitle} · {plural(section.items.length, "exemple", "exemples")}</p></div></header>
+              <div className="m-conj-tense-groups">
+                {section.groups.map(group => {
+                  const visibleItems = limit ? group.items.slice(0,limit) : group.items;
+                  if (!visibleItems.length) return null;
+                  const profile = group.profile || (item => conjugationExampleHighlightProfile(item,section.table,group.key));
+                  return <section className={`m-conj-tense-group tense-${group.key}`} key={group.key}>
+                    <header>
+                      <span className="m-conj-tense-icon"><UiIcon name={group.icon}/></span>
+                      <div><span className="m-conj-tense-label">{group.label}</span><p>{group.description}</p></div>
+                      <b><strong>{group.items.length}</strong><small>{group.items.length === 1 ? "exemple" : "exemples"}</small></b>
+                    </header>
+                    <LessonTable items={visibleItems} langName={langName} highlightProfile={profile}/>
+                  </section>;
+                })}
+              </div>
+            </div>;
+          })}
+        </div>
+      </section>;
+    };
+
+    const SessionLessonSnapshot = ({ lesson, lessonItems, tables, notes, langName, onClose }) => {
+      useEffect(() => {
+        const closeOnEscape = event => { if (event.key === "Escape") onClose(); };
+        window.addEventListener("keydown", closeOnEscape);
+        return () => window.removeEventListener("keydown", closeOnEscape);
+      }, [onClose]);
+
+      return <div className="m-session-reference-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+        <section className="m-session-reference" role="dialog" aria-modal="true" aria-labelledby="session-reference-title">
+          <header className="m-session-reference-head">
+            <div><span>Leçon complète</span><h2 id="session-reference-title">{lesson.title}</h2><p>Parcourez toute la leçon. Votre exercice reste en pause à l'arrière-plan.</p></div>
+            <button onClick={onClose} aria-label="Fermer le rappel"><UiIcon name="close"/></button>
+          </header>
+          <div className="m-session-reference-body">
+            <div className="m-session-reference-full">
+              {(tables || []).length > 0
+                ? <React.Fragment>
+                    <ConjugationPanel tables={tables} notes={notes}/>
+                    <ConjugationExamples items={lessonItems} tables={tables} langName={langName}/>
+                  </React.Fragment>
+                : lesson.title === "Sons et alphabet"
+                  ? <AlphabetPanel lessonItems={lessonItems}/>
+                  : <LessonTable items={lessonItems} langName={langName}/>
+              }
+            </div>
+          </div>
+          <footer><button onClick={onClose}>Reprendre l'exercice <UiIcon name="arrow"/></button></footer>
+        </section>
+      </div>;
+    };
 
     const SenseCard = ({ sense, index }) => (
       <div style={{ background:"white", borderRadius:8, padding:"20px 24px", marginBottom:12, border:"1px solid var(--m-line)", boxShadow:"0 1px 3px rgba(139,109,71,0.06)" }}>
@@ -4531,18 +4880,16 @@
     function AiFeaturePreview({ kind }) {
       if (kind === "live") return <figure className="m-ai-demo m-ai-live-demo" aria-label="Aperçu d'une traduction vocale entre le français et le lingala">
         <figcaption className="m-sr-only">Une conversation orale est transcrite et traduite dans les deux directions.</figcaption>
-        <header><span><UiIcon name="headphones"/></span><div><strong>Traduction en direct</strong><small>Une conversation, deux langues</small></div></header>
         <div className="m-ai-language-switch"><span><small>Je parle</small><strong>Français</strong></span><i>⇄</i><span><small>Traduction</small><strong>Lingala</strong></span></div>
         <div className="m-ai-live-thread">
           <div><small>Français</small><span>Bonjour, où se trouve le marché ?</span><strong>Mbote, zando ezali wapi ?</strong></div>
           <div className="reply"><small>Lingala</small><span>Zando ezali pene na station.</span><strong>Le marché est près de la station.</strong></div>
         </div>
-        <footer><span className="m-ai-wave" aria-hidden="true">{[8,16,25,13,30,19,11,23,9].map((height,index) => <i key={index} style={{height}}/>)}</span><b><UiIcon name="mic"/></b><small>Parlez naturellement</small></footer>
+        <footer><span className="m-ai-wave" aria-hidden="true">{[8,16,25,13,30,19,11,23,9].map((height,index) => <i key={index} style={{height}}/>)}</span><b><UiIcon name="mic"/></b><span className="m-ai-wave trailing" aria-hidden="true">{[9,23,11,19,30,13,25,16,8].map((height,index) => <i key={index} style={{height}}/>)}</span><small>Parlez naturellement</small></footer>
       </figure>;
 
       return <figure className="m-ai-demo m-ai-chat-demo" aria-label="Aperçu d'une conversation avec Monoko">
         <figcaption className="m-sr-only">Une question en français reçoit une réponse et une traduction en lingala.</figcaption>
-        <header><span><UiIcon name="messages"/></span><div><strong>Parler avec Monɔkɔ</strong><small>IA conversationnelle en lingala</small></div><i>En ligne</i></header>
         <div className="m-ai-chat-thread">
           <p className="user">Comment dit-on « Je suis heureux de te revoir » ?</p>
           <div className="assistant">
@@ -4556,57 +4903,30 @@
     }
 
     function AiShowcase({ onTry, ctaDisabled }) {
-      const [active, setActive] = useState(0);
-      const touchStart = useRef(null);
-      const count = AI_FEATURES.length;
-      const move = direction => setActive(current => (current + direction + count) % count);
-      const releasePointerFocus = event => event.currentTarget.blur();
-
-      return <div className="m-landing-ai" aria-labelledby="landing-ai-title" data-carousel-index={active}>
+      // Both tools render at once. They used to share one tab panel, which meant a
+      // visitor saw one of the two and the other was aria-hidden from crawlers too.
+      return <div className="m-landing-ai" aria-labelledby="landing-ai-title">
         <header className="m-landing-ai-heading">
           <div className="m-kicker"><span>L'IA au service de la langue</span></div>
           <h2 id="landing-ai-title">Traduisez en direct. Pratiquez avec Monɔkɔ.</h2>
           <p>L'intelligence artificielle rend la langue disponible au moment où vous en avez besoin, pendant une rencontre comme entre deux leçons.</p>
         </header>
 
-        <div className="m-landing-ai-tabs" role="tablist" aria-label="Outils d'intelligence artificielle">
-          {AI_FEATURES.map((feature, index) => <button key={feature.kind} type="button" role="tab"
-            id={`m-ai-tab-${feature.kind}`} aria-controls={`m-ai-panel-${feature.kind}`}
-            aria-selected={index === active} className={index === active ? "active" : ""}
-            onClick={event => { setActive(index); releasePointerFocus(event); }}>
-            <span><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/></span>
-            <span><strong>{feature.label}</strong><small>{feature.tabCopy}</small></span>
-          </button>)}
+        <div className="m-landing-ai-grid">
+          {AI_FEATURES.map(feature => <article key={feature.kind} className={`m-landing-ai-feature ${feature.kind}`}>
+            <div className="m-landing-ai-feature-head">
+              <span><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/></span>
+              <div><strong>{feature.label}</strong><small>{feature.tabCopy}</small></div>
+            </div>
+            <p className="m-landing-ai-feature-copy">{feature.copy}</p>
+            <AiFeaturePreview kind={feature.kind}/>
+            <div className="m-landing-ai-benefits">
+              {feature.benefits.map(benefit => <span key={benefit}><UiIcon name="check"/> {benefit}</span>)}
+            </div>
+            <button type="button" className="m-landing-ai-cta" disabled={ctaDisabled} onClick={() => onTry(feature.kind)}>{feature.cta}<UiIcon name="arrow"/></button>
+            <small className="m-landing-ai-access">Accès gratuit avec un compte</small>
+          </article>)}
         </div>
-
-        <div className="m-landing-ai-viewport"
-             onTouchStart={event => { touchStart.current = event.touches[0]?.clientX ?? null; }}
-             onTouchEnd={event => {
-               if (touchStart.current === null) return;
-               const delta = (event.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current;
-               if (Math.abs(delta) > 45) move(delta < 0 ? 1 : -1);
-               touchStart.current = null;
-             }}
-             onTouchCancel={() => { touchStart.current = null; }}>
-          <div className="m-landing-ai-track" style={{transform:`translateX(-${active * 100}%)`}}>
-            {AI_FEATURES.map((feature, index) => <article key={feature.kind} id={`m-ai-panel-${feature.kind}`}
-              role="tabpanel" aria-labelledby={`m-ai-tab-${feature.kind}`} aria-hidden={index !== active}
-              className={`m-landing-ai-feature ${feature.kind}`}>
-              <div className="m-landing-ai-copy">
-                <span className="m-landing-ai-label"><UiIcon name={feature.kind === "live" ? "headphones" : "messages"}/> {feature.label}</span>
-                <h3>{feature.title}</h3>
-                <p>{feature.copy}</p>
-                <div className="m-landing-ai-benefits">
-                  {feature.benefits.map(benefit => <span key={benefit}><UiIcon name="check"/> {benefit}</span>)}
-                </div>
-                <button type="button" className="m-landing-ai-cta" disabled={ctaDisabled} onClick={() => onTry(feature.kind)}>{feature.cta}<UiIcon name="arrow"/></button>
-                <small className="m-landing-ai-access">Accès gratuit avec un compte</small>
-              </div>
-              <AiFeaturePreview kind={feature.kind}/>
-            </article>)}
-          </div>
-        </div>
-
       </div>;
     }
 
@@ -4801,21 +5121,38 @@
       </div>;
     }
 
-    function LessonTable({ items, title, langName, showExamples = true }) {
+    function LessonTable({ items, title, langName, showExamples = true, highlightProfile = null }) {
+      const groups = [];
+      for (const item of items) {
+        const previous = groups[groups.length - 1];
+        const canGroup = previous && previous.french.trim().toLocaleLowerCase("fr") === item.french.trim().toLocaleLowerCase("fr") &&
+          !item.example_french && !item.example_dialect && previous.items.every(row => !row.example_french && !row.example_dialect);
+        if (canGroup) previous.items.push(item);
+        else groups.push({ french: item.french, items: [item] });
+      }
       return <section className="m-lesson-section">
         {title && <h2>{title}</h2>}
         <div className="m-lesson-table">
           <div className="m-lesson-table-head"><span>Français</span><span>{langName}</span></div>
-          {items.map(item => <article className="m-lesson-row" key={item.id}>
+          {groups.map(group => {
+            const item = group.items[0];
+            const rowProfile = typeof highlightProfile === "function"
+              ? highlightProfile(item)
+              : highlightProfile || lessonItemHighlightProfile(item);
+            return <article className={`m-lesson-row${group.items.length > 1 ? " has-variants" : ""}`} key={group.items.map(row => row.id).join("-")}>
             <div className="m-lesson-pair">
-              <div className="m-lesson-fr" data-language="Français">{item.french}</div>
-              <div className="m-lesson-ln" data-language={langName}><LessonAudioText text={item.dialect} audioUrl={item.audio_url} title={`Écouter ${item.dialect}`}/></div>
+              <div className="m-lesson-fr" data-language="Français"><span><FocusedText text={group.french} language="french" profile={rowProfile}/></span>{group.items.length > 1 && <small>{group.items.length} formulations</small>}</div>
+              <div className="m-lesson-ln" data-language={langName}>
+                <div className="m-lesson-variants">
+                  {group.items.map((variant, index) => <div className="m-lesson-variant" key={variant.id}>{group.items.length > 1 && <span className="m-lesson-variant-number">{index + 1}</span>}<LessonAudioText text={variant.dialect} audioUrl={variant.audio_url} title={`Écouter ${variant.dialect}`}><FocusedText text={variant.dialect} language="dialect" profile={rowProfile}/></LessonAudioText></div>)}
+                </div>
+              </div>
             </div>
             {showExamples && (item.example_french || item.example_dialect) && <div className="m-lesson-example">
-              <div>{item.example_french ? `« ${item.example_french} »` : ""}</div>
-              <div>{item.example_dialect && <LessonAudioText text={`« ${item.example_dialect} »`} audioUrl={item.example_audio_url} title={`Écouter ${item.example_dialect}`} italic/>}</div>
+              <div>{item.example_french ? <React.Fragment>« <FocusedText text={item.example_french} language="french" profile={rowProfile}/> »</React.Fragment> : ""}</div>
+              <div>{item.example_dialect && <LessonAudioText text={`« ${item.example_dialect} »`} audioUrl={item.example_audio_url} title={`Écouter ${item.example_dialect}`} italic><React.Fragment>« <FocusedText text={item.example_dialect} language="dialect" profile={rowProfile}/> »</React.Fragment></LessonAudioText>}</div>
             </div>}
-          </article>)}
+          </article>})}
         </div>
       </section>;
     }
@@ -5661,6 +5998,7 @@
       const [sessionStage, setSessionStage] = useState("pratiquer");  // pratiquer | elargir
       const [sessionPoolSize, setSessionPoolSize] = useState(0);      // how deep this stage goes
       const [conjTables, setConjTables] = useState([]);               // paradigms shown atop this lesson
+      const [conjNotes, setConjNotes] = useState({});                 // professor explanations keyed by tense
       const [poolLoading, setPoolLoading] = useState(false);
       const [sessionNote, setSessionNote] = useState("");
       // Per-lesson stage state, loaded on open. `mastery` is the "18/25" counter:
@@ -7025,7 +7363,7 @@
       // logged out as well — the table is reference material, not progress.
       useEffect(() => {
         const id = selectedLesson?.id;
-        if (!id) { setConjTables([]); return; }
+        if (!id) { setConjTables([]); setConjNotes({}); return; }
         let cancelled = false;
         (async () => {
           try {
@@ -7038,6 +7376,15 @@
             const verbs = links.map(l => `"${l.verb}"`).join(",");
             const forms = await supaFetch("conjugation_forms",
               `verb=in.(${verbs})&language_id=eq.${langId}&select=*&order=tense_order,person_order`);
+            let notes = [];
+            try {
+              notes = await supaFetch("conjugation_tense_notes",
+                `language_id=eq.${langId}&select=*&order=sort_order`);
+            } catch (noteError) {
+              // The paradigm remains useful while a deployment waits for the
+              // optional notes migration.
+              console.info("conjugation notes unavailable:", noteError);
+            }
             // A lesson shows the tenses it teaches. `tenses` null means all of
             // them — the sensible default for a general conjugation lesson.
             const byVerb = links.map(l => ({
@@ -7046,8 +7393,11 @@
               forms: forms.filter(f => f.verb === l.verb &&
                                        (!l.tenses || !l.tenses.length || l.tenses.includes(f.tense))),
             })).filter(t => t.forms.length);
-            if (!cancelled) setConjTables(byVerb);
-          } catch (e) { console.error("conjugation tables:", e); if (!cancelled) setConjTables([]); }
+            if (!cancelled) {
+              setConjTables(byVerb);
+              setConjNotes(Object.fromEntries(notes.map(note => [note.tense, note])));
+            }
+          } catch (e) { console.error("conjugation tables:", e); if (!cancelled) { setConjTables([]); setConjNotes({}); } }
         })();
         return () => { cancelled = true; };
       }, [selectedLesson?.id, langId]);
@@ -8128,6 +8478,10 @@
                 onSeeLesson={() => setSessionExercises(null)}
                 onSessionEnd={handleSessionEnd}
                 onReport={reportPoolItem}
+                lessonItems={lessonItems}
+                conjugationTables={conjTables}
+                conjugationNotes={conjNotes}
+                langName={langName}
               />
             )}
 
@@ -8153,14 +8507,20 @@
                 {/* The paradigm comes FIRST. The rest of the lesson is examples
                     of it, and a learner who scrolls past thirty sentences before
                     meeting the pattern has already lost the pattern. */}
-                {conjTables.map(t => (
-                  <ConjugationTable key={t.verb} verb={t.verb} verbFr={t.verbFr} forms={t.forms} />
-                ))}
+                {conjTables.length > 0 && (
+                  <ConjugationPanel tables={conjTables} notes={conjNotes}/>
+                )}
 
                 {loading ? <Spinner /> : (() => {
                   // Sons et alphabet — special tile view
                   const isAlphabet = selectedLesson?.title === "Sons et alphabet";
                   if (isAlphabet) return <AlphabetPanel lessonItems={lessonItems} />;
+
+                  // Conjugation examples are easier to scan as one section per
+                  // model verb. Their forms also provide the highlighting data,
+                  // so the emphasis comes from the professor's paradigm rather
+                  // than a guessed string prefix.
+                  if (conjTables.length) return <ConjugationExamples items={lessonItems} tables={conjTables} langName={langName}/>;
 
                   // Determine if this is a paired lesson (Cours 1 style)
                   // Paired lessons have items that alternate: phrase1/translation1, phrase2/translation2

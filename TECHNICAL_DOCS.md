@@ -513,8 +513,8 @@ One verb's paradigm stored as a **grid**, not as lesson rows.
 |---|---|---|
 | `id` | BIGSERIAL | PK |
 | `language_id` | BIGINT FK → languages | |
-| `verb` / `verb_fr` | TEXT | Infinitive and its gloss — `ko linga` / `aimer` |
-| `tense` / `person` | TEXT | `present`, `imparfait`, `futur`, `present_prog`, `passe_prog` × `je tu il nous vous ils` |
+| `verb` / `verb_fr` | TEXT | Infinitive and its gloss — e.g. `koloba` / `parler` |
+| `tense` / `person` | TEXT | Nine tense/aspect groups; finite persons plus `infinitif` where a tense-specific recording exists |
 | `tense_label` / `tense_order` / `person_order` | TEXT / SMALLINT / SMALLINT | Display order, so the client never hardcodes a sort |
 | `french` | TEXT | **Generated** from (tense, person) — the source workbook's French has typos and mislabels the passé progressif |
 | `lingala` | TEXT | **Copied verbatim** from the professor |
@@ -525,8 +525,12 @@ One verb's paradigm stored as a **grid**, not as lesson rows.
 **named in the upsert** — the table also has a bigserial PK, and PostgREST will
 not guess which one an upsert means; without the name it answers **409**.
 
-30 rows today: *ko linga*, 5 tenses × 6 persons, **24 with audio** (the présent
-column was never recorded, so those six render with no play button).
+Production has **186 rows, all with audio**: 156 finite forms and 30 recorded
+infinitive rows across *koloba*, *kosilisa*, *kotekisa* and *kolinga*. The nine
+groups are present, habitual present, present progressive, imperfect, past
+progressive, future, near future, affirmative imperative and negative
+imperative. The 2026-09-10 delivery supersedes the original 30-row *ko linga*
+sample.
 
 Why a grid: a paradigm is addressed by (verb, tense, person) and is unreadable
 flattened. The original migration read the workbook **row-wise** when it is a
@@ -547,9 +551,9 @@ stored several times.
 
 `tenses` is an array on the link row rather than a row per tense because the unit
 the page renders is one verb's block; splitting it fans the query out for
-nothing. Current rows: **L358** four tenses (24 forms), **L359** `futur` (6
-forms). **L393 futur proche has no row at all** — this paradigm has no futur
-proche column, and showing it the futur simple would teach the wrong tense.
+nothing. Production has **12 links**: L358 receives the five present/past
+groups, L359 receives future plus affirmative imperative, and L393 receives
+near future plus negative imperative.
 
 The frontend loader `select`s `*` rather than naming `tenses`: naming a column a
 database has not migrated yet returns **400**, and a 400 there takes the whole
@@ -559,8 +563,30 @@ pre-migration behaviour.
 These rows also drive what gets **mirrored into `lesson_pool`** as exercise
 material, so a lesson is never drilled on a tense it does not teach.
 `sql/lesson_pool_conjugation_source.sql` widens `lesson_pool`'s `source_table`
-CHECK to admit `conjugation_forms` — **applied 2026-08-18**. The pool now holds
-**30 conjugation rows** (24 on L358, 6 on L359, all `tier = native`).
+CHECK to admit `conjugation_forms` — **applied 2026-08-18**. Only finite forms
+are mirrored into practice, for **156 native conjugation rows**; recorded
+infinitives remain teaching material in the table header.
+
+### `conjugation_tense_notes` (added 2026-09-10)
+
+Stores professor-authored explanations independently of individual verbs. The
+unique key is `(language_id, tense)`; labels, display order, source provenance
+and `updated_at` are stored with the note. Public clients may read notes, while
+normal users have no write policy. Seven populated notes are in production. The
+two blank imperative explanation fields were intentionally omitted.
+
+The lesson UI presents a verb selector, tense tabs, a recorded infinitive in the
+tense header, and a collapsible **Explication du professeur** panel. Adjacent
+lesson rows sharing an exact French prompt are grouped as numbered Lingala
+formulations, preserving every recorded variant without repeating the prompt.
+
+The delivery pipeline is `ingest_latest_course_completion.py plan | stage |
+upload | apply | verify`. Audio is silence-trimmed and transcoded to MP3, R2 keys
+and `audio_source_cell` markers are stable, and `apply` writes a rollback JSON
+before changes. Replanning after an apply resolves all 50 supplemental rows as
+updates, making corrected professor exports safe to ingest without duplication.
+After the 2026-09-10 apply, `embed_lesson_items.py` backfilled the 50 inserted
+rows; production now has **2,299/2,299 lesson-item embeddings**.
 
 ---
 
@@ -606,6 +632,9 @@ languages
 **`sql/conjugation_lesson_tenses.sql`** (applied 2026-08-18) — adds `lesson_conjugation_tables.tenses text[]`.
 
 **`sql/lesson_pool_conjugation_source.sql`** (applied 2026-08-18) — widens `lesson_pool.source_table`'s CHECK to admit `conjugation_forms`. Before it ran, `populate_conjugation_forms.py` could not write pool rows at all; the insert failed the CHECK.
+
+**`sql/conjugation_tense_notes.sql`** (applied 2026-09-10) — adds the
+professor-authored teaching notes displayed with the conjugation paradigms.
 
 **`sql/culture_capsules.sql`** / **`sql/culture_capsules_seed.sql`** (applied 2026-08-22) — editable lesson-linked culture capsules and their one-time claims.
 
@@ -949,6 +978,32 @@ Between the two fixes, **181 example sentences across 9 lessons became visible**
 (thirty cells do not fit a 375px column), from `lesson_conjugation_tables` +
 `conjugation_forms`. The loader `select`s `*`, catches its own failure and
 renders nothing, so a database missing the migration leaves the page unaffected.
+
+The final conjugation teaching UI adds two layers around that grid. Professor
+notes from `conjugation_tense_notes` are parsed into headings, formulas, prefix
+tables and example callouts; known tense markers and the selected paradigm's
+forms are emphasized without altering the professor's stored text. The lesson's
+sentence corpus is grouped by model verb and then by the tense expressed in its
+French prompt. A per-sentence matcher marks the complete target construction:
+the auxiliary and participle for passé composé, and the matching `-zalaki` plus
+target infinitive for Lingala past-progressive examples. It uses occurrence
+indexes, not a page-wide root match, so a second auxiliary or *Lobi* is not
+highlighted accidentally. The shared Lingala paradigm is labelled *Présent /
+passé composé*, while the French example groups remain distinct to teach how
+context determines the reading. This grouping is presentation-only: the rows
+and their ordering remain unchanged in `lesson_items`.
+
+Verb ownership is deliberately narrower than visual highlighting:
+`exampleMatchesConjugationVerb` matches only the target lexical roots. Shared
+auxiliaries such as `nazalaki` must never assign a *kosilisa* or *kotekisa* row
+to the earlier *koloba* section.
+
+Inside `SessionView`, *Pourquoi ? Voir la leçon* no longer navigates away. It
+opens `SessionLessonSnapshot` over the mounted session and renders the complete
+lesson: every conjugation paradigm, verb/tense example group and sentence (or
+the full ordinary lesson table). Closing the sheet therefore preserves the
+queue, current question, retries, score and pending attempt batch. Lessons
+without reference material retain the route-back fallback.
 
 ---
 

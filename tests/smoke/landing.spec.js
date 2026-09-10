@@ -80,22 +80,22 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
   await expect(page.locator(".m-landing-quality")).toHaveCount(0);
   const aiShowcase = page.locator(".m-landing-ai");
   await expect(aiShowcase).toContainText("Traduisez en direct. Pratiquez avec Monɔkɔ.");
-  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
+  // Both tools render at once — no tabs, nothing aria-hidden from crawlers.
   await expect(page.locator(".m-landing-ai-feature")).toHaveCount(2);
-  await expect(page.locator(".m-landing-ai-feature.live")).toContainText("Parlez en français. Faites-vous comprendre en lingala");
-  await expect(page.locator(".m-landing-ai-feature.live")).toHaveAttribute("aria-hidden", "false");
-  await expect(page.getByRole("tab", { name:/Traduction en direct/ })).toHaveAttribute("aria-selected", "true");
-  await page.getByRole("tab", { name:/Parler avec Monɔkɔ/ }).click();
-  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "1");
-  await expect(page.locator(".m-landing-ai-feature.chat")).toHaveAttribute("aria-hidden", "false");
+  await expect(page.locator(".m-landing-ai-feature.live")).toBeVisible();
+  await expect(page.locator(".m-landing-ai-feature.chat")).toBeVisible();
+  await expect(page.locator(".m-landing-ai-feature.live")).toContainText("chacun peut parler dans sa langue");
   await expect(page.locator(".m-landing-ai-feature.chat")).toContainText("corpus validé par des linguistes experts");
+  await expect(page.locator(".m-landing-ai-feature[aria-hidden]")).toHaveCount(0);
+  await expect(page.locator(".m-landing-ai-tabs")).toHaveCount(0);
   await expect(page.locator(".m-landing-ai-cta")).toHaveCount(2);
-  await expect(page.locator(".m-landing-ai-trust")).toContainText("Une technologie guidée par l'expertise humaine");
+  // The live preview shows the mic flanked by waveforms.
+  await expect(page.locator(".m-landing-ai-feature.live .m-ai-wave")).toHaveCount(2);
+  // The trust note stays its own band ABOVE the dark section, not inside it.
+  await expect(page.locator(".m-landing-ai-bridge .m-landing-ai-trust")).toContainText("Une technologie guidée par l'expertise humaine");
+  await expect(page.locator(".m-landing-ai .m-landing-ai-trust")).toHaveCount(0);
   await page.waitForTimeout(600);
-  await page.locator(".m-landing-ai").screenshot({ path: testInfo.outputPath("landing-ai-chat.png") });
-  await page.getByRole("tab", { name:/Traduction en direct/ }).click();
-  await page.waitForTimeout(600);
-  await page.locator(".m-landing-ai").screenshot({ path: testInfo.outputPath("landing-ai-live.png") });
+  await page.locator(".m-landing-ai").screenshot({ path: testInfo.outputPath("landing-ai.png") });
   await expect(page.locator(".m-landing-mission-visual img")).toHaveJSProperty("complete", true);
   expect(await page.locator(".m-landing-mission-visual img").evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
 
@@ -129,10 +129,10 @@ test("public landing remains visible and contained", async ({ page }, testInfo) 
       ".m-exercise-showcase",
       ".m-exercise-viewport",
       ".m-landing-ai",
-      ".m-landing-ai-tabs",
-      ".m-landing-ai-viewport",
-      ".m-landing-ai-feature[aria-hidden='false']",
-      ".m-landing-ai-feature[aria-hidden='false'] .m-ai-demo",
+      ".m-landing-ai-grid",
+      ".m-landing-ai-feature.live",
+      ".m-landing-ai-feature.chat",
+      ".m-landing-ai-feature.live .m-ai-demo",
       ".m-landing-dictionary",
       ".m-landing-final .m-landing-section-inner",
       ".m-landing-foot",
@@ -188,12 +188,10 @@ test("exercise previews advance automatically while AI tools remain manual", asy
   test.skip(testInfo.project.name !== "desktop", "Autoplay timing is viewport-independent");
   await page.goto("/");
   const showcase = page.locator(".m-exercise-showcase");
-  const aiShowcase = page.locator(".m-landing-ai");
   await expect(showcase).toHaveAttribute("data-carousel-index", "0");
-  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
   await expect.poll(() => showcase.getAttribute("data-carousel-index"), { timeout:7_500 }).toBe("1");
-  await page.waitForTimeout(1_000);
-  await expect(aiShowcase).toHaveAttribute("data-carousel-index", "0");
+  // The AI section is no longer a carousel at all, so nothing there can rotate.
+  await expect(page.locator(".m-landing-ai")).not.toHaveAttribute("data-carousel-index");
 });
 
 test("AI calls to action preserve their intended destination", async ({ page }, testInfo) => {
@@ -203,7 +201,6 @@ test("AI calls to action preserve their intended destination", async ({ page }, 
   await expect(page.locator(".m-auth-gate")).toContainText("à la traduction en direct");
 
   await page.getByRole("button", { name:"Découvrir Monɔkɔ" }).click();
-  await page.getByRole("tab", { name:/Parler avec Monɔkɔ/ }).click();
   await page.locator(".m-landing-ai-feature.chat").getByRole("button", { name:"Parler avec Monɔkɔ" }).click();
   await expect(page.locator(".m-auth-gate")).toContainText("aux conversations");
 });

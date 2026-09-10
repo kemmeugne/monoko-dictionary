@@ -25,6 +25,15 @@ inseparable from everyday speech in the target communities, and no module covere
 phones, messaging or mobile money at all. They are part of the universal
 curriculum, so a new language should collect them too.
 
+**Lingala delivery status (2026-09-10).** The latest professor return added 15
+recorded formulations to *Compréhension et communication*, 24 to *Sentiments et
+émotions* and 11 to *Comparatifs et superlatifs*. Its conjugation corpus now
+contains four verbs and nine tense/aspect groups: 186 recorded teaching rows,
+seven professor explanations and 156 finite forms available to the exercise
+engine. The Météo supplement and consolidated rule cards for pronouns,
+comparisons, conjunctions and prepositions have not yet been returned and must
+not be synthesized from unverified material.
+
 ---
 
 ## LEVEL 1 — FONDATIONS (A1 Beginner)

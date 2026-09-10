@@ -66,6 +66,7 @@ const FILES = [
   "exercise_progress.sql",                // Slice 4 — attempts + stage state
   "conjugation_tables.sql",               // conjugation grid
   "conjugation_lesson_tenses.sql",        // ...and the per-lesson tense list
+  "conjugation_tense_notes.sql",           // ...and professor-authored explanations
   "lesson_pool_conjugation_source.sql",   // ...admitted into lesson_pool
   "progression.sql",                      // Slice 7 — streak + SM-2 schedule
   "culture_capsules.sql",                 // course-path cultural rewards

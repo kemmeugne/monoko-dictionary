@@ -8,10 +8,12 @@
 5 lesson splits, ~50-row dedup, pronoun consolidation, minor cleanups). Backup-first
 scripts (`split_lesson.py`, `dedup_lessons_p2.py`, `consolidate_pronouns_p3.py`,
 `cleanup_p4.py`, `restructure_lessons_p0.py`) + rollback JSONs in
-`artifacts/lesson_backups/`. **Still open, content-blocked (waiting on professor):**
-conjugation rebuild L358/L359, placeholder lessons (Proverbes, Langue dans le monde),
-and the L386 reflexive-pronoun quality pass. Next steps once content arrives: see
-`ROADMAP.md` Phase 1.
+`artifacts/lesson_backups/`. **Update 2026-09-10:** the conjugation rebuild is
+complete in production: 186/186 recorded rows, four verbs, nine tense/aspect
+groups, seven professor notes and 156 finite practice forms across L358, L359
+and L393. The returned supplements also add 50 recorded formulations to three
+thin lessons. Still content-blocked: the Météo supplement, consolidated grammar
+rule cards and the L386 reflexive-pronoun quality pass. See `ROADMAP.md` Phase 1.
 
 ---
 
@@ -113,6 +115,15 @@ DB and the recording workflow will finally match.
 > lesson *body*; the paradigm grid is a second, complementary surface, and the
 > plan is now **a table per verb per tense** as the professor records them.
 > See `EXERCISE_ENGINE_PLAN.md` § "Conjugation paradigms".
+>
+> **Update 2026-09-10 — delivered and integrated.** The final professor export
+> contains *koloba*, *kosilisa*, *kotekisa* and *kolinga*. It covers present,
+> habitual present, present progressive, imperfect, past progressive, future,
+> near future and both imperative polarities. All 186 rows have audio; seven
+> returned explanations render in collapsible teaching panels. The page uses an
+> outer verb selector plus tense tabs so the full corpus remains readable on a
+> phone. The old sample rows and pool links were replaced, not layered under the
+> new delivery.
 
 ### 3b. `Chiffres, jours et temps` — L350 (the ask)
 
