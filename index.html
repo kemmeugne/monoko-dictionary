@@ -6242,6 +6242,9 @@
       const [emailConfirmed, setEmailConfirmed] = useState(false);
       const chatEndRef = useRef(null);
       const inputRef = useRef(null);
+      // Which lesson the learner is coming back from, so the trail can restore
+      // their place instead of dumping them at the top of it.
+      const trailReturnLessonRef = useRef(null);
       const LETTERS = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z".split(" ");
       const celebrate = useCallback((count = 28) => {
         window.clearTimeout(celebrationTimer.current);
@@ -7479,7 +7482,31 @@
       useEffect(() => {
         if (view === "search" && inputRef.current) setTimeout(() => inputRef.current?.focus(), 100);
         if (view === "chat") apiFetch("/api/mms-tts").catch(() => {});
-        if (["home", "courses", "profile"].includes(view)) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        if (!["home", "courses", "profile"].includes(view)) return;
+
+        // Leaving a lesson should land on that lesson's node. The trail is long and
+        // the learner has already scrolled through it; sending them back to the top
+        // loses their place every time they close a lesson.
+        const lessonId = view === "courses" ? trailReturnLessonRef.current : null;
+        trailReturnLessonRef.current = null;
+        if (lessonId === null || lessonId === undefined) {
+          window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+          return;
+        }
+
+        let attempts = 0;
+        let timer = 0;
+        const settle = () => {
+          const node = document.querySelector(`[data-trail-lesson-id="${lessonId}"]`);
+          // Instant, not smooth: this is restoring a position, not a journey.
+          if (node) { node.scrollIntoView({ block: "center", behavior: "auto" }); return; }
+          // The trail may still be painting. Give it a few frames, then give up
+          // rather than leaving the learner mid-page with nothing scrolled.
+          if (++attempts < 12) { timer = window.setTimeout(settle, 60); return; }
+          window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        };
+        timer = window.setTimeout(settle, 0);
+        return () => window.clearTimeout(timer);
       }, [view]);
 
       // Reload progress whenever the logged-in user or active language changes
@@ -8555,8 +8582,8 @@
                 bonus={lastBonus}
                 milestoneBonus={lastMilestoneBonus}
                 secondaryLabel="Revenir au parcours"
-                onExit={() => { setSessionExercises(null); setView("courses"); }}
-                onSeeLesson={() => { setSessionExercises(null); setView("courses"); }}
+                onExit={() => { trailReturnLessonRef.current = selectedLesson?.id ?? null; setSessionExercises(null); setView("courses"); }}
+                onSeeLesson={() => { trailReturnLessonRef.current = selectedLesson?.id ?? null; setSessionExercises(null); setView("courses"); }}
                 onSessionEnd={handleLevelChallengeEnd}
               />
             )}
@@ -8751,7 +8778,7 @@
             {view === "lesson" && selectedLesson && !sessionExercises && (
               <StandardPage active="courses" assistantOpen={lessonAssistantOpen} {...pageShellProps}>
                 <article className="m-lesson-workspace">
-                  <button className="m-lesson-back" onClick={() => { setLessonAssistantOpen(false); setView("courses"); setSelectedLesson(null); setLessonItems([]); }}><UiIcon name="back"/><span>Retour au parcours</span></button>
+                  <button className="m-lesson-back" onClick={() => { trailReturnLessonRef.current = selectedLesson?.id ?? null; setLessonAssistantOpen(false); setView("courses"); setSelectedLesson(null); setLessonItems([]); }}><UiIcon name="back"/><span>Retour au parcours</span></button>
 
                   <header className="m-lesson-heading">
                     <div className="m-kicker"><span>{LEVEL_META[(selectedCourse?.course_order || 1) - 1]?.cefr || "Cours"}</span><span>{selectedCourse?.title}</span></div>

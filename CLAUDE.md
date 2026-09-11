@@ -605,6 +605,19 @@ What the landing preview shows and the app cannot is the *structured* answer
 ("On peut dire : / lingala / french"): the real assistant streams free prose from
 the model, so only the shell is shared, never a fixed answer template.
 
+**Leaving a lesson restores your place on the trail (2026-09-11).** The `view`
+effect used to scroll to the top for `home`, `courses` and `profile` alike, so
+closing a lesson threw the learner back to the start of a 49-node trail they had
+already scrolled through. `trailReturnLessonRef` records the lesson being left —
+set by `Retour au parcours` and by both session exits — and the effect scrolls
+`[data-trail-lesson-id="…"]` to centre instead, instantly rather than smoothly
+because this is restoring a position, not a journey. It retries for ~700ms while
+the trail paints and falls back to the top if the node never appears, so a slow
+render cannot strand the learner mid-page. `home` and `profile` still go to the
+top. Measured: returning lands at the same scrollY the learner left from, with
+the node centred; with the old line restored it lands at 0 with the node 616px
+below the fold.
+
 **Lesson-level assistant added (2026-09-10).** Lesson pages keep the learner in
 place and open `LessonAssistant` as a compact desktop window/responsive sheet. The dedicated
 `sendLessonAssistant` path sends `mode: "lesson-assistant"` and prepends a bounded
