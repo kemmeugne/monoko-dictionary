@@ -225,6 +225,81 @@ test("AI calls to action preserve their intended destination", async ({ page }, 
   await expect(page.locator(".m-auth-gate")).toContainText("aux conversations");
 });
 
+test("the landing dictionary plays the example sentence, not just the word", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Audio wiring is viewport-independent");
+
+  const WORD_MP3 = "https://audio.test/Lingala/senses/P/word.mp3";
+  const EXAMPLE_MP3 = "https://audio.test/Lingala/examples/P/example.mp3";
+
+  // Record every URL handed to the Audio constructor, so this asserts which clip
+  // a button actually plays. A regression that passed the sense's own audio_url
+  // to the example button would keep the right label and still be wrong.
+  await page.addInitScript(() => {
+    window.__played = [];
+    const Original = window.Audio;
+    window.Audio = function (src) {
+      window.__played.push(src);
+      const audio = new Original(src);
+      audio.play = () => Promise.resolve();
+      return audio;
+    };
+  });
+
+  // Playwright matches routes in REVERSE registration order: the catch-all goes
+  // first and the specific ones override it.
+  await page.route("**/rest/v1/**", route => route.fulfill({
+    status: 200, contentType: "application/json", body: "[]",
+  }));
+  await page.route("**/rest/v1/languages*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify([
+      { id: 1, name: "Lingala", code: "lin", status: "active" },
+      { id: 2, name: "Yoruba", code: "yor", status: "active" },
+    ]),
+  }));
+  await page.route("**/rest/v1/words*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify([{ id: 501, french_word: "Pipi", senses: [{ dialect_word: "Ko suba" }] }]),
+  }));
+  // Two senses: one fully recorded, one with no audio at all. The second proves
+  // AudioButton still renders nothing rather than a dead control.
+  await page.route("**/rest/v1/senses*", route => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify([
+      {
+        id: 900, sense_number: 1, dialect_word: "Ko suba", audio_url: WORD_MP3,
+        examples: [{ id: 1, sentence_dialect: "Mwana na ngai ya mobali asubi.", sentence_french: "Mon fils a fait pipi", audio_url: EXAMPLE_MP3 }],
+      },
+      {
+        id: 901, sense_number: 2, dialect_word: "Ko sopa", audio_url: null,
+        examples: [{ id: 2, sentence_dialect: "Asopi mai.", sentence_french: "Il a renversé de l'eau", audio_url: null }],
+      },
+    ]),
+  }));
+
+  await page.goto("/");
+  await expect(page.locator("#landing-dictionary")).toBeVisible();
+  await page.locator(".m-landing-dictionary input").fill("pipi");
+  await page.locator(".m-landing-dictionary form").evaluate(form => form.requestSubmit());
+
+  const row = page.locator(".m-landing-dict-row").first();
+  await expect(row).toBeVisible();
+  await row.locator("button").first().click();
+  await expect(page.locator(".m-landing-sense")).toHaveCount(2);
+
+  // Recorded audio gets a button on BOTH the word and its example; the silent
+  // sense gets neither.
+  await expect(page.locator(".m-landing-sense-head button")).toHaveCount(1);
+  await expect(page.locator(".m-landing-sense-example button")).toHaveCount(1);
+
+  await page.locator(".m-landing-sense-example button").click();
+  await expect.poll(() => page.evaluate(() => window.__played)).toContain(EXAMPLE_MP3);
+  expect(await page.evaluate(() => window.__played)).not.toContain(WORD_MP3);
+
+  await page.locator(".m-landing-sense-head button").click();
+  await expect.poll(() => page.evaluate(() => window.__played)).toContain(WORD_MP3);
+});
+
 test("canonical SEO and crawl assets point only to monoko.africa", async ({ page, request }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Head metadata and crawl files are viewport-independent");
   await page.goto("/");
