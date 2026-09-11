@@ -1007,7 +1007,8 @@ button.m-chip { cursor: pointer; }
 .m-landing-sense { padding: 11px 13px; border-radius: 7px; background: var(--m-canvas); display: grid; gap: 7px; }
 .m-landing-sense-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .m-landing-sense-head b { color: var(--m-forest-2); font: 700 16px "Playfair Display", serif; }
-.m-landing-sense-example { display: grid; gap: 3px; }
+.m-landing-sense-example { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 3px 10px; }
+.m-landing-sense-example > div { min-width: 0; display: grid; gap: 3px; }
 .m-landing-sense-example i { color: var(--m-ink); font-size: 13px; line-height: 1.45; }
 .m-landing-sense-example span { color: var(--m-muted); font-size: 12px; line-height: 1.4; }
 
