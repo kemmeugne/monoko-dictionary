@@ -11,7 +11,9 @@ if (start < 0 || end < 0) throw new Error("conjugation example logic markers not
 
 const context = {
   fold: value => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase(),
-  lessonWords: value => String(value || "").match(/[\p{L}]+(?:[-'’ʼ][\p{L}]+)*/gu) || [],
+  // Must mirror index.html's lessonWords: \p{M} keeps Yoruba tone marks attached,
+  // which have no precomposed codepoint and otherwise end the token.
+  lessonWords: value => String(value || "").match(/[\p{L}\p{M}]+(?:[-'’ʼ][\p{L}\p{M}]+)*/gu) || [],
   Set,
   Map,
 };

@@ -605,6 +605,27 @@ What the landing preview shows and the app cannot is the *structured* answer
 ("On peut dire : / lingala / french"): the real assistant streams free prose from
 the model, so only the shell is shared, never a fixed answer template.
 
+**Short grammar words are highlighted too (2026-09-11).**
+`lessonItemHighlightProfile` dropped every word of two letters or fewer, which
+silenced exactly the lessons built on short words: *Pronoms sujets*, *Pronoms
+compléments*, *Pronoms possessifs*, *Conjonctions*, *Prépositions et mots de
+liaison*, *Adverbes de quantité*. "Tu / O", "Te / Mi" and "Na ngai" marked
+nothing while vocabulary rows worked, so the feature looked half-broken. The
+length guard now applies only to entries of **more than three words** — real
+phrases, where a short word is filler — and never to terms, where the short word
+IS the entry. 37 rows went from highlighting nothing to highlighting correctly.
+
+**`lessonWords` keeps combining marks.** Yoruba stacks a tone mark on `ọ`/`ẹ` and
+those pairs have **no precomposed codepoint**, so NFC cannot fix them and
+`[\p{L}]+` ended the token at the mark: `Wọ́n` tokenised as `["Wọ","n"]`,
+`ọ̀gẹ̀dẹ̀` as three fragments. 528 of 2,299 lesson rows contain decomposed text.
+The old length guard hid the damage; once terms keep short words it would have
+started marking stray letters. The pattern is `[\p{L}\p{M}]+` in both
+`lessonWords` and `FocusedText`, which **must stay in step** or FocusedText's word
+indexes drift from the profile's. `tests/lesson-highlight.test.js` slices the
+block between `LESSON_HIGHLIGHT_START`/`END` and covers both rules; it was
+confirmed to fail 8/11 against the old code.
+
 **Leaving a lesson restores your place on the trail (2026-09-11).** The `view`
 effect used to scroll to the top for `home`, `courses` and `profile` alike, so
 closing a lesson threw the learner back to the start of a 49-node trail they had

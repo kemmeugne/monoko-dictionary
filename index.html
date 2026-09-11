@@ -3143,7 +3143,8 @@
     // to see is that the stem never moves and only the prefix does. Rendered as
     // tense tabs rather than a 5x6 matrix, because thirty cells will not fit a
     // 375px column without becoming unreadable.
-    const lessonWords = text => String(text || "").match(/[\p{L}]+(?:[-'’ʼ][\p{L}]+)*/gu) || [];
+    // LESSON_HIGHLIGHT_START
+    const lessonWords = text => String(text || "").match(/[\p{L}\p{M}]+(?:[-'’ʼ][\p{L}\p{M}]+)*/gu) || [];
 
     const conjugationHighlightProfile = forms => {
       const french = new Set(), dialect = new Set(), tenses = new Set();
@@ -3160,9 +3161,19 @@
 
     const lessonItemHighlightProfile = item => {
       if (!item?.example_french && !item?.example_dialect) return null;
+      // Grammar lessons teach short function words — "O", "Te", "Na ngai", "Ya biso".
+      // A flat >2-letter guard silenced exactly those entries: the pronoun,
+      // preposition and conjunction lessons highlighted nothing at all. Keep the
+      // guard for real phrases, where short words are filler and marking them is
+      // noise, and drop it for terms, where the short word IS what is being taught.
+      const marks = value => {
+        const words = lessonWords(value);
+        const isTerm = words.length <= 3;
+        return words.map(fold).filter(word => word && (isTerm || word.length > 2));
+      };
       return {
-        french: new Set(lessonWords(item.french).filter(word => fold(word).length > 2).map(fold)),
-        dialect: new Set(lessonWords(item.dialect).filter(word => fold(word).length > 2).map(fold)),
+        french: new Set(marks(item.french)),
+        dialect: new Set(marks(item.dialect)),
         tenses: new Set(),
       };
     };
@@ -3180,10 +3191,11 @@
       if ((tenses.has("imparfait") || tenses.has("passe_prog")) && /aki$/.test(value)) return true;
       return false;
     };
+    // LESSON_HIGHLIGHT_END
 
     const FocusedText = ({ text, language, profile }) => {
       if (!text || !profile) return <React.Fragment>{text}</React.Fragment>;
-      const parts = String(text).split(/([\p{L}]+(?:[-'’ʼ][\p{L}]+)*)/gu);
+      const parts = String(text).split(/([\p{L}\p{M}]+(?:[-'’ʼ][\p{L}\p{M}]+)*)/gu);
       let wordIndex = -1;
       return <React.Fragment>{parts.map((part, index) => {
         if (/^[\p{L}]/u.test(part)) wordIndex += 1;
